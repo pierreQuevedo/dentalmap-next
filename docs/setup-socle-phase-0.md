@@ -702,3 +702,83 @@ Règles :
 | Webhook WP | publier un conseil sur la préprod | log Vercel montrant le POST `/api/revalidate` |
 
 Quand cette table est entièrement verte, la phase 1 (jobs n8n et import ANS/INSEE) peut démarrer sur une branche Neon dédiée.
+
+## Écarts constatés à l'exécution
+
+Relevés pendant l'exécution du 10 septembre 2026. Chaque entrée corrige une commande du document qui a échoué telle quelle.
+
+### Étape 1
+
+- `git init -b main` est inutile : `create-next-app` initialise déjà un dépôt sur `main`. La commande échoue si elle est lancée après le scaffold.
+- La commande de protection de branche ne passe pas avec la notation `-f cle[sous_cle]=valeur`, `gh` ne sérialise pas les objets imbriqués ainsi. Utiliser un fichier JSON et `--input` :
+  ```bash
+  gh api -X PUT repos/pierreQuevedo/dentalmap-next/branches/main/protection --input protection.json
+  ```
+- La protection de branche et les rulesets sont refusés en HTTP 403 sur un dépôt privé quand le compte GitHub est en plan Free. Le dépôt a été passé en public sur décision de Pierre, la protection s'applique alors sans surcoût.
+
+### Étape 2
+
+- `next.config.ts` listait deux fois le `remotePattern` `cms.dentalmap.fr`. Dédupliqué.
+- Le `.gitignore` du scaffold contient `.env*`, ce qui exclut aussi `.env.example`. Remplacé par `.env` et `.env*.local`. Attention : `vercel link` réécrit `.env*` en fin de fichier, il faut le corriger après chaque exécution.
+
+### Étape 3
+
+- `@better-auth/cli` est déprécié sur npm et figé en 1.4.21 face à `better-auth` 1.7.4, ce qui produit trois peer dependencies non satisfaites. Le paquet successeur est `auth`, publié par le même éditeur à la même version. Le script devient `"auth:generate": "auth generate --output src/db/auth-schema.ts -y"`.
+- `pnpm add graphql` installe la 17.x, incompatible avec `graphql-config` (peer `^16` au maximum) dont dépend `@graphql-codegen/cli`. Épingler `graphql@^16`.
+- `@graphql-typed-document-node/core` est requis par `src/lib/wp/client.ts` et n'est pas tiré automatiquement. À ajouter en devDependency.
+- `@types/node` doit être en `^22` pour correspondre au runtime Node 22, le scaffold installe la 20.x.
+
+### Étape 4
+
+- `vercel link` crée le projet dans le scope courant du CLI, pas dans celui passé en `--scope`. Vérifier `vercel teams ls` avant.
+- Les comptes Vercel récents (type « northstar ») n'ont pas de scope personnel : `vercel teams switch <username>` renvoie `personal_scope_not_allowed`. Tout projet vit dans une équipe.
+
+### Étapes 5 et 6
+
+- `drizzle-orm` 0.45.2 ignore l'option `srid` de `geometry()` : `getSQLType()` renvoie toujours `geometry(point)` et `mapToDriverValue()` sérialise `point(x y)`, soit du WKT sans SRID. Les positions seraient stockées en SRID 0 et toute comparaison avec un point 4326 lèverait « Operation on mixed SRID geometries ». Un type custom `point4326` est défini dans `src/db/columns.ts` : il produit `geometry(Point,4326)` dans le DDL, sérialise en EWKT `SRID=4326;POINT(x y)` et décode l'EWKB en retour. Il est utilisé pour `communes.centre` et `lieux_exercice.position`. Ce choix garde `drizzle-kit generate` et `drizzle-kit push` cohérents, un simple `ALTER` posé à la main aurait été défait par le `push` des Preview Deployments.
+
+### Étape 11
+
+- `pnpm codegen` passe par `dotenv-cli`, qui échoue si `.env.local` est absent. Sur un runner GitHub le fichier n'existe pas : la CI l'écrit depuis les secrets avant d'appeler `pnpm codegen`.
+- `pnpm/action-setup@v4` ne doit pas recevoir de `version:` quand `package.json` contient un champ `packageManager`, sinon l'action échoue sur une spécification de version en double.
+
+### Étape 12
+
+- `vercel-build` appelait `pnpm db:migrate` et `pnpm codegen`, tous deux préfixés par `dotenv -e .env.local`. Sur un build Vercel les variables sont injectées dans l'environnement et `.env.local` n'existe pas. Deux variantes sans `dotenv` ont été ajoutées :
+  ```json
+  "db:migrate:deploy": "drizzle-kit migrate",
+  "codegen:deploy": "graphql-codegen --config codegen.ts",
+  "vercel-build": "if [ \"$VERCEL_ENV\" = \"preview\" ]; then pnpm db:push:preview; else pnpm db:migrate:deploy; fi && pnpm codegen:deploy && next build"
+  ```
+
+### Étape 7.0
+
+- Il n'y a pas de `php` dans le PATH de la session SSH, et `/usr/local` n'est pas listable, ce qui fait échouer les globs. Les binaires existent en chemin absolu : `/usr/local/php8.3/bin/php` (8.3.31), et aussi 7.4, 8.2, 8.4, 8.5. WP-CLI doit donc être appelé par un wrapper :
+  ```sh
+  #!/bin/sh
+  exec /usr/local/php8.3/bin/php $HOME/bin/wp-cli.phar "$@"
+  ```
+  `~/bin` est déjà dans le PATH par défaut, la ligne à ajouter dans `~/.bashrc` est facultative.
+- WP-CLI 2.12 détecte MariaDB et appelle `mariadb-dump`, absent de la machine, seul `/usr/bin/mysqldump` est présent. Shim nécessaire dans `~/bin/mariadb-dump`.
+- `wp db export --no-tablespaces` est traduit par WP-CLI en `--tablespaces=`, que `mysqldump` rejette (`unknown variable 'tablespaces='`). Le dump est fait directement avec `mysqldump`.
+- `DB_HOST` vaut `dentalk426.mysql.db:3306`. `mysqldump` n'accepte pas la notation `hôte:port`, il faut séparer `-h` et `-P`. Passer par un fichier d'identifiants temporaire en mode 600 plutôt que `-p'<pass>'`, qui exposerait le mot de passe dans la liste des processus d'une machine mutualisée :
+  ```bash
+  RAW=$(wp config get DB_HOST); HOST=${RAW%%:*}; PORT=${RAW##*:}
+  CNF=$(mktemp ~/.my.XXXXXX); chmod 600 $CNF
+  { echo "[client]"; echo "host=$HOST"; echo "port=$PORT"; echo "user=$(wp config get DB_USER)"; printf "password=%s\n" "$(wp config get DB_PASSWORD)"; } > $CNF
+  mysqldump --defaults-file=$CNF --no-tablespaces --single-transaction --quick --default-character-set=utf8mb4 "$(wp config get DB_NAME)" | gzip > ~/backup-ancien-wp/db-$(date +%F).sql.gz
+  rm -f $CNF
+  ```
+
+### État relevé sur le serveur avant migration
+
+| Élément | Valeur |
+|---|---|
+| Hôte SSH | ssh02.cluster100.gra.hosting.ovh.net |
+| WordPress | 7.0.2 |
+| Moteur PHP de l'hébergement | 8.5 (`app.engine.version` dans `~/.ovhconfig`) |
+| Base | `dentalk426` sur `dentalk426.mysql.db:3306`, préfixe `mod919_`, 82 Mo, 61 tables |
+| `~/www` | 713 Mo, dont `wp-content` 519 Mo et `uploads` 56 Mo (173 fichiers) |
+| Déploiement Git OVH | `~/www/.git` vers `git@github.com:pierreQuevedo/dentalmap.git` |
+| Plugins en place | elementor, elementor-pro, essential-addons, unlimited-elements, la suite Jet (engine, elements, search, smart-filters, tabs, theme-core, formbuilder, visibility-conditions, login-action), crocoblock-wizard, dentalmap, dentistes-meta-rest, praticien-geo-taxonomy, seo-by-rank-math, wordfence, manage |
+| Thèmes | hello-elementor, hello-elementor-child, twentytwentyfive |

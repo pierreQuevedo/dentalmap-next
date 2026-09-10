@@ -3,18 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "auth:generate": "auth generate --output src/db/auth-schema.ts -y",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "check": "pnpm typecheck && pnpm lint && pnpm build",
+    "codegen": "dotenv -e .env.local -- graphql-codegen --config codegen.ts",
+    "codegen:deploy": "graphql-codegen --config codegen.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
-    "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
+    "db:migrate:deploy": "drizzle-kit migrate",
     "db:push:preview": "drizzle-kit push",
-    "auth:generate": "auth generate --output src/db/auth-schema.ts -y",
-    "codegen": "dotenv -e .env.local -- graphql-codegen --config codegen.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm build"
+    "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
+    "dev": "next dev",
+    "lint": "eslint .",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "vercel-build": "if [ \"$VERCEL_ENV\" = \"preview\" ]; then pnpm db:push:preview; else pnpm db:migrate:deploy; fi && pnpm codegen:deploy && next build"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
@@ -33,6 +36,7 @@
   "devDependencies": {
     "@graphql-codegen/cli": "^7.4.1",
     "@graphql-codegen/client-preset": "^6.1.3",
+    "@graphql-typed-document-node/core": "^3.2.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.20.2",
     "@types/react": "^19",
