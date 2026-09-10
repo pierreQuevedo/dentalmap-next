@@ -770,6 +770,39 @@ Relevés pendant l'exécution du 10 septembre 2026. Chaque entrée corrige une c
   rm -f $CNF
   ```
 
+### Étape 7.1 et 7.2 (suite)
+
+- OVH ne crée pas de `.htaccess` dans le dossier d'un nouveau multisite, et `wp rewrite flush` refuse d'en générer un (« Regenerating a .htaccess file requires special configuration »). Sans lui, `/graphql` renvoie un 404 Apache alors que WordPress tourne. Le fichier est à écrire à la main dans `~/cms/.htaccess` avec les règles WordPress standard.
+- Le thème activé est `dentalmap-headless`, pas `twentytwentyfive`. La section 7.3 prévoit ce thème dans le dépôt `dentalmap-cms`, et ACF lit `acf-json/` dans le thème actif : le laisser sur un thème du cœur ferait perdre le dossier à chaque mise à jour de WordPress.
+
+### Étape 7.3
+
+- `wp_die('DentalMap CMS')` répond en HTTP 500, alors que la definition of done attend un 200 sur la racine du CMS. Il faut passer le statut explicitement : `wp_die('DentalMap CMS', 'DentalMap CMS', ['response' => 200])`.
+- Le mu-plugin du document d'architecture déclare les CPT avec `'public' => false` et sans `publicly_queryable`. WPGraphQL considère alors le contenu comme privé (`src/Model/Post.php`, la condition est `public || publicly_queryable`), et toute requête anonyme renvoie des nœuds vides, y compris pour un contenu publié. Il faut ajouter `'publicly_queryable' => true`. Rien n'est exposé pour autant, le hook `template_redirect` coupe déjà tout le front du CMS.
+- Le filtre `graphql_introspection_enabled` ne suffit pas à ouvrir l'introspection aux requêtes anonymes. WPGraphQL 2.x la pilote par l'option `graphql_general_settings`, clé `public_introspection_enabled`. L'option n'existe pas tant qu'elle n'a jamais été enregistrée :
+  ```bash
+  wp option update graphql_general_settings --format=json <<< '{"public_introspection_enabled":"on"}'
+  ```
+
+### Étape 7.4
+
+- Les groupes de champs n'ont pas besoin d'être saisis dans l'interface. ACF 6.8 fournit `wp acf json import <fichier>`, ce qui permet de créer les cinq groupes en une commande, puis `wp acf json export --dir=...` pour les écrire dans le thème. L'export produit un seul fichier groupé, alors que la synchronisation ACF attend un fichier par groupe nommé d'après sa clé : il faut le découper.
+- Les champs `select` sont exposés par WPGraphQL for ACF sous forme de liste, même avec `multiple: 0`. Une valeur simple arrive donc en `["patients"]` et non `"patients"`, à prendre en compte côté Next.js.
+
+### Étape 10
+
+- `db.execute()` renvoie `{ fields, command, rowCount, rows, rowAsArray }` avec le driver `neon-http`, ce n'est pas un tableau. La déstructuration `const [{ postgis }] = await db.execute(...)` du document échoue. Il faut lire `.rows[0]`.
+- La page doit être dynamique. Avec Cache Components, `next build` prérend `/setup-check`, exécute la fonction `'use cache'` qui interroge WordPress, et une source injoignable fait échouer la compilation entière. Un `try/catch` dans le composant ne rattrape pas cette erreur, elle remonte au niveau de la route. Un `await connection()` en tête de chaque bloc suffit : la page devient un prérendu partiel, coquille statique et contenu streamé à la demande, ce qui est de toute façon le bon comportement pour une page de diagnostic.
+- ESLint refuse la construction de JSX à l'intérieur d'un `try/catch` (règle `react-hooks/error-boundaries`). Les appels aux sources doivent renvoyer un résultat, et le JSX se construire ensuite.
+
+### Étape 11 (suite)
+
+- `pnpm typecheck` échoue sur un dépôt fraîchement cloné : `LayoutProps` et `PageProps` sont des types globaux générés dans `.next/types` par `next dev` ou `next build`. Comme la CI lance `typecheck` avant `build`, elle échoue systématiquement. Le script devient `"typecheck": "next typegen && tsc --noEmit"`.
+
+### Étape 8 (révision)
+
+- Le codegen lit désormais `./schema.graphql`, versionné dans le dépôt, et non l'endpoint en ligne. Le document prévoyait ce basculement seulement avant la coupure de l'introspection ; le faire tout de suite évite qu'une indisponibilité du CMS casse la CI et les déploiements Vercel, qui appellent tous les deux `codegen`. Le schéma se rafraîchit par `pnpm schema:pull` après toute modification de CPT ou de groupe ACF. La sortie générée est identique à celle obtenue depuis l'endpoint.
+
 ### État relevé sur le serveur avant migration
 
 | Élément | Valeur |

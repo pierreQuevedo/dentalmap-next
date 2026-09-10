@@ -1,27 +1,54 @@
 import { Suspense } from 'react'
+import { connection } from 'next/server'
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { getConseilsRecents } from '@/lib/wp/queries'
 
 // Page de contrôle du socle, à supprimer avant la bascule en production.
+//
+// `connection()` rend les deux blocs dynamiques : une page de diagnostic doit refléter
+// l'état courant, pas un instantané figé au build. Sans elle, Cache Components prérend
+// la page pendant `next build` et une source injoignable fait échouer la compilation.
+//
+// Chaque source est interrogée dans une fonction qui renvoie un résultat plutôt que de
+// lever, pour que l'indisponibilité de l'une soit affichée au lieu de casser la page.
 
-async function DbStatus() {
+type Resultat<T> = { ok: true; valeur: T } | { ok: false; message: string }
+
+async function tenter<T>(travail: () => Promise<T>): Promise<Resultat<T>> {
+  try {
+    return { ok: true, valeur: await travail() }
+  } catch (erreur) {
+    return { ok: false, message: erreur instanceof Error ? erreur.message : String(erreur) }
+  }
+}
+
+async function lireNeon() {
   // db.execute renvoie { rows, rowCount, ... } avec le driver neon-http, pas un tableau.
   const version = await db.execute<{ postgis: string }>(sql`SELECT postgis_version() AS postgis`)
-  const count = await db.execute<{ n: number }>(sql`SELECT count(*)::int AS n FROM praticiens`)
+  const total = await db.execute<{ n: number }>(sql`SELECT count(*)::int AS n FROM praticiens`)
+  return { postgis: version.rows[0]?.postgis ?? 'inconnu', praticiens: total.rows[0]?.n ?? 0 }
+}
+
+async function DbStatus() {
+  await connection()
+  const r = await tenter(lireNeon)
+  if (!r.ok) return <p className="text-red-700">Neon indisponible : {r.message}</p>
   return (
     <p>
-      Neon OK, PostGIS {version.rows[0]?.postgis ?? 'inconnu'}, {count.rows[0]?.n ?? 0} praticien(s) en base.
+      Neon OK, PostGIS {r.valeur.postgis}, {r.valeur.praticiens} praticien(s) en base.
     </p>
   )
 }
 
 async function WpStatus() {
-  const conseils = await getConseilsRecents(3)
-  if (conseils.length === 0) return <p>WordPress répond, aucun conseil publié.</p>
+  await connection()
+  const r = await tenter(() => getConseilsRecents(3))
+  if (!r.ok) return <p className="text-red-700">WordPress indisponible : {r.message}</p>
+  if (r.valeur.length === 0) return <p>WordPress répond, aucun conseil publié.</p>
   return (
     <ul>
-      {conseils.map((c) => (
+      {r.valeur.map((c) => (
         <li key={c.id}>
           {c.title} ({c.conseilFields?.tempsLecture ?? '?'} min)
         </li>
