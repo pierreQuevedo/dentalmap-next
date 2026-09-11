@@ -25,6 +25,7 @@ import { sql, eq, isNull, and, inArray } from 'drizzle-orm'
 import { db } from '@/db'
 import { praticiens, lieuxExercice } from '@/db/schema'
 import { encadrer } from './lib/run'
+import { recalculerIndexables } from './lib/indexable'
 import { slugifier } from './lib/slug'
 import { lireAns, PROFESSION_DENTISTE, type LigneAns } from './lib/ans'
 import { assurerSource, ressourceDataGouv } from './lib/source'
@@ -255,16 +256,8 @@ async function principal() {
     }
     if (disparus.length > 0) console.log(`[ans] ${disparus.length} praticiens marqués disparus`)
 
-    // 6. Indexabilité provisoire : un praticien est indexable s'il a au moins un
-    //    lieu avec une adresse. Le géocodage la resserrera ensuite sur les
-    //    praticiens réellement positionnés.
-    await db.execute(sql`
-      UPDATE praticiens p SET indexable = EXISTS (
-        SELECT 1 FROM lieux_exercice l
-        WHERE l.praticien_id = p.id AND l.adresse_ligne IS NOT NULL
-      )
-      WHERE p.profession = 'dentiste' AND p.deleted_at IS NULL
-    `)
+    const idx = await recalculerIndexables()
+    console.log(`[ans] ${idx.indexables}/${idx.total} praticiens indexables`)
 
     return { praticiens: listePraticiens.length, lieux: listeLieux.length, disparus: disparus.length }
   })
