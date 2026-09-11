@@ -8,6 +8,7 @@ import {
 } from '@/lib/annuaire/queries'
 import { BASE_URL, nomAffiche, type Profession } from '@/lib/annuaire/types'
 import { Adresse, chemin, FilAriane, Telephone, Verification } from './primitives'
+import { Balisage, filAriane } from '@/lib/seo/jsonld'
 
 type Params = { departement: string; commune: string }
 
@@ -50,6 +51,14 @@ export async function PageCommune({ profession, params }: { profession: Professi
 
   return (
     <>
+      <Balisage
+        donnees={filAriane([
+          { nom: 'Accueil', chemin: '/' },
+          { nom: `${l.pluriel.charAt(0).toUpperCase()}${l.pluriel.slice(1)}`, chemin: `/${base}/` },
+          { nom: c.departementNom, chemin: `/${base}/${departement}/` },
+          { nom: c.nom, chemin: `/${base}/${departement}/${commune}/` },
+        ])}
+      />
       <FilAriane
         segments={[
           { libelle: 'Accueil', href: '/' },

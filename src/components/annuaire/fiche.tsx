@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { getPraticien } from '@/lib/annuaire/queries'
 import { BASE_URL, nomAffiche, type Profession } from '@/lib/annuaire/types'
 import { Adresse, chemin, FilAriane, Section, Telephone, Verification } from './primitives'
+import { Balisage, fichePraticien, filAriane } from '@/lib/seo/jsonld'
 
 type Params = { departement: string; commune: string; slug: string }
 
@@ -48,8 +49,19 @@ export async function PageFiche({ profession, params }: { profession: Profession
   // clairement qu'il ne figure plus au registre.
   const radie = p.supprimeLe !== null
 
+  const cheminFiche = `/${base}/${departement}/${commune}/${slug}/`
+
   return (
     <>
+      <Balisage donnees={fichePraticien(p, cheminFiche, nom)} />
+      <Balisage
+        donnees={filAriane([
+          { nom: 'Accueil', chemin: '/' },
+          { nom: LIBELLE[profession].pluriel, chemin: `/${base}/` },
+          { nom: principal?.communeNom ?? commune, chemin: `/${base}/${departement}/${commune}/` },
+          { nom, chemin: cheminFiche },
+        ])}
+      />
       <FilAriane
         segments={[
           { libelle: 'Accueil', href: '/' },

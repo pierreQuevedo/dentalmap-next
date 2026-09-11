@@ -105,3 +105,35 @@ function formaterSegment(valeur: string): string {
     .map((mot) => (FORMES_JURIDIQUES.has(mot.toUpperCase()) ? mot.toUpperCase() : motCompose(mot.toLowerCase())))
     .join(' ')
 }
+
+/**
+ * Mise en forme d'une adresse.
+ *
+ * L'Annuaire Santé livre « 38 RUE VITAL CARLES ». On recasse en gardant les
+ * numéros, les indices de répétition et les points cardinaux, qui sont des
+ * abréviations et non des mots.
+ */
+const ABREVIATIONS_ADRESSE = new Set(['BP', 'CS', 'ZI', 'ZA', 'ZAC', 'RN', 'RD', 'CD', 'CHU', 'CHR', 'EHPAD'])
+
+/**
+ * Articles élidés. La source perd les apostrophes : « COURS DE L INTENDANCE ».
+ * Un « L » isolé y est un article, pas une initiale. Le cas ne se pose que dans
+ * les adresses, on ne l'ajoute donc pas aux particules des noms de personnes.
+ */
+const ARTICLES_ELIDES = new Set(['l', 'd'])
+
+export function formaterAdresse(valeur: string | null | undefined): string {
+  if (!valeur) return ''
+  return valeur
+    .trim()
+    .split(/\s+/)
+    .map((mot) => {
+      // Numéros, codes et références restent tels quels : « 38 », « 3B », « A2 ».
+      if (/\d/.test(mot)) return mot.toUpperCase() === mot ? mot : mot
+      if (ABREVIATIONS_ADRESSE.has(mot.toUpperCase())) return mot.toUpperCase()
+      const bas = mot.toLowerCase()
+      if (PARTICULES.has(bas) || ARTICLES_ELIDES.has(bas)) return bas
+      return motCompose(bas)
+    })
+    .join(' ')
+}

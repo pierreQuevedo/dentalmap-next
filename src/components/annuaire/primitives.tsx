@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Route } from 'next'
+import { formaterAdresse } from '@/lib/annuaire/nom'
 
 /**
  * Les chemins de l'annuaire sont composés à l'exécution à partir de slugs venus
@@ -72,7 +73,7 @@ export function Adresse({
   if (!ligne && !commune) return null
   return (
     <address className="not-italic text-slate-700">
-      {ligne && <span className="block">{ligne}</span>}
+      {ligne && <span className="block">{formaterAdresse(ligne)}</span>}
       {(codePostal || commune) && (
         <span className="block">
           {codePostal} {commune}
