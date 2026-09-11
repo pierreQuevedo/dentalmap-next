@@ -90,11 +90,6 @@ export default function Accueil() {
           <li>Aucun avis, aucune note. Un annuaire de professionnels de santé n&apos;est pas un site d&apos;avis.</li>
           <li>Aucune information déclarative présentée comme officielle.</li>
         </ul>
-        <p className="mt-4">
-          <Link href={chemin('/methode-de-verification/')} className="text-slate-900 underline hover:no-underline">
-            Notre méthode de vérification et de classement
-          </Link>
-        </p>
       </section>
     </main>
   )

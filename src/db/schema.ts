@@ -34,10 +34,22 @@ export const communes = pgTable('communes', {
   type: text('type', { enum: ['commune', 'arrondissement'] }).notNull().default('commune'),
   /** Commune mère d'un arrondissement, nulle pour une commune ordinaire. */
   communeParenteCode: text('commune_parente_code'),
+  /**
+   * Nom réduit à sa forme cherchable : minuscules, sans accents ni ponctuation.
+   *
+   * Permet une autocomplétion tolérante aux fautes et aux accents manquants
+   * (« bordeau », « chalon sur saone ») avec un index trigramme. L'alternative
+   * aurait été l'extension `unaccent`, dont la fonction n'est pas immuable et
+   * ne peut donc pas être indexée sans contournement.
+   *
+   * Calculée par `sync-geo`, jamais saisie.
+   */
+  nomRecherche: text('nom_recherche'),
 }, (t) => [
   uniqueIndex('communes_dep_slug').on(t.departementCode, t.slug),
   index('communes_parente').on(t.communeParenteCode),
   index('communes_nom_trgm').using('gin', t.nom.op('gin_trgm_ops')),
+  index('communes_recherche_trgm').using('gin', t.nomRecherche.op('gin_trgm_ops')),
 ])
 
 

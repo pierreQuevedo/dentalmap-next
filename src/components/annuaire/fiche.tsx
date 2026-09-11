@@ -153,11 +153,7 @@ export async function PageFiche({ profession, params }: { profession: Profession
           </dd>
         </dl>
         <p className="mt-4 text-sm text-slate-600">
-          Ces informations proviennent de registres publics et ne sont pas modifiables par le professionnel.{' '}
-          <Link href={chemin('/methode-de-verification/')} className="underline hover:text-slate-900">
-            Notre méthode de vérification
-          </Link>
-          .
+          Ces informations proviennent de registres publics et ne sont pas modifiables par le professionnel.
         </p>
       </Section>
 

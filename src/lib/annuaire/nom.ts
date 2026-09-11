@@ -69,18 +69,6 @@ export function formaterNom(valeur: string | null | undefined): string {
  */
 const FORMES_JURIDIQUES = new Set(['SARL', 'SAS', 'SASU', 'EURL', 'SCP', 'SELARL', 'SNC', 'SA', 'SCI', 'SCM', 'EI'])
 
-/**
- * Sirene renvoie « RAISON SOCIALE (ENSEIGNE) ». Quand l'enseigne répète la
- * raison sociale, la parenthèse n'apporte rien et alourdit chaque titre de
- * fiche : on la retire.
- */
-function sansEnseigneRedondante(valeur: string): string {
-  const m = valeur.match(/^(.*?)\s*\((.+)\)\s*$/)
-  if (!m) return valeur
-  const [, principal = '', enseigne = ''] = m
-  const norme = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, '')
-  return norme(principal) === norme(enseigne) ? principal : valeur
-}
 
 export function formaterRaisonSociale(valeur: string | null | undefined): string {
   if (!valeur) return ''

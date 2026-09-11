@@ -13,7 +13,7 @@ import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { regions, departements, communes } from '@/db/schema'
 import { encadrer } from './lib/run'
-import { slugifier, slugCommune, slugUnique } from './lib/slug'
+import { formeCherchable, slugifier, slugCommune, slugUnique } from './lib/slug'
 
 const BASE = 'https://geo.api.gouv.fr'
 
@@ -154,6 +154,7 @@ async function principal() {
         codesPostaux: c.codesPostaux ?? [],
         population: c.population ?? null,
         centre: c.centre ? { x: c.centre.coordinates[0], y: c.centre.coordinates[1] } : null,
+        nomRecherche: formeCherchable(c.nom),
         type: estArrondissement ? 'arrondissement' : 'commune',
         communeParenteCode: estArrondissement ? (MERES[dep] ?? null) : null,
       })
@@ -176,6 +177,7 @@ async function principal() {
           codesPostaux: sql`excluded.codes_postaux`,
           population: sql`excluded.population`,
           centre: sql`excluded.centre`,
+          nomRecherche: sql`excluded.nom_recherche`,
           type: sql`excluded.type`,
           communeParenteCode: sql`excluded.commune_parente_code`,
         },

@@ -494,3 +494,145 @@ export async function getRedirection(chemin: string): Promise<string | null> {
   `)
   return rows[0]?.nouveau_chemin ?? null
 }
+
+export type PraticienProche = PraticienResume & { metres: number }
+
+/**
+ * Praticiens les plus proches d'un point.
+ *
+ * Le classement est la distance, puis l'ordre alphabétique à égalité. C'est la
+ * seule règle de tri de DentalMap, et elle est annoncée sur la page.
+ *
+ * La distance est calculée sur `geography`, en mètres. L'opérateur de plus
+ * proche voisin de PostGIS trie en degrés : sur un essai autour de Bordeaux il
+ * plaçait Talence à 6,3 km avant Cenon à 5,0 km. Il sert ici uniquement à
+ * présélectionner un ensemble via l'index GIST, le tri final étant métrique.
+ *
+ * Les positions approximatives, au centre d'une commune, sont exclues : les
+ * classer par distance donnerait un ordre faux.
+ */
+export async function getPraticiensProches(
+  profession: Profession,
+  lon: number,
+  lat: number,
+  rayonMetres = 20_000,
+  limite = 50,
+): Promise<PraticienProche[]> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const { rows } = await db.execute<{
+    slug: string
+    nom: string
+    prenom: string | null
+    raison_sociale: string | null
+    statut_verification: PraticienResume['statutVerification']
+    adresse_ligne: string | null
+    code_postal: string | null
+    telephone_officiel: string | null
+    commune_nom: string | null
+    commune_slug: string | null
+    departement_slug: string | null
+    lon: number | null
+    lat: number | null
+    metres: number
+  }>(sql`
+    WITH origine AS (SELECT ST_SetSRID(ST_MakePoint(${lon}, ${lat}), 4326) AS point)
+    SELECT DISTINCT ON (p.id)
+           p.slug, p.nom, p.prenom, p.raison_sociale, p.statut_verification,
+           l.adresse_ligne, l.code_postal, l.telephone_officiel,
+           c.nom AS commune_nom, c.slug AS commune_slug, d.slug AS departement_slug,
+           ST_X(l.position) AS lon, ST_Y(l.position) AS lat,
+           ST_Distance(l.position::geography, (SELECT point FROM origine)::geography)::int AS metres
+    FROM lieux_exercice l
+    JOIN praticiens p ON p.id = l.praticien_id
+    JOIN communes c ON c.code_insee = l.code_insee
+    JOIN departements d ON d.code = c.departement_code
+    WHERE p.profession = ${profession}
+      AND p.deleted_at IS NULL
+      AND NOT l.position_approximative
+      AND ST_DWithin(l.position::geography, (SELECT point FROM origine)::geography, ${rayonMetres})
+    ORDER BY p.id, metres
+    LIMIT ${limite * 4}
+  `)
+
+  return rows
+    .map((r) => ({
+      slug: r.slug,
+      nom: r.nom,
+      prenom: r.prenom,
+      raisonSociale: r.raison_sociale,
+      statutVerification: r.statut_verification,
+      adresseLigne: r.adresse_ligne,
+      codePostal: r.code_postal,
+      telephone: r.telephone_officiel,
+      communeNom: r.commune_nom,
+      communeSlug: r.commune_slug,
+      departementSlug: r.departement_slug,
+      lon: r.lon,
+      lat: r.lat,
+      metres: r.metres,
+    }))
+    .sort((a, b) => a.metres - b.metres || `${a.nom} ${a.prenom ?? ''}`.localeCompare(`${b.nom} ${b.prenom ?? ''}`, 'fr'))
+    .slice(0, limite)
+}
+
+/** Commune par son code INSEE, pour résoudre le point de départ d'une recherche. */
+export async function getCommuneParCode(codeInsee: string): Promise<Commune | null> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const { rows } = await db.execute<{
+    code_insee: string
+    nom: string
+    slug: string
+    departement_nom: string
+    departement_slug: string
+    population: number | null
+    lon: number | null
+    lat: number | null
+  }>(sql`
+    SELECT c.code_insee, c.nom, c.slug, d.nom AS departement_nom, d.slug AS departement_slug,
+           c.population, ST_X(c.centre) AS lon, ST_Y(c.centre) AS lat
+    FROM communes c JOIN departements d ON d.code = c.departement_code
+    WHERE c.code_insee = ${codeInsee} LIMIT 1
+  `)
+  const r = rows[0]
+  if (!r) return null
+  return {
+    codeInsee: r.code_insee,
+    nom: r.nom,
+    slug: r.slug,
+    departementNom: r.departement_nom,
+    departementSlug: r.departement_slug,
+    population: r.population,
+    lon: r.lon,
+    lat: r.lat,
+  }
+}
+
+/** Première commune correspondant à une saisie libre, pour le formulaire sans JavaScript. */
+export async function chercherCommune(texte: string): Promise<Commune | null> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const cherche = texte
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+  if (cherche.length < 2) return null
+  const estCodePostal = /^\d{5}$/.test(texte.trim())
+  const { rows } = await db.execute<{ code_insee: string }>(sql`
+    SELECT c.code_insee FROM communes c
+    WHERE ${
+      estCodePostal
+        ? sql`${texte.trim()} = ANY(c.codes_postaux)`
+        : sql`(c.nom_recherche = ${cherche} OR c.nom_recherche LIKE ${cherche + '%'} OR c.nom_recherche % ${cherche})`
+    }
+    ORDER BY (c.nom_recherche = ${cherche}) DESC, c.population DESC NULLS LAST
+    LIMIT 1
+  `)
+  return rows[0] ? getCommuneParCode(rows[0].code_insee) : null
+}

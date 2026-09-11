@@ -116,11 +116,7 @@ export async function PageCommune({ profession, params }: { profession: Professi
       )}
 
       <p className="mt-8 text-sm text-slate-600">
-        Le classement est alphabétique. Aucune mise en avant payante n&apos;existe sur DentalMap.{' '}
-        <Link href={chemin('/methode-de-verification/')} className="underline hover:text-slate-900">
-          Méthode de vérification et de classement
-        </Link>
-        .
+        Le classement est alphabétique. Aucune mise en avant payante n&apos;existe sur DentalMap.
       </p>
     </>
   )

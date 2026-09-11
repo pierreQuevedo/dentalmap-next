@@ -19,6 +19,12 @@ const nextConfig: NextConfig = {
    * site : `/dentistes/gironde/bordeaux/dr-martin-dupont/`. Sans ce réglage,
    * Next redirige en 308 vers la forme sans slash, ce qui casserait la parité
    * d'URL et ajouterait une redirection à chaque page indexée.
+   *
+   * Attention : le réglage vaut aussi pour les routes d'API. `/api/revalidate`
+   * renvoie une 308 vers `/api/revalidate/`, et `wp_remote_post` en mode non
+   * bloquant ne suit pas les redirections : le webhook WordPress est parti en
+   * silence jusqu'à ce que la constante soit corrigée. Tout appelant d'API doit
+   * inclure le slash final.
    */
   trailingSlash: true,
 }
