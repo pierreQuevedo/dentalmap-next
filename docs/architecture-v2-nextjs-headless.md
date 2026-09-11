@@ -411,3 +411,25 @@ BETTER_AUTH_URL=https://dentalmap.fr
 BLOB_READ_WRITE_TOKEN=         # Vercel Blob
 RESEND_API_KEY=                # emails transactionnels (liens magiques, codes)
 ```
+
+## 13. Décisions révisées
+
+Section ajoutée après coup. Le corps du document n'est pas modifié : ce qui suit le complète et prévaut sur lui.
+
+### 11 septembre 2026, après la phase 0
+
+**Synchronisation des registres : GitHub Actions remplace n8n.** La ligne « Synchronisation registres | n8n sur le VPS OVH » du tableau des décisions figées est révisée, sur arbitrage de Pierre. Les jobs deviennent des scripts TypeScript versionnés dans `dentalmap-next`, sous `scripts/sync/`, déclenchés par des workflows GitHub Actions planifiés. Motif principal : le fichier ANS pèse 781 Mo pour 2,3 millions de lignes, un volume incompatible avec le modèle d'exécution en mémoire de n8n, et les invariants métier du projet demandent revue en pull request et tests. n8n conserve l'alerte en fin de run. Le repli, si la latence des runners américains vers Neon Francfort devenait gênante, est le VPS OVH avec un timer systemd, les scripts étant identiques. Détail complet dans `phase-1-donnees.md`, section 2.
+
+**Référentiel géographique : `geo.api.gouv.fr` remplace le parsing des fichiers COG.** La même donnée, centroïde et population compris, est disponible en trois requêtes HTTP pour 18 régions, 101 départements et 34 969 communes. Le job `sync-cog` devient `sync-geo`.
+
+**Positions PostGIS : type de colonne `point4326`.** `drizzle-orm` 0.45.2 ignore l'option `srid` de `geometry()` et sérialise sans SRID. Le type custom de `src/db/columns.ts` produit `geometry(Point,4326)` dans le DDL et sérialise en EWKT. Ne pas revenir à `geometry()` de drizzle-orm. Détail dans `setup-socle-phase-0.md`, section des écarts.
+
+**Déclaration des CPT WordPress.** Le mu-plugin de la section 7.3 déclare les CPT avec `'public' => false` seul, ce qui fait renvoyer des nœuds vides à toute requête GraphQL anonyme. Il faut y ajouter `'publicly_queryable' => true`. La version en production dans le dépôt `dentalmap-cms` fait foi.
+
+### Points chiffrés à corriger dans le corps du document
+
+Mesurés sur les fichiers réels le 11 septembre 2026, ils infirment des ordres de grandeur avancés en section 10 et 11 :
+
+- Le fichier ANS contient **64 398 chirurgiens-dentistes distincts**, dont **49 155 avec une adresse exploitable** et **15 243 sans aucune adresse**. Le chiffre de 45 000 fiches employé dans le plan de migration correspond à peu près au sous-ensemble géolocalisable, pas à l'effectif total.
+- Les prothésistes dentaires **ne figurent dans aucun registre nominatif**. Ils sont absents de l'Annuaire Santé, et le code NAF 32.50A retenu en section 6 ne les isole pas, il couvre plus de 10 000 entreprises dont l'essentiel est hors sujet. Le périmètre prothésistes est en attente d'arbitrage.
+- Le taux de géocodage mesuré sur un lot de 1 000 adresses réelles est de **92,8 %** au seuil de score 0,6, contre 97 % visés en section 10. Voir `phase-1-donnees.md`, décision ouverte n° 3.
