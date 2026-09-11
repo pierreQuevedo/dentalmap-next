@@ -23,8 +23,20 @@ export const communes = pgTable('communes', {
   codesPostaux: text('codes_postaux').array().notNull().default([]),
   population: integer('population'),
   centre: point4326('centre'),
+  /**
+   * Les arrondissements municipaux de Paris, Lyon et Marseille sont stockés ici
+   * au même titre que les communes : c'est leur code que l'ANS porte dans les
+   * adresses d'exercice (75116, 13208...), et non celui de la commune mère.
+   * Sans eux, plusieurs milliers de lieux d'exercice auraient une clé étrangère
+   * orpheline. L'API géo ne les renvoie pas dans la liste générale, il faut la
+   * requête `?type=arrondissement-municipal`.
+   */
+  type: text('type', { enum: ['commune', 'arrondissement'] }).notNull().default('commune'),
+  /** Commune mère d'un arrondissement, nulle pour une commune ordinaire. */
+  communeParenteCode: text('commune_parente_code'),
 }, (t) => [
   uniqueIndex('communes_dep_slug').on(t.departementCode, t.slug),
+  index('communes_parente').on(t.communeParenteCode),
   index('communes_nom_trgm').using('gin', t.nom.op('gin_trgm_ops')),
 ])
 
