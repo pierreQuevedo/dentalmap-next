@@ -17,6 +17,7 @@
     "lint": "eslint .",
     "schema:pull": "scripts/schema-pull.sh",
     "start": "next start",
+    "sync:ans": "dotenv -e .env.local -- tsx scripts/sync/sync-ans.ts",
     "sync:geo": "dotenv -e .env.local -- tsx scripts/sync/sync-geo.ts",
     "typecheck": "next typegen && tsc --noEmit",
     "vercel-build": "if [ \"$VERCEL_ENV\" = \"preview\" ]; then pnpm db:push:preview; else pnpm db:migrate:deploy; fi && pnpm codegen:deploy && next build"
