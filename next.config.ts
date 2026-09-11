@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
     ],
   },
   typedRoutes: true,
+  /**
+   * Les URL de DentalMap se terminent par un slash, comme celles de l'ancien
+   * site : `/dentistes/gironde/bordeaux/dr-martin-dupont/`. Sans ce réglage,
+   * Next redirige en 308 vers la forme sans slash, ce qui casserait la parité
+   * d'URL et ajouterait une redirection à chaque page indexée.
+   */
+  trailingSlash: true,
 }
 
 export default nextConfig
