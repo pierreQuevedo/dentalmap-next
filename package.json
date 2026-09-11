@@ -5,7 +5,7 @@
   "scripts": {
     "auth:generate": "auth generate --output src/db/auth-schema.ts -y",
     "build": "next build",
-    "check": "pnpm typecheck && pnpm lint && pnpm build",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
     "codegen": "dotenv -e .env.local -- graphql-codegen --config codegen.ts",
     "codegen:deploy": "graphql-codegen --config codegen.ts",
     "db:generate": "drizzle-kit generate",
@@ -21,6 +21,8 @@
     "sync:geo": "dotenv -e .env.local -- tsx scripts/sync/sync-geo.ts",
     "sync:geocode": "dotenv -e .env.local -- tsx scripts/sync/geocode-ban.ts",
     "sync:prothesistes": "dotenv -e .env.local -- tsx scripts/sync/import-prothesistes.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "next typegen && tsc --noEmit",
     "vercel-build": "if [ \"$VERCEL_ENV\" = \"preview\" ]; then pnpm db:push:preview; else pnpm db:migrate:deploy; fi && pnpm codegen:deploy && next build"
   },
@@ -53,7 +55,8 @@
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.0"
   },
   "packageManager": "pnpm@10.33.2",
   "engines": {

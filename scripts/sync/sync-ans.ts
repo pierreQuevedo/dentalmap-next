@@ -26,13 +26,13 @@ import { db } from '@/db'
 import { praticiens, lieuxExercice } from '@/db/schema'
 import { encadrer } from './lib/run'
 import { recalculerIndexables } from './lib/indexable'
+import { doitBloquer, SEUIL_SUPPRESSION } from './lib/garde-fou'
 import { slugifier } from './lib/slug'
 import { lireAns, PROFESSION_DENTISTE, type LigneAns } from './lib/ans'
 import { assurerSource, ressourceDataGouv } from './lib/source'
 
 const DATASET = 'annuaire-sante-extractions-des-donnees-en-libre-acces-des-professionnels-intervenant-dans-le-systeme-de-sante-rpps'
 const RESOURCE = 'fffda7e9-0ea2-4c35-bba0-4496f3af935d'
-const SEUIL_SUPPRESSION = 0.05
 const LOT = 500
 
 const simule = process.argv.includes('--simule')
@@ -149,7 +149,7 @@ async function principal() {
       .where(and(eq(praticiens.profession, 'dentiste'), isNull(praticiens.deletedAt)))
     const disparus = enBase.filter((p) => !parPraticien.has(p.id)).map((p) => p.id)
     const part = enBase.length > 0 ? disparus.length / enBase.length : 0
-    if (enBase.length > 0 && part > SEUIL_SUPPRESSION) {
+    if (doitBloquer(enBase.length, disparus.length)) {
       run.bloquer(
         `${disparus.length} praticiens disparaîtraient sur ${enBase.length} en base, ` +
           `soit ${(part * 100).toFixed(1)} %, au-delà du seuil de ${SEUIL_SUPPRESSION * 100} %`,
