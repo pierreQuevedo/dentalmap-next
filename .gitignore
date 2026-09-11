@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Données sources fournies, hors dépôt : le dépôt est public
+/sources/

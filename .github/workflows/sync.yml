@@ -1,0 +1,81 @@
+name: synchronisation
+
+# Les jobs d'import tournent ici plutôt que sur n8n : le fichier de l'Annuaire
+# Santé pèse 780 Mo pour 2,3 millions de lignes, un volume incompatible avec un
+# outil de workflow visuel, et les règles métier de l'annuaire demandent revue
+# en pull request et tests.
+
+on:
+  schedule:
+    # Dimanche 2 h UTC, soit 3 h ou 4 h à Paris : l'Annuaire Santé republie son
+    # extraction quotidiennement, la nuit de dimanche évite le trafic.
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Job à lancer'
+        required: true
+        default: 'complet'
+        type: choice
+        options: [complet, geo, ans, geocode, prothesistes]
+      simule:
+        description: 'Simulation, aucune écriture'
+        type: boolean
+        default: false
+
+concurrency:
+  # Deux imports simultanés se marcheraient dessus sur les mêmes tables.
+  group: synchronisation
+  cancel-in-progress: false
+
+jobs:
+  synchroniser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+      REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+      REVALIDATE_URL: ${{ secrets.REVALIDATE_URL }}
+      VERCEL_PROTECTION_BYPASS: ${{ secrets.VERCEL_PROTECTION_BYPASS }}
+      SIMULE: ${{ inputs.simule && '--simule' || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+
+      - name: Référentiel géographique
+        if: ${{ inputs.job == 'geo' || inputs.job == 'complet' || github.event_name == 'schedule' }}
+        run: pnpm exec tsx scripts/sync/sync-geo.ts
+
+      - name: Chirurgiens-dentistes
+        if: ${{ inputs.job == 'ans' || inputs.job == 'complet' || github.event_name == 'schedule' }}
+        run: pnpm exec tsx scripts/sync/sync-ans.ts $SIMULE
+
+      - name: Géocodage
+        if: ${{ inputs.job == 'geocode' || inputs.job == 'complet' || github.event_name == 'schedule' }}
+        run: pnpm exec tsx scripts/sync/geocode-ban.ts
+
+      - name: Revalidation du cache Next.js
+        if: ${{ !inputs.simule }}
+        run: |
+          if [ -z "$REVALIDATE_URL" ]; then
+            echo "REVALIDATE_URL absent, revalidation ignorée"
+            exit 0
+          fi
+          code=$(curl -s -o /tmp/rev.json -w '%{http_code}' -X POST "$REVALIDATE_URL" \
+            -H 'content-type: application/json' \
+            -H "x-revalidate-secret: $REVALIDATE_SECRET" \
+            ${VERCEL_PROTECTION_BYPASS:+-H "x-vercel-protection-bypass: $VERCEL_PROTECTION_BYPASS"} \
+            -d '{"tags":["annuaire"]}')
+          echo "revalidation : HTTP $code $(cat /tmp/rev.json)"
+          [ "$code" = "200" ]
+
+      - name: Rapport
+        if: always()
+        run: |
+          echo "### Synchronisation DentalMap" >> "$GITHUB_STEP_SUMMARY"
+          echo "Déclenchement : ${{ github.event_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Résultat : ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"

@@ -85,7 +85,10 @@ export async function encadrer<T>(
       await fermer('bloque')
       return undefined
     }
-    erreurs.push({ message: e instanceof Error ? e.message : String(e), contexte: 'exception' })
+    // Les erreurs Drizzle embarquent la requête entière avec ses milliers de
+    // paramètres. On tronque : une trace illisible ne sert personne.
+    const brut = e instanceof Error ? (e.cause instanceof Error ? e.cause.message : e.message) : String(e)
+    erreurs.push({ message: brut.slice(0, 500), contexte: 'exception' })
     await fermer('echec')
     throw e
   }
