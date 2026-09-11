@@ -7,47 +7,77 @@ import {
   getPraticiensDeCommune,
 } from '@/lib/annuaire/queries'
 import { BASE_URL, nomAffiche, type Profession } from '@/lib/annuaire/types'
+import { PAR_PAGE } from '@/lib/annuaire/queries'
 import { Adresse, chemin, FilAriane, Telephone, Verification } from './primitives'
 import { Balisage, filAriane } from '@/lib/seo/jsonld'
 
 type Params = { departement: string; commune: string }
+type Recherche = { page?: string }
 
 const LIBELLE: Record<Profession, { singulier: string; pluriel: string }> = {
   dentiste: { singulier: 'chirurgien-dentiste', pluriel: 'chirurgiens-dentistes' },
   prothesiste: { singulier: 'laboratoire de prothèse dentaire', pluriel: 'laboratoires de prothèse dentaire' },
 }
 
-export async function metadonneesCommune(profession: Profession, params: Params): Promise<Metadata> {
-  const { departement, commune } = await params
+export async function metadonneesCommune(
+  profession: Profession,
+  params: Params,
+  recherche: Recherche = {},
+): Promise<Metadata> {
+  const { departement, commune } = params
   const c = await getCommune(departement, commune)
   if (!c) return { title: 'Commune introuvable' }
-  const liste = await getPraticiensDeCommune(profession, c.codeInsee)
+  const page = numeroPage(recherche.page)
+  const { total } = await getPraticiensDeCommune(profession, c.codeInsee, page)
   const l = LIBELLE[profession]
-  const titre = liste.length
-    ? `${l.pluriel.charAt(0).toUpperCase()}${l.pluriel.slice(1)} à ${c.nom} (${c.departementNom})`
+  const suffixe = page > 1 ? ` — page ${page}` : ''
+  const titre = total
+    ? `${l.pluriel.charAt(0).toUpperCase()}${l.pluriel.slice(1)} à ${c.nom} (${c.departementNom})${suffixe}`
     : `Aucun ${l.singulier} à ${c.nom}`
 
+  const cheminBase = `/${BASE_URL[profession]}/${departement}/${commune}/`
   return {
     title: titre,
-    description: liste.length
-      ? `${liste.length} ${liste.length > 1 ? l.pluriel : l.singulier} à ${c.nom}. Adresses, téléphones et informations vérifiées auprès des registres officiels.`
+    description: total
+      ? `${total} ${total > 1 ? l.pluriel : l.singulier} à ${c.nom}. Adresses, téléphones et informations vérifiées auprès des registres officiels.`
       : `Aucun ${l.singulier} recensé à ${c.nom}. Consultez les communes voisines.`,
-    alternates: { canonical: `/${BASE_URL[profession]}/${departement}/${commune}/` },
+    // Chaque page de pagination est canonique d'elle-même : la désigner comme un
+    // doublon de la première ferait disparaître de l'index les praticiens qui
+    // n'y figurent pas.
+    alternates: { canonical: page > 1 ? `${cheminBase}?page=${page}` : cheminBase },
     // Une archive vide ne doit pas entrer dans l'index : elle n'apporte rien et
     // dilue la qualité perçue du site. Elle reste servie en 200 avec une
     // orientation vers les communes voisines, comportement de l'ancien site.
-    robots: liste.length ? undefined : { index: false, follow: true },
+    robots: total ? undefined : { index: false, follow: true },
   }
 }
 
-export async function PageCommune({ profession, params }: { profession: Profession; params: Promise<Params> }) {
+/** Numéro de page valide, 1 par défaut. */
+export function numeroPage(valeur: string | undefined): number {
+  const n = Number(valeur)
+  return Number.isInteger(n) && n > 1 ? n : 1
+}
+
+export async function PageCommune({
+  profession,
+  params,
+  searchParams,
+}: {
+  profession: Profession
+  params: Promise<Params>
+  searchParams: Promise<Recherche>
+}) {
   const { departement, commune } = await params
+  const page = numeroPage((await searchParams).page)
   const c = await getCommune(departement, commune)
   if (!c) notFound()
 
   const base = BASE_URL[profession]
   const l = LIBELLE[profession]
-  const liste = await getPraticiensDeCommune(profession, c.codeInsee)
+  const { liste, total } = await getPraticiensDeCommune(profession, c.codeInsee, page)
+  const pages = Math.max(1, Math.ceil(total / PAR_PAGE))
+  const cheminBase = `/${base}/${departement}/${commune}/`
+  if (page > pages) notFound()
 
   return (
     <>
@@ -70,14 +100,15 @@ export async function PageCommune({ profession, params }: { profession: Professi
 
       <header className="mt-5">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-          {liste.length > 0
+          {total > 0
             ? `${l.pluriel.charAt(0).toUpperCase()}${l.pluriel.slice(1)} à ${c.nom}`
             : `Aucun ${l.singulier} à ${c.nom}`}
         </h1>
         <p className="mt-2 text-slate-600">
-          {liste.length > 0 ? (
+          {total > 0 ? (
             <>
-              {liste.length} {liste.length > 1 ? l.pluriel : l.singulier} recensés, classés par ordre alphabétique.
+              {total.toLocaleString('fr-FR')} {total > 1 ? l.pluriel : l.singulier} recensés, classés par ordre
+              alphabétique{pages > 1 ? ` — page ${page} sur ${pages}` : ''}.
             </>
           ) : (
             <>Aucun professionnel de cette catégorie n&apos;est recensé sur cette commune.</>
@@ -85,7 +116,7 @@ export async function PageCommune({ profession, params }: { profession: Professi
         </p>
       </header>
 
-      {liste.length > 0 ? (
+      {total > 0 ? (
         <ul className="mt-8 divide-y divide-slate-200 border-y border-slate-200">
           {liste.map((p) => (
             <li key={p.slug} className="py-5">
@@ -114,6 +145,8 @@ export async function PageCommune({ profession, params }: { profession: Professi
       ) : (
         <CommunesVoisines profession={profession} codeInsee={c.codeInsee} nomCommune={c.nom} />
       )}
+
+      {pages > 1 && <Pagination base={cheminBase} page={page} pages={pages} />}
 
       <p className="mt-8 text-sm text-slate-600">
         Le classement est alphabétique. Aucune mise en avant payante n&apos;existe sur DentalMap.
@@ -155,5 +188,47 @@ async function CommunesVoisines({
         ))}
       </ul>
     </section>
+  )
+}
+
+/**
+ * Pagination des listes de commune.
+ *
+ * Les liens sont de vrais liens, rendus côté serveur : un moteur doit pouvoir
+ * atteindre la page 8 de Toulouse sans exécuter de JavaScript.
+ */
+function Pagination({ base, page, pages }: { base: string; page: number; pages: number }) {
+  const lien = (n: number) => (n === 1 ? base : `${base}?page=${n}`)
+  const fenetre = Array.from({ length: pages }, (_, i) => i + 1).filter(
+    (n) => n === 1 || n === pages || Math.abs(n - page) <= 2,
+  )
+
+  return (
+    <nav aria-label="Pagination" className="mt-8 flex flex-wrap items-center gap-2">
+      {page > 1 && (
+        <Link href={chemin(lien(page - 1))} rel="prev" className="rounded border border-slate-300 px-3 py-1.5 text-sm hover:border-slate-900">
+          Précédent
+        </Link>
+      )}
+      {fenetre.map((n, i) => (
+        <span key={n} className="flex items-center gap-2">
+          {i > 0 && fenetre[i - 1] !== n - 1 && <span className="text-slate-400">…</span>}
+          {n === page ? (
+            <span aria-current="page" className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white">
+              {n}
+            </span>
+          ) : (
+            <Link href={chemin(lien(n))} className="rounded border border-slate-300 px-3 py-1.5 text-sm hover:border-slate-900">
+              {n}
+            </Link>
+          )}
+        </span>
+      ))}
+      {page < pages && (
+        <Link href={chemin(lien(page + 1))} rel="next" className="rounded border border-slate-300 px-3 py-1.5 text-sm hover:border-slate-900">
+          Suivant
+        </Link>
+      )}
+    </nav>
   )
 }

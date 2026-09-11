@@ -30,6 +30,16 @@ function cleDeTri(
   return `${p.nom} ${p.prenom ?? ''}`.toLocaleLowerCase('fr')
 }
 
+/**
+ * Taille d'une page de liste.
+ *
+ * Sans pagination, la page du 16e arrondissement de Paris pesait 879 Ko pour
+ * 493 praticiens et mettait 1,6 seconde à s'afficher. 80 communes dépassent
+ * 100 praticiens, jusqu'à 691 à Toulouse, et ce sont les pages qui comptent le
+ * plus pour le référencement.
+ */
+export const PAR_PAGE = 50
+
 export function professionDepuisBase(base: string): Profession | null {
   return base in PROFESSION_PAR_BASE ? PROFESSION_PAR_BASE[base as BaseUrl] : null
 }
@@ -197,7 +207,9 @@ export async function getCommune(departementSlug: string, communeSlug: string): 
 export async function getPraticiensDeCommune(
   profession: Profession,
   codeInsee: string,
-): Promise<PraticienResume[]> {
+  page = 1,
+  parPage = PAR_PAGE,
+): Promise<{ liste: PraticienResume[]; total: number }> {
   'use cache'
   cacheLife('listing')
   cacheTag('annuaire', `commune:${codeInsee}`)
@@ -228,7 +240,9 @@ export async function getPraticiensDeCommune(
     WHERE p.profession = ${profession} AND p.deleted_at IS NULL AND c.code_insee = ${codeInsee}
     ORDER BY p.id, l.principal DESC
   `)
-  return rows
+  // Le tri se fait en mémoire : `DISTINCT ON` impose d'ordonner par l'identifiant
+  // en premier, et l'effectif d'une commune reste modeste, 691 au maximum.
+  const tous = rows
     .map((r) => ({
       slug: r.slug,
       nom: r.nom,
@@ -245,6 +259,9 @@ export async function getPraticiensDeCommune(
       lat: r.lat,
     }))
     .sort((a, b) => cleDeTri(profession, a).localeCompare(cleDeTri(profession, b), 'fr'))
+
+  const debut = (page - 1) * parPage
+  return { liste: tous.slice(debut, debut + parPage), total: tous.length }
 }
 
 /**
