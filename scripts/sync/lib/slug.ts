@@ -44,3 +44,15 @@ export function slugUnique(slug: string, discriminant: string, pris: Set<string>
   pris.add(candidat)
   return candidat
 }
+
+/**
+ * Forme cherchable d'un nom de commune : minuscules, sans accents ni
+ * ponctuation, mots séparés par une espace.
+ *
+ * Sert l'autocomplétion tolérante aux fautes. Distincte du slug, qui sépare par
+ * des tirets et sert d'URL : les deux ne doivent pas être confondus, un slug
+ * est figé à vie alors que cette forme peut être recalculée.
+ */
+export function formeCherchable(nom: string): string {
+  return slugifier(nom).replace(/-/g, ' ')
+}

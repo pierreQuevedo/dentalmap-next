@@ -13,7 +13,7 @@ import { url } from '@/lib/seo/site'
  * nommage de Next produit `/sitemap/0.xml`, qui n'apprend rien à qui lit le
  * fichier. `/sitemap/dentistes-0.xml` se comprend seul dans la Search Console.
  */
-const PAGES_FIXES = ['/', '/dentistes/', '/prothesistes/', '/methode-de-verification/']
+const PAGES_FIXES = ['/', '/dentistes/', '/prothesistes/']
 
 function xml(entrees: EntreeSitemap[]): string {
   const corps = entrees
