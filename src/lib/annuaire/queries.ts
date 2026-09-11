@@ -301,3 +301,178 @@ export async function getCommunesVoisinesAvecPraticiens(
     total: r.total,
   }))
 }
+
+export type Departement = {
+  code: string
+  nom: string
+  slug: string
+  regionNom: string
+}
+
+export type CommuneComptee = {
+  nom: string
+  slug: string
+  total: number
+  population: number | null
+}
+
+export async function getDepartement(slug: string): Promise<Departement | null> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const { rows } = await db.execute<{ code: string; nom: string; slug: string; region_nom: string }>(sql`
+    SELECT d.code, d.nom, d.slug, r.nom AS region_nom
+    FROM departements d JOIN regions r ON r.code = d.region_code
+    WHERE d.slug = ${slug} LIMIT 1
+  `)
+  const r = rows[0]
+  return r ? { code: r.code, nom: r.nom, slug: r.slug, regionNom: r.region_nom } : null
+}
+
+/** Communes d'un département ayant au moins un praticien, les plus peuplées d'abord. */
+export async function getCommunesDuDepartement(
+  profession: Profession,
+  codeDepartement: string,
+): Promise<CommuneComptee[]> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const { rows } = await db.execute<{ nom: string; slug: string; total: number; population: number | null }>(sql`
+    SELECT c.nom, c.slug, c.population, count(DISTINCT p.id)::int AS total
+    FROM communes c
+    JOIN lieux_exercice l ON l.code_insee = c.code_insee
+    JOIN praticiens p ON p.id = l.praticien_id AND p.profession = ${profession} AND p.deleted_at IS NULL
+    WHERE c.departement_code = ${codeDepartement}
+    GROUP BY c.code_insee, c.nom, c.slug, c.population
+    ORDER BY count(DISTINCT p.id) DESC, c.nom
+  `)
+  return rows
+}
+
+export type DepartementCompte = {
+  nom: string
+  slug: string
+  regionNom: string
+  total: number
+}
+
+/** Tous les départements ayant au moins un praticien, pour la page d'index. */
+export async function getDepartementsAvecPraticiens(profession: Profession): Promise<DepartementCompte[]> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const { rows } = await db.execute<{ nom: string; slug: string; region_nom: string; total: number }>(sql`
+    SELECT d.nom, d.slug, r.nom AS region_nom, count(DISTINCT p.id)::int AS total
+    FROM departements d
+    JOIN regions r ON r.code = d.region_code
+    JOIN communes c ON c.departement_code = d.code
+    JOIN lieux_exercice l ON l.code_insee = c.code_insee
+    JOIN praticiens p ON p.id = l.praticien_id AND p.profession = ${profession} AND p.deleted_at IS NULL
+    GROUP BY d.code, d.nom, d.slug, r.nom
+    ORDER BY r.nom, d.nom
+  `)
+  return rows.map((r) => ({ nom: r.nom, slug: r.slug, regionNom: r.region_nom, total: r.total }))
+}
+
+/** Compte global d'une profession, pour l'accueil et les pages d'index. */
+export async function getTotalProfession(profession: Profession): Promise<{ total: number; communes: number }> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const { rows } = await db.execute<{ total: number; communes: number }>(sql`
+    SELECT count(DISTINCT p.id)::int AS total, count(DISTINCT l.code_insee)::int AS communes
+    FROM praticiens p
+    LEFT JOIN lieux_exercice l ON l.praticien_id = p.id
+    WHERE p.profession = ${profession} AND p.deleted_at IS NULL
+  `)
+  return rows[0] ?? { total: 0, communes: 0 }
+}
+
+export type EntreeSitemap = { chemin: string; majLe: string }
+
+/**
+ * URL de fiches indexables, par tranche.
+ *
+ * Seules les fiches `indexable` sortent : une fiche sans position ou dont
+ * l'identité n'est pas confirmée n'a rien à faire dans un sitemap. La règle
+ * vit dans la colonne, pas ici.
+ *
+ * La pagination se fait par identifiant croissant et non par OFFSET : sur
+ * 50 000 lignes, un OFFSET élevé fait relire toute la table à chaque tranche.
+ */
+export async function getFichesIndexables(
+  profession: Profession,
+  tranche: number,
+  taille = 10_000,
+): Promise<EntreeSitemap[]> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
+    SELECT '/' || ${profession === 'dentiste' ? 'dentistes' : 'prothesistes'} || '/' ||
+           d.slug || '/' || c.slug || '/' || p.slug || '/' AS chemin,
+           to_char(p.updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
+    FROM praticiens p
+    JOIN LATERAL (
+      SELECT l.code_insee FROM lieux_exercice l
+      WHERE l.praticien_id = p.id AND l.code_insee IS NOT NULL
+      ORDER BY l.principal DESC, l.id LIMIT 1
+    ) lp ON TRUE
+    JOIN communes c ON c.code_insee = lp.code_insee
+    JOIN departements d ON d.code = c.departement_code
+    WHERE p.profession = ${profession} AND p.deleted_at IS NULL AND p.indexable
+    ORDER BY p.id
+    LIMIT ${taille} OFFSET ${tranche * taille}
+  `)
+  return rows.map((r) => ({ chemin: r.chemin, majLe: r.maj }))
+}
+
+export async function compterFichesIndexables(profession: Profession): Promise<number> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const { rows } = await db.execute<{ n: number }>(sql`
+    SELECT count(*)::int AS n FROM praticiens
+    WHERE profession = ${profession} AND deleted_at IS NULL AND indexable
+  `)
+  return rows[0]?.n ?? 0
+}
+
+/** Communes ayant au moins un praticien indexable, toutes professions confondues. */
+export async function getCommunesIndexables(): Promise<EntreeSitemap[]> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
+    SELECT DISTINCT
+      '/' || CASE p.profession WHEN 'dentiste' THEN 'dentistes' ELSE 'prothesistes' END
+        || '/' || d.slug || '/' || c.slug || '/' AS chemin,
+      to_char(max(p.updated_at) OVER (PARTITION BY p.profession, c.code_insee) AT TIME ZONE 'UTC',
+              'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
+    FROM praticiens p
+    JOIN lieux_exercice l ON l.praticien_id = p.id
+    JOIN communes c ON c.code_insee = l.code_insee
+    JOIN departements d ON d.code = c.departement_code
+    WHERE p.deleted_at IS NULL AND p.indexable
+  `)
+  return rows.map((r) => ({ chemin: r.chemin, majLe: r.maj }))
+}
+
+/** Départements ayant au moins un praticien indexable. */
+export async function getDepartementsIndexables(): Promise<EntreeSitemap[]> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
+    SELECT DISTINCT
+      '/' || CASE p.profession WHEN 'dentiste' THEN 'dentistes' ELSE 'prothesistes' END
+        || '/' || d.slug || '/' AS chemin,
+      to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
+    FROM praticiens p
+    JOIN lieux_exercice l ON l.praticien_id = p.id
+    JOIN communes c ON c.code_insee = l.code_insee
+    JOIN departements d ON d.code = c.departement_code
+    WHERE p.deleted_at IS NULL AND p.indexable
+  `)
+  return rows.map((r) => ({ chemin: r.chemin, majLe: r.maj }))
+}

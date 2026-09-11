@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formaterNom, formaterRaisonSociale } from '../src/lib/annuaire/nom'
+import { formaterAdresse, formaterNom, formaterRaisonSociale } from '../src/lib/annuaire/nom'
 
 describe('formaterNom', () => {
   it('recasse les capitales de la source', () => {
@@ -47,5 +47,27 @@ describe('enseigne redondante', () => {
 
   it("conserve une enseigne qui apporte une information", () => {
     expect(formaterRaisonSociale('ORTHESE DENTAIRE FARGEOT (ODF)')).toBe('Orthese Dentaire Fargeot (ODF)')
+  })
+})
+
+describe('formaterAdresse', () => {
+  it('recasse les voies en capitales', () => {
+    expect(formaterAdresse('38 RUE VITAL CARLES')).toBe('38 Rue Vital Carles')
+    expect(formaterAdresse('PLACE BELLECOUR')).toBe('Place Bellecour')
+  })
+
+  it('garde les particules en minuscules', () => {
+    expect(formaterAdresse('12 COURS DE L INTENDANCE')).toBe('12 Cours de l Intendance')
+    expect(formaterAdresse('255 CHEMIN DE LA TRAVERSE')).toBe('255 Chemin de la Traverse')
+  })
+
+  it('conserve les abréviations', () => {
+    expect(formaterAdresse('BP 8023')).toBe('BP 8023')
+    expect(formaterAdresse('ZI DES PALUDS')).toBe('ZI des Paluds')
+  })
+
+  it('ne touche pas aux numéros composés', () => {
+    expect(formaterAdresse('186-188 RUE MARCADET')).toBe('186-188 Rue Marcadet')
+    expect(formaterAdresse('1 BIS RUE DES COLIBRIS')).toBe('1 Bis Rue des Colibris')
   })
 })
