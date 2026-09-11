@@ -251,13 +251,26 @@ Ils s'obtiennent par une requête distincte, `?type=arrondissement-municipal`, q
 
 **Conséquence pour `geocode-ban` : le code commune d'un lieu d'exercice se prend dans le résultat BAN, pas dans la colonne de l'ANS.** Celle-ci n'est qu'une indication. Cette règle règle d'un coup les communes fusionnées et les 20 937 lignes de dentistes dépourvues de code commune.
 
-### Les collectivités d'outre-mer, décision en attente
+### Les collectivités d'outre-mer sont couvertes
 
-Les 237 lignes restantes concernent des territoires sans département : 99 en Nouvelle-Calédonie, 92 en Polynésie française, 36 à Saint-Martin, 8 à Saint-Barthélemy, 2 à Wallis-et-Futuna. Leurs communes existent dans l'API géo mais sans `codeDepartement`, et la colonne `departements.region_code` est obligatoire.
+Arbitré le 11 septembre 2026 : elles entrent dans le périmètre. Les volumes, mesurés sur le fichier ANS, rendaient l'exclusion intenable.
 
-La BAN les géocode pourtant correctement, Nouméa comprise. Le blocage est uniquement dans la hiérarchie d'URL `/{base}/{departement}/{commune}/`, qui n'a pas de niveau intermédiaire pour elles. Les inclure demande de créer les collectivités comme pseudo-départements et de rendre `region_code` facultatif. Les exclure coûte environ 200 praticiens, ce qui contredirait le choix d'exhaustivité retenu pour les dentistes sans adresse.
+| Territoire | Praticiens distincts | Dont avec adresse |
+|---|---|---|
+| Nouvelle-Calédonie | 95 | 89 |
+| Polynésie française | 92 | 53 |
+| Saint-Martin | 36 | 34 |
+| Saint-Barthélemy | 8 | 6 |
+| Wallis-et-Futuna | 2 | 1 |
+| **Total** | **232** | **183** |
 
-Les départements d'outre-mer, eux, ne posent aucun problème : la Guadeloupe, la Martinique, la Guyane, La Réunion et Mayotte sont des départements à part entière et sont déjà en base.
+À comparer à ce qui est couvert sans discussion : Mayotte 22 praticiens, la Lozère 27, la Creuse 35, l'Ariège 90. La Nouvelle-Calédonie en compte davantage que l'Ariège et quatre fois plus que Mayotte. Les exclure aurait été une incohérence, pas un arbitrage de périmètre. S'y ajoute un intérêt de référencement : « dentiste Nouméa » ou « dentiste Papeete » sont des requêtes sans concurrence sérieuse parmi les annuaires français.
+
+Aucun changement de schéma n'a été nécessaire. L'API géo omet ces territoires de `/regions` et de `/departements`, mais les sert en accès unitaire, et les modélise comme étant leur propre région : `GET /departements/988` renvoie « Nouvelle-Calédonie » avec `codeRegion` valant 988. Le job les découvre en comparant les codes département portés par les communes à la liste des 101, puis récupère les manquants un par un. Rien n'est codé en dur, le job suivra une évolution du découpage sans intervention.
+
+Le référentiel passe ainsi à 26 régions, 109 départements et 35 014 communes, sans aucune ligne ignorée. Les URL produites sont de la forme `/dentistes/nouvelle-caledonie/noumea/`.
+
+Les départements d'outre-mer, eux, n'ont jamais posé problème : la Guadeloupe, la Martinique, la Guyane, La Réunion et Mayotte sont des départements à part entière.
 
 ### Le tri par distance ne peut pas se faire en degrés
 
@@ -267,10 +280,10 @@ L'opérateur `<->` de PostGIS trie sur des degrés, pas sur des mètres. Sur une
 
 | Mesure | Valeur |
 |---|---|
-| Durée du job | 9,2 secondes |
-| Lignes lues | 35 133 |
-| Écrites | 35 039, soit 34 875 communes et 45 arrondissements, 101 départements, 18 régions |
-| Ignorées | 94, communes de Nouvelle-Calédonie, Polynésie, Wallis et Clipperton, sans département |
+| Durée du job | 8,9 secondes |
+| Lignes lues | 35 149 |
+| Écrites | 35 149, soit 34 969 communes et 45 arrondissements, 109 départements, 26 régions |
+| Ignorées | aucune |
 | Centroïde et population | renseignés sur 100 % des lignes écrites |
 | Collisions de slug par département | aucune |
-| Codes commune de l'ANS retombant sur une ligne | 5 585 sur 5 668, le reste étant traité par la BAN ou relevant des collectivités |
+| Codes commune de l'ANS retombant sur une ligne | 5 623 sur 5 668. Les 45 restants, soit 197 lignes de dentistes, sont des communes fusionnées que la BAN résout au géocodage |

@@ -38,58 +38,86 @@ const CHAMPS_COMMUNE = 'nom,code,codesPostaux,codeDepartement,population,centre'
 
 async function principal() {
   await encadrer('geo', async (run) => {
-  // 1. Régions
-  const listeRegions = await recuperer<Region[]>('/regions')
-  run.compteurs.lignesLues += listeRegions.length
-  const slugsRegion = new Set<string>()
-  await db
-    .insert(regions)
-    .values(
-      listeRegions.map((r) => ({
-        code: r.code,
-        nom: r.nom,
-        slug: slugUnique(slugifier(r.nom), r.code, slugsRegion),
-      })),
+    // 1. Communes et arrondissements, d'abord, pour savoir quels territoires
+    //    de niveau département sont réellement référencés.
+    //
+    //    L'API ne renvoie pas les arrondissements municipaux dans la liste
+    //    générale, alors que l'ANS code les adresses parisiennes, lyonnaises et
+    //    marseillaises avec leur code d'arrondissement. Les omettre laisserait
+    //    des milliers de lieux d'exercice sans commune rattachable.
+    const ordinaires = await recuperer<CommuneApi[]>(`/communes?fields=${CHAMPS_COMMUNE}&format=json`)
+    const arrondissements = await recuperer<CommuneApi[]>(
+      `/communes?type=arrondissement-municipal&fields=${CHAMPS_COMMUNE}&format=json`,
     )
-    .onConflictDoUpdate({
-      target: regions.code,
-      set: { nom: sql`excluded.nom`, slug: sql`excluded.slug` },
-    })
-  run.compteurs.inserees += listeRegions.length
-  console.log(`[geo] ${listeRegions.length} régions`)
+    console.log(`[geo] ${ordinaires.length} communes et ${arrondissements.length} arrondissements`)
 
-  // 2. Départements
-  const listeDep = await recuperer<Departement[]>('/departements?fields=nom,code,codeRegion')
-  run.compteurs.lignesLues += listeDep.length
-  const slugsDep = new Set<string>()
-  await db
-    .insert(departements)
-    .values(
-      listeDep.map((d) => ({
-        code: d.code,
-        nom: d.nom,
-        slug: slugUnique(slugifier(d.nom), d.code, slugsDep),
-        regionCode: d.codeRegion,
-      })),
+    // 2. Territoires de niveau région et département.
+    //
+    //    Les collectivités d'outre-mer, Nouvelle-Calédonie, Polynésie française,
+    //    Saint-Martin, Saint-Barthélemy, Wallis-et-Futuna, Saint-Pierre-et-Miquelon,
+    //    ne figurent ni dans /regions ni dans /departements, alors que leurs
+    //    communes s'y rattachent et que l'API les sert en accès unitaire. On les
+    //    découvre à partir des communes plutôt que de les coder en dur, pour que
+    //    le job suive les évolutions du découpage sans intervention.
+    //
+    //    L'enjeu n'est pas marginal : la Nouvelle-Calédonie compte 95 dentistes
+    //    et la Polynésie 92, soit davantage que l'Ariège, et quatre fois plus
+    //    que Mayotte, qui est couverte sans discussion parce qu'elle est un
+    //    département.
+    const listeRegions = await recuperer<Region[]>('/regions')
+    const listeDep = await recuperer<Departement[]>('/departements?fields=nom,code,codeRegion')
+
+    const referencees = new Set(
+      [...ordinaires, ...arrondissements].map((c) => c.codeDepartement).filter(Boolean) as string[],
     )
-    .onConflictDoUpdate({
-      target: departements.code,
-      set: { nom: sql`excluded.nom`, slug: sql`excluded.slug`, regionCode: sql`excluded.region_code` },
-    })
-  run.compteurs.inserees += listeDep.length
-  console.log(`[geo] ${listeDep.length} départements`)
+    const connus = new Set(listeDep.map((d) => d.code))
+    for (const code of [...referencees].filter((c) => !connus.has(c)).sort()) {
+      const dep = await recuperer<Departement>(`/departements/${code}`)
+      const reg = await recuperer<Region>(`/regions/${dep.codeRegion}`)
+      if (!listeRegions.some((r) => r.code === reg.code)) listeRegions.push(reg)
+      listeDep.push(dep)
+      console.log(`[geo] collectivité rattachée : ${dep.code} ${dep.nom}`)
+    }
 
-  // 3. Communes, puis arrondissements municipaux.
-  //    L'API ne renvoie pas les arrondissements dans la liste générale, alors
-  //    que l'ANS code les adresses parisiennes, lyonnaises et marseillaises
-  //    avec leur code d'arrondissement. Les omettre laisserait des milliers de
-  //    lieux d'exercice sans commune rattachable.
-  const ordinaires = await recuperer<CommuneApi[]>(`/communes?fields=${CHAMPS_COMMUNE}&format=json`)
-  const arrondissements = await recuperer<CommuneApi[]>(
-    `/communes?type=arrondissement-municipal&fields=${CHAMPS_COMMUNE}&format=json`,
-  )
-  console.log(`[geo] ${ordinaires.length} communes et ${arrondissements.length} arrondissements`)
+    // Les régions d'abord : les départements les référencent.
+    run.compteurs.lignesLues += listeRegions.length
+    const slugsRegion = new Set<string>()
+    await db
+      .insert(regions)
+      .values(
+        listeRegions.map((r) => ({
+          code: r.code,
+          nom: r.nom,
+          slug: slugUnique(slugifier(r.nom), r.code, slugsRegion),
+        })),
+      )
+      .onConflictDoUpdate({
+        target: regions.code,
+        set: { nom: sql`excluded.nom`, slug: sql`excluded.slug` },
+      })
+    run.compteurs.inserees += listeRegions.length
+    console.log(`[geo] ${listeRegions.length} régions`)
 
+    run.compteurs.lignesLues += listeDep.length
+    const slugsDep = new Set<string>()
+    await db
+      .insert(departements)
+      .values(
+        listeDep.map((d) => ({
+          code: d.code,
+          nom: d.nom,
+          slug: slugUnique(slugifier(d.nom), d.code, slugsDep),
+          regionCode: d.codeRegion,
+        })),
+      )
+      .onConflictDoUpdate({
+        target: departements.code,
+        set: { nom: sql`excluded.nom`, slug: sql`excluded.slug`, regionCode: sql`excluded.region_code` },
+      })
+    run.compteurs.inserees += listeDep.length
+    console.log(`[geo] ${listeDep.length} départements`)
+
+    // 3. Communes et arrondissements.
   const codesDepartement = new Set(listeDep.map((d) => d.code))
   // Un arrondissement porte le code de sa commune mère dans ses trois premiers
   // caractères pour Paris et Lyon, et dans 132xx pour Marseille.
