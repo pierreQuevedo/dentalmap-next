@@ -227,3 +227,50 @@ Arbitrées par Pierre le 11 septembre 2026.
 ## 7. Ce que la phase 1 ne fait pas
 
 Pas de front, pas de carte, pas d'espace pro. La phase 2 s'en charge. La phase 1 s'arrête quand la base contient des données justes, tracées et reproductibles.
+
+## 8. Relevés d'exécution de l'étape 2
+
+### Les arrondissements municipaux, piège majeur
+
+`geo.api.gouv.fr/communes` renvoie 34 969 communes mais **aucun arrondissement municipal**. Or l'ANS code les adresses parisiennes, lyonnaises et marseillaises avec le code d'arrondissement, jamais celui de la commune mère : 482 lignes de dentistes en 75116, 445 en 75115, 223 en 13208, et ainsi de suite. Sans les arrondissements, ces milliers de lieux d'exercice n'auraient aucune commune rattachable.
+
+Ils s'obtiennent par une requête distincte, `?type=arrondissement-municipal`, qui en renvoie 45 : 20 pour Paris, 16 pour Marseille, 9 pour Lyon, avec centroïde et population. La table `communes` porte donc une colonne `type` et une colonne `commune_parente_code`. Une page « Paris » devra agréger ses arrondissements, sans quoi elle serait vide.
+
+### Les communes fusionnées se résolvent par la BAN
+
+83 codes commune présents dans l'ANS n'existent pas au Code officiel géographique 2026, ce qui concerne 434 lignes de dentistes. Deux causes.
+
+197 lignes portent le code d'une commune qui a fusionné. L'API géo ne connaît pas les communes supprimées, mais **la BAN renvoie le code actuel** dans `result_citycode`, et l'ancien dans `result_oldcitycode`. Vérifié sur des cas réels :
+
+| Code ANS | Résolu par la BAN |
+|---|---|
+| 77491 Veneux-les-Sablons | 77316 Moret-Loing-et-Orvanne |
+| 50602 Tourlaville | 50129 Cherbourg-en-Cotentin |
+| 85166 Olonne-sur-Mer | 85194 Les Sables-d'Olonne |
+| 85217 Saint-Georges-de-Montaigu | 85146 Montaigu-Vendée |
+
+**Conséquence pour `geocode-ban` : le code commune d'un lieu d'exercice se prend dans le résultat BAN, pas dans la colonne de l'ANS.** Celle-ci n'est qu'une indication. Cette règle règle d'un coup les communes fusionnées et les 20 937 lignes de dentistes dépourvues de code commune.
+
+### Les collectivités d'outre-mer, décision en attente
+
+Les 237 lignes restantes concernent des territoires sans département : 99 en Nouvelle-Calédonie, 92 en Polynésie française, 36 à Saint-Martin, 8 à Saint-Barthélemy, 2 à Wallis-et-Futuna. Leurs communes existent dans l'API géo mais sans `codeDepartement`, et la colonne `departements.region_code` est obligatoire.
+
+La BAN les géocode pourtant correctement, Nouméa comprise. Le blocage est uniquement dans la hiérarchie d'URL `/{base}/{departement}/{commune}/`, qui n'a pas de niveau intermédiaire pour elles. Les inclure demande de créer les collectivités comme pseudo-départements et de rendre `region_code` facultatif. Les exclure coûte environ 200 praticiens, ce qui contredirait le choix d'exhaustivité retenu pour les dentistes sans adresse.
+
+Les départements d'outre-mer, eux, ne posent aucun problème : la Guadeloupe, la Martinique, la Guyane, La Réunion et Mayotte sont des départements à part entière et sont déjà en base.
+
+### Le tri par distance ne peut pas se faire en degrés
+
+L'opérateur `<->` de PostGIS trie sur des degrés, pas sur des mètres. Sur une requête réelle autour de Bordeaux, il classe Talence à 6,3 km avant Cenon à 5,0 km. Pour la carte et la page de résultats, le tri doit se faire sur `ST_Distance(...::geography)`, l'index GIST servant à présélectionner une enveloppe. À retenir pour la phase 2, où le tri par distance est une promesse affichée.
+
+### Mesures de l'étape 2
+
+| Mesure | Valeur |
+|---|---|
+| Durée du job | 9,2 secondes |
+| Lignes lues | 35 133 |
+| Écrites | 35 039, soit 34 875 communes et 45 arrondissements, 101 départements, 18 régions |
+| Ignorées | 94, communes de Nouvelle-Calédonie, Polynésie, Wallis et Clipperton, sans département |
+| Centroïde et population | renseignés sur 100 % des lignes écrites |
+| Collisions de slug par département | aucune |
+| Codes commune de l'ANS retombant sur une ligne | 5 585 sur 5 668, le reste étant traité par la BAN ou relevant des collectivités |
