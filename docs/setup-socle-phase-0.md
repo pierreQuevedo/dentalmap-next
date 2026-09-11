@@ -803,6 +803,42 @@ Relevés pendant l'exécution du 10 septembre 2026. Chaque entrée corrige une c
 
 - Le codegen lit désormais `./schema.graphql`, versionné dans le dépôt, et non l'endpoint en ligne. Le document prévoyait ce basculement seulement avant la coupure de l'introspection ; le faire tout de suite évite qu'une indisponibilité du CMS casse la CI et les déploiements Vercel, qui appellent tous les deux `codegen`. Le schéma se rafraîchit par `pnpm schema:pull` après toute modification de CPT ou de groupe ACF. La sortie générée est identique à celle obtenue depuis l'endpoint.
 
+### Étape 12 (suite)
+
+- `drizzle-kit push` réclame une confirmation interactive parce que `drizzle.config.ts` fixe `strict: true`. Sur Vercel il n'y a pas de TTY : la commande affiche « Interactive prompts require a TTY terminal », n'applique rien, **et sort en code 0**, si bien que le build continue sur une branche Neon au schéma non synchronisé sans que rien ne le signale. Le script doit être `"db:push:preview": "drizzle-kit push --force"`. `--force` n'est appelé que sur les branches jetables des Preview Deployments, jamais sur la branche principale, qui passe par `drizzle-kit migrate`.
+- Le réglage Build Command de l'étape 12 n'a pas besoin du dashboard, il se pose par l'API :
+  ```bash
+  echo '{"nodeVersion":"22.x","buildCommand":"pnpm vercel-build","installCommand":"pnpm install --frozen-lockfile"}' > patch.json
+  vercel api -X PATCH "/v9/projects/<projectId>?teamId=<teamId>" --input patch.json
+  ```
+  Le projet est créé par défaut en Node 24 et en région `iad1` ; il faut forcer `22.x` et `serverlessFunctionRegion: "fra1"` pour être cohérent avec Neon à Francfort.
+
+### Protection de déploiement Vercel
+
+Les déploiements sont protégés par défaut (`ssoProtection.deploymentType: "all_except_custom_domains"`), y compris l'URL de production `*.vercel.app`. Tant que dentalmap.fr n'est pas branché sur Vercel, toute requête extérieure reçoit une 302, ce qui casse le webhook de revalidation et empêche de tester un déploiement en curl.
+
+Deux conséquences pratiques :
+
+- Pour tester une URL de preview en ligne de commande, utiliser `vercel curl <chemin> --deployment <url>`, qui gère le contournement. Attention, les options inconnues sont passées telles quelles à `curl` : `--token` et `--scope` provoquent une erreur, il faut passer par la variable `VERCEL_TOKEN`.
+- Pour le webhook WordPress, le projet dispose d'un secret de contournement (`protectionBypass`, scope `automation-bypass`). Le mu-plugin envoie l'en-tête `x-vercel-protection-bypass` quand la constante `VERCEL_PROTECTION_BYPASS` est définie dans `wp-config.php`. Cette constante devient inutile en phase 5.
+
+### Webhook de revalidation, pièges de vérification
+
+- Le sortant réseau du conteneur SSH d'OVH est filtré : `api.wordpress.org` répond, `example.com` et `*.vercel.app` renvoient « cURL error 7: Connection refused ». Le conteneur web a lui un accès complet. Un `wp post create` lancé en SSH ne déclenche donc **pas** le webhook, alors qu'une publication depuis wp-admin ou par l'API REST le déclenche. Ne pas conclure à une panne à partir d'un test en ligne de commande.
+- Apache sur OVH ne transmet pas l'en-tête `Authorization` à PHP : l'API REST renvoie 401 `rest_cannot_create` avec un mot de passe applicatif pourtant valide. Ajouter en tête du `.htaccess` :
+  ```apache
+  <IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP:Authorization} ^(.+)$
+  RewriteRule ^ - [E=HTTP_AUTHORIZATION:%1]
+  </IfModule>
+  ```
+- `vercel logs` a environ trente secondes de retard. Un webhook qui semble ne pas être parti apparaît souvent au rafraîchissement suivant. Vérifier deux fois avant de diagnostiquer.
+
+### Better Auth en Preview
+
+Le document demande de laisser `BETTER_AUTH_URL` vide en Preview, Better Auth devant lire `VERCEL_URL`. En 1.7.4 il émet malgré tout l'avertissement « Base URL is not set » et dérive l'origine de la requête entrante. Sans incidence en phase 0, où l'espace pro n'existe pas, mais à trancher en phase 4 : soit une `baseURL` dynamique avec `allowedHosts`, soit une variable posée par le build.
+
 ### État relevé sur le serveur avant migration
 
 | Élément | Valeur |
