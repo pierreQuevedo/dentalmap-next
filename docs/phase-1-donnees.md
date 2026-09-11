@@ -101,6 +101,27 @@ Il n'existe donc pas de filtre purement registre qui isole les laboratoires de p
 
 Source de masse disponible si on retient cette voie : le fichier `StockEtablissement` de la base Sirene, 2,21 Go au format Parquet, mis à jour le 1er septembre 2026. Le format Parquet permet de ne lire que les colonnes utiles et de filtrer sur le code NAF sans décompresser l'ensemble, contrairement au CSV compressé de 2,87 Go.
 
+### 1.5 API FHIR Annuaire Santé : la bonne porte d'entrée
+
+Vérifié le 11 septembre 2026 dans la documentation officielle de l'ANS. L'agence expose une API REST au standard HL7 FHIR qui sert les mêmes données que le fichier, en libre accès.
+
+| Élément | Valeur |
+|---|---|
+| URL de base | `https://gateway.api.esante.gouv.fr/fhir/v2/` |
+| Authentification | en-tête `ESANTE-API-KEY`, clé gratuite obtenue en créant un compte sur `portal.api.esante.gouv.fr` |
+| Débit | 17 appels par seconde et par application |
+| Ressources | `Practitioner`, `PractitionerRole`, `Organization`, `HealthcareService`, `Device` |
+| Filtre profession | `GET /Practitioner?qualification-code=40` pour les chirurgiens-dentistes |
+| Mise à jour incrémentale | `GET /Practitioner?_lastUpdated=ge2026-09-10` |
+| Pagination | `_count`, valeur par défaut 50, lien `next` dans le Bundle |
+| Export en masse | aucun, pas de `$export` |
+
+Ce que ça change, et c'est important : le paramètre `_lastUpdated` permet de ne demander **que ce qui a bougé depuis le dernier run**. On passe d'un réimport hebdomadaire de 781 Mo à une synchronisation quotidienne de quelques dizaines de fiches modifiées. Le délai entre un changement au RPPS et son affichage sur DentalMap tombe de sept jours à un jour, pour une fraction du coût.
+
+Le chargement initial reste à faire une fois. Deux voies possibles, à trancher à l'usage : soit le fichier de 781 Mo, une seule fois, soit l'API paginée sur `qualification-code=40`, ce qui représente de l'ordre de 64 400 praticiens et 75 200 activités à parcourir, largement tenable à 17 appels par seconde. Le fichier reste utile comme contrôle de cohérence trimestriel : c'est l'extraction officielle publiée, elle sert de référence pour vérifier qu'aucune fiche n'a été perdue par la synchronisation incrémentale.
+
+Il n'y a pas de notification poussée par l'ANS. « Brancher l'API » veut donc dire exécuter un job planifié qui interroge l'API, pas recevoir un signal. La différence tient au volume lu et à la fréquence possible.
+
 ## 2. Décision révisée : GitHub Actions remplace n8n
 
 L'architecture désignait n8n sur le VPS OVH. Après discussion avec Pierre le 11 septembre 2026, les jobs deviennent des scripts TypeScript versionnés dans le dépôt, déclenchés par GitHub Actions.
@@ -143,7 +164,11 @@ Annuel, et une première fois maintenant. Lit `geo.api.gouv.fr`, remplit `region
 
 ### 4.2 `sync-ans`
 
-Hebdomadaire, nuit de dimanche.
+Deux modes, selon la disponibilité de la clé d'API.
+
+**Mode incrémental, à privilégier, quotidien.** Interroge `GET /Practitioner?qualification-code=40&_lastUpdated=ge{date du dernier run}` puis les `PractitionerRole` et `Organization` liés. Ne traite que ce qui a bougé. C'est le mode cible une fois la clé obtenue.
+
+**Mode fichier complet, hebdomadaire, nuit de dimanche.** Sert au chargement initial et au contrôle de cohérence trimestriel.
 
 1. Lire les métadonnées de la ressource sur l'API data.gouv, comparer l'empreinte à `source_snapshots`. Si identique, arrêter le run et l'inscrire comme « inchangé ».
 2. Télécharger le fichier, calculer son SHA256, enregistrer le snapshot.
@@ -153,13 +178,22 @@ Hebdomadaire, nuit de dimanche.
 6. Marquer `deleted_at` sur les praticiens absents du fichier.
 7. **Garde-fou** : si les suppressions dépassent 5 % de l'effectif, écrire le run en statut `bloque`, ne rien appliquer, alerter.
 
+Le garde-fou des 5 % ne s'applique qu'au mode fichier complet. En mode incrémental, l'API ne renvoie que des modifications, une absence n'y signifie pas une radiation : seul le contrôle de cohérence sur fichier complet peut conclure à une suppression.
+
 ### 4.3 `geocode-ban`
 
 Après chaque `sync-ans`, sur les lieux dépourvus de position. Lots de 1 000 lignes vers `POST /search/csv/`. Trois passes : adresse complète, puis adresse sans numéro pour les échecs, puis centroïde de commune avec `position_approximative` à vrai. Écrit `score_geocodage`. Les scores inférieurs à 0,6 sont traités comme des échecs et passent à la stratégie suivante.
 
-### 4.4 `sync-sirene`
+### 4.4 `import-prothesistes`
 
-Suspendu tant que la décision ouverte n° 1 n'est pas tranchée.
+Remplace le `sync-sirene` prévu par l'architecture. La source est un fichier Excel des prothésistes en activité fourni par Pierre, et non un registre public, faute de registre qui isole ce métier. Le job lit le fichier, normalise, géocode par la BAN comme les dentistes, et écrit les praticiens avec `profession = 'prothesiste'` et `statut_verification = 'non_verifie'`.
+
+Deux exigences, pour rester cohérent avec la règle « rien de déclaratif sans trace » :
+
+- chaque ligne importée porte la référence du fichier source et sa date, via `source_snapshots`,
+- la page « Méthode de vérification » doit dire noir sur blanc que les laboratoires de prothèse ne proviennent pas d'un registre public, parce qu'il n'en existe pas pour cette profession, et expliquer d'où vient la liste.
+
+Le SIREN de chaque laboratoire, quand il est connu, est confronté à la base Sirene pour détecter les cessations d'activité. C'est le seul contrôle automatisable sur cette population.
 
 ### 4.5 Revalidation
 
@@ -172,21 +206,23 @@ En fin de chaque run, `POST /api/revalidate` avec le tag `annuaire` et un tag `c
 | 1 | Migration Drizzle des quatre nouvelles tables et des deux colonnes | `drizzle-kit migrate` passe, `pnpm check` vert |
 | 2 | `sync-geo`, exécuté sur une branche Neon dédiée | 34 969 communes, 101 départements, 18 régions, aucun slug en doublon par département |
 | 3 | `sync-ans` en mode simulation, sans écriture | le compte de praticiens et de lieux correspond aux chiffres de la section 1.1 |
+| 3 bis | `import-prothesistes` en simulation sur le fichier fourni | le nombre de laboratoires et la part d'adresses exploitables sont mesurés |
 | 4 | `sync-ans` réel sur la branche dédiée | 64 398 praticiens, aucun doublon RPPS |
 | 5 | `geocode-ban`, les trois passes | taux de position renseignée mesuré, à confronter au seuil de 97 % |
 | 6 | Tests des invariants | slug stable après renommage, radiation qui pose `deleted_at`, run bloqué au delà de 5 % |
 | 7 | Workflows GitHub Actions planifiés et relançables à la main | un run manuel complet réussit de bout en bout |
 | 8 | Promotion sur la branche Neon principale | les chiffres de la branche dédiée sont reproduits |
 
-## 6. Décisions ouvertes
+## 6. Décisions prises
 
-Ces trois points demandent un arbitrage avant de démarrer.
+Arbitrées par Pierre le 11 septembre 2026.
 
-**1. Les prothésistes.** Aucun registre ne les isole. Trois voies : renoncer aux prothésistes en v1 et livrer un annuaire de dentistes, ce qui est net mais réduit le périmètre ; construire la sélection sur le NAF 32.50A plus des règles de nom, en stockant la règle qui a fait entrer chaque établissement pour rester auditable ; ou constituer une base initiale vérifiée à la main, plus petite mais entièrement sourcée, enrichie ensuite par revendication. La deuxième voie est la seule qui donne du volume tout de suite, au prix d'une entorse assumée à la règle « tout est sourcé », qu'il faudra expliquer sur la page « Méthode de vérification ».
+**1. Les prothésistes : fichier fourni, pas de registre.** Aucun registre public n'isole les laboratoires de prothèse dentaire. Pierre dispose d'un fichier Excel des prothésistes en activité, qui devient la source de la v1. Le `sync-sirene` prévu par l'architecture est abandonné et remplacé par un job d'import, décrit en 4.4. La base Sirene garde un rôle de contrôle des cessations d'activité par SIREN, pas de sourcing.
 
-**2. Les 15 243 dentistes sans adresse.** Un quart de l'effectif. Les publier sans lieu donnerait des pages sans intérêt et sans position sur la carte, et diluerait la qualité perçue de l'annuaire. Les exclure ramène le périmètre à 49 155 fiches, ce qui reste cohérent avec l'ordre de grandeur annoncé dans l'architecture. Une troisième voie consiste à les garder en base mais hors sitemap et en `noindex`, accessibles seulement par recherche nominative, et à les faire remonter par revendication.
+**2. Les 15 243 dentistes sans adresse : conservés, hors index.** Ils entrent en base et restent trouvables par recherche nominative, mais sortent des sitemaps et portent une balise `noindex`. Ils n'apparaissent ni sur la carte ni dans les listes par commune, faute de position. Une revendication par le praticien, qui renseignera son adresse, les fera basculer dans l'index. Cela préserve l'exhaustivité de l'annuaire sans diluer sa qualité perçue ni son référencement.
 
-**3. Le seuil de géocodage.** L'architecture fixe 97 %. La mesure brute donne 92,8 %. Soit on considère qu'une position au centroïde de commune compte comme géocodée, et le seuil devient atteignable, soit on maintient un seuil sur les seules positions précises et il faut le redescendre à une valeur tenable, autour de 93 %.
+**3. Le seuil de géocodage : une position au centroïde compte comme géocodée.** Le critère des 97 % porte sur la part des lieux ayant une position, quelle qu'en soit la précision. Les positions issues du centroïde de commune sont marquées `position_approximative`, exclues du tri par distance fine et signalées sur la fiche. En complément, la part des positions précises, score supérieur ou égal à 0,6, est suivie comme indicateur de qualité sans valeur bloquante. Mesure de référence au 11 septembre 2026 : 92,8 % de positions précises sur un échantillon de 1 000 adresses, avec une normalisation volontairement grossière.
+
 
 ## 7. Ce que la phase 1 ne fait pas
 
