@@ -839,6 +839,18 @@ Deux conséquences pratiques :
 
 Le document demande de laisser `BETTER_AUTH_URL` vide en Preview, Better Auth devant lire `VERCEL_URL`. En 1.7.4 il émet malgré tout l'avertissement « Base URL is not set » et dérive l'origine de la requête entrante. Sans incidence en phase 0, où l'espace pro n'existe pas, mais à trancher en phase 4 : soit une `baseURL` dynamique avec `allowedHosts`, soit une variable posée par le build.
 
+### Durcissement de fin de phase 0
+
+Appliqué le 11 septembre 2026, après validation de la definition of done.
+
+- `WP_DEBUG` repassé à `false` et introspection publique coupée :
+  ```bash
+  wp config set WP_DEBUG false --raw --type=constant
+  wp option update graphql_general_settings --format=json <<< '{"public_introspection_enabled":"off"}'
+  ```
+  Vérifié ensuite : `__schema` renvoie « GraphQL introspection is not allowed for public requests », les requêtes de données anonymes continuent de répondre pour les quatre CPT, le codegen et `pnpm check` restent verts.
+- Conséquence : `pnpm schema:pull` ne pouvait plus fonctionner, `get-graphql-schema` s'appuyant sur l'introspection HTTP. WPGraphQL fournit `wp graphql generate-static-schema`, qui construit le schéma côté serveur sans requête GraphQL. Le script `scripts/schema-pull.sh` génère le schéma en SSH puis le rapatrie. Le SDL produit est formaté et ordonné différemment de celui de l'introspection, mais la sortie du codegen est strictement identique, ce qui a été vérifié par diff.
+
 ### État relevé sur le serveur avant migration
 
 | Élément | Valeur |
