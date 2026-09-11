@@ -15,7 +15,7 @@
     "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
     "dev": "next dev",
     "lint": "eslint .",
-    "schema:pull": "dotenv -e .env.local -- sh -c 'pnpm dlx get-graphql-schema \"$WP_GRAPHQL_URL\" > schema.graphql'",
+    "schema:pull": "scripts/schema-pull.sh",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
     "vercel-build": "if [ \"$VERCEL_ENV\" = \"preview\" ]; then pnpm db:push:preview; else pnpm db:migrate:deploy; fi && pnpm codegen:deploy && next build"
