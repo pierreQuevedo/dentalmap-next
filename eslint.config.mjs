@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Fichiers produits par graphql-codegen, jamais édités à la main.
+    "src/lib/wp/generated/**",
   ]),
 ]);
 

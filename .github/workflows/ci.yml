@@ -1,0 +1,35 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      WP_GRAPHQL_URL: ${{ secrets.WP_GRAPHQL_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL_CI }}
+      BETTER_AUTH_SECRET: ci-only-secret-not-used
+      BETTER_AUTH_URL: http://localhost:3000
+      REVALIDATE_SECRET: ci-only-secret-not-used
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      # pnpm codegen passe par dotenv-cli, qui exige un .env.local présent
+      - name: Écrire .env.local depuis les secrets
+        run: |
+          {
+            echo "WP_GRAPHQL_URL=$WP_GRAPHQL_URL"
+            echo "DATABASE_URL=$DATABASE_URL"
+            echo "BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET"
+            echo "BETTER_AUTH_URL=$BETTER_AUTH_URL"
+            echo "REVALIDATE_SECRET=$REVALIDATE_SECRET"
+          } > .env.local
+      - run: pnpm codegen
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm build
