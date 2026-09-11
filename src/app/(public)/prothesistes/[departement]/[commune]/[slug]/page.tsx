@@ -1,25 +1,28 @@
-import { Suspense } from 'react'
 import { PageFiche, metadonneesFiche } from '@/components/annuaire/fiche'
-import { SqueletteContenu } from '@/components/annuaire/squelette'
 
 type Params = { departement: string; commune: string; slug: string }
+
+/**
+ * Route bloquante, volontairement.
+ *
+ * Avec le rendu en flux, la coquille part avec un code 200 avant que le
+ * composant ait pu décider : une fiche inexistante était servie en 200 au lieu
+ * de 404, et une ancienne URL ne redirigeait pas. Un « soft 404 » sur un
+ * annuaire de 45 000 pages est exactement ce qu'il faut éviter.
+ *
+ * Le coût est limité : les requêtes sont en `use cache` avec le profil
+ * `praticien`, donc une fiche n'est calculée qu'une fois par semaine.
+ */
+export const instant = false
 
 export async function generateMetadata(props: { params: Promise<Params> }) {
   return metadonneesFiche('prothesiste', await props.params)
 }
 
-/**
- * La coquille est prérendue, le contenu est streamé dans la même réponse HTTP.
- * Les 45 000 fiches ne peuvent pas être prégénérées : elles se remplissent à la
- * demande puis restent en cache selon le profil `praticien`, porté par les
- * requêtes de `lib/annuaire`.
- */
-export default async function Page(props: { params: Promise<Params> }) {
+export default function Page(props: { params: Promise<Params> }) {
   return (
     <main className="mx-auto max-w-3xl px-5 py-8">
-      <Suspense fallback={<SqueletteContenu />}>
-        <PageFiche profession="prothesiste" params={props.params} />
-      </Suspense>
+      <PageFiche profession="prothesiste" params={props.params} />
     </main>
   )
 }

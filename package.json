@@ -21,6 +21,7 @@
     "sync:geo": "dotenv -e .env.local -- tsx scripts/sync/sync-geo.ts",
     "sync:geocode": "dotenv -e .env.local -- tsx scripts/sync/geocode-ban.ts",
     "sync:prothesistes": "dotenv -e .env.local -- tsx scripts/sync/import-prothesistes.ts",
+    "sync:redirections": "dotenv -e .env.local -- tsx scripts/sync/redirections-ancien-site.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "next typegen && tsc --noEmit",
