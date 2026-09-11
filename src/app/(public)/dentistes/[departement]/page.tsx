@@ -1,19 +1,18 @@
-import { Suspense } from 'react'
 import { PageDepartement, metadonneesDepartement } from '@/components/annuaire/departement'
-import { SqueletteContenu } from '@/components/annuaire/squelette'
 
 type Params = { departement: string }
+
+/** Bloquante : un département inconnu doit renvoyer 404. */
+export const instant = false
 
 export async function generateMetadata(props: { params: Promise<Params> }) {
   return metadonneesDepartement('dentiste', await props.params)
 }
 
-export default async function Page(props: { params: Promise<Params> }) {
+export default function Page(props: { params: Promise<Params> }) {
   return (
     <main className="mx-auto max-w-4xl px-5 py-8">
-      <Suspense fallback={<SqueletteContenu />}>
-        <PageDepartement profession="dentiste" params={props.params} />
-      </Suspense>
+      <PageDepartement profession="dentiste" params={props.params} />
     </main>
   )
 }

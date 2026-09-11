@@ -476,3 +476,21 @@ export async function getDepartementsIndexables(): Promise<EntreeSitemap[]> {
   `)
   return rows.map((r) => ({ chemin: r.chemin, majLe: r.maj }))
 }
+
+/**
+ * Redirection permanente depuis une ancienne URL.
+ *
+ * L'architecture prévoyait de lire la table dans un middleware. On la consulte
+ * plutôt au moment où une page ne trouve rien : la requête ne coûte alors rien
+ * sur le chemin nominal, alors qu'un middleware s'exécute à chaque requête, y
+ * compris sur les 45 000 fiches qui existent.
+ */
+export async function getRedirection(chemin: string): Promise<string | null> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire', 'redirections')
+  const { rows } = await db.execute<{ nouveau_chemin: string }>(sql`
+    SELECT nouveau_chemin FROM redirections WHERE ancien_chemin = ${chemin} LIMIT 1
+  `)
+  return rows[0]?.nouveau_chemin ?? null
+}

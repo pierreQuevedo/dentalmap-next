@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getPraticien } from '@/lib/annuaire/queries'
+import { getPraticien, getRedirection } from '@/lib/annuaire/queries'
 import { BASE_URL, nomAffiche, type Profession } from '@/lib/annuaire/types'
 import { Adresse, chemin, FilAriane, Section, Telephone, Verification } from './primitives'
 import { Balisage, fichePraticien, filAriane } from '@/lib/seo/jsonld'
@@ -38,7 +38,14 @@ export async function metadonneesFiche(profession: Profession, params: Params): 
 export async function PageFiche({ profession, params }: { profession: Profession; params: Promise<Params> }) {
   const { departement, commune, slug } = await params
   const p = await getPraticien(profession, departement, commune, slug)
-  if (!p) notFound()
+  if (!p) {
+    // Avant de conclure à une page introuvable, on regarde si l'URL vient de
+    // l'ancien site. `permanentRedirect` émet un 308, que Google traite comme
+    // un 301.
+    const cible = await getRedirection(`/${BASE_URL[profession]}/${departement}/${commune}/${slug}/`)
+    if (cible) permanentRedirect(chemin(cible))
+    notFound()
+  }
 
   const base = BASE_URL[profession]
   const principal = p.lieux.find((l) => l.principal) ?? p.lieux[0]

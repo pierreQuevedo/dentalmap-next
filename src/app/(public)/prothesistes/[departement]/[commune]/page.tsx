@@ -1,19 +1,18 @@
-import { Suspense } from 'react'
 import { PageCommune, metadonneesCommune } from '@/components/annuaire/commune'
-import { SqueletteContenu } from '@/components/annuaire/squelette'
 
 type Params = { departement: string; commune: string }
+
+/** Bloquante pour la même raison que la fiche : une commune inconnue doit renvoyer 404. */
+export const instant = false
 
 export async function generateMetadata(props: { params: Promise<Params> }) {
   return metadonneesCommune('prothesiste', await props.params)
 }
 
-export default async function Page(props: { params: Promise<Params> }) {
+export default function Page(props: { params: Promise<Params> }) {
   return (
     <main className="mx-auto max-w-3xl px-5 py-8">
-      <Suspense fallback={<SqueletteContenu />}>
-        <PageCommune profession="prothesiste" params={props.params} />
-      </Suspense>
+      <PageCommune profession="prothesiste" params={props.params} />
     </main>
   )
 }
