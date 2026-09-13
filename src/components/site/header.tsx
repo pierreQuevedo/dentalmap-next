@@ -2,15 +2,19 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { getAccesRapide } from '@/lib/annuaire/acces-rapide'
 import type { NavLink } from '@/lib/navigation'
-import { CacherEnCompact } from './cacher-en-compact'
+import { SearchIcon } from './nav-icon'
 import { ThemeToggle } from './theme-toggle'
 import { MainNav } from './main-nav'
 import { MobileNav } from './mobile-nav'
-import { SearchPill } from './search-pill'
 import { UserMenu } from './user-menu'
 
 /**
  * En-tête du site.
+ *
+ * Une seule barre, de hauteur fixe, qui ne porte que la navigation. La ligne
+ * de recherche dépliée et son repli au défilement ont été retirés : la
+ * recherche se fait depuis la page dédiée, l'icône de loupe y mène depuis
+ * n'importe quelle page.
  *
  * Composant serveur : il charge les communes de l'accès rapide (requête
  * cachée, tag `annuaire`) et les passe au méga-menu. Seuls les fragments qui
@@ -21,11 +25,8 @@ export async function Header() {
   const accesRapide: NavLink[] = communes.map((c) => ({ label: c.label, href: c.href }))
 
   return (
-    // La hauteur du header ne varie jamais : la ligne de recherche est posée
-    // hors du flux par `SearchPill`, et le contenu des pages lui réserve
-    // `--h-recherche`.
-    <header id="site-header" className="sticky top-0 z-50 h-20 bg-bg">
-      <div className="relative grid h-20 grid-cols-[auto_1fr_auto] items-center px-5 md:grid-cols-[1fr_auto_1fr] md:px-10 xl:px-20">
+    <header id="site-header" className="sticky top-0 z-50 h-20 border-b border-line bg-bg">
+      <div className="grid h-20 grid-cols-[auto_1fr_auto] items-center px-5 md:grid-cols-[1fr_auto_1fr] md:px-10 xl:px-20">
         <Link href="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-brand">
           <span aria-hidden className="size-[30px] rounded-md bg-brand" />
           DentalMap
@@ -34,14 +35,19 @@ export async function Header() {
         <MainNav accesRapide={accesRapide} />
 
         <div className="flex items-center justify-end gap-2">
-          <CacherEnCompact>
-            <Link
-              href="/espace-pro/revendiquer"
-              className="hidden rounded-full px-3 py-3 text-sm font-medium text-fg hover:bg-bg-soft lg:inline-block"
-            >
-              Vous êtes praticien ?
-            </Link>
-          </CacherEnCompact>
+          <Link
+            href="/recherche"
+            aria-label="Rechercher un professionnel"
+            className="grid size-9 place-items-center rounded-full text-fg hover:bg-bg-soft"
+          >
+            <SearchIcon className="size-[18px]" />
+          </Link>
+          <Link
+            href="/espace-pro/revendiquer"
+            className="hidden rounded-full px-3 py-3 text-sm font-medium text-fg hover:bg-bg-soft lg:inline-block"
+          >
+            Vous êtes praticien ?
+          </Link>
           <ThemeToggle tailleReservee="size-9" />
           <MobileNav accesRapide={accesRapide} />
           {/* La session n'est lue que par ce fragment : le reste du header
@@ -53,7 +59,6 @@ export async function Header() {
           </Suspense>
         </div>
       </div>
-      <SearchPill />
     </header>
   )
 }

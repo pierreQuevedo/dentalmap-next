@@ -7,15 +7,6 @@
   --shadow-pill: 0 3px 12px rgba(20,30,36,.10), 0 1px 2px rgba(20,30,36,.06);
   --shadow-pop: 0 8px 28px rgba(20,30,36,.16);
 
-  /*
-   * Hauteur de la ligne de recherche, qui est posée hors du flux sous la barre.
-   * Le contenu des pages réserve exactement cette place. Laisser cette ligne
-   * dans le flux ferait varier la hauteur du header au passage en mode compact :
-   * le document perdait 90 px, le navigateur ramenait le défilement à 0, et la
-   * page se bloquait autour du seuil.
-   */
-  --h-recherche: 86px;
-
   /* pont vers shadcn */
   --background: var(--bg); --foreground: var(--fg);
   --card: var(--bg); --card-foreground: var(--fg);
@@ -26,11 +17,6 @@
   --accent: var(--bg-soft); --accent-foreground: var(--fg);
   --border: var(--line); --input: var(--line); --ring: var(--brand);
   --radius: 0.75rem;
-}
-
-/* La ligne de recherche gagne 4 px de respiration à partir de `md`. */
-@media (min-width: 768px) {
-  :root { --h-recherche: 90px; }
 }
 .dark {
   --bg: #15191c; --bg-soft: #1d2226; --fg: #eceff1; --fg-2: #9aa5ac;

@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { chemin, mainNav, mainNavIcons, type NavEntry, type NavLink } from '@/lib/navigation'
 import { NavIconSvg } from './nav-icon'
-import { useHeaderCompact } from './use-header-compact'
 
 /**
  * L'annuaire vit sous trois préfixes. L'onglet doit rester souligné sur une
@@ -23,7 +22,6 @@ function estActif(entry: NavEntry, pathname: string) {
 
 export function MainNav({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
   const pathname = usePathname()
-  const compact = useHeaderCompact()
   // L'état retient la route sur laquelle le menu a été ouvert. Un changement
   // de route le referme donc par simple dérivation, sans effet qui remettrait
   // l'état à zéro après coup et provoquerait un rendu en cascade.
@@ -59,11 +57,6 @@ export function MainNav({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
   const sortir = () => {
     minuterie.current = setTimeout(() => setOuvert(null), DELAI_FERMETURE)
   }
-
-  // Un placeholder, et non `null` : sans nœud dans la colonne du milieu, les
-  // actions de droite remontent dans la cellule centrale de la grille et
-  // passent sous la mini-pill.
-  if (compact) return <div aria-hidden className="hidden md:block" />
 
   return (
     <nav aria-label="Navigation principale" className="relative hidden justify-self-center gap-1 md:flex">

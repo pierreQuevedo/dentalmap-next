@@ -8,7 +8,7 @@ async function page(width, height, theme = 'light') {
   const p = await b.newPage({ viewport: { width, height } })
   await p.goto(`${BASE}/dentistes/`)
   await p.evaluate((t) => localStorage.setItem('theme', t), theme)
-  await p.reload({ waitUntil: 'networkidle' })
+  await p.reload({ waitUntil: 'load' })
   await p.waitForTimeout(400)
   return p
 }
