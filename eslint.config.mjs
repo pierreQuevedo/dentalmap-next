@@ -14,6 +14,12 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Fichiers produits par graphql-codegen, jamais édités à la main.
     "src/lib/wp/generated/**",
+    // Code installé depuis des registres de composants (shadcn, matos-ui).
+    // Il n'est pas écrit ici et ne doit pas être modifié : le corriger pour
+    // satisfaire nos règles rendrait chaque mise à jour douloureuse.
+    "src/components/ui/**",
+    "src/components/matos-ui/**",
+    "src/lib/motion-tokens.ts",
   ]),
 ]);
 
