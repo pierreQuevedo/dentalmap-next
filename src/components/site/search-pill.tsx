@@ -33,25 +33,35 @@ export function SearchPill() {
   // Le clic remonte en haut de page plutôt que de déplier sur place : un
   // dépliage in-place demanderait de figer la hauteur du header pendant la
   // transition, complication sans gain à ce stade.
+  //
+  // La ligne de recherche est posée hors du flux, sous la barre : le header
+  // garde 80 px dans les deux états. Si elle restait dans le flux, le passage
+  // en compact retirerait 90 px au document et le navigateur ramènerait le
+  // défilement en arrière, ce qui bloquait la page au niveau du seuil.
   if (compact) {
     return (
-      <button
-        type="button"
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center rounded-full border border-line py-1.5 pl-4 pr-1.5 text-sm font-semibold shadow-pill md:inline-flex"
-        aria-label="Ouvrir la recherche"
-      >
-        <span className="px-4 py-1.5">{LIBELLE[profession]}</span>
-        <span className="border-l border-line px-4 py-1.5 font-normal text-fg-2">{ou || 'Où ?'}</span>
-        <span className="ml-1 grid size-[34px] place-items-center rounded-full bg-brand text-primary-foreground">
-          <SearchIcon className="size-3.5" />
-        </span>
-      </button>
+      <>
+        {/* La barre porte sa propre ligne de séparation une fois la ligne de
+            recherche escamotée. */}
+        <span aria-hidden className="absolute inset-x-0 top-20 h-px bg-line" />
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center rounded-full border border-line py-1.5 pl-4 pr-1.5 text-sm font-semibold shadow-pill md:inline-flex"
+          aria-label="Ouvrir la recherche"
+        >
+          <span className="px-4 py-1.5">{LIBELLE[profession]}</span>
+          <span className="border-l border-line px-4 py-1.5 font-normal text-fg-2">{ou || 'Où ?'}</span>
+          <span className="ml-1 grid size-[34px] place-items-center rounded-full bg-brand text-primary-foreground">
+            <SearchIcon className="size-3.5" />
+          </span>
+        </button>
+      </>
     )
   }
 
   return (
-    <div className="flex justify-center px-6 pb-4 md:px-10 md:pb-5 xl:px-20">
+    <div className="absolute inset-x-0 top-20 flex h-(--h-recherche) items-start justify-center border-b border-line bg-bg px-5 md:px-10 xl:px-20">
       <form
         role="search"
         onSubmit={envoyer}

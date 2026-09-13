@@ -21,7 +21,10 @@ export async function Header() {
   const accesRapide: NavLink[] = communes.map((c) => ({ label: c.label, href: c.href }))
 
   return (
-    <header id="site-header" className="sticky top-0 z-50 border-b border-line bg-bg">
+    // La hauteur du header ne varie jamais : la ligne de recherche est posée
+    // hors du flux par `SearchPill`, et le contenu des pages lui réserve
+    // `--h-recherche`.
+    <header id="site-header" className="sticky top-0 z-50 h-20 bg-bg">
       <div className="relative grid h-20 grid-cols-[auto_1fr_auto] items-center px-5 md:grid-cols-[1fr_auto_1fr] md:px-10 xl:px-20">
         <Link href="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-brand">
           <span aria-hidden className="size-[30px] rounded-md bg-brand" />
