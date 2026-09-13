@@ -10,7 +10,8 @@ export default function PublicLayout({ children }: LayoutProps<'/'>) {
   return (
     <>
       <Header />
-      <div className="flex-1">{children}</div>
+      {/* Réserve la place de la ligne de recherche, qui flotte sous la barre. */}
+      <div className="flex-1 pt-(--h-recherche)">{children}</div>
       <Footer />
     </>
   )
