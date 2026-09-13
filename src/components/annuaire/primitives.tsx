@@ -1,14 +1,10 @@
 import Link from 'next/link'
-import type { Route } from 'next'
 import { formaterAdresse } from '@/lib/annuaire/nom'
+import { chemin } from '@/lib/navigation'
 
-/**
- * Les chemins de l'annuaire sont composés à l'exécution à partir de slugs venus
- * de la base : `typedRoutes` ne peut pas les connaître à la compilation. Cette
- * fonction isole la conversion en un seul endroit, plutôt que de parsemer le
- * code de conversions de type.
- */
-export const chemin = (href: string) => href as Route
+// Réexporté pour les modules de l'annuaire qui l'importent déjà d'ici ; la
+// définition vit dans `navigation.ts`, partagée avec le header et le footer.
+export { chemin }
 
 /**
  * Briques d'interface de l'annuaire.

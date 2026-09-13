@@ -5,7 +5,8 @@
   "scripts": {
     "auth:generate": "auth generate --output src/db/auth-schema.ts -y",
     "build": "next build",
-    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm check:nav && pnpm build",
+    "check:nav": "tsx scripts/check-nav-links.ts",
     "codegen": "dotenv -e .env.local -- graphql-codegen --config codegen.ts",
     "codegen:deploy": "graphql-codegen --config codegen.ts",
     "db:generate": "drizzle-kit generate",
