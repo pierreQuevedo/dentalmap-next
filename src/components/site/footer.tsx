@@ -60,7 +60,7 @@ export async function Footer() {
       <section className={`${px} grid gap-8 py-12 md:grid-cols-3 md:gap-6`}>
         {footerCols.map((col) => (
           <div key={col.title}>
-            <h3 className="mb-3 font-semibold">{col.title}</h3>
+            <h3 className="mb-3 text-sm font-semibold">{col.title}</h3>
             <ul className="grid gap-3.5">
               {col.links.map((l) => (
                 <li key={l.href}>

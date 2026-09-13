@@ -1,46 +1,204 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+ * Le variant vise aussi l'élément qui porte `.dark`, pas seulement ses
+ * descendants : `next-themes` pose la classe sur `<html>`, et la version
+ * livrée par le registre (`&:is(.dark *)`) laisserait `<html>` en clair.
+ */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --bg: #ffffff; --bg-soft: #f4f6f7; --fg: #222629; --fg-2: #6b7378;
-  --line: #dfe3e6; --line-strong: #c9cfd3; --brand: #2c3e48; --brand-hover: #1f2d35;
-  --shadow-pill: 0 3px 12px rgba(20,30,36,.10), 0 1px 2px rgba(20,30,36,.06);
-  --shadow-pop: 0 8px 28px rgba(20,30,36,.16);
+  /* Palette vega, shadcnstudio. */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.511 0.096 186.391);
+  --primary-foreground: oklch(0.984 0.014 180.72);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.855 0.138 181.071);
+  --chart-2: oklch(0.704 0.14 182.503);
+  --chart-3: oklch(0.6 0.118 184.704);
+  --chart-4: oklch(0.511 0.096 186.391);
+  --chart-5: oklch(0.437 0.078 188.216);
+  --radius: 0.875rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.6 0.118 184.704);
+  --sidebar-primary-foreground: oklch(0.984 0.014 180.72);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 
-  /* pont vers shadcn */
-  --background: var(--bg); --foreground: var(--fg);
-  --card: var(--bg); --card-foreground: var(--fg);
-  --popover: var(--bg); --popover-foreground: var(--fg);
-  --primary: var(--brand); --primary-foreground: #ffffff;
-  --secondary: var(--bg-soft); --secondary-foreground: var(--fg);
-  --muted: var(--bg-soft); --muted-foreground: var(--fg-2);
-  --accent: var(--bg-soft); --accent-foreground: var(--fg);
-  --border: var(--line); --input: var(--line); --ring: var(--brand);
-  --radius: 0.75rem;
+  --shadow-2xs: 0 1px 3px 0px oklch(0.289 0.045 202.127 / 0.05);
+  --shadow-xs: 0 1px 3px 0px oklch(0.289 0.045 202.127 / 0.05);
+  --shadow-sm: 0 1px 3px 0px oklch(0.289 0.045 202.127 / 0.10), 0 1px 2px -1px oklch(0.289 0.045 202.127 / 0.10);
+  --shadow: 0 1px 3px 0px oklch(0.289 0.045 202.127 / 0.10), 0 1px 2px -1px oklch(0.289 0.045 202.127 / 0.10);
+  --shadow-md: 0 1px 3px 0px oklch(0.289 0.045 202.127 / 0.10), 0 2px 4px -1px oklch(0.289 0.045 202.127 / 0.10);
+  --shadow-lg: 0 1px 3px 0px oklch(0.289 0.045 202.127 / 0.10), 0 4px 6px -1px oklch(0.289 0.045 202.127 / 0.10);
+  --shadow-xl: 0 1px 3px 0px oklch(0.289 0.045 202.127 / 0.10), 0 8px 10px -1px oklch(0.289 0.045 202.127 / 0.10);
+  --shadow-2xl: 0 1px 3px 0px oklch(0.289 0.045 202.127 / 0.25);
+
+  /*
+   * Couche sémantique DentalMap, alias de la palette ci-dessus.
+   *
+   * Tout le site est écrit avec ces noms : `bg-bg`, `text-fg`, `text-fg-2`,
+   * `border-line`, `bg-brand`. Les garder en alias permet de changer de
+   * palette en un seul endroit, sans repasser sur une quarantaine de fichiers,
+   * et de nommer les rôles plutôt que les valeurs.
+   */
+  --bg: var(--background);
+  --bg-soft: var(--muted);
+  --fg: var(--foreground);
+  --fg-2: var(--muted-foreground);
+  --line: var(--border);
+  --line-strong: oklch(0.85 0 0);
+  --brand: var(--primary);
+  --brand-hover: var(--chart-5);
+  --brand-foreground: var(--primary-foreground);
+
+  --shadow-pill: 0 3px 12px oklch(0.289 0.045 202.127 / 0.10), 0 1px 2px oklch(0.289 0.045 202.127 / 0.06);
+  --shadow-pop: 0 8px 28px oklch(0.289 0.045 202.127 / 0.16);
 }
+
 .dark {
-  --bg: #15191c; --bg-soft: #1d2226; --fg: #eceff1; --fg-2: #9aa5ac;
-  --line: #2c3338; --line-strong: #3a434a; --brand: #d5dde2; --brand-hover: #ffffff;
-  --shadow-pill: 0 3px 12px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.4);
-  --shadow-pop: 0 8px 28px rgba(0,0,0,.55);
-  --primary-foreground: #15191c;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.437 0.078 188.216);
+  --primary-foreground: oklch(0.984 0.014 180.72);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.855 0.138 181.071);
+  --chart-2: oklch(0.704 0.14 182.503);
+  --chart-3: oklch(0.6 0.118 184.704);
+  --chart-4: oklch(0.511 0.096 186.391);
+  --chart-5: oklch(0.437 0.078 188.216);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.704 0.14 182.503);
+  --sidebar-primary-foreground: oklch(0.277 0.046 192.524);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+
+  --shadow-2xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
+  --shadow-xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0px oklch(0 0 0 / 0.10), 0 1px 2px -1px oklch(0 0 0 / 0.10);
+  --shadow: 0 1px 3px 0px oklch(0 0 0 / 0.10), 0 1px 2px -1px oklch(0 0 0 / 0.10);
+  --shadow-md: 0 1px 3px 0px oklch(0 0 0 / 0.10), 0 2px 4px -1px oklch(0 0 0 / 0.10);
+  --shadow-lg: 0 1px 3px 0px oklch(0 0 0 / 0.10), 0 4px 6px -1px oklch(0 0 0 / 0.10);
+  --shadow-xl: 0 1px 3px 0px oklch(0 0 0 / 0.10), 0 8px 10px -1px oklch(0 0 0 / 0.10);
+  --shadow-2xl: 0 1px 3px 0px oklch(0 0 0 / 0.25);
+
+  /*
+   * Le fond doux prend la teinte des cartes et non celle de `--muted`, trop
+   * claire en sombre pour un pied de page pleine largeur.
+   *
+   * L'accent s'inverse : en sombre c'est le teal clair qui porte le texte et
+   * les fonds de bouton, avec un texte sombre par dessus. Le teal sombre de
+   * `--primary` resterait illisible en logo sur un fond presque noir.
+   */
+  --bg-soft: var(--card);
+  --line-strong: oklch(1 0 0 / 22%);
+  --brand: var(--chart-2);
+  --brand-hover: var(--chart-1);
+  --brand-foreground: oklch(0.277 0.046 192.524);
+
+  --shadow-pill: 0 3px 12px oklch(0 0 0 / 0.45), 0 1px 2px oklch(0 0 0 / 0.40);
+  --shadow-pop: 0 8px 28px oklch(0 0 0 / 0.55);
 }
 
 @theme inline {
-  --color-bg: var(--bg); --color-bg-soft: var(--bg-soft); --color-fg: var(--fg); --color-fg-2: var(--fg-2);
-  --color-line: var(--line); --color-line-strong: var(--line-strong);
-  --color-brand: var(--brand); --color-brand-hover: var(--brand-hover);
-  --color-background: var(--background); --color-foreground: var(--foreground);
-  --color-card: var(--card); --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover); --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary); --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary); --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted); --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent); --color-accent-foreground: var(--accent-foreground);
-  --color-border: var(--border); --color-input: var(--input); --color-ring: var(--ring);
+  --color-bg: var(--bg);
+  --color-bg-soft: var(--bg-soft);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-foreground: var(--brand-foreground);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
   --font-sans: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
-  --shadow-pill: var(--shadow-pill); --shadow-pop: var(--shadow-pop);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
   --radius-pop: 20px;
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+  --shadow-pill: var(--shadow-pill);
+  --shadow-pop: var(--shadow-pop);
 
   /*
    * Jumeaux CSS des tiers de `src/lib/motion-tokens.ts`. Le composant
@@ -57,6 +215,44 @@
 }
 
 @layer base {
-  * { @apply border-border; }
-  body { @apply bg-bg text-fg font-sans antialiased; }
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body);
+    line-height: 1.6;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  /*
+   * Le style vega prévoit trois familles, Manrope, Lato et Space Mono. Le site
+   * n'en charge qu'une, Figtree, posée par `next/font` dans le layout racine :
+   * les trois rôles pointent donc dessus. Charger deux familles de plus se
+   * paierait en requêtes et en décalage de rendu pour un gain douteux.
+   */
+  :root {
+    --font-heading: var(--font-sans);
+    --font-body: var(--font-sans);
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+
+  h1 { font-size: 2.25rem; line-height: 1.2; letter-spacing: -0.025em; font-weight: 700; }
+  h2 { font-size: 1.875rem; line-height: 1.25; letter-spacing: -0.02em; font-weight: 600; }
+  h3 { font-size: 1.5rem; line-height: 1.3; letter-spacing: -0.015em; font-weight: 600; }
+  h4 { font-size: 1.25rem; line-height: 1.4; letter-spacing: -0.01em; font-weight: 500; }
+  h5 { font-size: 1.125rem; line-height: 1.5; font-weight: 500; }
+  h6 { font-size: 1rem; line-height: 1.5; font-weight: 500; }
+
+  code, pre {
+    font-family: var(--font-mono);
+  }
 }

@@ -44,7 +44,7 @@ export async function Header() {
           </Link>
           <Link
             href="/espace-pro/revendiquer"
-            className="hidden rounded-full px-3 py-3 text-sm font-medium text-fg hover:bg-bg-soft lg:inline-block"
+            className="hidden whitespace-nowrap rounded-full px-3 py-3 text-sm font-medium text-fg hover:bg-bg-soft lg:inline-block"
           >
             Vous êtes praticien ?
           </Link>
