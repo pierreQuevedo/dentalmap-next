@@ -214,7 +214,7 @@ function Pagination({ base, page, pages }: { base: string; page: number; pages: 
         <span key={n} className="flex items-center gap-2">
           {i > 0 && fenetre[i - 1] !== n - 1 && <span className="text-fg-2">…</span>}
           {n === page ? (
-            <span aria-current="page" className="rounded bg-brand px-3 py-1.5 text-sm text-primary-foreground">
+            <span aria-current="page" className="rounded bg-brand px-3 py-1.5 text-sm text-brand-foreground">
               {n}
             </span>
           ) : (

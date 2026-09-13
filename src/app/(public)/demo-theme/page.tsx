@@ -36,7 +36,7 @@ export default function DemoTheme() {
           <p className="text-fg">Fond adouci</p>
           <p className="mt-1 text-sm text-fg-2">bg-soft</p>
         </div>
-        <div className="rounded-xl bg-brand p-4 text-primary-foreground">Accent anthracite</div>
+        <div className="rounded-xl bg-brand p-4 text-brand-foreground">Accent, teal vega</div>
         <div className="rounded-xl border border-line-strong p-4 text-fg">Bordure appuyée</div>
       </div>
     </main>

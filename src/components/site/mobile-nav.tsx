@@ -158,7 +158,7 @@ export function MobileNav({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
           <div className="border-t border-line px-5 py-4">
             <Link
               href="/espace-pro"
-              className="block rounded-full bg-brand px-5 py-3 text-center text-[15px] font-semibold text-primary-foreground"
+              className="block rounded-full bg-brand px-5 py-3 text-center text-[15px] font-semibold text-brand-foreground"
             >
               Espace pro
             </Link>

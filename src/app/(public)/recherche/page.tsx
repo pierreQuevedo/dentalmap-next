@@ -69,7 +69,7 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
         </div>
         <button
           type="submit"
-          className="rounded-md bg-brand px-4 py-2 font-medium text-primary-foreground hover:bg-brand-hover"
+          className="rounded-md bg-brand px-4 py-2 font-medium text-brand-foreground hover:bg-brand-hover"
         >
           Rechercher
         </button>
@@ -99,7 +99,7 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
               {resultats.map((p) => (
                 <li key={p.slug} className="py-4">
                   <div className="flex items-baseline justify-between gap-3">
-                    <h2 className="font-medium">
+                    <h2 className="text-base font-medium">
                       <Link
                         href={chemin(`/${base}/${p.departementSlug}/${p.communeSlug}/${p.slug}/`)}
                         className="text-fg hover:underline"
