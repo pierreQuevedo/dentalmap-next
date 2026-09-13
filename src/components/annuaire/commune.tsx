@@ -99,12 +99,12 @@ export async function PageCommune({
       />
 
       <header className="mt-5">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+        <h1 className="text-3xl font-semibold tracking-tight text-fg">
           {total > 0
             ? `${l.pluriel.charAt(0).toUpperCase()}${l.pluriel.slice(1)} à ${c.nom}`
             : `Aucun ${l.singulier} à ${c.nom}`}
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-fg-2">
           {total > 0 ? (
             <>
               {total.toLocaleString('fr-FR')} {total > 1 ? l.pluriel : l.singulier} recensés, classés par ordre
@@ -117,14 +117,14 @@ export async function PageCommune({
       </header>
 
       {total > 0 ? (
-        <ul className="mt-8 divide-y divide-slate-200 border-y border-slate-200">
+        <ul className="mt-8 divide-y divide-line border-y border-line">
           {liste.map((p) => (
             <li key={p.slug} className="py-5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                 <h2 className="text-lg font-medium">
                   <Link
                     href={chemin(`/${base}/${p.departementSlug}/${p.communeSlug}/${p.slug}/`)}
-                    className="text-slate-900 hover:underline"
+                    className="text-fg hover:underline"
                   >
                     {nomAffiche({ profession, nom: p.nom, prenom: p.prenom, raisonSociale: p.raisonSociale })}
                   </Link>
@@ -148,7 +148,7 @@ export async function PageCommune({
 
       {pages > 1 && <Pagination base={cheminBase} page={page} pages={pages} />}
 
-      <p className="mt-8 text-sm text-slate-600">
+      <p className="mt-8 text-sm text-fg-2">
         Le classement est alphabétique. Aucune mise en avant payante n&apos;existe sur DentalMap.
       </p>
     </>
@@ -169,19 +169,19 @@ async function CommunesVoisines({
   if (voisines.length === 0) return null
   return (
     <section className="mt-8">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-2">
         Les plus proches de {nomCommune}
       </h2>
-      <ul className="mt-3 divide-y divide-slate-200 border-y border-slate-200">
+      <ul className="mt-3 divide-y divide-line border-y border-line">
         {voisines.map((v) => (
           <li key={`${v.departementSlug}/${v.slug}`} className="flex items-baseline justify-between gap-4 py-3">
             <Link
               href={chemin(`/${base}/${v.departementSlug}/${v.slug}/`)}
-              className="text-slate-900 hover:underline"
+              className="text-fg hover:underline"
             >
               {v.nom}
             </Link>
-            <span className="text-sm tabular-nums text-slate-500">
+            <span className="text-sm tabular-nums text-fg-2">
               {v.total} à {v.km.toLocaleString('fr-FR')} km
             </span>
           </li>
@@ -206,26 +206,26 @@ function Pagination({ base, page, pages }: { base: string; page: number; pages: 
   return (
     <nav aria-label="Pagination" className="mt-8 flex flex-wrap items-center gap-2">
       {page > 1 && (
-        <Link href={chemin(lien(page - 1))} rel="prev" className="rounded border border-slate-300 px-3 py-1.5 text-sm hover:border-slate-900">
+        <Link href={chemin(lien(page - 1))} rel="prev" className="rounded border border-line-strong px-3 py-1.5 text-sm hover:border-fg">
           Précédent
         </Link>
       )}
       {fenetre.map((n, i) => (
         <span key={n} className="flex items-center gap-2">
-          {i > 0 && fenetre[i - 1] !== n - 1 && <span className="text-slate-400">…</span>}
+          {i > 0 && fenetre[i - 1] !== n - 1 && <span className="text-fg-2">…</span>}
           {n === page ? (
-            <span aria-current="page" className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white">
+            <span aria-current="page" className="rounded bg-brand px-3 py-1.5 text-sm text-primary-foreground">
               {n}
             </span>
           ) : (
-            <Link href={chemin(lien(n))} className="rounded border border-slate-300 px-3 py-1.5 text-sm hover:border-slate-900">
+            <Link href={chemin(lien(n))} className="rounded border border-line-strong px-3 py-1.5 text-sm hover:border-fg">
               {n}
             </Link>
           )}
         </span>
       ))}
       {page < pages && (
-        <Link href={chemin(lien(page + 1))} rel="next" className="rounded border border-slate-300 px-3 py-1.5 text-sm hover:border-slate-900">
+        <Link href={chemin(lien(page + 1))} rel="next" className="rounded border border-line-strong px-3 py-1.5 text-sm hover:border-fg">
           Suivant
         </Link>
       )}

@@ -79,15 +79,15 @@ export async function PageFiche({ profession, params }: { profession: Profession
       />
 
       <header className="mt-5">
-        <p className="text-sm font-medium text-slate-500">{LIBELLE[profession].singulier}</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">{nom}</h1>
+        <p className="text-sm font-medium text-fg-2">{LIBELLE[profession].singulier}</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-fg">{nom}</h1>
         <div className="mt-3">
           <Verification statut={p.statutVerification} />
         </div>
       </header>
 
       {radie && (
-        <p className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <p className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
           Ce professionnel ne figure plus au registre officiel. La fiche est conservée à titre d&apos;archive.
         </p>
       )}
@@ -102,9 +102,9 @@ export async function PageFiche({ profession, params }: { profession: Profession
           />
           {principal.telephone && (
             <p className="mt-3">
-              <span className="text-slate-500">Téléphone </span>
+              <span className="text-fg-2">Téléphone </span>
               <Telephone numero={principal.telephone} />
-              <span className="ml-2 text-xs text-slate-500">numéro figurant au registre</span>
+              <span className="ml-2 text-xs text-fg-2">numéro figurant au registre</span>
             </p>
           )}
         </Section>
@@ -131,28 +131,28 @@ export async function PageFiche({ profession, params }: { profession: Profession
         <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
           {p.rpps && (
             <>
-              <dt className="text-slate-500">Numéro RPPS</dt>
-              <dd className="font-mono text-slate-900">{p.rpps}</dd>
+              <dt className="text-fg-2">Numéro RPPS</dt>
+              <dd className="font-mono text-fg">{p.rpps}</dd>
             </>
           )}
           {p.siren && (
             <>
-              <dt className="text-slate-500">SIREN</dt>
-              <dd className="font-mono text-slate-900">{p.siren}</dd>
+              <dt className="text-fg-2">SIREN</dt>
+              <dd className="font-mono text-fg">{p.siren}</dd>
             </>
           )}
-          <dt className="text-slate-500">Registre</dt>
-          <dd className="text-slate-900">
+          <dt className="text-fg-2">Registre</dt>
+          <dd className="text-fg">
             {profession === 'dentiste'
               ? 'Annuaire Santé, Agence du Numérique en Santé'
               : 'Base Sirene, INSEE'}
           </dd>
-          <dt className="text-slate-500">Dernière mise à jour</dt>
-          <dd className="text-slate-900">
+          <dt className="text-fg-2">Dernière mise à jour</dt>
+          <dd className="text-fg">
             {new Date(p.majLe).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
           </dd>
         </dl>
-        <p className="mt-4 text-sm text-slate-600">
+        <p className="mt-4 text-sm text-fg-2">
           Ces informations proviennent de registres publics et ne sont pas modifiables par le professionnel.
         </p>
       </Section>
@@ -160,7 +160,7 @@ export async function PageFiche({ profession, params }: { profession: Profession
       <Section titre="Voir aussi">
         <Link
           href={chemin(`/${base}/${departement}/${commune}/`)}
-          className="text-slate-900 underline hover:no-underline"
+          className="text-fg underline hover:no-underline"
         >
           Tous les {LIBELLE[profession].pluriel.toLowerCase()} à {principal?.communeNom ?? commune}
         </Link>
