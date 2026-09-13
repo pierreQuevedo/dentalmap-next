@@ -1,26 +1,62 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #ffffff; --bg-soft: #f4f6f7; --fg: #222629; --fg-2: #6b7378;
+  --line: #dfe3e6; --line-strong: #c9cfd3; --brand: #2c3e48; --brand-hover: #1f2d35;
+  --shadow-pill: 0 3px 12px rgba(20,30,36,.10), 0 1px 2px rgba(20,30,36,.06);
+  --shadow-pop: 0 8px 28px rgba(20,30,36,.16);
+
+  /* pont vers shadcn */
+  --background: var(--bg); --foreground: var(--fg);
+  --card: var(--bg); --card-foreground: var(--fg);
+  --popover: var(--bg); --popover-foreground: var(--fg);
+  --primary: var(--brand); --primary-foreground: #ffffff;
+  --secondary: var(--bg-soft); --secondary-foreground: var(--fg);
+  --muted: var(--bg-soft); --muted-foreground: var(--fg-2);
+  --accent: var(--bg-soft); --accent-foreground: var(--fg);
+  --border: var(--line); --input: var(--line); --ring: var(--brand);
+  --radius: 0.75rem;
+}
+.dark {
+  --bg: #15191c; --bg-soft: #1d2226; --fg: #eceff1; --fg-2: #9aa5ac;
+  --line: #2c3338; --line-strong: #3a434a; --brand: #d5dde2; --brand-hover: #ffffff;
+  --shadow-pill: 0 3px 12px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.4);
+  --shadow-pop: 0 8px 28px rgba(0,0,0,.55);
+  --primary-foreground: #15191c;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg); --color-bg-soft: var(--bg-soft); --color-fg: var(--fg); --color-fg-2: var(--fg-2);
+  --color-line: var(--line); --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand); --color-brand-hover: var(--brand-hover);
+  --color-background: var(--background); --color-foreground: var(--foreground);
+  --color-card: var(--card); --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover); --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary); --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary); --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted); --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent); --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border); --color-input: var(--input); --color-ring: var(--ring);
+  --font-sans: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+  --shadow-pill: var(--shadow-pill); --shadow-pop: var(--shadow-pop);
+  --radius-pop: 20px;
+
+  /*
+   * Jumeaux CSS des tiers de `src/lib/motion-tokens.ts`. Le composant
+   * theme-toggler-button de matos-ui utilise les classes `duration-moderate` et
+   * `ease-spring`, que Tailwind ne génère que si ces variables existent. Le
+   * fichier de tokens précise que les deux côtés doivent bouger ensemble :
+   * moderate 0,38 s et slow 0,52 s y sont les valeurs de référence.
+   */
+  --duration-fast: 260ms;
+  --duration-moderate: 380ms;
+  --duration-slow: 520ms;
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-lift: cubic-bezier(0.05, 0.7, 0.1, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-bg text-fg font-sans antialiased; }
 }
