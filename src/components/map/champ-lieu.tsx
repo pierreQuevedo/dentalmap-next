@@ -72,7 +72,7 @@ export function ChampLieu({
 
   return (
     <div className="relative">
-      <label htmlFor={idListe} className="block text-sm font-medium text-slate-700">
+      <label htmlFor={idListe} className="block text-sm font-medium text-fg">
         Où cherchez-vous ?
       </label>
       <input
@@ -103,13 +103,13 @@ export function ChampLieu({
         aria-expanded={ouvert}
         aria-controls={`${idListe}-liste`}
         aria-autocomplete="list"
-        className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-slate-900"
+        className="mt-1 w-full rounded-md border border-line-strong px-3 py-2 text-fg outline-none focus:border-fg"
       />
       {ouvert && visibles.length > 0 && (
         <ul
           id={`${idListe}-liste`}
           role="listbox"
-          className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border border-slate-200 bg-white shadow-lg"
+          className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border border-line bg-bg shadow-lg"
         >
           {visibles.map((s, i) => (
             <li key={s.code_insee}>
@@ -120,11 +120,11 @@ export function ChampLieu({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => choisir(s)}
                 className={`flex w-full items-baseline justify-between gap-3 px-3 py-2 text-left text-sm ${
-                  i === indexActif ? 'bg-slate-100' : 'hover:bg-slate-50'
+                  i === indexActif ? 'bg-bg-soft' : 'hover:bg-bg-soft'
                 }`}
               >
-                <span className="text-slate-900">{s.nom}</span>
-                <span className="shrink-0 text-xs text-slate-500">
+                <span className="text-fg">{s.nom}</span>
+                <span className="shrink-0 text-xs text-fg-2">
                   {s.code_postal} {s.departement_nom}
                 </span>
               </button>

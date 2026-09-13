@@ -29,7 +29,7 @@ const nombre = (n: number) => new Intl.NumberFormat('fr-FR').format(n)
 
 function Erreur({ source, message }: { source: string; message: string }) {
   return (
-    <p className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+    <p className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
       {source} indisponible : {message}
     </p>
   )
@@ -37,8 +37,8 @@ function Erreur({ source, message }: { source: string; message: string }) {
 
 function Carte({ titre, enfants }: { titre: string; enfants: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">{titre}</h2>
+    <section className="rounded-lg border border-line bg-bg p-5">
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-fg-2">{titre}</h2>
       {enfants}
     </section>
   )
@@ -46,11 +46,11 @@ function Carte({ titre, enfants }: { titre: string; enfants: React.ReactNode }) 
 
 function Ligne({ label, valeur, note }: { label: string; valeur: string; note?: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-slate-100 py-2 last:border-0">
-      <span className="text-slate-700">{label}</span>
+    <div className="flex items-baseline justify-between gap-4 border-b border-line py-2 last:border-0">
+      <span className="text-fg">{label}</span>
       <span className="text-right">
         <span className="font-medium tabular-nums">{valeur}</span>
-        {note ? <span className="ml-2 text-xs text-slate-500">{note}</span> : null}
+        {note ? <span className="ml-2 text-xs text-fg-2">{note}</span> : null}
       </span>
     </div>
   )
@@ -121,11 +121,11 @@ async function RunsStatus() {
   await connection()
   const r = await tenter(lireRuns)
   if (!r.ok) return <Erreur source="Neon" message={r.message} />
-  if (r.valeur.length === 0) return <p className="text-sm text-slate-500">Aucune synchronisation lancée.</p>
+  if (r.valeur.length === 0) return <p className="text-sm text-fg-2">Aucune synchronisation lancée.</p>
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
+        <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-fg-2">
           <th className="pb-2 font-medium">Job</th>
           <th className="pb-2 font-medium">Quand</th>
           <th className="pb-2 font-medium">Durée</th>
@@ -137,10 +137,10 @@ async function RunsStatus() {
       </thead>
       <tbody>
         {r.valeur.map((run, i) => (
-          <tr key={i} className="border-b border-slate-100 last:border-0">
+          <tr key={i} className="border-b border-line last:border-0">
             <td className="py-2 font-medium">{run.registre}</td>
-            <td className="py-2 text-slate-600">{run.demarre_le}</td>
-            <td className="py-2 tabular-nums text-slate-600">{run.duree ?? '—'}</td>
+            <td className="py-2 text-fg-2">{run.demarre_le}</td>
+            <td className="py-2 tabular-nums text-fg-2">{run.duree ?? '—'}</td>
             <td className="py-2 text-right tabular-nums">{nombre(run.lignes_lues)}</td>
             <td className="py-2 text-right tabular-nums">{nombre(run.inserees)}</td>
             <td className="py-2 text-right tabular-nums">{run.erreurs > 0 ? run.erreurs : '—'}</td>
@@ -148,10 +148,10 @@ async function RunsStatus() {
               <span
                 className={
                   run.statut === 'termine'
-                    ? 'rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800'
+                    ? 'rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200'
                     : run.statut === 'bloque'
-                      ? 'rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900'
-                      : 'rounded bg-red-100 px-2 py-0.5 text-xs text-red-800'
+                      ? 'rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-200'
+                      : 'rounded bg-red-100 px-2 py-0.5 text-xs text-red-800 dark:bg-red-950 dark:text-red-200'
                 }
               >
                 {run.statut}
@@ -168,13 +168,13 @@ async function WpStatus() {
   await connection()
   const r = await tenter(() => getConseilsRecents(3))
   if (!r.ok) return <Erreur source="WordPress" message={r.message} />
-  if (r.valeur.length === 0) return <p className="text-sm text-slate-500">WordPress répond, aucun conseil publié.</p>
+  if (r.valeur.length === 0) return <p className="text-sm text-fg-2">WordPress répond, aucun conseil publié.</p>
   return (
     <ul className="space-y-1 text-sm">
       {r.valeur.map((c) => (
-        <li key={c.id} className="flex items-baseline justify-between gap-4 border-b border-slate-100 py-2 last:border-0">
-          <span className="text-slate-700">{c.title}</span>
-          <span className="shrink-0 text-xs text-slate-500">{c.conseilFields?.tempsLecture ?? '?'} min de lecture</span>
+        <li key={c.id} className="flex items-baseline justify-between gap-4 border-b border-line py-2 last:border-0">
+          <span className="text-fg">{c.title}</span>
+          <span className="shrink-0 text-xs text-fg-2">{c.conseilFields?.tempsLecture ?? '?'} min de lecture</span>
         </li>
       ))}
     </ul>
@@ -183,10 +183,10 @@ async function WpStatus() {
 
 export default function SetupCheck() {
   return (
-    <main className="mx-auto max-w-3xl space-y-6 bg-slate-50 p-8">
+    <main className="mx-auto max-w-3xl space-y-6 bg-bg-soft p-8">
       <header>
-        <h1 className="text-2xl font-semibold text-slate-900">DentalMap, état du chantier</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-2xl font-semibold text-fg">DentalMap, état du chantier</h1>
+        <p className="mt-1 text-sm text-fg-2">
           Page de contrôle interne. Elle lit les deux sources de données en direct et disparaîtra à la mise en ligne.
         </p>
       </header>
@@ -194,7 +194,7 @@ export default function SetupCheck() {
       <Carte
         titre="Base annuaire (Neon)"
         enfants={
-          <Suspense fallback={<p className="text-sm text-slate-400">Lecture…</p>}>
+          <Suspense fallback={<p className="text-sm text-fg-2">Lecture…</p>}>
             <AnnuaireStatus />
           </Suspense>
         }
@@ -203,7 +203,7 @@ export default function SetupCheck() {
       <Carte
         titre="Dernières synchronisations"
         enfants={
-          <Suspense fallback={<p className="text-sm text-slate-400">Lecture…</p>}>
+          <Suspense fallback={<p className="text-sm text-fg-2">Lecture…</p>}>
             <RunsStatus />
           </Suspense>
         }
@@ -212,13 +212,13 @@ export default function SetupCheck() {
       <Carte
         titre="Contenu éditorial (WordPress)"
         enfants={
-          <Suspense fallback={<p className="text-sm text-slate-400">Lecture…</p>}>
+          <Suspense fallback={<p className="text-sm text-fg-2">Lecture…</p>}>
             <WpStatus />
           </Suspense>
         }
       />
 
-      <footer className="text-xs text-slate-500">
+      <footer className="text-xs text-fg-2">
         Administration WordPress :{' '}
         <a className="underline" href="https://cms.dentalmap.fr/wp-admin/">
           cms.dentalmap.fr/wp-admin

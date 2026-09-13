@@ -155,14 +155,14 @@ export function Carte({
 
   return (
     <div className="relative">
-      <div ref={conteneur} className="h-[420px] w-full rounded-lg border border-slate-200 lg:h-[600px]" />
+      <div ref={conteneur} className="h-[420px] w-full rounded-lg border border-line lg:h-[600px]" />
       {erreur && (
-        <p className="absolute left-3 top-3 rounded bg-red-50 px-3 py-1.5 text-sm text-red-800 ring-1 ring-red-200">
+        <p className="absolute left-3 top-3 rounded bg-red-50 px-3 py-1.5 text-sm text-red-800 ring-1 ring-red-200 dark:bg-red-950 dark:text-red-200 dark:ring-red-800">
           Carte indisponible : {erreur}
         </p>
       )}
       {nombre !== null && !erreur && (
-        <p className="absolute left-3 top-3 rounded bg-white/90 px-3 py-1.5 text-sm text-slate-700 ring-1 ring-slate-200">
+        <p className="absolute left-3 top-3 rounded bg-bg/90 px-3 py-1.5 text-sm text-fg ring-1 ring-line">
           {nombre} sur la carte
         </p>
       )}

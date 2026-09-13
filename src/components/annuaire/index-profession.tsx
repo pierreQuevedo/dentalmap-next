@@ -46,11 +46,11 @@ export async function PageIndexProfession({ profession }: { profession: Professi
       <FilAriane segments={[{ libelle: 'Accueil', href: '/' }, { libelle: l.pluriel.charAt(0).toUpperCase() + l.pluriel.slice(1) }]} />
 
       <header className="mt-5">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+        <h1 className="text-3xl font-semibold tracking-tight text-fg">
           {l.pluriel.charAt(0).toUpperCase()}
           {l.pluriel.slice(1)} en France
         </h1>
-        <p className="mt-2 max-w-2xl text-slate-600">
+        <p className="mt-2 max-w-2xl text-fg-2">
           {total.toLocaleString('fr-FR')} professionnels recensés dans {communes.toLocaleString('fr-FR')} communes, à
           partir {l.registre}. Les informations ne sont pas déclaratives : elles proviennent de registres publics et
           sont rapprochées chaque semaine.
@@ -59,14 +59,14 @@ export async function PageIndexProfession({ profession }: { profession: Professi
 
       {[...parRegion.entries()].map(([region, liste]) => (
         <section key={region} className="mt-8">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{region}</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-2">{region}</h2>
           <ul className="mt-3 grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
             {liste.map((d) => (
-              <li key={d.slug} className="flex items-baseline justify-between gap-4 border-b border-slate-100 py-2">
-                <Link href={chemin(`/${base}/${d.slug}/`)} className="text-slate-900 hover:underline">
+              <li key={d.slug} className="flex items-baseline justify-between gap-4 border-b border-line py-2">
+                <Link href={chemin(`/${base}/${d.slug}/`)} className="text-fg hover:underline">
                   {d.nom}
                 </Link>
-                <span className="text-sm tabular-nums text-slate-500">{d.total.toLocaleString('fr-FR')}</span>
+                <span className="text-sm tabular-nums text-fg-2">{d.total.toLocaleString('fr-FR')}</span>
               </li>
             ))}
           </ul>

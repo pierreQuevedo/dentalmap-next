@@ -49,19 +49,19 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Rechercher un professionnel</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-fg">Rechercher un professionnel</h1>
 
       <form method="get" action="/recherche/" className="mt-5 grid gap-4 sm:grid-cols-[1fr_auto_auto] sm:items-end">
         <ChampLieu valeurInitiale={commune?.nom ?? sp.q ?? ''} profession={base} />
         <div>
-          <label htmlFor="profession" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="profession" className="block text-sm font-medium text-fg">
             Profession
           </label>
           <select
             id="profession"
             name="profession"
             defaultValue={base}
-            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-slate-900"
+            className="mt-1 rounded-md border border-line-strong px-3 py-2 text-fg outline-none focus:border-fg"
           >
             <option value="dentistes">Chirurgiens-dentistes</option>
             <option value="prothesistes">Laboratoires de prothèse</option>
@@ -69,21 +69,21 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
         </div>
         <button
           type="submit"
-          className="rounded-md bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-700"
+          className="rounded-md bg-brand px-4 py-2 font-medium text-primary-foreground hover:bg-brand-hover"
         >
           Rechercher
         </button>
       </form>
 
       {!commune && (
-        <p className="mt-8 text-slate-600">
+        <p className="mt-8 text-fg-2">
           Saisissez une commune ou un code postal pour voir les professionnels les plus proches.
         </p>
       )}
 
       {commune && (
         <>
-          <p className="mt-6 text-slate-600">
+          <p className="mt-6 text-fg-2">
             {resultats.length > 0 ? (
               <>
                 {resultats.length} {resultats.length > 1 ? 'professionnels' : 'professionnel'} à moins de{' '}
@@ -95,19 +95,19 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
           </p>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,420px)_1fr]">
-            <ol className="divide-y divide-slate-200 border-y border-slate-200 lg:max-h-[600px] lg:overflow-y-auto">
+            <ol className="divide-y divide-line border-y border-line lg:max-h-[600px] lg:overflow-y-auto">
               {resultats.map((p) => (
                 <li key={p.slug} className="py-4">
                   <div className="flex items-baseline justify-between gap-3">
                     <h2 className="font-medium">
                       <Link
                         href={chemin(`/${base}/${p.departementSlug}/${p.communeSlug}/${p.slug}/`)}
-                        className="text-slate-900 hover:underline"
+                        className="text-fg hover:underline"
                       >
                         {nomAffiche({ profession, nom: p.nom, prenom: p.prenom, raisonSociale: p.raisonSociale })}
                       </Link>
                     </h2>
-                    <span className="shrink-0 text-sm tabular-nums text-slate-500">
+                    <span className="shrink-0 text-sm tabular-nums text-fg-2">
                       {distance(p.metres)}
                     </span>
                   </div>
@@ -133,7 +133,7 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
         </>
       )}
 
-      <p className="mt-8 text-sm text-slate-600">
+      <p className="mt-8 text-sm text-fg-2">
         Les résultats sont classés par distance, puis par ordre alphabétique à égalité. Aucune mise en avant payante
         n&apos;existe sur DentalMap. Les professionnels dont la position n&apos;est qu&apos;approximative, faute
         d&apos;adresse exploitable, sont exclus de ce classement mais restent accessibles par leur commune.

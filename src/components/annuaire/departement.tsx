@@ -57,11 +57,11 @@ export async function PageDepartement({
       />
 
       <header className="mt-5">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+        <h1 className="text-3xl font-semibold tracking-tight text-fg">
           {l.pluriel.charAt(0).toUpperCase()}
           {l.pluriel.slice(1)} en {d.nom}
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-fg-2">
           {total.toLocaleString('fr-FR')} {total > 1 ? l.pluriel : l.singulier} dans{' '}
           {communes.length.toLocaleString('fr-FR')}{' '}
           {communes.length > 1 ? 'communes' : 'commune'}. Région {d.regionNom}.
@@ -70,14 +70,14 @@ export async function PageDepartement({
 
       {principales.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Communes principales</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-2">Communes principales</h2>
           <ul className="mt-3 grid gap-x-8 gap-y-1 sm:grid-cols-2">
             {principales.map((c) => (
-              <li key={c.slug} className="flex items-baseline justify-between gap-4 border-b border-slate-100 py-2">
-                <Link href={chemin(`/${base}/${d.slug}/${c.slug}/`)} className="text-slate-900 hover:underline">
+              <li key={c.slug} className="flex items-baseline justify-between gap-4 border-b border-line py-2">
+                <Link href={chemin(`/${base}/${d.slug}/${c.slug}/`)} className="text-fg hover:underline">
                   {c.nom}
                 </Link>
-                <span className="text-sm tabular-nums text-slate-500">{c.total}</span>
+                <span className="text-sm tabular-nums text-fg-2">{c.total}</span>
               </li>
             ))}
           </ul>
@@ -86,16 +86,16 @@ export async function PageDepartement({
 
       {autres.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-2">
             Toutes les autres communes
           </h2>
           <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
             {autres.map((c) => (
               <li key={c.slug}>
-                <Link href={chemin(`/${base}/${d.slug}/${c.slug}/`)} className="text-slate-700 hover:underline">
+                <Link href={chemin(`/${base}/${d.slug}/${c.slug}/`)} className="text-fg hover:underline">
                   {c.nom}
                 </Link>
-                <span className="ml-1 text-slate-400 tabular-nums">{c.total}</span>
+                <span className="ml-1 text-fg-2 tabular-nums">{c.total}</span>
               </li>
             ))}
           </ul>
@@ -103,7 +103,7 @@ export async function PageDepartement({
       )}
 
       {communes.length === 0 && (
-        <p className="mt-8 text-slate-600">
+        <p className="mt-8 text-fg-2">
           Aucun {l.singulier} n&apos;est recensé dans ce département.
         </p>
       )}
