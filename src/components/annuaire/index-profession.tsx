@@ -34,11 +34,11 @@ export async function PageIndexProfession({ profession }: { profession: Professi
   const departements = await getDepartementsAvecPraticiens(profession)
 
   // Regroupement par région : 109 départements en liste plate seraient illisibles.
-  const parRegion = new Map<string, typeof departements>()
+  const parRegion = new Map<string, { slug: string; departements: typeof departements }>()
   for (const d of departements) {
-    const liste = parRegion.get(d.regionNom) ?? []
-    liste.push(d)
-    parRegion.set(d.regionNom, liste)
+    const groupe = parRegion.get(d.regionNom) ?? { slug: d.regionSlug, departements: [] }
+    groupe.departements.push(d)
+    parRegion.set(d.regionNom, groupe)
   }
 
   return (
@@ -57,11 +57,15 @@ export async function PageIndexProfession({ profession }: { profession: Professi
         </p>
       </header>
 
-      {[...parRegion.entries()].map(([region, liste]) => (
-        <section key={region} className="mt-8">
+      {/* Les ancres sont les cibles des liens « Par département » du méga-menu
+          et des liens de région du pied de page : les régions n'ont pas de page
+          propre, l'index groupé en tient lieu. */}
+      <div id="departements" className="scroll-mt-24">
+        {[...parRegion.entries()].map(([region, groupe]) => (
+        <section key={region} id={groupe.slug} className="mt-8 scroll-mt-24">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-2">{region}</h2>
           <ul className="mt-3 grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-            {liste.map((d) => (
+            {groupe.departements.map((d) => (
               <li key={d.slug} className="flex items-baseline justify-between gap-4 border-b border-line py-2">
                 <Link href={chemin(`/${base}/${d.slug}/`)} className="text-fg hover:underline">
                   {d.nom}
@@ -71,7 +75,8 @@ export async function PageIndexProfession({ profession }: { profession: Professi
             ))}
           </ul>
         </section>
-      ))}
+        ))}
+      </div>
     </>
   )
 }

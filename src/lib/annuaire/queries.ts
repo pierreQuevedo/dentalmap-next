@@ -370,6 +370,7 @@ export type DepartementCompte = {
   nom: string
   slug: string
   regionNom: string
+  regionSlug: string
   total: number
 }
 
@@ -378,17 +379,29 @@ export async function getDepartementsAvecPraticiens(profession: Profession): Pro
   'use cache'
   cacheLife('listing')
   cacheTag('annuaire')
-  const { rows } = await db.execute<{ nom: string; slug: string; region_nom: string; total: number }>(sql`
-    SELECT d.nom, d.slug, r.nom AS region_nom, count(DISTINCT p.id)::int AS total
+  const { rows } = await db.execute<{
+    nom: string
+    slug: string
+    region_nom: string
+    region_slug: string
+    total: number
+  }>(sql`
+    SELECT d.nom, d.slug, r.nom AS region_nom, r.slug AS region_slug, count(DISTINCT p.id)::int AS total
     FROM departements d
     JOIN regions r ON r.code = d.region_code
     JOIN communes c ON c.departement_code = d.code
     JOIN lieux_exercice l ON l.code_insee = c.code_insee
     JOIN praticiens p ON p.id = l.praticien_id AND p.profession = ${profession} AND p.deleted_at IS NULL
-    GROUP BY d.code, d.nom, d.slug, r.nom
+    GROUP BY d.code, d.nom, d.slug, r.nom, r.slug
     ORDER BY r.nom, d.nom
   `)
-  return rows.map((r) => ({ nom: r.nom, slug: r.slug, regionNom: r.region_nom, total: r.total }))
+  return rows.map((r) => ({
+    nom: r.nom,
+    slug: r.slug,
+    regionNom: r.region_nom,
+    regionSlug: r.region_slug,
+    total: r.total,
+  }))
 }
 
 /** Compte global d'une profession, pour l'accueil et les pages d'index. */
