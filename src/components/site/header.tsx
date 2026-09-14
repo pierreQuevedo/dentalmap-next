@@ -48,7 +48,10 @@ export async function Header() {
           >
             Vous êtes praticien ?
           </Link>
-          <ThemeToggle tailleReservee="size-9" />
+          {/* `size="icon"` fait 36 px, exactement la place réservée pendant
+              l'hydratation : sans cela le bouton arrive 4 px plus petit et
+              décale ses voisins. */}
+          <ThemeToggle size="icon" aria-label="Changer de thème" tailleReservee="size-9" />
           <MobileNav accesRapide={accesRapide} />
           {/* La session n'est lue que par ce fragment : le reste du header
               reste identique pour tout le monde, donc cachable. */}
