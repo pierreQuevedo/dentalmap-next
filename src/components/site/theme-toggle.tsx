@@ -26,6 +26,10 @@ const sansAbonnement = () => () => {}
 export function ThemeToggle({
   tailleReservee,
   className,
+  // Le fondu circulaire est le dégradé retenu pour tout le site : le disque
+  // part du bouton et le flou masque la bascule des couleurs. Le défaut du
+  // composant installé, `circle`, découpe net et laisse voir la rupture.
+  variant = 'circle-blur',
   ...props
 }: ThemeTogglerButtonProps & { tailleReservee: string }) {
   // `useSyncExternalStore` distingue serveur et client sans passer par un
@@ -37,5 +41,5 @@ export function ThemeToggle({
   )
 
   if (!monte) return <span aria-hidden className={`inline-block shrink-0 ${tailleReservee}`} />
-  return <ThemeTogglerButton className={className} {...props} />
+  return <ThemeTogglerButton variant={variant} className={className} {...props} />
 }
