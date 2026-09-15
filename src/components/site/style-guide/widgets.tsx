@@ -13,7 +13,9 @@ import {
 import { ProgressiveBlur } from '@/components/motion-primitives/progressive-blur'
 import { ScrollProgress } from '@/components/motion-primitives/scroll-progress'
 import { Spotlight } from '@/components/motion-primitives/spotlight'
+import { ApercuFiche } from '@/components/annuaire/apercu-fiche'
 import { Verification } from '@/components/annuaire/primitives'
+import type { PraticienResume } from '@/lib/annuaire/types'
 
 /**
  * Bancs d'essai des composants animés, montrés sur des cas réels de DentalMap
@@ -277,6 +279,63 @@ export function VisiteGuidee() {
             description: 'Cession, collaboration, remplacement, emploi. Réservé aux comptes validés.',
           },
         ]}
+      />
+    </div>
+  )
+}
+
+/**
+ * Aperçu de fiche : le composant est celui de l'annuaire, pas une maquette.
+ * Les données ci-dessous ont la forme exacte que renvoient déjà
+ * `getPraticiensDeCommune` et `getPraticiensProches`.
+ */
+const EXEMPLES: PraticienResume[] = [
+  {
+    slug: 'dr-adrien-abballe-4240',
+    nom: 'ABBALLE',
+    prenom: 'ADRIEN',
+    raisonSociale: null,
+    statutVerification: 'verifie',
+    adresseLigne: '128 RUE FONDAUDEGE',
+    codePostal: '33000',
+    telephone: '05 56 81 11 11',
+    communeNom: 'Bordeaux',
+    communeSlug: 'bordeaux',
+    departementSlug: 'gironde',
+    lon: null,
+    lat: null,
+  },
+  {
+    slug: 'dr-lina-abdeddaim-1180',
+    nom: 'ABDEDDAIM',
+    prenom: 'LINA',
+    raisonSociale: null,
+    statutVerification: 'partiel',
+    adresseLigne: '158 COURS DE LA MARNE',
+    codePostal: '33800',
+    telephone: null,
+    communeNom: 'Bordeaux',
+    communeSlug: 'bordeaux',
+    departementSlug: 'gironde',
+    lon: null,
+    lat: null,
+  },
+]
+
+export function ApercuDeFiche() {
+  return (
+    <div className="max-w-md space-y-3">
+      <ApercuFiche praticien={EXEMPLES[0]} profession="dentiste" distance={510} />
+      <ApercuFiche praticien={EXEMPLES[1]} profession="dentiste" distance={784} />
+      <p className="text-xs text-fg-2">
+        Sans photo, comme sur l’annuaire : les initiales tiennent lieu de portrait. Le composant
+        accepte une image quand il y en a une, par exemple pour un laboratoire qui a fourni la
+        sienne.
+      </p>
+      <ApercuFiche
+        praticien={{ ...EXEMPLES[0], slug: 'labo-demo', nom: 'CERAMIQUE DENTAIRE DU PORT', prenom: null, raisonSociale: 'CERAMIQUE DENTAIRE DU PORT' }}
+        profession="prothesiste"
+        image={PHOTO.explication}
       />
     </div>
   )

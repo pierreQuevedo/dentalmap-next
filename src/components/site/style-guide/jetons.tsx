@@ -106,13 +106,18 @@ export function Mesure({ nom, apercu }: { nom: string; apercu: React.ReactNode }
   )
 }
 
-/** Indique le thème effectivement appliqué, pour lever le doute pendant la revue. */
-export function ThemeActif() {
-  const sombre = useSyncExternalStore(
+/** Vrai quand le thème sombre est appliqué. Suit la bascule sans rechargement. */
+export function useThemeSombre() {
+  return useSyncExternalStore(
     abonnerAuTheme,
     () => document.documentElement.classList.contains('dark'),
     () => false,
   )
+}
+
+/** Indique le thème effectivement appliqué, pour lever le doute pendant la revue. */
+export function ThemeActif() {
+  const sombre = useThemeSombre()
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-fg-2">
       <span aria-hidden className={`size-2 rounded-full ${sombre ? 'bg-chart-2' : 'bg-brand'}`} />

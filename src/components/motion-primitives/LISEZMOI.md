@@ -24,3 +24,6 @@ Ces fichiers sont du code tiers : ils sont exclus du lint, comme
   `className` à `DisclosureTrigger`, il serait perdu.
 - `scroll-progress` : `containerRef` accepte `RefObject<HTMLDivElement | null>`,
   type que rend `useRef(null)` depuis React 19.
+- `morphing-dialog` : `MorphingDialogTrigger` accepte un `aria-label`. Sans lui
+  le déclencheur s'annonce « Open dialog <identifiant> », en anglais et sans
+  information, sur un site français.
