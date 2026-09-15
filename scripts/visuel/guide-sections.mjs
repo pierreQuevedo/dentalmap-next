@@ -8,7 +8,7 @@ for (const theme of ['light', 'dark']) {
   await p.evaluate((t) => localStorage.setItem('theme', t), theme)
   await p.reload({ waitUntil: 'load' })
   await p.waitForTimeout(800)
-  for (const id of ['couleurs', 'composants']) {
+  for (const id of ['couleurs', 'composants', 'widgets']) {
     await p.locator(`#${id}`).screenshot({ path: `${SP}/captures/guide-${id}-${theme}.png` })
   }
   await p.close()
