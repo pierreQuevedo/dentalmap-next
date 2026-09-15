@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { chemin, mainNav, mainNavIcons, type NavEntry, type NavLink } from '@/lib/navigation'
+import { lienConseil, Rubrique } from '@/components/conseils/primitives'
+import type { ConseilResume } from '@/lib/wp/queries'
 import { NavIconSvg } from './nav-icon'
 
 /**
@@ -20,7 +22,14 @@ function estActif(entry: NavEntry, pathname: string) {
   return pathname === entry.href || pathname.startsWith(`${entry.href}/`)
 }
 
-export function MainNav({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
+export function MainNav({
+  accesRapide = [],
+  conseils = [],
+}: {
+  accesRapide?: NavLink[]
+  /** Deux articles au plus : au-delà, le menu devient une page d'accueil. */
+  conseils?: ConseilResume[]
+}) {
   const pathname = usePathname()
   // L'état retient la route sur laquelle le menu a été ouvert. Un changement
   // de route le referme donc par simple dérivation, sans effet qui remettrait
@@ -93,7 +102,13 @@ export function MainNav({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
             </button>
 
             {estOuvert &&
-              (mega ? <MegaMenu entry={entry} accesRapide={accesRapide} /> : <MenuSimple entry={entry} />)}
+              (mega ? (
+                <MegaMenu entry={entry} accesRapide={accesRapide} />
+              ) : entry.label === 'Conseils' && conseils.length > 0 ? (
+                <MenuConseils entry={entry} conseils={conseils} />
+              ) : (
+                <MenuSimple entry={entry} />
+              ))}
           </div>
         )
       })}
@@ -131,6 +146,92 @@ function MenuSimple({ entry }: { entry: NavEntry }) {
           {l.label}
         </Link>
       ))}
+    </div>
+  )
+}
+
+/**
+ * Menu des conseils : rubriques à gauche, articles à droite.
+ *
+ * Le panneau montre ce qui vient d'être publié plutôt que la seule liste des
+ * rubriques : sur un site dont le blog est jeune, une rubrique vide donne
+ * l'impression d'un chantier, un article récent donne celle d'un site vivant.
+ *
+ * Les articles arrivent du serveur, déjà cachés avec le tag `wp:conseil` : le
+ * menu ne déclenche aucune requête à l'ouverture.
+ */
+function MenuConseils({ entry, conseils }: { entry: NavEntry; conseils: ConseilResume[] }) {
+  const [premier, ...rubriques] = entry.links ?? []
+  const aLire = conseils.slice(0, 2)
+  // Le panneau se dimensionne sur ce qu'il a à montrer : à un seul article, une
+  // largeur de deux colonnes laisserait une moitié vide, qui se lit comme un
+  // chargement raté plutôt que comme un blog jeune.
+  const large = aLire.length > 1
+  return (
+    <div
+      role="menu"
+      onClick={stopper}
+      className={[
+        'absolute left-1/2 top-[calc(100%+12px)] z-[55] max-w-[calc(100vw-5rem)] -translate-x-1/2 overflow-hidden rounded-[20px] border border-line bg-bg shadow-pop',
+        large ? 'w-[720px]' : 'w-[540px]',
+      ].join(' ')}
+    >
+      <div className="grid gap-6 p-6 md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]">
+        <div>
+          <h4 className="mb-2 px-3 text-xs font-semibold uppercase tracking-[.06em] text-fg-2">
+            Rubriques
+          </h4>
+          {rubriques.map((l) => (
+            <Link
+              key={l.href}
+              role="menuitem"
+              href={chemin(l.href)}
+              className="block rounded-xl px-3 py-2.5 text-[15px] text-fg hover:bg-bg-soft"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </div>
+
+        <div>
+          <h4 className="mb-2 text-xs font-semibold uppercase tracking-[.06em] text-fg-2">À lire</h4>
+          <div className={`grid gap-3 ${large ? 'sm:grid-cols-2' : ''}`}>
+            {aLire.map((c) => (
+              <Link
+                key={c.slug}
+                role="menuitem"
+                href={chemin(lienConseil(c))}
+                className="group block rounded-xl border border-line p-4 hover:bg-bg-soft"
+              >
+                <Rubrique categorie={c.categorie} />
+                <span className="mt-2 block text-sm font-semibold leading-snug text-fg group-hover:underline">
+                  {c.titre}
+                </span>
+                {c.extrait && (
+                  <span className="mt-1 line-clamp-2 block text-xs leading-relaxed text-fg-2">
+                    {c.extrait}
+                  </span>
+                )}
+                {c.tempsLecture && (
+                  <span className="mt-2 block text-xs text-fg-2">{c.tempsLecture} min de lecture</span>
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {premier && (
+        <div className="border-t border-line bg-bg-soft px-6 py-3">
+          <Link
+            role="menuitem"
+            href={chemin(premier.href)}
+            className="text-sm font-semibold text-action hover:underline"
+          >
+            {premier.label}
+          </Link>
+        </div>
+      )}
     </div>
   )
 }
