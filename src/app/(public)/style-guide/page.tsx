@@ -187,7 +187,7 @@ export default function GuideDeStyle() {
         <Section
           id="propositions"
           titre="Propositions"
-          intro="Trois palettes appliquées à la même composition. Seules trois variables changent d'une à l'autre : le reste du site ne bouge pas."
+          intro="Cinq déclinaisons d'ardoise, et le teal actuel pour mémoire, appliquées à la même vitrine. Chacune fait varier le fond autant que l'accent : sur un annuaire, l'accent n'occupe jamais deux pour cent de la page."
         >
           <div className="space-y-6">
             <Propositions />
