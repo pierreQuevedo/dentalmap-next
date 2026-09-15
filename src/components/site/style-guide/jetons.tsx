@@ -58,6 +58,79 @@ function versHex(valeur: string) {
   return `rgb(${r} ${v} ${b} / ${Math.round((a / 255) * 100)}%)`
 }
 
+/** Composantes sRGB d'une couleur peinte, pour le calcul de contraste. */
+function versRgb(valeur: string): [number, number, number] | null {
+  const canvas = document.createElement('canvas')
+  canvas.width = 1
+  canvas.height = 1
+  const contexte = canvas.getContext('2d', { willReadFrequently: true })
+  if (!contexte) return null
+  contexte.fillStyle = SENTINELLE
+  contexte.fillStyle = valeur
+  if (String(contexte.fillStyle).toLowerCase() === SENTINELLE) return null
+  contexte.clearRect(0, 0, 1, 1)
+  contexte.fillRect(0, 0, 1, 1)
+  const [r, v, b] = contexte.getImageData(0, 0, 1, 1).data
+  return [r, v, b]
+}
+
+const canalLineaire = (v: number) => {
+  const c = v / 255
+  return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+}
+
+/**
+ * Rapport de contraste WCAG entre deux jetons, mesuré sur les couleurs
+ * réellement peintes par le navigateur.
+ *
+ * Calculé ici plutôt que recopié d'un tableur : un rapport noté à la main
+ * devient faux au premier ajustement de teinte, et personne ne s'en aperçoit.
+ */
+export function useContraste(jetonTexte: string, jetonFond: string) {
+  const texte = useValeurCss(`--${jetonTexte}`)
+  const fond = useValeurCss(`--${jetonFond}`)
+  if (!texte || !fond) return null
+  const a = versRgb(texte)
+  const b = versRgb(fond)
+  if (!a || !b) return null
+  const [l1, l2] = [a, b]
+    .map(([r, v, bl]) => 0.2126 * canalLineaire(r) + 0.7152 * canalLineaire(v) + 0.0722 * canalLineaire(bl))
+    .sort((m, n) => n - m)
+  return (l1 + 0.05) / (l2 + 0.05)
+}
+
+export function Contraste({
+  texte,
+  fond,
+  libelle,
+  seuil = 4.5,
+}: {
+  texte: string
+  fond: string
+  libelle: string
+  /** 4,5 pour du texte courant, 3 pour un élément d'interface. */
+  seuil?: number
+}) {
+  const rapport = useContraste(texte, fond)
+  const passe = rapport !== null && rapport >= seuil
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b border-line py-2 last:border-b-0">
+      <span className="min-w-0">
+        <span className="block text-sm text-fg">{libelle}</span>
+        <span className="block font-mono text-xs text-fg-2">
+          --{texte} sur --{fond}
+        </span>
+      </span>
+      <span className="shrink-0 text-right">
+        <span className={`block text-sm font-semibold tabular-nums ${passe ? 'text-verifie' : 'text-partiel'}`}>
+          {rapport ? `${rapport.toFixed(2)}:1` : '…'}
+        </span>
+        <span className="block text-xs text-fg-2">seuil {seuil.toString().replace('.', ',')}</span>
+      </span>
+    </div>
+  )
+}
+
 export function Jeton({
   nom,
   classe,

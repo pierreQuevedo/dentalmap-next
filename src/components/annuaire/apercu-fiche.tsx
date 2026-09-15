@@ -118,7 +118,7 @@ export function ApercuFiche({
             {versFiche && (
               <Link
                 href={chemin(versFiche)}
-                className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground hover:bg-brand-hover"
+                className="rounded-full bg-action px-4 py-2 text-sm font-semibold text-action-foreground hover:bg-action-hover"
               >
                 Voir la fiche
               </Link>

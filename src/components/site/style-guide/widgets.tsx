@@ -185,7 +185,7 @@ export function CarteHalo() {
       <p className="mt-2 text-sm text-fg-2">
         Complétez les informations qu’aucun registre ne contient : horaires, accès, langues parlées.
       </p>
-      <span className="mt-4 inline-block rounded-full bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground">
+      <span className="mt-4 inline-block rounded-full bg-action px-4 py-2 text-sm font-semibold text-action-foreground">
         Commencer
       </span>
     </div>
@@ -251,7 +251,7 @@ export function VisiteGuidee() {
       <button
         type="button"
         onClick={() => setOuverte(true)}
-        className="mt-4 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground hover:bg-brand-hover"
+        className="mt-4 rounded-full bg-action px-4 py-2 text-sm font-semibold text-action-foreground hover:bg-action-hover"
       >
         Lancer la visite
       </button>
