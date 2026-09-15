@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { getAccesRapide } from '@/lib/annuaire/acces-rapide'
+import { getConseils } from '@/lib/wp/queries'
 import type { NavLink } from '@/lib/navigation'
 import { SearchIcon } from './nav-icon'
 import { ThemeToggle } from './theme-toggle'
@@ -21,7 +22,9 @@ import { UserMenu } from './user-menu'
  * ont besoin du navigateur ou de la session sont des composants client.
  */
 export async function Header() {
-  const communes = await getAccesRapide(8)
+  // Les deux requêtes sont cachées et indépendantes : les lancer ensemble
+  // évite d'ajouter l'aller-retour WordPress à celui de la base.
+  const [communes, conseils] = await Promise.all([getAccesRapide(8), getConseils()])
   const accesRapide: NavLink[] = communes.map((c) => ({ label: c.label, href: c.href }))
 
   return (
@@ -32,7 +35,7 @@ export async function Header() {
           DentalMap
         </Link>
 
-        <MainNav accesRapide={accesRapide} />
+        <MainNav accesRapide={accesRapide} conseils={conseils.slice(0, 2)} />
 
         <div className="flex items-center justify-end gap-2">
           <Link

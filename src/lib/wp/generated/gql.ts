@@ -16,10 +16,14 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 type Documents = {
     "\n  query FormationsPanneau($first: Int = 100) {\n    formations(first: $first) {\n      nodes {\n        id\n        formationFields { typeFormation }\n      }\n    }\n  }\n": typeof types.FormationsPanneauDocument,
     "\n  query ConseilsRecents($first: Int = 5) {\n    conseils(first: $first, where: { orderby: { field: DATE, order: DESC } }) {\n      nodes {\n        id\n        slug\n        title\n        excerpt\n        date\n        conseilFields { tempsLecture }\n      }\n    }\n  }\n": typeof types.ConseilsRecentsDocument,
+    "\n  query Conseils($first: Int = 100) {\n    conseils(first: $first, where: { orderby: { field: DATE, order: DESC } }) {\n      nodes {\n        id\n        slug\n        title\n        excerpt\n        date\n        conseilFields { categorie tempsLecture }\n      }\n    }\n  }\n": typeof types.ConseilsDocument,
+    "\n  query Conseil($slug: ID!) {\n    conseil(id: $slug, idType: SLUG) {\n      id\n      slug\n      title\n      content\n      excerpt\n      date\n      modified\n      conseilFields { categorie tempsLecture }\n      seoFields { metaTitle metaDescription noindex }\n    }\n  }\n": typeof types.ConseilDocument,
 };
 const documents: Documents = {
     "\n  query FormationsPanneau($first: Int = 100) {\n    formations(first: $first) {\n      nodes {\n        id\n        formationFields { typeFormation }\n      }\n    }\n  }\n": types.FormationsPanneauDocument,
     "\n  query ConseilsRecents($first: Int = 5) {\n    conseils(first: $first, where: { orderby: { field: DATE, order: DESC } }) {\n      nodes {\n        id\n        slug\n        title\n        excerpt\n        date\n        conseilFields { tempsLecture }\n      }\n    }\n  }\n": types.ConseilsRecentsDocument,
+    "\n  query Conseils($first: Int = 100) {\n    conseils(first: $first, where: { orderby: { field: DATE, order: DESC } }) {\n      nodes {\n        id\n        slug\n        title\n        excerpt\n        date\n        conseilFields { categorie tempsLecture }\n      }\n    }\n  }\n": types.ConseilsDocument,
+    "\n  query Conseil($slug: ID!) {\n    conseil(id: $slug, idType: SLUG) {\n      id\n      slug\n      title\n      content\n      excerpt\n      date\n      modified\n      conseilFields { categorie tempsLecture }\n      seoFields { metaTitle metaDescription noindex }\n    }\n  }\n": types.ConseilDocument,
 };
 
 /**
@@ -44,6 +48,14 @@ export function graphql(source: "\n  query FormationsPanneau($first: Int = 100) 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query ConseilsRecents($first: Int = 5) {\n    conseils(first: $first, where: { orderby: { field: DATE, order: DESC } }) {\n      nodes {\n        id\n        slug\n        title\n        excerpt\n        date\n        conseilFields { tempsLecture }\n      }\n    }\n  }\n"): (typeof documents)["\n  query ConseilsRecents($first: Int = 5) {\n    conseils(first: $first, where: { orderby: { field: DATE, order: DESC } }) {\n      nodes {\n        id\n        slug\n        title\n        excerpt\n        date\n        conseilFields { tempsLecture }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Conseils($first: Int = 100) {\n    conseils(first: $first, where: { orderby: { field: DATE, order: DESC } }) {\n      nodes {\n        id\n        slug\n        title\n        excerpt\n        date\n        conseilFields { categorie tempsLecture }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Conseils($first: Int = 100) {\n    conseils(first: $first, where: { orderby: { field: DATE, order: DESC } }) {\n      nodes {\n        id\n        slug\n        title\n        excerpt\n        date\n        conseilFields { categorie tempsLecture }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Conseil($slug: ID!) {\n    conseil(id: $slug, idType: SLUG) {\n      id\n      slug\n      title\n      content\n      excerpt\n      date\n      modified\n      conseilFields { categorie tempsLecture }\n      seoFields { metaTitle metaDescription noindex }\n    }\n  }\n"): (typeof documents)["\n  query Conseil($slug: ID!) {\n    conseil(id: $slug, idType: SLUG) {\n      id\n      slug\n      title\n      content\n      excerpt\n      date\n      modified\n      conseilFields { categorie tempsLecture }\n      seoFields { metaTitle metaDescription noindex }\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
