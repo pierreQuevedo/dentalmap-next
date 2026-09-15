@@ -73,6 +73,28 @@
 
   --shadow-pill: 0 3px 12px oklch(0.289 0.045 202.127 / 0.10), 0 1px 2px oklch(0.289 0.045 202.127 / 0.06);
   --shadow-pop: 0 8px 28px oklch(0.289 0.045 202.127 / 0.16);
+
+  /*
+   * Rayons et mouvement déclarés ici et non seulement dans `@theme inline`,
+   * qui n'émet aucune variable : ses valeurs sont recopiées dans les
+   * utilitaires. Les poser sur `:root` les rend lisibles en devtools, dans un
+   * style calculé, et par le guide de style, qui affiche ce que le navigateur
+   * applique vraiment.
+   */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-pop: 20px;
+
+  --duration-fast: 260ms;
+  --duration-moderate: 380ms;
+  --duration-slow: 520ms;
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-lift: cubic-bezier(0.05, 0.7, 0.1, 1);
 }
 
 .dark {
@@ -180,14 +202,14 @@
 
   --font-sans: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
 
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-  --radius-pop: 20px;
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
+  --radius-4xl: var(--radius-4xl);
+  --radius-pop: var(--radius-pop);
 
   --shadow-2xs: var(--shadow-2xs);
   --shadow-xs: var(--shadow-xs);
@@ -207,11 +229,11 @@
    * fichier de tokens précise que les deux côtés doivent bouger ensemble :
    * moderate 0,38 s et slow 0,52 s y sont les valeurs de référence.
    */
-  --duration-fast: 260ms;
-  --duration-moderate: 380ms;
-  --duration-slow: 520ms;
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-lift: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --duration-fast: var(--duration-fast);
+  --duration-moderate: var(--duration-moderate);
+  --duration-slow: var(--duration-slow);
+  --ease-spring: var(--ease-spring);
+  --ease-lift: var(--ease-lift);
 }
 
 @layer base {
