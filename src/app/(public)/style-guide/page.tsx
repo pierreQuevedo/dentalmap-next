@@ -188,7 +188,7 @@ export default function GuideDeStyle() {
         <Section
           id="strategie"
           titre="Stratégie de couleur"
-          intro="Ardoise profonde, et le bleu réservé à l'action. Quatre niveaux, jamais mélangés : chacun a une règle d'emploi, et une couleur qui sort de son niveau perd son sens."
+          intro="Ardoise profonde, le teal pour agir, le bleu pour situer. Cinq niveaux, jamais mélangés : chacun a une règle d'emploi, et une couleur qui sort de son niveau perd son sens."
         >
           <div className="space-y-6">
             <Strategie />

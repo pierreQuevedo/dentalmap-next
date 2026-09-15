@@ -93,7 +93,7 @@ export function Carte({
         source: 'praticiens',
         filter: ['has', 'point_count'],
         paint: {
-          'circle-color': '#1e293b',
+          'circle-color': '#16222b',
           'circle-radius': ['step', ['get', 'point_count'], 16, 10, 22, 50, 30],
           'circle-stroke-width': 2,
           'circle-stroke-color': '#ffffff',
@@ -113,7 +113,8 @@ export function Carte({
         source: 'praticiens',
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-color': '#0f766e',
+          // Bleu : un marqueur dit où, pas quoi faire. Le teal reste aux actions.
+          'circle-color': '#0071e3',
           'circle-radius': 7,
           'circle-stroke-width': 2,
           'circle-stroke-color': '#ffffff',
@@ -130,8 +131,8 @@ export function Carte({
           .setLngLat((f.geometry as GeoJSON.Point).coordinates as [number, number])
           .setHTML(
             `<div style="font:14px system-ui"><strong>${escapeHtml(nom)}</strong>` +
-              (p.adresse ? `<br><span style="color:#475569">${escapeHtml(p.adresse)}</span>` : '') +
-              `<br><a href="${href}" style="color:#0f766e">Voir la fiche</a></div>`,
+              (p.adresse ? `<br><span style="color:#5d666d">${escapeHtml(p.adresse)}</span>` : '') +
+              `<br><a href="${href}" style="color:#0a8074">Voir la fiche</a></div>`,
           )
           .addTo(m)
       })

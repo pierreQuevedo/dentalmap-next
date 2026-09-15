@@ -25,7 +25,7 @@
   --card-foreground: #16222b;
   --popover: #ffffff;
   --popover-foreground: #16222b;
-  --primary: #0071e3;
+  --primary: #0a8074;
   --primary-foreground: #ffffff;
   --secondary: #f5f6f7;
   --secondary-foreground: #16222b;
@@ -36,9 +36,9 @@
   --destructive: #b3261e;
   --border: #e3e7ea;
   --input: #e3e7ea;
-  --ring: #0071e3;
-  --chart-1: #0071e3;
-  --chart-2: #47617a;
+  --ring: #0a8074;
+  --chart-1: #0a8074;
+  --chart-2: #0071e3;
   --chart-3: #4f46e5;
   --chart-4: #7c3aed;
   --chart-5: #16222b;
@@ -87,13 +87,25 @@
   --brand-foreground: #ffffff;
 
   --action: var(--primary);
-  --action-hover: #0a5fbf;
+  --action-hover: #066b60;
   --action-foreground: #ffffff;
 
-  /* Fiabilité : ces trois couleurs ne servent qu'à dire l'état d'une fiche. */
-  --verifie: #0f6b3f;
-  --verifie-bg: #eaf6ef;
-  --verifie-line: #bfe3cd;
+  /*
+   * Le bleu ne sert plus à agir, il sert à situer : marqueurs de carte,
+   * rayon de recherche, distances. Une couleur par question posée, « où ? »
+   * pour le bleu, « que faire ? » pour le teal.
+   */
+  --geo: #0071e3;
+  --geo-foreground: #ffffff;
+
+  /*
+   * Fiabilité. Le vert a disparu : il appartenait à la famille du teal, et
+   * deux couleurs voisines qui ne disent pas la même chose valent moins que
+   * pas de couleur du tout. Surtout, cinquante mille fiches sur soixante-cinq
+   * mille sont vérifiées : c'est la règle, et une règle ne se signale pas en
+   * couleur. L'ambre marque l'exception, la fiche dont l'identité n'est pas
+   * confirmée, seul cas où le lecteur doit ralentir.
+   */
   --partiel: #8a5a00;
   --partiel-bg: #fdf4e3;
   --partiel-line: #ecd9ad;
@@ -175,7 +187,7 @@
   --card-foreground: #f2f5f7;
   --popover: #161c21;
   --popover-foreground: #f2f5f7;
-  --primary: #2997ff;
+  --primary: #2fd1c0;
   --primary-foreground: #0e1317;
   --secondary: #1c242a;
   --secondary-foreground: #f2f5f7;
@@ -186,9 +198,9 @@
   --destructive: #ff8a80;
   --border: #232b31;
   --input: #2b343b;
-  --ring: #2997ff;
-  --chart-1: #2997ff;
-  --chart-2: #9db4c9;
+  --ring: #2fd1c0;
+  --chart-1: #2fd1c0;
+  --chart-2: #2997ff;
   --chart-3: #a5b4fc;
   --chart-4: #c4b5fd;
   --chart-5: #f2f5f7;
@@ -227,12 +239,12 @@
   --brand-foreground: #0e1317;
 
   --action: var(--primary);
-  --action-hover: #66b5ff;
+  --action-hover: #5ee0d2;
   --action-foreground: #0e1317;
 
-  --verifie: #6ee7a8;
-  --verifie-bg: #0f2a1c;
-  --verifie-line: #1e4633;
+  --geo: #2997ff;
+  --geo-foreground: #0e1317;
+
   --partiel: #f3c165;
   --partiel-bg: #2a1f0a;
   --partiel-line: #4a3813;
@@ -284,9 +296,8 @@
   --color-action: var(--action);
   --color-action-hover: var(--action-hover);
   --color-action-foreground: var(--action-foreground);
-  --color-verifie: var(--verifie);
-  --color-verifie-bg: var(--verifie-bg);
-  --color-verifie-line: var(--verifie-line);
+  --color-geo: var(--geo);
+  --color-geo-foreground: var(--geo-foreground);
   --color-partiel: var(--partiel);
   --color-partiel-bg: var(--partiel-bg);
   --color-partiel-line: var(--partiel-line);
