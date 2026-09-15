@@ -19,7 +19,10 @@ const eslintConfig = defineConfig([
     // satisfaire nos règles rendrait chaque mise à jour douloureuse.
     "src/components/ui/**",
     "src/components/matos-ui/**",
+    "src/components/motion-primitives/**",
     "src/lib/motion-tokens.ts",
+    "src/lib/surface-classes.ts",
+    "src/lib/surface-context.tsx",
   ]),
 ]);
 

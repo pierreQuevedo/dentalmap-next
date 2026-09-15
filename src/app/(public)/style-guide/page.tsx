@@ -1,5 +1,15 @@
 import { ThemeActif } from '@/components/site/style-guide/jetons'
 import {
+  Banc,
+  CarteHalo,
+  CurseurSurvol,
+  FicheDepliante,
+  FiltreVerifie,
+  PhotoLegendee,
+  ProgressionLecture,
+  VisiteGuidee,
+} from '@/components/site/style-guide/widgets'
+import {
   ATrancher,
   Composants,
   Couleurs,
@@ -28,6 +38,7 @@ const SOMMAIRE = [
   { id: 'formes', label: 'Formes' },
   { id: 'mouvement', label: 'Mouvement' },
   { id: 'composants', label: 'Composants' },
+  { id: 'widgets', label: 'Widgets animés' },
   { id: 'a-trancher', label: 'À trancher' },
 ]
 
@@ -96,6 +107,70 @@ export default function GuideDeStyle() {
           intro="Les éléments réels du site, pas des reproductions : ce sont les mêmes fichiers que les pages publiques."
         >
           <Composants />
+        </Section>
+
+        <Section
+          id="widgets"
+          titre="Widgets animés"
+          intro="Sept composants à l'essai, montrés sur des cas réels de l'annuaire. Les photos viennent de Pexels, licence libre, et ne servent qu'ici."
+        >
+          <div className="space-y-6">
+            <Banc
+              titre="Fiche dépliante"
+              source="motion-primitives / disclosure"
+              usage="Une fiche montre l'essentiel, et garde ses détails administratifs repliés. La hauteur s'anime, rien ne saute."
+            >
+              <FicheDepliante />
+            </Banc>
+
+            <Banc
+              titre="Curseur de survol"
+              source="motion-primitives / cursor"
+              usage="Sur une vignette de cabinet ou un marqueur de carte. Le curseur n'est remplacé que dans la zone, jamais sur toute la page."
+            >
+              <CurseurSurvol />
+            </Banc>
+
+            <Banc
+              titre="Progression de lecture"
+              source="motion-primitives / scroll-progress"
+              usage="Pour les articles de conseils. Le dégradé reprend la rampe des graphiques. Ici la barre suit le défilement du bloc, pas celui de la page."
+            >
+              <ProgressionLecture />
+            </Banc>
+
+            <Banc
+              titre="Carte à halo"
+              source="motion-primitives / spotlight"
+              usage="Pour l'appel à revendiquer une fiche. Le halo suit le curseur et s'éteint à la sortie."
+            >
+              <CarteHalo />
+            </Banc>
+
+            <Banc
+              titre="Photo légendée"
+              source="motion-primitives / progressive-blur"
+              usage="Le flou monte sous la légende pour la rendre lisible, sans voiler l'image entière comme le ferait un aplat sombre."
+            >
+              <PhotoLegendee />
+            </Banc>
+
+            <Banc
+              titre="Filtre de liste"
+              source="matos-ui / bouncy-toggle"
+              usage="Pour n'afficher que les fiches confrontées à un registre. Le rebond signale que le résultat change."
+            >
+              <FiltreVerifie />
+            </Banc>
+
+            <Banc
+              titre="Visite guidée"
+              source="matos-ui / coachmark"
+              usage="Premier passage dans l'espace professionnel. Trois étapes, libellés en français, sortie possible à chaque étape."
+            >
+              <VisiteGuidee />
+            </Banc>
+          </div>
         </Section>
 
         <Section

@@ -95,6 +95,45 @@
   --duration-slow: 520ms;
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-lift: cubic-bezier(0.05, 0.7, 0.1, 1);
+
+  /*
+   * Échelle de surfaces de matos-ui, requise par `Elevated` et donc par la
+   * visite guidée. Sans elle, `bg-surface-4` ne résout rien : la carte se rend
+   * transparente et passe sous le voile.
+   *
+   * `--ease-lift` n'est pas repris du registre, qui propose une autre courbe :
+   * le nom est déjà pris par `motion-tokens`, et le laisser désigner deux
+   * choses selon le composant serait pire qu'un écart de quelques
+   * millisecondes.
+   */
+  --duration-lift: 320ms;
+  --duration-lift-press: 120ms;
+
+  --surface-1: #fafafa;
+  --surface-2: #fcfcfc;
+  --surface-3: #ffffff;
+  --surface-4: #ffffff;
+  --surface-5: #ffffff;
+  --surface-6: #ffffff;
+  --surface-7: #ffffff;
+  --surface-8: #ffffff;
+  --shadow-color: rgb(0 0 0 / 0.06);
+  --lm-ring-2: rgb(0 0 0 / 0.07);
+  --lm-ring-3: rgb(0 0 0 / 0.08);
+  --lm-ring-4: rgb(0 0 0 / 0.09);
+  --lm-ring-5: rgb(0 0 0 / 0.1);
+  --lm-ring-6: rgb(0 0 0 / 0.11);
+  --lm-ring-7: rgb(0 0 0 / 0.12);
+  --lm-ring-8: rgb(0 0 0 / 0.13);
+  --lm-drop: rgb(0 0 0 / 0.07);
+  --shadow-1: 0 0 0 1px var(--shadow-color);
+  --shadow-2: 0 0 0 1px var(--lm-ring-2), 0 1px 1px -0.5px var(--lm-drop);
+  --shadow-3: 0 0 0 1px var(--lm-ring-3), 0 1px 1px -0.5px var(--lm-drop), 0 3px 3px -1.5px var(--lm-drop);
+  --shadow-4: 0 0 0 1px var(--lm-ring-4), 0 1px 1px -0.5px var(--lm-drop), 0 3px 3px -1.5px var(--lm-drop), 0 6px 6px -3px var(--lm-drop);
+  --shadow-5: 0 0 0 1px var(--lm-ring-5), 0 1px 1px -0.5px var(--lm-drop), 0 3px 3px -1.5px var(--lm-drop), 0 6px 6px -3px var(--lm-drop), 0 12px 12px -6px var(--lm-drop);
+  --shadow-6: 0 0 0 1px var(--lm-ring-6), 0 1px 1px -0.5px var(--lm-drop), 0 3px 3px -1.5px var(--lm-drop), 0 6px 6px -3px var(--lm-drop), 0 12px 12px -6px var(--lm-drop), 0 24px 24px -12px var(--lm-drop);
+  --shadow-7: 0 0 0 1px var(--lm-ring-7), 0 1px 1px -0.5px var(--lm-drop), 0 3px 3px -1.5px var(--lm-drop), 0 6px 6px -3px var(--lm-drop), 0 12px 12px -6px var(--lm-drop), 0 24px 24px -12px var(--lm-drop), 0 48px 48px -24px var(--lm-drop);
+  --shadow-8: 0 0 0 1px var(--lm-ring-8), 0 1px 1px -0.5px var(--lm-drop), 0 3px 3px -1.5px var(--lm-drop), 0 6px 6px -3px var(--lm-drop), 0 12px 12px -6px var(--lm-drop), 0 24px 24px -12px var(--lm-drop), 0 48px 48px -24px var(--lm-drop), 0 96px 96px -48px var(--lm-drop);
 }
 
 .dark {
@@ -155,6 +194,32 @@
 
   --shadow-pill: 0 3px 12px oklch(0 0 0 / 0.45), 0 1px 2px oklch(0 0 0 / 0.40);
   --shadow-pop: 0 8px 28px oklch(0 0 0 / 0.55);
+
+  /* Échelle de surfaces, versant sombre. */
+  --surface-1: #191919;
+  --surface-2: #242424;
+  --surface-3: #2e2e2e;
+  --surface-4: #393939;
+  --surface-5: #444444;
+  --surface-6: #4e4e4e;
+  --surface-7: #575757;
+  --surface-8: #616161;
+  --dm-hi-base: rgba(255,255,255,0.01);
+  --dm-hi-mid: rgba(255,255,255,0.02);
+  --dm-hi-high: rgba(255,255,255,0.04);
+  --dm-hi-peak: rgba(255,255,255,0.06);
+  --dm-ring-base: rgba(255,255,255,0.02);
+  --dm-ring-mid: rgba(255,255,255,0.04);
+  --dm-ring-high: rgba(255,255,255,0.06);
+  --dm-drop: rgba(0,0,0,0.18);
+  --shadow-1: inset 0 0 0 1px var(--dm-ring-base);
+  --shadow-2: inset 0 1px 0 0 var(--dm-hi-base), inset 0 0 0 1px var(--dm-ring-base), 0 1px 1px -0.5px var(--dm-drop);
+  --shadow-3: inset 0 1px 0 0 var(--dm-hi-mid), inset 0 0 0 1px var(--dm-ring-base), 0 0 0 1px rgba(0,0,0,0.12), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop);
+  --shadow-4: inset 0 1px 0 0 var(--dm-hi-mid), inset 0 0 0 1px var(--dm-ring-mid), 0 0 0 1px rgba(0,0,0,0.14), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop), 0 6px 6px -3px var(--dm-drop);
+  --shadow-5: inset 0 1px 0 0 var(--dm-hi-high), inset 0 0 0 1px var(--dm-ring-mid), 0 0 0 1px rgba(0,0,0,0.16), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop), 0 6px 6px -3px var(--dm-drop), 0 12px 12px -6px var(--dm-drop);
+  --shadow-6: inset 0 1px 0 0 var(--dm-hi-high), inset 0 0 0 1px var(--dm-ring-high), 0 0 0 1px rgba(0,0,0,0.18), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop), 0 6px 6px -3px var(--dm-drop), 0 12px 12px -6px var(--dm-drop), 0 24px 24px -12px var(--dm-drop);
+  --shadow-7: inset 0 1px 0 0 var(--dm-hi-peak), inset 0 0 0 1px var(--dm-ring-high), 0 0 0 1px rgba(0,0,0,0.2), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop), 0 6px 6px -3px var(--dm-drop), 0 12px 12px -6px var(--dm-drop), 0 24px 24px -12px var(--dm-drop), 0 48px 48px -24px var(--dm-drop);
+  --shadow-8: inset 0 1px 0 0 var(--dm-hi-peak), inset 0 0 0 1px var(--dm-ring-high), 0 0 0 1px rgba(0,0,0,0.22), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop), 0 6px 6px -3px var(--dm-drop), 0 12px 12px -6px var(--dm-drop), 0 24px 24px -12px var(--dm-drop), 0 48px 48px -24px var(--dm-drop), 0 96px 96px -48px var(--dm-drop);
 }
 
 @theme inline {
@@ -222,6 +287,23 @@
   --shadow-pill: var(--shadow-pill);
   --shadow-pop: var(--shadow-pop);
 
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
+  --color-surface-5: var(--surface-5);
+  --color-surface-6: var(--surface-6);
+  --color-surface-7: var(--surface-7);
+  --color-surface-8: var(--surface-8);
+  --shadow-surface-1: var(--shadow-1);
+  --shadow-surface-2: var(--shadow-2);
+  --shadow-surface-3: var(--shadow-3);
+  --shadow-surface-4: var(--shadow-4);
+  --shadow-surface-5: var(--shadow-5);
+  --shadow-surface-6: var(--shadow-6);
+  --shadow-surface-7: var(--shadow-7);
+  --shadow-surface-8: var(--shadow-8);
+
   /*
    * Jumeaux CSS des tiers de `src/lib/motion-tokens.ts`. Le composant
    * theme-toggler-button de matos-ui utilise les classes `duration-moderate` et
@@ -234,6 +316,35 @@
   --duration-slow: var(--duration-slow);
   --ease-spring: var(--ease-spring);
   --ease-lift: var(--ease-lift);
+}
+
+/* Levée au survol, partagée par les surfaces cliquables de matos-ui. */
+@utility hover-lift {
+  --lift: 2px;
+  transition-property: translate, scale, box-shadow, background-color, border-color, border-radius, color, opacity;
+  transition-duration: var(--duration-lift);
+  transition-timing-function: var(--ease-lift);
+
+  @media (hover: hover) {
+    &:hover {
+      translate: 0 calc(var(--lift) * -1);
+    }
+  }
+
+  &:active {
+    translate: 0 0;
+    transition-duration: var(--duration-lift-press);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-property: background-color, border-color, color, opacity;
+
+    &:hover,
+    &:active {
+      translate: none;
+      scale: none;
+    }
+  }
 }
 
 @layer base {
