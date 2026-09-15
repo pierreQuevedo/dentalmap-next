@@ -42,14 +42,44 @@ export function FilAriane({ segments }: { segments: { libelle: string; href?: st
  * Le libellé dit d'où vient l'information, jamais « certifié » ou « de
  * confiance » : la page doit pouvoir être défendue ligne par ligne.
  */
+/**
+ * État d'une fiche au regard des registres.
+ *
+ * La vérification est la règle, pas l'exploit : cinquante mille fiches sur
+ * soixante-cinq mille sont confrontées à un registre. Un badge de couleur sur
+ * chaque ligne d'une liste de quatre cents praticiens ne signale plus rien, il
+ * fait du bruit. La coche suffit à dire que le contrôle a eu lieu.
+ *
+ * L'ambre est réservé à l'exception, la fiche dont l'identité n'est pas
+ * confirmée : c'est le seul cas où le lecteur a besoin de ralentir.
+ */
 export function Verification({ statut }: { statut: 'verifie' | 'partiel' | 'non_verifie' }) {
   const contenu = {
-    verifie: { texte: 'Vérifié auprès des registres officiels', classe: 'bg-verifie-bg text-verifie ring-verifie-line' },
-    partiel: { texte: 'Identité en cours de vérification', classe: 'bg-partiel-bg text-partiel ring-partiel-line' },
-    non_verifie: { texte: 'Non confronté à un registre public', classe: 'bg-bg-soft text-fg ring-line' },
+    verifie: {
+      texte: 'Vérifié auprès des registres officiels',
+      classe: 'bg-bg-soft text-fg ring-line',
+      coche: true,
+    },
+    partiel: {
+      texte: 'Identité en cours de vérification',
+      classe: 'bg-partiel-bg text-partiel ring-partiel-line',
+      coche: false,
+    },
+    non_verifie: {
+      texte: 'Non confronté à un registre public',
+      classe: 'bg-bg-soft text-fg-2 ring-line',
+      coche: false,
+    },
   }[statut]
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${contenu.classe}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${contenu.classe}`}
+    >
+      {contenu.coche && (
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-3 shrink-0" aria-hidden>
+          <path d="M3 8.5l3.5 3.5L13 5" />
+        </svg>
+      )}
       {contenu.texte}
     </span>
   )

@@ -1,5 +1,6 @@
 'use client'
 
+import { Verification } from '@/components/annuaire/primitives'
 import { Contraste, Jeton } from './jetons'
 
 /**
@@ -53,7 +54,7 @@ export function Strategie() {
       <Niveau
         rang="1"
         titre="L’action"
-        regle="Une seule couleur, et elle n’apparaît que sur ce qui attend un clic délibéré : rechercher, revendiquer sa fiche, ouvrir l’espace pro. Jamais sur un lien de liste, sinon une page de commune compterait cinquante bleus et le bleu ne voudrait plus rien dire."
+        regle="Un teal, et lui seul, sur ce qui attend un clic délibéré : rechercher, revendiquer sa fiche, ouvrir l’espace pro. Jamais sur un lien de liste, sinon une page de commune compterait quatre cents teals et la couleur ne voudrait plus rien dire."
       >
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -76,19 +77,45 @@ export function Strategie() {
 
       <Niveau
         rang="2"
-        titre="La fiabilité"
-        regle="Vert et ambre ne décorent jamais : ils disent l’état d’une fiche au regard des registres. C’est la seule information que DentalMap porte par la couleur, et c’est pourquoi aucune autre couleur ne doit leur ressembler."
+        titre="Le repère géographique"
+        regle="Le bleu ne sert plus à agir, il sert à situer : marqueurs de carte, rayon de recherche, distances. Une couleur par question posée, « où ? » pour le bleu, « que faire ? » pour le teal."
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Jeton nom="verifie" classe="bg-verifie" note="vérifié" />
-          <Jeton nom="partiel" classe="bg-partiel" note="en cours de vérification" />
-          <Jeton nom="verifie-bg" classe="bg-verifie-bg" bordure note="fond du badge vérifié" />
-          <Jeton nom="partiel-bg" classe="bg-partiel-bg" bordure note="fond du badge partiel" />
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Jeton nom="geo" classe="bg-geo" note="marqueurs et distances" />
+            <Jeton nom="action" classe="bg-action" note="pour comparaison" />
+          </div>
+          <div className="flex flex-wrap items-center gap-4 rounded-xl border border-line p-4 text-sm">
+            <span className="inline-flex items-center gap-2 text-fg">
+              <span aria-hidden className="size-3 rounded-full bg-geo ring-2 ring-bg" />
+              Cabinet sur la carte
+            </span>
+            <span className="tabular-nums text-fg-2">510 m</span>
+            <span className="tabular-nums text-fg-2">1,0 km</span>
+          </div>
         </div>
       </Niveau>
 
       <Niveau
         rang="3"
+        titre="La fiabilité"
+        regle="La vérification est la règle : cinquante mille fiches sur soixante-cinq mille sont confrontées à un registre. Une règle ne se signale pas en couleur, une coche suffit. L’ambre est réservé à l’exception, la fiche dont l’identité n’est pas confirmée, seul cas où le lecteur doit ralentir."
+      >
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Jeton nom="partiel" classe="bg-partiel" note="identité à confirmer" />
+            <Jeton nom="partiel-bg" classe="bg-partiel-bg" bordure note="fond du badge" />
+          </div>
+          <div className="flex flex-wrap gap-2 rounded-xl border border-line p-4">
+            <Verification statut="verifie" />
+            <Verification statut="partiel" />
+            <Verification statut="non_verifie" />
+          </div>
+        </div>
+      </Niveau>
+
+      <Niveau
+        rang="4"
         titre="L’éditorial"
         regle="Trois teintes pour distinguer les rubriques de conseils, et rien d’autre. Elles n’apparaissent qu’en pastille devant un titre ou en filet sous une vignette, jamais en aplat, jamais sur un bouton."
       >
@@ -127,7 +154,7 @@ export function Contrastes() {
         <Contraste libelle="Texte principal sur le fond" texte="fg" fond="bg" />
         <Contraste libelle="Texte secondaire sur le fond" texte="fg-2" fond="bg" />
         <Contraste libelle="Texte secondaire sur fond adouci" texte="fg-2" fond="bg-soft" />
-        <Contraste libelle="Badge vérifié" texte="verifie" fond="verifie-bg" />
+        <Contraste libelle="Badge vérifié, encre sur fond adouci" texte="fg" fond="bg-soft" />
         <Contraste libelle="Badge en cours" texte="partiel" fond="partiel-bg" />
       </div>
       <div className="rounded-2xl border border-line p-5">
@@ -135,6 +162,7 @@ export function Contrastes() {
         <p className="mt-1 mb-3 text-sm text-fg-2">Seuil AA : 4,5 pour un libellé de bouton.</p>
         <Contraste libelle="Libellé sur bouton d’action" texte="action-foreground" fond="action" />
         <Contraste libelle="Libellé sur bouton d’identité" texte="brand-foreground" fond="brand" />
+        <Contraste libelle="Marqueur de carte sur le fond" texte="geo" fond="bg" seuil={3} />
         <Contraste libelle="Pastille patients sur le fond" texte="editorial-1" fond="bg" seuil={3} />
         <Contraste libelle="Pastille praticiens sur le fond" texte="editorial-2" fond="bg" seuil={3} />
         <Contraste libelle="Pastille prothésistes sur le fond" texte="editorial-3" fond="bg" seuil={3} />
@@ -150,16 +178,22 @@ export function Recherche() {
         <p className="text-xs font-semibold uppercase tracking-[.06em] text-fg-2">D’où viennent ces valeurs</p>
         <div className="mt-3 space-y-3 text-sm text-fg-2">
           <p>
-            Le bleu d’action est celui d’apple.com, relevé dans ses propres feuilles de style :{' '}
-            <span className="font-mono text-fg">#0071e3</span> pour le bouton,{' '}
-            <span className="font-mono text-fg">#0077ed</span> au survol,{' '}
-            <span className="font-mono text-fg">#2997ff</span> pour les liens sur fond sombre. L’encre
-            y est <span className="font-mono text-fg">#1d1d1f</span>, les gris de texte{' '}
+            La méthode vient d’apple.com, relevée dans ses propres feuilles de style : une encre
+            presque noire, <span className="font-mono text-fg">#1d1d1f</span>, des gris de texte{' '}
             <span className="font-mono text-fg">#6e6e73</span> et{' '}
-            <span className="font-mono text-fg">#86868b</span>, les fonds adoucis{' '}
-            <span className="font-mono text-fg">#f5f5f7</span>. Aucune de ces valeurs n’est publiée
-            comme spécification : elles sont lues dans le produit, ce qui vaut mieux qu’une citation
-            de mémoire.
+            <span className="font-mono text-fg">#86868b</span>, des fonds adoucis{' '}
+            <span className="font-mono text-fg">#f5f5f7</span>, et une seule couleur d’action,{' '}
+            <span className="font-mono text-fg">#0071e3</span>, qui revient vingt fois dans le
+            fichier quand aucune autre teinte saturée n’apparaît. Aucune de ces valeurs n’est
+            publiée comme spécification : elles sont lues dans le produit, ce qui vaut mieux qu’une
+            citation de mémoire.
+          </p>
+          <p>
+            Nous gardons la méthode et changeons la teinte : le teal{' '}
+            <span className="font-mono text-fg">#0a8074</span> tient exactement la place du bleu
+            d’Apple, à un rapport de contraste comparable, 4,82 contre 4,70 sur blanc. Le bleu,
+            libéré, part sur la géographie, où il est de toute façon la convention de toutes les
+            cartes.
           </p>
           <p>
             Apple ne publie pas non plus de hexadécimal garanti pour les couleurs système : sa
@@ -181,11 +215,11 @@ export function Recherche() {
         <p className="text-xs font-semibold uppercase tracking-[.06em] text-fg-2">Ce que la stratégie change</p>
         <div className="mt-3 space-y-3 text-sm text-fg-2">
           <p>
-            La force du modèle n’est pas le bleu, c’est sa rareté. Sur une page de commune, le bleu
-            n’apparaît qu’une fois, sur le bouton de recherche. Les quatre cent quarante-cinq liens
-            de praticiens restent en encre : ils se distinguent par la position et le soulignement
-            au survol, pas par la couleur. Un lien bleu par ligne, et la page devient une bouillie
-            où plus rien n’attire l’œil.
+            La force du modèle n’est pas la couleur, c’est sa rareté. Sur une page de commune, le
+            teal n’apparaît pas une seule fois : il attend sur le bouton de recherche, une page plus
+            loin. Les quatre cent quarante-cinq liens de praticiens restent en encre, distingués par
+            la position et le soulignement au survol. Une couleur par ligne, et la page devient une
+            bouillie où plus rien n’attire l’œil.
           </p>
           <p>
             La pagination courante reste en encre pour la même raison : elle indique un état, elle
@@ -193,8 +227,11 @@ export function Recherche() {
             boutons se confond avec eux.
           </p>
           <p className="text-fg">
-            Le teal est abandonné : il appartenait à la même famille que le vert de vérification, et
-            deux verts qui ne disent pas la même chose sur une page, c’est une information perdue.
+            Le vert de vérification est abandonné, et c’est la conséquence directe du choix du teal :
+            deux couleurs voisines qui ne disent pas la même chose valent moins que pas de couleur du
+            tout. Le badge vérifié devient une coche sobre, ce qui se défend seul : cinquante mille
+            fiches sur soixante-cinq mille sont vérifiées, et une règle ne se signale pas en couleur.
+            Reste l’ambre pour l’exception.
           </p>
         </div>
       </div>

@@ -122,7 +122,7 @@ export function Contraste({
         </span>
       </span>
       <span className="shrink-0 text-right">
-        <span className={`block text-sm font-semibold tabular-nums ${passe ? 'text-verifie' : 'text-partiel'}`}>
+        <span className={`block text-sm font-semibold tabular-nums ${passe ? 'text-action' : 'text-partiel'}`}>
           {rapport ? `${rapport.toFixed(2)}:1` : '…'}
         </span>
         <span className="block text-xs text-fg-2">seuil {seuil.toString().replace('.', ',')}</span>
