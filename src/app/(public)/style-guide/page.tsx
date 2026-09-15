@@ -1,5 +1,6 @@
 import { ThemeActif } from '@/components/site/style-guide/jetons'
 import { Contrastes, Recherche, Strategie } from '@/components/site/style-guide/strategie'
+import { ComparateurTeals } from '@/components/site/style-guide/teals'
 import {
   ApercuDeFiche,
   Banc,
@@ -43,6 +44,7 @@ const SOMMAIRE = [
   { id: 'widgets', label: 'Widgets animés' },
   { id: 'strategie', label: 'Stratégie' },
   { id: 'contrastes', label: 'Contrastes' },
+  { id: 'teals', label: 'Choix du teal' },
   { id: 'a-trancher', label: 'À trancher' },
 ]
 
@@ -202,6 +204,14 @@ export default function GuideDeStyle() {
           intro="Mesurés dans le navigateur sur les couleurs réellement peintes, et recalculés à chaque bascule de thème. Un rapport recopié à la main devient faux au premier ajustement."
         >
           <Contrastes />
+        </Section>
+
+        <Section
+          id="teals"
+          titre="Choix du teal"
+          intro="Six candidats mesurés sur le seul seuil qui commande : le libellé blanc du bouton, qui est du texte courant, donc 4,5 en AA et 7 en AAA. Le mode sombre ne contraint rien, un teal clair sur fond presque noir dépasse 9 sans effort."
+        >
+          <ComparateurTeals />
         </Section>
 
         <Section
