@@ -1,5 +1,7 @@
 import { ThemeActif } from '@/components/site/style-guide/jetons'
+import { Propositions, Recommandation } from '@/components/site/style-guide/propositions'
 import {
+  ApercuDeFiche,
   Banc,
   CarteHalo,
   CurseurSurvol,
@@ -39,6 +41,7 @@ const SOMMAIRE = [
   { id: 'mouvement', label: 'Mouvement' },
   { id: 'composants', label: 'Composants' },
   { id: 'widgets', label: 'Widgets animés' },
+  { id: 'propositions', label: 'Propositions' },
   { id: 'a-trancher', label: 'À trancher' },
 ]
 
@@ -164,12 +167,31 @@ export default function GuideDeStyle() {
             </Banc>
 
             <Banc
+              titre="Aperçu de fiche"
+              source="motion-primitives / morphing-dialog"
+              usage="La carte se déplie en place au lieu de renvoyer sur une autre page : comparer trois praticiens d'une commune demandait trois allers et retours. Le composant est celui de l'annuaire, prêt à poser sur les listes et sur les marqueurs de carte."
+            >
+              <ApercuDeFiche />
+            </Banc>
+
+            <Banc
               titre="Visite guidée"
               source="matos-ui / coachmark"
               usage="Premier passage dans l'espace professionnel. Trois étapes, libellés en français, sortie possible à chaque étape."
             >
               <VisiteGuidee />
             </Banc>
+          </div>
+        </Section>
+
+        <Section
+          id="propositions"
+          titre="Propositions"
+          intro="Trois palettes appliquées à la même composition. Seules trois variables changent d'une à l'autre : le reste du site ne bouge pas."
+        >
+          <div className="space-y-6">
+            <Propositions />
+            <Recommandation />
           </div>
         </Section>
 
