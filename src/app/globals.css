@@ -10,30 +10,38 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Palette vega, shadcnstudio. */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.511 0.096 186.391);
-  --primary-foreground: oklch(0.984 0.014 180.72);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.855 0.138 181.071);
-  --chart-2: oklch(0.704 0.14 182.503);
-  --chart-3: oklch(0.6 0.118 184.704);
-  --chart-4: oklch(0.511 0.096 186.391);
-  --chart-5: oklch(0.437 0.078 188.216);
+  /*
+   * Ardoise profonde, et le bleu réservé à l'action.
+   *
+   * Trois niveaux, jamais mélangés. L'encre et le papier occupent la page.
+   * Le bleu ne sert qu'aux actions délibérées, ce qui le rend visible parce
+   * qu'il est rare. Les couleurs de fiabilité, vert et ambre, ne décorent
+   * jamais : elles disent l'état d'une fiche. Le détail du système et les
+   * rapports de contraste mesurés sont sur /style-guide.
+   */
+  --background: #ffffff;
+  --foreground: #16222b;
+  --card: #ffffff;
+  --card-foreground: #16222b;
+  --popover: #ffffff;
+  --popover-foreground: #16222b;
+  --primary: #0071e3;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f6f7;
+  --secondary-foreground: #16222b;
+  --muted: #f5f6f7;
+  --muted-foreground: #5d666d;
+  --accent: #eef1f3;
+  --accent-foreground: #16222b;
+  --destructive: #b3261e;
+  --border: #e3e7ea;
+  --input: #e3e7ea;
+  --ring: #0071e3;
+  --chart-1: #0071e3;
+  --chart-2: #47617a;
+  --chart-3: #4f46e5;
+  --chart-4: #7c3aed;
+  --chart-5: #16222b;
   --radius: 0.875rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -66,10 +74,34 @@
   --fg: var(--foreground);
   --fg-2: var(--muted-foreground);
   --line: var(--border);
-  --line-strong: oklch(0.85 0 0);
-  --brand: var(--primary);
-  --brand-hover: var(--chart-5);
-  --brand-foreground: var(--primary-foreground);
+  --line-strong: #c4ccd1;
+
+  /*
+   * `--brand` est l'encre d'identité : logo, page courante de la pagination,
+   * tout ce qui affirme sans rien demander. `--action` est le bleu, et lui
+   * seul appelle un clic. Les confondre ferait un logo bleu et un site où
+   * tout a l'air cliquable.
+   */
+  --brand: var(--foreground);
+  --brand-hover: #000000;
+  --brand-foreground: #ffffff;
+
+  --action: var(--primary);
+  --action-hover: #0a5fbf;
+  --action-foreground: #ffffff;
+
+  /* Fiabilité : ces trois couleurs ne servent qu'à dire l'état d'une fiche. */
+  --verifie: #0f6b3f;
+  --verifie-bg: #eaf6ef;
+  --verifie-line: #bfe3cd;
+  --partiel: #8a5a00;
+  --partiel-bg: #fdf4e3;
+  --partiel-line: #ecd9ad;
+
+  /* Éditorial : un point de couleur devant une rubrique, jamais une surface. */
+  --editorial-1: #4f46e5;
+  --editorial-2: #7c3aed;
+  --editorial-3: #47617a;
 
   --shadow-pill: 0 3px 12px oklch(0.289 0.045 202.127 / 0.10), 0 1px 2px oklch(0.289 0.045 202.127 / 0.06);
   --shadow-pop: 0 8px 28px oklch(0.289 0.045 202.127 / 0.16);
@@ -137,29 +169,29 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.437 0.078 188.216);
-  --primary-foreground: oklch(0.984 0.014 180.72);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.855 0.138 181.071);
-  --chart-2: oklch(0.704 0.14 182.503);
-  --chart-3: oklch(0.6 0.118 184.704);
-  --chart-4: oklch(0.511 0.096 186.391);
-  --chart-5: oklch(0.437 0.078 188.216);
+  --background: #0e1317;
+  --foreground: #f2f5f7;
+  --card: #161c21;
+  --card-foreground: #f2f5f7;
+  --popover: #161c21;
+  --popover-foreground: #f2f5f7;
+  --primary: #2997ff;
+  --primary-foreground: #0e1317;
+  --secondary: #1c242a;
+  --secondary-foreground: #f2f5f7;
+  --muted: #161c21;
+  --muted-foreground: #93a0a8;
+  --accent: #1c242a;
+  --accent-foreground: #f2f5f7;
+  --destructive: #ff8a80;
+  --border: #232b31;
+  --input: #2b343b;
+  --ring: #2997ff;
+  --chart-1: #2997ff;
+  --chart-2: #9db4c9;
+  --chart-3: #a5b4fc;
+  --chart-4: #c4b5fd;
+  --chart-5: #f2f5f7;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.704 0.14 182.503);
@@ -187,10 +219,27 @@
    * `--primary` resterait illisible en logo sur un fond presque noir.
    */
   --bg-soft: var(--card);
-  --line-strong: oklch(1 0 0 / 22%);
-  --brand: var(--chart-2);
-  --brand-hover: var(--chart-1);
-  --brand-foreground: oklch(0.277 0.046 192.524);
+  --line-strong: #36414a;
+
+  /* L'encre s'inverse, le bleu s'éclaircit : même rôle, autre luminosité. */
+  --brand: var(--foreground);
+  --brand-hover: #ffffff;
+  --brand-foreground: #0e1317;
+
+  --action: var(--primary);
+  --action-hover: #66b5ff;
+  --action-foreground: #0e1317;
+
+  --verifie: #6ee7a8;
+  --verifie-bg: #0f2a1c;
+  --verifie-line: #1e4633;
+  --partiel: #f3c165;
+  --partiel-bg: #2a1f0a;
+  --partiel-line: #4a3813;
+
+  --editorial-1: #a5b4fc;
+  --editorial-2: #c4b5fd;
+  --editorial-3: #9db4c9;
 
   --shadow-pill: 0 3px 12px oklch(0 0 0 / 0.45), 0 1px 2px oklch(0 0 0 / 0.40);
   --shadow-pop: 0 8px 28px oklch(0 0 0 / 0.55);
@@ -232,6 +281,18 @@
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-foreground: var(--brand-foreground);
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-action-foreground: var(--action-foreground);
+  --color-verifie: var(--verifie);
+  --color-verifie-bg: var(--verifie-bg);
+  --color-verifie-line: var(--verifie-line);
+  --color-partiel: var(--partiel);
+  --color-partiel-bg: var(--partiel-bg);
+  --color-partiel-line: var(--partiel-line);
+  --color-editorial-1: var(--editorial-1);
+  --color-editorial-2: var(--editorial-2);
+  --color-editorial-3: var(--editorial-3);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);

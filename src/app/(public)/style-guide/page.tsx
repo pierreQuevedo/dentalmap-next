@@ -1,5 +1,5 @@
 import { ThemeActif } from '@/components/site/style-guide/jetons'
-import { Propositions, Recommandation } from '@/components/site/style-guide/propositions'
+import { Contrastes, Recherche, Strategie } from '@/components/site/style-guide/strategie'
 import {
   ApercuDeFiche,
   Banc,
@@ -41,7 +41,8 @@ const SOMMAIRE = [
   { id: 'mouvement', label: 'Mouvement' },
   { id: 'composants', label: 'Composants' },
   { id: 'widgets', label: 'Widgets animés' },
-  { id: 'propositions', label: 'Propositions' },
+  { id: 'strategie', label: 'Stratégie' },
+  { id: 'contrastes', label: 'Contrastes' },
   { id: 'a-trancher', label: 'À trancher' },
 ]
 
@@ -185,14 +186,22 @@ export default function GuideDeStyle() {
         </Section>
 
         <Section
-          id="propositions"
-          titre="Propositions"
-          intro="Cinq déclinaisons d'ardoise, et le teal actuel pour mémoire, appliquées à la même vitrine. Chacune fait varier le fond autant que l'accent : sur un annuaire, l'accent n'occupe jamais deux pour cent de la page."
+          id="strategie"
+          titre="Stratégie de couleur"
+          intro="Ardoise profonde, et le bleu réservé à l'action. Quatre niveaux, jamais mélangés : chacun a une règle d'emploi, et une couleur qui sort de son niveau perd son sens."
         >
           <div className="space-y-6">
-            <Propositions />
-            <Recommandation />
+            <Strategie />
+            <Recherche />
           </div>
+        </Section>
+
+        <Section
+          id="contrastes"
+          titre="Contrastes"
+          intro="Mesurés dans le navigateur sur les couleurs réellement peintes, et recalculés à chaque bascule de thème. Un rapport recopié à la main devient faux au premier ajustement."
+        >
+          <Contrastes />
         </Section>
 
         <Section

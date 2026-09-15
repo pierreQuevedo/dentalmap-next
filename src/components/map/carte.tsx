@@ -157,7 +157,7 @@ export function Carte({
     <div className="relative">
       <div ref={conteneur} className="h-[420px] w-full rounded-lg border border-line lg:h-[600px]" />
       {erreur && (
-        <p className="absolute left-3 top-3 rounded bg-red-50 px-3 py-1.5 text-sm text-red-800 ring-1 ring-red-200 dark:bg-red-950 dark:text-red-200 dark:ring-red-800">
+        <p className="absolute left-3 top-3 rounded bg-bg px-3 py-1.5 text-sm text-destructive ring-1 ring-destructive/30">
           Carte indisponible : {erreur}
         </p>
       )}

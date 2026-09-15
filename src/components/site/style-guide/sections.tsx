@@ -338,19 +338,19 @@ export function Composants() {
 export function ATrancher() {
   const points = [
     {
-      titre: 'Le teal remplace l’anthracite',
+      titre: 'Les rubriques de conseils n’ont pas encore de contenu',
       texte:
-        'Le cahier des charges du header écartait le bleu santé au profit de l’anthracite #2C3E48. Le style vega apporte un teal, qui est désormais l’accent du site.',
+        'Les trois teintes éditoriales sont posées mais ne servent nulle part : elles attendent les articles. Tant qu’elles dorment, rien ne garantit qu’elles tiennent sur une grille de vignettes.',
     },
     {
-      titre: 'Les boutons shadcn en mode sombre',
+      titre: 'Le bleu d’action sur les liens de texte',
       texte:
-        'Les variantes « par défaut » et « lien » utilisent --primary, un teal foncé en mode sombre, peu lisible sur fond presque noir. Les boutons du site n’ont pas ce défaut : ils utilisent --brand, qui s’éclaircit en sombre. Soit on aligne --primary sur --brand, soit on n’utilise pas ces variantes.',
+        'Il est réservé aux boutons. Reste à trancher le cas des liens à l’intérieur d’un article de conseils, qui ne sont ni des boutons ni des lignes de liste : les laisser en encre soulignée, ou les passer au bleu comme le fait Apple dans ses pages de support.',
     },
     {
-      titre: 'Le vert et l’ambre des badges',
+      titre: 'Le nuancier de graphiques',
       texte:
-        'Seules couleurs hors palette. Elles portent le niveau de vérification d’une fiche, information que le teal ne peut pas transmettre seul. À confirmer, ou à remplacer par une écriture sans couleur.',
+        'Les cinq teintes de --chart-* servent aux visualisations, qui n’existent pas encore. Elles reprennent pour l’instant le bleu, l’ardoise et les teintes éditoriales : à revoir le jour où une carte de densité en aura vraiment besoin.',
     },
   ]
   return (

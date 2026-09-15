@@ -69,7 +69,7 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
         </div>
         <button
           type="submit"
-          className="rounded-md bg-brand px-4 py-2 font-medium text-brand-foreground hover:bg-brand-hover"
+          className="rounded-md bg-action px-4 py-2 font-medium text-action-foreground hover:bg-action-hover"
         >
           Rechercher
         </button>

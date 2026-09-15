@@ -44,8 +44,8 @@ export function FilAriane({ segments }: { segments: { libelle: string; href?: st
  */
 export function Verification({ statut }: { statut: 'verifie' | 'partiel' | 'non_verifie' }) {
   const contenu = {
-    verifie: { texte: 'Vérifié auprès des registres officiels', classe: 'bg-emerald-50 text-emerald-900 ring-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:ring-emerald-800' },
-    partiel: { texte: 'Identité en cours de vérification', classe: 'bg-amber-50 text-amber-900 ring-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:ring-amber-800' },
+    verifie: { texte: 'Vérifié auprès des registres officiels', classe: 'bg-verifie-bg text-verifie ring-verifie-line' },
+    partiel: { texte: 'Identité en cours de vérification', classe: 'bg-partiel-bg text-partiel ring-partiel-line' },
     non_verifie: { texte: 'Non confronté à un registre public', classe: 'bg-bg-soft text-fg ring-line' },
   }[statut]
   return (

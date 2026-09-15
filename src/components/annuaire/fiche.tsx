@@ -87,7 +87,7 @@ export async function PageFiche({ profession, params }: { profession: Profession
       </header>
 
       {radie && (
-        <p className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+        <p className="mt-5 rounded-md border border-partiel-line bg-partiel-bg p-4 text-sm text-partiel">
           Ce professionnel ne figure plus au registre officiel. La fiche est conservée à titre d&apos;archive.
         </p>
       )}
