@@ -39,8 +39,12 @@ export function formaterDate(valeur: string | null) {
   return Number.isNaN(d.getTime()) ? null : dateLongue.format(d)
 }
 
+/**
+ * Un article sans rubrique dans WordPress est rangé sous « patients », qui est
+ * la rubrique par défaut : une seule adresse par article, jamais deux.
+ */
 export function lienConseil(c: { categorie: string | null; slug: string }) {
-  return c.categorie ? `/conseils/${c.categorie}/${c.slug}/` : `/conseils/${c.slug}/`
+  return `/conseils/${c.categorie ?? 'patients'}/${c.slug}/`
 }
 
 /** Ligne d'article, pour l'index des conseils et les pages de rubrique. */

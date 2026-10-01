@@ -1,0 +1,15 @@
+{
+  "paris": "/images/cartes/paris.jpg",
+  "marseille": "/images/cartes/marseille.jpg",
+  "lyon": "/images/cartes/lyon.jpg",
+  "toulouse": "/images/cartes/toulouse.jpg",
+  "nice": "/images/cartes/nice.jpg",
+  "nantes": "/images/cartes/nantes.jpg",
+  "montpellier": "/images/cartes/montpellier.jpg",
+  "strasbourg": "/images/cartes/strasbourg.jpg",
+  "bordeaux": "/images/cartes/bordeaux.jpg",
+  "lille": "/images/cartes/lille.jpg",
+  "rennes": "/images/cartes/rennes.jpg",
+  "toulon": "/images/cartes/toulon.jpg",
+  "meaux": "/images/cartes/meaux.jpg"
+}

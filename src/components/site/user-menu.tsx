@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Deroulant } from './deroulant'
 import { useEffect, useState } from 'react'
 import { signOut, useSession } from '@/lib/auth-client'
 
@@ -46,16 +47,17 @@ export function UserMenu() {
         </span>
       </button>
 
-      {ouvert && (
+      <Deroulant ouvert={ouvert} className="absolute right-0 top-[calc(100%+12px)] z-[55]">
         <div
           role="menu"
           onClick={(e) => e.stopPropagation()}
-          className="absolute right-0 top-[calc(100%+12px)] z-[55] min-w-[240px] rounded-[20px] border border-line bg-bg p-2 shadow-pop"
+          className="min-w-[240px] rounded-[20px] border border-line bg-bg p-2 shadow-pop"
         >
           {session ? (
             <>
               <Link role="menuitem" href="/espace-pro" className={`${item} font-semibold`}>Espace pro</Link>
               <Link role="menuitem" href="/espace-pro/fiche" className={item}>Ma fiche</Link>
+              <Link role="menuitem" href="/espace-pro/revendiquer" className={item}>Vous êtes praticien ?</Link>
               <hr className="mx-2 my-1.5 border-line" />
               <Link role="menuitem" href="/faq" className={item}>Aide</Link>
               <button role="menuitem" type="button" onClick={() => signOut()} className={`${item} w-full text-left`}>
@@ -69,12 +71,12 @@ export function UserMenu() {
               </Link>
               <Link role="menuitem" href="/connexion" className={item}>Se connecter</Link>
               <hr className="mx-2 my-1.5 border-line" />
-              <Link role="menuitem" href="/espace-pro/revendiquer" className={item}>Revendiquer ma fiche</Link>
+              <Link role="menuitem" href="/espace-pro/revendiquer" className={item}>Vous êtes praticien ?</Link>
               <Link role="menuitem" href="/faq" className={item}>Aide</Link>
             </>
           )}
         </div>
-      )}
+      </Deroulant>
     </div>
   )
 }

@@ -166,8 +166,8 @@ export function ProgressionLecture() {
             figurent dans aucun registre, elles viennent du praticien lui-même.
           </p>
           <p className="mt-3 text-sm text-fg-2">
-            Rien de tout cela ne se paie sur DentalMap. Le classement suit la distance, puis
-            l’ordre alphabétique, et la place ne s’achète pas.
+            Chacune de ces informations est affichée sur la fiche avec sa source, registre ou
+            praticien.
           </p>
         </div>
       </div>
@@ -296,9 +296,13 @@ const EXEMPLES: PraticienResume[] = [
     prenom: 'ADRIEN',
     raisonSociale: null,
     statutVerification: 'verifie',
+    precisionPosition: 'numero',
+    civilite: 'MME',
     adresseLigne: '128 RUE FONDAUDEGE',
     codePostal: '33000',
-    telephone: '05 56 81 11 11',
+    lieuId: 'demo-1',
+    aTelephone: true,
+    revendiquee: false,
     communeNom: 'Bordeaux',
     communeSlug: 'bordeaux',
     departementSlug: 'gironde',
@@ -311,9 +315,13 @@ const EXEMPLES: PraticienResume[] = [
     prenom: 'LINA',
     raisonSociale: null,
     statutVerification: 'partiel',
+    precisionPosition: 'voie',
+    civilite: 'M',
     adresseLigne: '158 COURS DE LA MARNE',
     codePostal: '33800',
-    telephone: null,
+    lieuId: 'demo-2',
+    aTelephone: false,
+    revendiquee: false,
     communeNom: 'Bordeaux',
     communeSlug: 'bordeaux',
     departementSlug: 'gironde',

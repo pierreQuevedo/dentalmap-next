@@ -27,7 +27,7 @@ export async function generateMetadata(props: { params: Params }) {
   const { categorie } = await props.params
   if (!estCategorie(categorie)) return {}
   return {
-    title: `Conseils pour les ${LIBELLE_CATEGORIE[categorie].toLowerCase()}`,
+    title: `Ressources pour les ${LIBELLE_CATEGORIE[categorie].toLowerCase()}`,
     description: INTRO[categorie],
   }
 }
@@ -43,13 +43,13 @@ export default async function RubriqueConseils(props: { params: Params }) {
       <FilAriane
         segments={[
           { libelle: 'Accueil', href: '/' },
-          { libelle: 'Conseils', href: '/conseils' },
+          { libelle: 'Ressources', href: '/conseils' },
           { libelle: LIBELLE_CATEGORIE[categorie] },
         ]}
       />
 
       <header className="mt-5">
-        <h1 className="text-fg">Conseils pour les {LIBELLE_CATEGORIE[categorie].toLowerCase()}</h1>
+        <h1 className="text-fg">Ressources pour les {LIBELLE_CATEGORIE[categorie].toLowerCase()}</h1>
         <p className="mt-3 max-w-2xl text-fg-2">{INTRO[categorie]}</p>
       </header>
 

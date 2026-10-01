@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { chemin, mainNav, mainNavIcons, type NavEntry, type NavLink } from '@/lib/navigation'
 import { lienConseil, Rubrique } from '@/components/conseils/primitives'
 import type { ConseilResume } from '@/lib/wp/queries'
+import { Deroulant } from './deroulant'
 import { NavIconSvg } from './nav-icon'
 
 /**
@@ -101,14 +102,15 @@ export function MainNav({
               {entry.label}
             </button>
 
-            {estOuvert &&
-              (mega ? (
+            <Deroulant ouvert={estOuvert} className="absolute left-1/2 top-[calc(100%+12px)] z-[55] -translate-x-1/2">
+              {mega ? (
                 <MegaMenu entry={entry} accesRapide={accesRapide} />
-              ) : entry.label === 'Conseils' && conseils.length > 0 ? (
+              ) : entry.label === 'Ressources' && conseils.length > 0 ? (
                 <MenuConseils entry={entry} conseils={conseils} />
               ) : (
                 <MenuSimple entry={entry} />
-              ))}
+              )}
+            </Deroulant>
           </div>
         )
       })}
@@ -126,7 +128,7 @@ function MenuSimple({ entry }: { entry: NavEntry }) {
     <div
       role="menu"
       onClick={stopper}
-      className="absolute left-1/2 top-[calc(100%+12px)] z-[55] min-w-[260px] -translate-x-1/2 rounded-[20px] border border-line bg-bg p-2 shadow-pop"
+      className="min-w-[260px] rounded-[20px] border border-line bg-bg p-2 shadow-pop"
     >
       <Link
         role="menuitem"
@@ -141,9 +143,10 @@ function MenuSimple({ entry }: { entry: NavEntry }) {
           key={l.href}
           role="menuitem"
           href={chemin(l.href)}
-          className="block rounded-xl px-4 py-3 text-[15px] hover:bg-bg-soft"
+          className="flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-[15px] hover:bg-bg-soft"
         >
-          {l.label}
+          <span className={`whitespace-nowrap ${l.badge ? 'text-fg-2' : ''}`}>{l.label}</span>
+          {l.badge && <Etiquette>{l.badge}</Etiquette>}
         </Link>
       ))}
     </div>
@@ -172,7 +175,7 @@ function MenuConseils({ entry, conseils }: { entry: NavEntry; conseils: ConseilR
       role="menu"
       onClick={stopper}
       className={[
-        'absolute left-1/2 top-[calc(100%+12px)] z-[55] max-w-[calc(100vw-5rem)] -translate-x-1/2 overflow-hidden rounded-[20px] border border-line bg-bg shadow-pop',
+        'max-w-[calc(100vw-5rem)] overflow-hidden rounded-[20px] border border-line bg-bg shadow-pop',
         large ? 'w-[720px]' : 'w-[540px]',
       ].join(' ')}
     >
@@ -241,12 +244,15 @@ function MegaMenu({ entry, accesRapide }: { entry: NavEntry; accesRapide: NavLin
     <div
       role="menu"
       onClick={stopper}
-      className="absolute left-1/2 top-[calc(100%+12px)] z-[55] grid w-[920px] max-w-[calc(100vw-5rem)] -translate-x-1/2 grid-cols-4 gap-6 rounded-[20px] border border-line bg-bg p-6 shadow-pop"
+      // Cinq colonnes sur une seule rangée : les trois familles de praticiens,
+      // l'accès rapide, puis la méthode en encart. Le panneau s'élargit en
+      // conséquence et reste contenu dans l'écran sur les portables.
+      className="grid w-[1180px] max-w-[calc(100vw-4rem)] grid-cols-5 gap-5 rounded-[20px] border border-line bg-bg p-6 shadow-pop"
     >
       {entry.columns?.map((col) => {
         const liens = col.dynamic === 'acces-rapide' ? accesRapide.slice(0, 5) : col.links
         return (
-          <div key={col.title} className={col.highlight ? 'rounded-2xl bg-bg-soft px-1 py-3' : ''}>
+          <div key={col.title} className={col.highlight ? 'self-start rounded-2xl bg-bg-soft px-1 py-3' : ''}>
             <h4 className="mb-2 px-3 text-xs font-semibold uppercase tracking-[.06em] text-fg-2">{col.title}</h4>
             {col.note && <p className="mx-3 mb-2 text-[13px] leading-relaxed text-fg-2">{col.note}</p>}
             {liens.map((l) => (
@@ -267,4 +273,9 @@ function MegaMenu({ entry, accesRapide }: { entry: NavEntry; accesRapide: NavLin
       })}
     </div>
   )
+}
+
+/** Étiquette discrète d'un lien de menu : une rubrique annoncée, pas encore remplie. */
+function Etiquette({ children }: { children: React.ReactNode }) {
+  return <span className="shrink-0 rounded-full bg-bg-soft text-fg-2 ring-1 ring-inset ring-line px-2 py-0.5 text-[11px] font-medium">{children}</span>
 }

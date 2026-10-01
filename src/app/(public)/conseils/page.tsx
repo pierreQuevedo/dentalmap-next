@@ -7,7 +7,7 @@ import { getConseils } from '@/lib/wp/queries'
 export const instant = false
 
 export const metadata = {
-  title: 'Conseils et ressources',
+  title: 'Ressources',
   description:
     'Articles pour les patients, les praticiens et les prothésistes, écrits à partir des règles et des registres officiels.',
 }
@@ -17,10 +17,10 @@ export default async function IndexConseils() {
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-10 md:px-10">
-      <FilAriane segments={[{ libelle: 'Accueil', href: '/' }, { libelle: 'Conseils' }]} />
+      <FilAriane segments={[{ libelle: 'Accueil', href: '/' }, { libelle: 'Ressources' }]} />
 
       <header className="mt-5">
-        <h1 className="text-fg">Conseils et ressources</h1>
+        <h1 className="text-fg">Ressources</h1>
         <p className="mt-3 max-w-2xl text-fg-2">
           Ce que les registres ne disent pas : comment vérifier une inscription, ce que recouvre un
           secteur de conventionnement, ce qu’un laboratoire doit pouvoir justifier.
