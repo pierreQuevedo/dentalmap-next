@@ -40,6 +40,8 @@ export function CarteFiche(props: {
   onSurvol: (cle: string | null, slug?: string | null) => void
   /** Rang dans la liste : l'entrée de la carte est retardée d'autant. Absent, pas d'entrée. */
   rang?: number
+  /** D'où la distance est mesurée, en toutes lettres. Par défaut, le centre de la carte. */
+  reference?: string
 }) {
   return props.profession === 'prothesiste' ? <CarteLaboratoire {...props} /> : <CarteDentiste {...props} />
 }
@@ -71,7 +73,7 @@ function evenements(cle: string | null, slug: string, onSurvol: Props['onSurvol'
   }
 }
 
-function CarteDentiste({ praticien: p, base, profession, photo, actif, onSurvol, rang }: Props) {
+function CarteDentiste({ praticien: p, base, profession, photo, actif, onSurvol, rang, reference = 'du centre de la carte' }: Props) {
   const cle = clePosition(p.lon, p.lat)
   const anim = entree(rang)
   const nom = nomAffiche({ profession, nom: p.nom, prenom: p.prenom, raisonSociale: p.raisonSociale })
@@ -180,7 +182,7 @@ function CarteDentiste({ praticien: p, base, profession, photo, actif, onSurvol,
         {/* La distance n'apparaît qu'au survol : une rangée de grille qui s'ouvre de 0fr à 1fr. */}
         <div className="grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity] duration-slow ease-lift group-hover:grid-rows-[1fr] group-hover:opacity-100 group-data-[actif=true]:grid-rows-[1fr] group-data-[actif=true]:opacity-100 motion-reduce:transition-none">
           <p className="min-h-0 overflow-hidden text-sm text-fg-2">
-            <span className="block pt-2">À {distance(p.metres)} du centre de la carte</span>
+            <span className="block pt-2">À {distance(p.metres)} {reference}</span>
           </p>
         </div>
       </div>

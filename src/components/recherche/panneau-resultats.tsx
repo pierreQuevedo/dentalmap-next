@@ -6,6 +6,7 @@ import { PROFESSION_PAR_BASE } from '@/lib/annuaire/types'
 import { CarteFiche, SqueletteFiche } from './carte-fiche'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useRecherche } from './contexte'
+import { useEffect, useRef } from 'react'
 
 /**
  * Colonne de résultats.
@@ -21,7 +22,19 @@ import { useRecherche } from './contexte'
  * contente d'intercepter le clic pour éviter un aller-retour complet.
  */
 export function PanneauResultats() {
-  const { base, territoire, donnees, version, chargement, erreur, survol, survolSlug, setSurvol } = useRecherche()
+  const { base, territoire, donnees, version, chargement, erreur, survol, survolSlug, setSurvol, origine } = useRecherche()
+  const haut = useRef<HTMLDivElement>(null)
+
+  /*
+   * Une liste classée depuis un lieu choisi sur la carte met la personne
+   * choisie en tête : la colonne remonte pour la montrer, sinon le clic sur
+   * la carte n'aurait d'effet visible que loin au-dessus de l'écran. Un
+   * simple déplacement de la carte, lui, laisse la colonne où elle est.
+   */
+  useEffect(() => {
+    if (!origine || chargement) return
+    haut.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  }, [version, origine, chargement])
   const profession = PROFESSION_PAR_BASE[base]
   const l = LIBELLE[profession]
   const { resultats, total, page, pages, plafonne } = donnees
@@ -34,7 +47,8 @@ export function PanneauResultats() {
   const nombreDeSquelettes = Math.min(PAR_PAGE_CARTE, Math.max(1, resultats.length))
 
   return (
-    <div>
+    /* La marge de défilement laisse passer l'en-tête collant, et la carte collée sous lui sur petit écran. */
+    <div ref={haut} className="scroll-mt-[27.5rem] lg:scroll-mt-24">
       <div className="flex min-h-10 flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         {chargement ? (
           <Skeleton className="h-5 w-72 max-w-full" />
@@ -95,6 +109,7 @@ export function PanneauResultats() {
                 base={base}
                 profession={profession}
                 rang={i}
+                reference={origine ? 'du lieu choisi sur la carte' : undefined}
                 /*
                  * Depuis la liste, la fiche survolée et elle seule. Depuis la
                  * carte, le lieu est connu mais pas la personne : la première

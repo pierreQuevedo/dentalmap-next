@@ -1,4 +1,4 @@
-import { PAR_PAGE_CARTE, type Emprise } from '@/lib/annuaire/emprise'
+import { PAR_PAGE_CARTE, type Emprise, type Origine } from '@/lib/annuaire/emprise'
 import { lireFiltres } from '@/lib/annuaire/filtres'
 import { getPraticiensDansEmprise, professionDepuisBase } from '@/lib/annuaire/queries'
 
@@ -35,7 +35,17 @@ export async function GET(request: Request) {
   const page = Math.max(1, Math.trunc(Number(p.get('page') ?? '1')) || 1)
   const emprise: Emprise = { ouest, sud, est, nord }
 
-  const resultat = await getPraticiensDansEmprise(profession, emprise, page, PAR_PAGE_CARTE, lireFiltres(p))
+  // Lieu choisi sur la carte, d'où la distance est mesurée. Absent, c'est le centre.
+  let origine: Origine | null = null
+  if (p.has('centre')) {
+    const [lon, lat] = (p.get('centre') ?? '').split(',').map(Number)
+    if (lon === undefined || lat === undefined || !Number.isFinite(lon) || !Number.isFinite(lat)) {
+      return Response.json({ erreur: 'centre attendu au format lon,lat' }, { status: 400 })
+    }
+    origine = { lon: Number(lon.toFixed(ARRONDI)), lat: Number(lat.toFixed(ARRONDI)) }
+  }
+
+  const resultat = await getPraticiensDansEmprise(profession, emprise, page, PAR_PAGE_CARTE, lireFiltres(p), origine)
 
   return Response.json(resultat, {
     headers: { 'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600' },

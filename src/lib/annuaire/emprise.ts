@@ -10,6 +10,13 @@ import type { PraticienProche } from './queries'
  */
 export type Emprise = { ouest: number; sud: number; est: number; nord: number }
 
+/**
+ * Point d'où la distance est mesurée pour classer la liste. Par défaut le
+ * centre de l'emprise ; le lieu choisi sur la carte quand une fiche est ouverte,
+ * pour que la personne choisie vienne en tête de la colonne.
+ */
+export type Origine = { lon: number; lat: number }
+
 export type PageResultats = {
   total: number
   page: number

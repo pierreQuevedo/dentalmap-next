@@ -17,7 +17,7 @@ import {
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { CarteFiche } from '@/components/recherche/carte-fiche'
 import { Carousel_002 } from '@/components/ui/skiper-ui/skiper48'
-import { clePosition, rayonGrappe, SEUIL_POINTS, type Emprise } from '@/lib/annuaire/emprise'
+import { clePosition, rayonGrappe, SEUIL_POINTS, type Emprise, type Origine } from '@/lib/annuaire/emprise'
 import { filtresEnParams, type Filtres } from '@/lib/annuaire/filtres'
 import { styleCarte, styleCarteInitial } from './style'
 import { usePhase } from '@/lib/use-phase'
@@ -144,11 +144,12 @@ export function Carte({
   /** Géométrie du cadre. Le défaut convient à une carte posée dans une page ; une carte pleine hauteur passe `size-full`. */
   className?: string
   /** Appelé après chaque déplacement de l'utilisateur, jamais pour le cadrage initial. */
-  onEmprise?: (emprise: Emprise) => void
+  /** Emprise après un geste, et le lieu de la fiche ouverte quand le recadrage vient d'elle. */
+  onEmprise?: (emprise: Emprise, origine?: Origine | null) => void
   /** Clé de position à mettre en évidence, venue de la liste. */
   survol?: string | null
   /** Remonte le lieu survolé sur la carte, pour que la liste s'allume en retour. */
-  onSurvol?: (cle: string | null) => void
+  onSurvol?: (cle: string | null, slug?: string | null) => void
   /** Filtres de la recherche : les tuiles sont redemandées quand ils changent. */
   filtres?: Filtres
   /** Emprise à cadrer, animée, quand le script le demande : la position de l'utilisateur par exemple. */
@@ -161,6 +162,8 @@ export function Carte({
   const [erreur, setErreur] = useState<string | null>(null)
   const [selection, setSelection] = useState<Selection | null>(null)
   const [stylePret, setStylePret] = useState(0)
+  /** Rappels du parent, lus au moment de l'événement (voir plus bas). */
+  const rappels = useRef({ onEmprise, onSurvol })
 
   /*
    * Fermeture en deux temps : la fiche et le voile s'estompent, puis le
@@ -176,6 +179,7 @@ export function Carte({
     setSelection(null)
   }
   const fermer = () => {
+    if (marqueur.current) rappels.current.onSurvol?.(null)
     setSelection((s) => (s && !s.sortie ? { ...s, sortie: true } : s))
     if (minuterieSortie.current) clearTimeout(minuterieSortie.current)
     minuterieSortie.current = setTimeout(retirer, DUREE_SORTIE)
@@ -192,7 +196,6 @@ export function Carte({
    * dépendance détruirait et reconstruirait la carte à chaque rendu.
    */
   const initial = useRef({ emprise, profession })
-  const rappels = useRef({ onEmprise, onSurvol })
   const { resolvedTheme } = useTheme()
   /** Filtres en vigueur, lus quand les couches sont ajoutées ou rajoutées. */
   const filtresCourants = useRef(filtres)
@@ -342,8 +345,9 @@ export function Carte({
          * juste au-dessus du point, et la carte se recentre de sorte que le
          * point et la fiche, pris ensemble, soient au milieu du cadre. Le
          * décalage vaut la moitié de la hauteur du groupe, appliqué au point.
-         * Recadrage du script, sans événement d'origine : la liste ne bouge
-         * pas et la fiche ne se referme pas.
+         * Le recadrage est marqué `depuisFiche` : le `moveend` qui suit fait
+         * suivre la liste, qui se réordonne autour du lieu choisi, mais ne
+         * referme pas la fiche comme le ferait un déplacement à la main.
          */
         const hote = document.createElement('div')
         hote.className = 'z-10'
@@ -354,12 +358,17 @@ export function Carte({
          */
         for (const type of ['click', 'mousedown', 'touchstart', 'wheel'] as const) hote.addEventListener(type, (e) => e.stopPropagation())
         marqueur.current = new Marker({ element: hote, anchor: 'bottom', offset: [0, -ECART_FICHE] }).setLngLat(coords).addTo(m)
-        m.easeTo({
-          center: coords,
-          zoom: Math.max(m.getZoom(), ZOOM_FICHE),
-          offset: [0, (HAUTEUR_FICHE + ECART_FICHE) / 2],
-          duration: 650,
-        })
+        m.easeTo(
+          {
+            center: coords,
+            zoom: Math.max(m.getZoom(), ZOOM_FICHE),
+            offset: [0, (HAUTEUR_FICHE + ECART_FICHE) / 2],
+            duration: 650,
+          },
+          { depuisFiche: true },
+        )
+        // La colonne de gauche s'allume sur le lieu choisi, et sur la personne quand elle est seule.
+        rappels.current.onSurvol?.(clePosition(coords[0], coords[1]), fiches.length === 1 ? fiches[0]!.slug : null)
         setSelection({ membres: fiches, hote, sortie: false })
       })
 
@@ -378,7 +387,9 @@ export function Carte({
       })
       m.on('mouseleave', 'points', () => {
         m.getCanvas().style.cursor = ''
-        rappels.current.onSurvol?.(null)
+        // Fiche ouverte : le point sort de sous le curseur quand la carte se
+        // recentre. Le choix reste allumé dans la liste jusqu'à la fermeture.
+        if (!marqueur.current) rappels.current.onSurvol?.(null)
       })
 
       m.on('click', 'grappes', (ev: MapLayerMouseEvent) => {
@@ -404,15 +415,15 @@ export function Carte({
      * l'emprise dès le chargement, avant tout geste.
      */
     m.on('moveend', (e) => {
-      if (!pret || !e.originalEvent) return
-      fermerPopup()
+      const depuisFiche = Boolean((e as { depuisFiche?: boolean }).depuisFiche)
+      if (!pret || (!e.originalEvent && !depuisFiche)) return
+      if (!depuisFiche) fermerPopup()
       const b = m.getBounds()
-      rappels.current.onEmprise?.({
-        ouest: b.getWest(),
-        sud: b.getSouth(),
-        est: b.getEast(),
-        nord: b.getNorth(),
-      })
+      const lieu = depuisFiche ? marqueur.current?.getLngLat() : null
+      rappels.current.onEmprise?.(
+        { ouest: b.getWest(), sud: b.getSouth(), est: b.getEast(), nord: b.getNorth() },
+        lieu ? { lon: lieu.lng, lat: lieu.lat } : null,
+      )
     })
 
     m.on('error', (e) => {
