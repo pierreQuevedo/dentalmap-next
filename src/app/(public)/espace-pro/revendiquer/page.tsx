@@ -5,7 +5,7 @@ import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { auth } from '@/lib/auth'
 import { chemin } from '@/lib/navigation'
-import type { BaseUrl, Profession } from '@/lib/annuaire/types'
+import { estPersonne, type BaseUrl, type Profession } from '@/lib/annuaire/types'
 import { pscConfigure } from '@/lib/psc/config'
 import { demanderRevendication } from './actions'
 
@@ -178,7 +178,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
               </div>
             ) : (
               <>
-                {fiche.profession === 'dentiste' && (
+                {estPersonne(fiche.profession) && (
                   <div className="squircle-xl mt-6 border border-line bg-bg-soft p-5">
                     <h3 className="font-semibold text-fg">Vérification immédiate avec Pro Santé Connect</h3>
                     <p className="mt-2 text-sm text-fg-2">
@@ -206,7 +206,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
                   </p>
                 ) : (
               <form action={demanderRevendication} className="mt-6">
-                {fiche.profession === 'dentiste' && (
+                {estPersonne(fiche.profession) && (
                   <h3 className="mb-4 font-semibold text-fg">Ou demander une vérification manuelle</h3>
                 )}
                 <input type="hidden" name="slug" value={fiche.slug} />

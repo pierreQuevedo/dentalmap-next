@@ -7,6 +7,7 @@ import { ThemeToggle } from './theme-toggle'
 import { MainNav } from './main-nav'
 import { MobileNav } from './mobile-nav'
 import { RechercheHeader } from './recherche-header'
+import { BookmarkIcon } from './nav-icon'
 import { UserMenu } from './user-menu'
 
 /**
@@ -39,6 +40,10 @@ export async function Header() {
         <MainNav accesRapide={accesRapide} conseils={conseils.slice(0, 2)} />
 
         <div className="flex items-center justify-end gap-2">
+          {/* Les fiches mises de côté. La page demande la connexion : le lien reste le même pour tous. */}
+          <Link href="/favoris" aria-label="Mes favoris" className="grid size-9 place-items-center rounded-full text-fg hover:bg-bg-soft">
+            <BookmarkIcon className="size-[18px]" />
+          </Link>
           <RechercheHeader accesRapide={accesRapide} />
           {/* `size="icon"` fait 36 px, exactement la place réservée pendant
               l'hydratation : sans cela le bouton arrive 4 px plus petit et

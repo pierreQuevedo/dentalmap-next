@@ -1,5 +1,6 @@
 import { headers } from 'next/headers'
-import type { Profession } from '@/lib/annuaire/types'
+import { connection } from 'next/server'
+import type { Civilite, Profession } from '@/lib/annuaire/types'
 import { redirect } from 'next/navigation'
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
@@ -22,6 +23,10 @@ export type Compte = {
 }
 
 export async function getCompte(): Promise<Compte | null> {
+  // Sort du prérendu avant de toucher aux en-têtes : Better Auth enveloppe
+  // l'erreur de report de Next dans une erreur « Failed to get session »,
+  // qui finirait dans les journaux à chaque page prérendue.
+  await connection()
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) return null
   const u = session.user as typeof session.user & { role?: string | null; etapeTunnel?: string | null }
@@ -163,9 +168,16 @@ export async function rechercherMaFiche(profession: Role, q: string): Promise<Fi
 export type Favori = {
   slug: string
   profession: Profession
+  civilite: Civilite | null
   nom: string
   prenom: string | null
   raisonSociale: string | null
+  specialite: string | null
+  statutVerification: 'verifie' | 'partiel' | 'non_verifie'
+  /** Une revendication acceptée : le professionnel gère sa fiche. */
+  revendiquee: boolean
+  adresseLigne: string | null
+  codePostal: string | null
   communeNom: string | null
   communeSlug: string | null
   departementSlug: string | null
@@ -176,15 +188,23 @@ export async function getFavoris(userId: string): Promise<Favori[]> {
   const { rows } = await db.execute<{
     slug: string
     profession: Profession
+    civilite: Civilite | null
     nom: string
     prenom: string | null
     raison_sociale: string | null
+    specialite: string | null
+    statut_verification: Favori['statutVerification']
+    revendiquee: boolean
+    adresse_ligne: string | null
+    code_postal: string | null
     commune_nom: string | null
     commune_slug: string | null
     departement_slug: string | null
     ajoute_le: string
   }>(sql`
-    SELECT p.slug, p.profession, p.nom, p.prenom, p.raison_sociale,
+    SELECT p.slug, p.profession, p.civilite, p.nom, p.prenom, p.raison_sociale, p.specialite, p.statut_verification,
+           EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = p.id AND v.statut = 'acceptee') AS revendiquee,
+           l.adresse_ligne, l.code_postal,
            c.nom AS commune_nom, c.slug AS commune_slug, d.slug AS departement_slug, f.ajoute_le
     FROM favoris f
     JOIN praticiens p ON p.id = f.praticien_id AND p.deleted_at IS NULL
@@ -197,9 +217,15 @@ export async function getFavoris(userId: string): Promise<Favori[]> {
   return rows.map((r) => ({
     slug: r.slug,
     profession: r.profession,
+    civilite: r.civilite,
     nom: r.nom,
     prenom: r.prenom,
     raisonSociale: r.raison_sociale,
+    specialite: r.specialite,
+    statutVerification: r.statut_verification,
+    revendiquee: r.revendiquee,
+    adresseLigne: r.adresse_ligne,
+    codePostal: r.code_postal,
     communeNom: r.commune_nom,
     communeSlug: r.commune_slug,
     departementSlug: r.departement_slug,

@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { db } from '@/db'
 import { auth } from '@/lib/auth'
 import { chemin } from '@/lib/navigation'
-import { cheminPraticien, nomAffiche , type Profession } from '@/lib/annuaire/types'
+import { BASE_URL, cheminPraticien, nomAffiche, type Profession } from '@/lib/annuaire/types'
 import {
   envoyerAModerer,
   envoyerRevendicationAcceptee,
@@ -172,7 +172,7 @@ async function lireDemande(id: string): Promise<Demande | null> {
 }
 
 function cheminDe(d: Demande): string {
-  return d.commune_slug && d.departement_slug ? cheminPraticien(d.profession === 'dentiste' ? 'dentistes' : 'prothesistes', d.departement_slug, d.commune_slug, d.slug) : '/'
+  return d.commune_slug && d.departement_slug ? cheminPraticien(BASE_URL[d.profession], d.departement_slug, d.commune_slug, d.slug) : '/'
 }
 
 /** Accepte une revendication manuelle : la fiche est attribuée, le praticien prévenu, les pages rafraîchies. */
