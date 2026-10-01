@@ -16,6 +16,13 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  /**
+   * Qui est derrière le compte : patient, dentiste ou prothésiste. Nul tant
+   * que la personne n'a pas répondu, ce qui est la première étape du tunnel.
+   */
+  role: text("role", { enum: ["patient", "dentiste", "prothesiste"] }),
+  /** Dernière étape du tunnel atteinte, pour reprendre un parcours interrompu. */
+  etapeTunnel: text("etape_tunnel"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
