@@ -96,7 +96,7 @@ function CarteDentiste({ praticien: p, base, profession, photo, actif, onSurvol,
       {...evenements(cle, p.slug, onSurvol)}
       data-actif={actif ? 'true' : 'false'}
       style={anim.style}
-      className={`squircle-2xl hover-lift group relative isolate flex min-h-[28rem] flex-col justify-end overflow-hidden border bg-bg-soft [--lift:5px] hover:shadow-pop data-[actif=true]:-translate-y-[var(--lift)] data-[actif=true]:shadow-pop has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${anim.className} ${
+      className={`squircle-2xl hover-lift group relative isolate flex min-h-[28rem] flex-col justify-end xl:min-h-[25rem] min-[1600px]:min-h-[28rem] overflow-hidden border bg-bg-soft [--lift:5px] hover:shadow-pop data-[actif=true]:-translate-y-[var(--lift)] data-[actif=true]:shadow-pop has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${anim.className} ${
         actif ? 'border-line-strong' : 'border-line'
       }`}
     >
@@ -276,7 +276,7 @@ export function SqueletteFiche({ profession = 'dentiste' }: { profession?: Profe
   return (
     <li
       aria-hidden
-      className="squircle-2xl relative flex min-h-[28rem] flex-col justify-end overflow-hidden border border-line bg-bg"
+      className="squircle-2xl relative flex min-h-[28rem] flex-col justify-end xl:min-h-[25rem] min-[1600px]:min-h-[28rem] overflow-hidden border border-line bg-bg"
     >
       {/* Zone de l'illustration, qui occupe toute la carte comme dans le rendu final. */}
       <Skeleton className="absolute inset-0 rounded-none" />
