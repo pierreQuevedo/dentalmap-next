@@ -100,9 +100,9 @@ export const mainNav: NavEntry[] = [
         title: 'DentalBridge',
         links: [],
         promo: {
-          surtitre: 'Logiciel de cabinet',
+          surtitre: 'Accès anticipé',
           titre: 'DentalBridge',
-          texte: 'Agenda, devis et facturation, commandes au laboratoire. Par l’équipe de DentalMap, vendu séparément de l’annuaire.',
+          texte: 'Le logiciel métier des cabinets et des laboratoires dentaires, boosté à l’IA. Par l’équipe de DentalMap, vendu séparément de l’annuaire.',
           cta: 'Découvrir DentalBridge',
           href: 'https://dentalbridge.fr',
         },
