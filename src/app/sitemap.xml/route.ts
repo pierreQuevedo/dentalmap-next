@@ -1,3 +1,4 @@
+import { BASE_URL, PROFESSIONS } from '@/lib/annuaire/types'
 import { compterFichesIndexables } from '@/lib/annuaire/queries'
 import { url } from '@/lib/seo/site'
 
@@ -15,14 +16,17 @@ import { url } from '@/lib/seo/site'
 export const TAILLE_TRANCHE = 10_000
 
 export async function GET() {
-  const [dentistes, prothesistes] = await Promise.all([
-    compterFichesIndexables('dentiste'),
-    compterFichesIndexables('prothesiste'),
+  const comptes = await Promise.all(PROFESSIONS.map((p) => compterFichesIndexables(p)))
+  const [dentistes, prothesistes] = [comptes[0]!, comptes[1]!]
+  void ([
+    dentistes,
+    prothesistes,
   ])
 
-  const noms = ['pages', 'departements', 'communes']
-  for (let i = 0; i * TAILLE_TRANCHE < dentistes; i++) noms.push(`dentistes-${i}`)
-  for (let i = 0; i * TAILLE_TRANCHE < prothesistes; i++) noms.push(`prothesistes-${i}`)
+  const noms = ['pages', 'regions', 'departements', 'communes']
+  PROFESSIONS.forEach((p, k) => {
+    for (let i = 0; i * TAILLE_TRANCHE < comptes[k]!; i++) noms.push(`${BASE_URL[p]}-${i}`)
+  })
 
   const maintenant = new Date().toISOString().replace(/\.\d+Z$/, 'Z')
   const corps = noms

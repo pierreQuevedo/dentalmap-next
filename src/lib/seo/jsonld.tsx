@@ -37,7 +37,7 @@ export function organisation() {
     url: SITE_URL,
     description:
       'Annuaire des chirurgiens-dentistes et des laboratoires de prothèse dentaire en France, ' +
-      'construit à partir des registres publics et sans mise en avant payante.',
+      'construit à partir des registres publics.',
   }
 }
 
@@ -56,7 +56,7 @@ export function fichePraticien(p: Praticien, chemin: string, nomAffiche: string)
   const lieu = p.lieux.find((l) => l.principal) ?? p.lieux[0]
   const base: Record<string, unknown> = {
     '@context': 'https://schema.org',
-    '@type': p.profession === 'dentiste' ? 'Dentist' : 'MedicalBusiness',
+    '@type': p.profession === 'dentiste' ? 'Dentist' : p.profession === 'prothesiste' ? 'MedicalBusiness' : 'Physician',
     name: nomAffiche,
     url: url(chemin),
   }
@@ -73,7 +73,15 @@ export function fichePraticien(p: Praticien, chemin: string, nomAffiche: string)
   if (lieu && !lieu.approximative && lieu.lat !== null && lieu.lon !== null) {
     base.geo = { '@type': 'GeoCoordinates', latitude: lieu.lat, longitude: lieu.lon }
   }
-  if (lieu?.telephone) base.telephone = lieu.telephone
+  /*
+   * Pas de `telephone` dans le balisage.
+   *
+   * Le numéro n'est visible qu'après connexion : le déclarer ici reviendrait à
+   * servir aux moteurs une donnée que le visiteur ne voit pas, ce que les
+   * consignes de Google sur les données structurées interdisent explicitement.
+   * Sur un annuaire de quarante-cinq mille pages, l'action manuelle coûterait
+   * plus que le numéro ne rapporte.
+   */
   if (p.rpps) {
     base.identifier = { '@type': 'PropertyValue', propertyID: 'RPPS', value: p.rpps }
   } else if (p.siren) {
@@ -91,4 +99,71 @@ export function Balisage({ donnees }: { donnees: object }) {
       dangerouslySetInnerHTML={{ __html: jsonLd(donnees) }}
     />
   )
+}
+
+/**
+ * Le site lui-même, avec son action de recherche : c'est ce qui permet aux
+ * moteurs de proposer un champ de recherche directement dans leurs résultats.
+ */
+export function siteWeb() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NOM,
+    url: SITE_URL,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: url('/recherche/?q={search_term_string}') },
+      'query-input': 'required name=search_term_string',
+    },
+  }
+}
+
+/**
+ * Questions fréquentes, générées depuis exactement ce que la page affiche :
+ * un `FAQPage` qui porterait d'autres questions que la section visible
+ * serait un balisage mensonger.
+ */
+export function faqPage(questions: { question: string; reponse: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: questions.map((q) => ({
+      '@type': 'Question',
+      name: q.question,
+      acceptedAnswer: { '@type': 'Answer', text: q.reponse },
+    })),
+  }
+}
+
+/**
+ * Un établissement de formation : la faculté ou l'école telle que la fiche la
+ * présente, avec ses coordonnées publiques.
+ */
+export function etablissementFormation(e: {
+  nom: string
+  chemin: string
+  universitaire: boolean
+  description?: string | null
+  siteWeb?: string | null
+  adresse?: string | null
+  ville?: string | null
+  telephone?: string | null
+  email?: string | null
+  image?: string | null
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': e.universitaire ? 'CollegeOrUniversity' : 'EducationalOrganization',
+    name: e.nom,
+    url: url(e.chemin),
+    ...(e.description ? { description: e.description } : {}),
+    ...(e.siteWeb ? { sameAs: e.siteWeb } : {}),
+    ...(e.image ? { image: e.image } : {}),
+    ...(e.telephone ? { telephone: e.telephone } : {}),
+    ...(e.email ? { email: e.email } : {}),
+    ...(e.adresse || e.ville
+      ? { address: { '@type': 'PostalAddress', ...(e.adresse ? { streetAddress: e.adresse } : {}), ...(e.ville ? { addressLocality: e.ville } : {}), addressCountry: 'FR' } }
+      : {}),
+  }
 }

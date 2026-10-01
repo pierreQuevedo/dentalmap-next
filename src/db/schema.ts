@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
-import { pgTable, text, boolean, integer, real, timestamp, jsonb, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, text, boolean, integer, real, timestamp, jsonb, uuid, index, uniqueIndex } from 'drizzle-orm/pg-core'
 import { point4326 } from './columns'
+import { user } from './auth-schema'
 
 export const regions = pgTable('regions', {
   code: text('code').primaryKey(),
@@ -74,7 +75,7 @@ export const sourceSnapshots = pgTable('source_snapshots', {
 
 export const praticiens = pgTable('praticiens', {
   id: text('id').primaryKey(),
-  profession: text('profession', { enum: ['dentiste', 'prothesiste'] }).notNull(),
+  profession: text('profession', { enum: ['dentiste', 'prothesiste', 'maxillo_facial', 'stomatologue', 'orl'] }).notNull(),
   slug: text('slug').notNull().unique(),
   nom: text('nom').notNull(),
   prenom: text('prenom'),
@@ -84,6 +85,31 @@ export const praticiens = pgTable('praticiens', {
   siren: text('siren'),
   siret: text('siret'),
   statutVerification: text('statut_verification', { enum: ['verifie', 'partiel', 'non_verifie'] }).notNull().default('non_verifie'),
+  /**
+   * Civilité au registre, reprise telle quelle de la colonne « Code civilité »
+   * de l'extraction ANS : `M` ou `MME`.
+   *
+   * Elle sert à choisir le visuel de remplacement des fiches sans photo. C'est
+   * une donnée du registre, pas une déduction faite sur le prénom : un annuaire
+   * qui devine le genre de ses praticiens se trompe, et se trompe visiblement.
+   * Nulle pour les laboratoires, qui sont des structures et non des personnes.
+   */
+  civilite: text('civilite', { enum: ['M', 'MME'] }),
+  /**
+   * Trois informations de l'Annuaire Santé que l'import laissait tomber, et qui
+   * sont les seules du fichier à décrire l'exercice plutôt que l'identité.
+   *
+   * - `specialite` : spécialité ordinale, sur 7 % des dentistes. C'est
+   *   exactement ce qu'un patient cherche quand elle existe : un orthodontiste
+   *   n'est pas un omnipraticien.
+   * - `modeExercice` : libéral, salarié ou bénévole, sur 81 %.
+   * - `categorieProfessionnelle` : « Civil », « Étudiant » ou « Agent public ».
+   *   Le cas étudiant compte, une fiche ne doit pas laisser croire à un
+   *   praticien installé.
+   */
+  specialite: text('specialite'),
+  modeExercice: text('mode_exercice'),
+  categorieProfessionnelle: text('categorie_professionnelle'),
   /** Snapshot de la source qui a produit ou mis à jour cette ligne. */
   sourceSnapshotId: text('source_snapshot_id').references(() => sourceSnapshots.id, { onDelete: 'set null' }),
   /**
@@ -111,9 +137,26 @@ export const lieuxExercice = pgTable('lieux_exercice', {
   codeInsee: text('code_insee').references(() => communes.codeInsee),
   position: point4326('position'),
   telephoneOfficiel: text('telephone_officiel'),
+  /** Numéro FINESS du site, présent quand le lieu dépend d'un établissement. */
+  finess: text('finess'),
   principal: boolean('principal').notNull().default(false),
   /** Vrai quand la position vient du centroïde de la commune, faute d'adresse géocodable. */
   positionApproximative: boolean('position_approximative').notNull().default(false),
+  /**
+   * Ce que la position désigne réellement, repris du `result_type` de l'API
+   * Adresse.
+   *
+   * Le score seul ne dit rien de la précision : la BAN rend volontiers 0,95
+   * pour un centroïde de voie quand le numéro demandé n'existe pas dans sa
+   * base. Un cabinet se retrouvait alors au milieu de sa rue, parfois à cent
+   * mètres, et la fiche l'affichait comme une adresse exacte.
+   *
+   * - `numero` : la position est celle du numéro dans la voie ;
+   * - `voie` : centroïde de la voie, le numéro est inconnu de la BAN ;
+   * - `lieu_dit` : centroïde d'un lieu-dit ;
+   * - `commune` : centroïde de la commune, la position est décorative.
+   */
+  precisionPosition: text('precision_position', { enum: ['numero', 'voie', 'lieu_dit', 'commune'] }),
   /** Score de confiance renvoyé par l'API Adresse, entre 0 et 1. */
   scoreGeocodage: real('score_geocodage'),
 }, (t) => [
@@ -178,4 +221,143 @@ export const redirections = pgTable('redirections', {
   creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [
   uniqueIndex('redirections_ancien_chemin').on(t.ancienChemin),
+])
+
+/**
+ * Demandes de revendication d'une fiche par un professionnel.
+ *
+ * Revendiquer ne donne pas la main sur l'identité : le nom, le numéro RPPS et
+ * l'adresse restent ceux du registre, et aucune modification ne peut les
+ * contredire. La revendication ouvre le droit d'ajouter ce que le registre ne
+ * porte pas, horaires, langues parlées, accessibilité du cabinet.
+ *
+ * Une demande par praticien et par compte : la contrainte d'unicité évite
+ * qu'un clic répété n'empile des demandes identiques à traiter.
+ *
+ * La validation elle-même reste manuelle en phase 4. Cette table n'enregistre
+ * que la demande, elle ne l'accorde pas.
+ */
+export const revendications = pgTable('revendications', {
+  id: text('id').primaryKey(),
+  praticienId: text('praticien_id').notNull().references(() => praticiens.id, { onDelete: 'cascade' }),
+  /**
+   * Compte Better Auth à l'origine de la demande.
+   *
+   * En `uuid` et non en `text` : Better Auth génère des UUID, et une colonne de
+   * type texte rendait toute jointure avec la table des comptes impossible,
+   * Postgres refusant l'égalité entre `uuid` et `text`.
+   */
+  userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  statut: text('statut', { enum: ['en_attente', 'acceptee', 'refusee'] }).notNull().default('en_attente'),
+  /**
+   * Comment la qualité du demandeur a été, ou doit être, établie.
+   *
+   * - `manuelle` : le demandeur explique, et quelqu'un vérifie à la main.
+   * - `pro_sante_connect` : le demandeur s'est authentifié avec sa carte CPS ou
+   *   son e-CPS auprès de l'Agence du Numérique en Santé, qui nous a renvoyé
+   *   son numéro RPPS. La demande est alors acceptée sans intervention, le
+   *   registre lui-même ayant répondu.
+   */
+  methode: text('methode', { enum: ['manuelle', 'pro_sante_connect'] }).notNull().default('manuelle'),
+  /** Identifiant national renvoyé par Pro Santé Connect, préfixe de type compris. */
+  identifiantPsc: text('identifiant_psc'),
+  /** Numéro RPPS certifié par Pro Santé Connect, tel que comparé à la fiche. */
+  rppsVerifie: text('rpps_verifie'),
+  /** Ce que le demandeur écrit pour justifier sa qualité. */
+  message: text('message'),
+  demandeLe: timestamp('demande_le', { withTimezone: true }).defaultNow().notNull(),
+  traiteLe: timestamp('traite_le', { withTimezone: true }),
+}, (t) => [
+  uniqueIndex('revendications_praticien_compte').on(t.praticienId, t.userId),
+  index('revendications_statut').on(t.statut, t.demandeLe),
+])
+
+export const JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'] as const
+export type Jour = (typeof JOURS)[number]
+/** Une plage d'ouverture, heures au format `HH:MM`. */
+export type Plage = { debut: string; fin: string }
+/** Les plages d'ouverture de chaque jour ; un jour absent ou vide est fermé. */
+export type Horaires = Partial<Record<Jour, Plage[]>>
+
+/**
+ * Ce que le praticien ajoute lui-même à sa fiche.
+ *
+ * Une ligne par praticien, jamais par compte : la fiche est une, quel que soit
+ * le nombre de comptes qui l'ont revendiquée. Rien ici ne peut contredire le
+ * registre, et rien du registre n'y figure : identité, adresse et RPPS restent
+ * dans `praticiens` et `lieux_exercice`. Les pages publiques affichent ces
+ * données à part, sous une mention qui dit qu'elles sont déclaratives.
+ *
+ * Écrite uniquement par les Server Actions de l'espace pro, après contrôle
+ * d'une revendication acceptée pour le compte qui écrit.
+ */
+export const fichesCompletees = pgTable('fiches_completees', {
+  id: text('id').primaryKey(),
+  praticienId: text('praticien_id').notNull().unique().references(() => praticiens.id, { onDelete: 'cascade' }),
+  /** Dernier compte à avoir écrit. */
+  userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  horaires: jsonb('horaires').$type<Horaires>(),
+  /** Codes de langue ISO 639-1 parlées au cabinet, le français compris. */
+  langues: text('langues').array().notNull().default([]),
+  /** Codes d'accessibilité, voir `src/lib/espace-pro/fiche-completee.ts`. */
+  accessibilite: text('accessibilite').array().notNull().default([]),
+  accessibiliteCommentaire: text('accessibilite_commentaire'),
+  /** Modes de paiement acceptés, mêmes codes que le module ci-dessus. */
+  paiements: text('paiements').array().notNull().default([]),
+  tiersPayant: text('tiers_payant', { enum: ['aucun', 'securite_sociale', 'securite_sociale_et_mutuelle'] }),
+  /** Dernière étape du parcours d'accueil enregistrée, de 0 à 4. */
+  etape: integer('etape').notNull().default(0),
+  /** Renseigné quand le parcours d'accueil a été mené jusqu'au bout. */
+  termineLe: timestamp('termine_le', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+/**
+ * Fiches mises de côté par un compte, patient le plus souvent.
+ *
+ * Une ligne par (compte, fiche), rien d'autre : la fiche reste la source, le
+ * favori n'en copie rien. Supprimer la fiche ou le compte supprime le favori.
+ */
+export const favoris = pgTable('favoris', {
+  id: text('id').primaryKey(),
+  userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  praticienId: text('praticien_id').notNull().references(() => praticiens.id, { onDelete: 'cascade' }),
+  ajouteLe: timestamp('ajoute_le', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('favoris_compte_fiche').on(t.userId, t.praticienId),
+  index('favoris_compte').on(t.userId, t.ajouteLe),
+])
+
+/**
+ * Demandes de création d'une fiche absente des registres.
+ *
+ * Un praticien tout juste installé, ou un laboratoire que la base Sirene n'a
+ * pas encore rattaché à l'activité, ne trouve pas sa fiche à l'étape « Trouvez
+ * votre fiche ». Il la décrit ici ; la fiche n'est créée qu'à la main, après
+ * vérification, et rattachée par `praticienId` une fois créée.
+ */
+export const demandesCreationFiche = pgTable('demandes_creation_fiche', {
+  id: text('id').primaryKey(),
+  userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  profession: text('profession', { enum: ['dentiste', 'prothesiste', 'maxillo_facial', 'stomatologue', 'orl'] }).notNull(),
+  nom: text('nom').notNull(),
+  prenom: text('prenom'),
+  raisonSociale: text('raison_sociale'),
+  rpps: text('rpps'),
+  siret: text('siret'),
+  adresse: text('adresse').notNull(),
+  codePostal: text('code_postal').notNull(),
+  ville: text('ville').notNull(),
+  telephone: text('telephone'),
+  email: text('email'),
+  message: text('message'),
+  statut: text('statut', { enum: ['en_attente', 'acceptee', 'refusee'] }).notNull().default('en_attente'),
+  /** Fiche créée à partir de la demande, une fois acceptée. */
+  praticienId: text('praticien_id').references(() => praticiens.id, { onDelete: 'set null' }),
+  demandeLe: timestamp('demande_le', { withTimezone: true }).defaultNow().notNull(),
+  traiteLe: timestamp('traite_le', { withTimezone: true }),
+}, (t) => [
+  index('demandes_creation_statut').on(t.statut, t.demandeLe),
+  index('demandes_creation_compte').on(t.userId),
 ])

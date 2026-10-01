@@ -16,6 +16,14 @@
  *
  * Un score inférieur au seuil est traité comme un échec et passe à la stratégie
  * suivante : mieux vaut un centroïde assumé qu'une position fausse.
+ *
+ * Chaque position est écrite avec ce qu'elle désigne vraiment, lu dans le
+ * `result_type` de la BAN. Le score ne suffit pas : l'API rend volontiers 0,95
+ * pour le centroïde d'une voie dont le numéro demandé lui est inconnu. Sur un
+ * échantillon de 150 adresses réputées précises, cinq pour cent étaient en
+ * réalité des centroïdes de voie, et la proportion montait à quatre-vingt-dix-
+ * sept pour cent parmi les adresses sans numéro. Ces positions restent
+ * utilisables, mais la fiche doit dire ce qu'elles valent.
  */
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
@@ -46,7 +54,24 @@ type Lieu = {
   code_insee: string | null
 }
 
-type Resultat = { id: string; lon: number; lat: number; score: number; citycode: string | null }
+type Precision = 'numero' | 'voie' | 'lieu_dit' | 'commune'
+
+type Resultat = {
+  id: string
+  lon: number
+  lat: number
+  score: number
+  citycode: string | null
+  precision: Precision
+}
+
+/** Traduction du `result_type` de la BAN. Tout type inconnu est traité au pire. */
+function precisionDepuisType(type: string): Precision {
+  if (type === 'housenumber') return 'numero'
+  if (type === 'street') return 'voie'
+  if (type === 'locality') return 'lieu_dit'
+  return 'commune'
+}
 
 function echapper(v: string): string {
   return `"${v.replace(/"/g, '""').replace(/[\r\n]+/g, ' ')}"`
@@ -91,6 +116,7 @@ async function geocoder(lignes: { id: string; adresse: string; cp: string; ville
   const iLat = cols.indexOf('latitude')
   const iScore = cols.indexOf('result_score')
   const iCity = cols.indexOf('result_citycode')
+  const iType = cols.indexOf('result_type')
 
   const sortie: Resultat[] = []
   for (const ligne of corps) {
@@ -99,7 +125,14 @@ async function geocoder(lignes: { id: string; adresse: string; cp: string; ville
     const lat = Number.parseFloat(c[iLat] ?? '')
     const score = Number.parseFloat(c[iScore] ?? '')
     if (!Number.isFinite(lon) || !Number.isFinite(lat) || !(score >= SEUIL_SCORE)) continue
-    sortie.push({ id: c[iId] ?? '', lon, lat, score, citycode: c[iCity] || null })
+    sortie.push({
+      id: c[iId] ?? '',
+      lon,
+      lat,
+      score,
+      citycode: c[iCity] || null,
+      precision: precisionDepuisType(c[iType] ?? ''),
+    })
   }
   return sortie
 }
@@ -125,26 +158,38 @@ function decouper(ligne: string): string[] {
   return out
 }
 
-/** Écrit les positions trouvées, en une requête par lot. */
-async function ecrire(resultats: Resultat[], approximative: boolean): Promise<number> {
+/**
+ * Écrit les positions trouvées, en une requête par lot.
+ *
+ * `plafond` borne la précision déclarée : la passe qui retire le numéro de la
+ * voie ne peut rien rendre de mieux qu'un centroïde de voie, quoi qu'en dise
+ * la BAN, puisque le numéro ne lui a pas été soumis.
+ *
+ * `position_approximative` garde son sens d'origine, le centroïde de commune,
+ * pour que les requêtes de l'annuaire qui s'appuient dessus continuent
+ * d'exclure les seules positions inexploitables.
+ */
+async function ecrire(resultats: Resultat[], plafond?: Precision): Promise<number> {
   if (resultats.length === 0) return 0
+  const rang: Record<Precision, number> = { numero: 0, voie: 1, lieu_dit: 2, commune: 3 }
   const valeurs = sql.join(
-    resultats.map(
-      (r) =>
-        sql`(${r.id}, ST_SetSRID(ST_MakePoint(${r.lon}, ${r.lat}), 4326), ${r.score}::real, ${r.citycode})`,
-    ),
+    resultats.map((r) => {
+      const precision = plafond && rang[r.precision] < rang[plafond] ? plafond : r.precision
+      return sql`(${r.id}, ST_SetSRID(ST_MakePoint(${r.lon}, ${r.lat}), 4326), ${r.score}::real, ${r.citycode}, ${precision})`
+    }),
     sql`, `,
   )
   await db.execute(sql`
     UPDATE lieux_exercice l SET
       position = v.position,
       score_geocodage = v.score,
-      position_approximative = ${approximative},
+      precision_position = v.precision,
+      position_approximative = (v.precision = 'commune'),
       code_insee = COALESCE(
         (SELECT c.code_insee FROM communes c WHERE c.code_insee = v.citycode),
         l.code_insee
       )
-    FROM (VALUES ${valeurs}) AS v(id, position, score, citycode)
+    FROM (VALUES ${valeurs}) AS v(id, position, score, citycode, precision)
     WHERE l.id = v.id
   `)
   return resultats.length
@@ -174,12 +219,12 @@ async function principal() {
         .map((l) => ({ id: l.id, adresse: l.adresse_ligne!, cp: l.code_postal!, ville: l.libelle_commune ?? '' }))
       if (lot.length === 0) continue
       const res = await geocoder(lot)
-      precis += await ecrire(res, false)
+      precis += await ecrire(res)
       for (const r of res) restants.delete(r.id)
       if (i % (LOT * 5) === 0) console.log(`[ban] passe 1 : ${i + lot.length}/${lieux.length}`)
       await pause(PAUSE_ENTRE_LOTS_MS)
     }
-    console.log(`[ban] passe 1 terminée, ${precis} positions précises`)
+    console.log(`[ban] passe 1 terminée, ${precis} positions écrites`)
 
     // Passe 2 : adresse sans numéro de voie.
     const pourPasse2 = [...restants.values()].filter((l) => l.adresse_ligne && l.code_postal)
@@ -194,7 +239,7 @@ async function principal() {
       const aGeocoder = lot.filter((l) => l.adresse)
       if (aGeocoder.length === 0) continue
       const res = await geocoder(aGeocoder)
-      sansNumero += await ecrire(res, false)
+      sansNumero += await ecrire(res, 'voie')
       for (const r of res) restants.delete(r.id)
       await pause(PAUSE_ENTRE_LOTS_MS)
     }
@@ -205,6 +250,7 @@ async function principal() {
       UPDATE lieux_exercice l SET
         position = c.centre,
         position_approximative = TRUE,
+        precision_position = 'commune',
         score_geocodage = NULL
       FROM communes c
       WHERE l.code_insee = c.code_insee AND l.position IS NULL AND c.centre IS NOT NULL
@@ -222,7 +268,7 @@ async function principal() {
       await db.execute<{ total: number; positionnes: number; precis: number }>(sql`
         SELECT count(*)::int AS total,
                count(position)::int AS positionnes,
-               count(*) FILTER (WHERE position IS NOT NULL AND NOT position_approximative)::int AS precis
+               count(*) FILTER (WHERE precision_position = 'numero')::int AS precis
         FROM lieux_exercice
       `)
     ).rows
@@ -230,7 +276,7 @@ async function principal() {
     const tauxPrecis = bilan && bilan.total > 0 ? (bilan.precis / bilan.total) * 100 : 0
     console.log(
       `[ban] ${bilan?.positionnes}/${bilan?.total} lieux positionnés (${taux.toFixed(1)} %), ` +
-        `dont ${tauxPrecis.toFixed(1)} % en position précise`,
+        `dont ${tauxPrecis.toFixed(1)} % au numéro exact`,
     )
     return { taux, tauxPrecis }
   })

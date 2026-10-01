@@ -21,14 +21,14 @@
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createHash } from 'node:crypto'
-import { sql, eq, isNull, and, inArray } from 'drizzle-orm'
+import { sql, isNull, and, inArray } from 'drizzle-orm'
 import { db } from '@/db'
 import { praticiens, lieuxExercice } from '@/db/schema'
 import { encadrer } from './lib/run'
 import { recalculerIndexables } from './lib/indexable'
 import { doitBloquer, SEUIL_SUPPRESSION } from './lib/garde-fou'
 import { slugifier } from './lib/slug'
-import { lireAns, PROFESSION_DENTISTE, type LigneAns } from './lib/ans'
+import { lireAns, PROFESSION_DENTISTE, PROFESSION_MEDECIN, professionDuMedecin, type LigneAns } from './lib/ans'
 import { assurerSource, ressourceDataGouv } from './lib/source'
 
 const DATASET = 'annuaire-sante-extractions-des-donnees-en-libre-acces-des-professionnels-intervenant-dans-le-systeme-de-sante-rpps'
@@ -37,9 +37,19 @@ const LOT = 500
 
 const simule = process.argv.includes('--simule')
 
+type ProfessionRpps = 'dentiste' | 'maxillo_facial' | 'stomatologue' | 'orl'
+const PROFESSIONS_RPPS: ProfessionRpps[] = ['dentiste', 'maxillo_facial', 'stomatologue', 'orl']
+/** Un médecin qui a plusieurs savoir-faire retenus est rangé dans le premier de cette liste. */
+const PRIORITE: ProfessionRpps[] = ['maxillo_facial', 'stomatologue', 'orl']
+
 type Praticien = {
   id: string
+  profession: ProfessionRpps
   rpps: string
+  civilite: 'M' | 'MME' | null
+  specialite: string
+  modeExercice: string
+  categorieProfessionnelle: string
   nom: string
   prenom: string
   siren: string
@@ -54,11 +64,12 @@ type Lieu = {
   codePostal: string
   codeCommune: string
   telephone: string
+  finess: string
   principal: boolean
 }
 
 /**
- * Slug d'un dentiste : `dr-prenom-nom-1742`.
+ * Slug d'un praticien : `dr-prenom-nom-1742`.
  *
  * Les quatre derniers chiffres du RPPS départagent les homonymes de façon
  * stable, sans dépendre de l'ordre d'import.
@@ -66,6 +77,36 @@ type Lieu = {
 function slugPraticien(p: Praticien): string {
   const base = ['dr', p.prenom, p.nom].filter(Boolean).map(slugifier).filter(Boolean).join('-')
   return `${base}-${p.rpps.slice(-4)}`
+}
+
+const SUFFIXE_PROFESSION: Record<ProfessionRpps, string> = { dentiste: 'dentiste', maxillo_facial: 'maxillo-facial', stomatologue: 'stomatologue', orl: 'orl' }
+
+/**
+ * Attribue à chaque praticien un slug qui n'est pris par personne d'autre.
+ *
+ * Un slug déjà en base pour ce praticien est conservé tel quel : il est
+ * public, une URL ne change pas. Pour un nouveau praticien, on part du slug
+ * ordinaire ; s'il est pris par un autre, on ajoute la profession, puis six
+ * chiffres du RPPS. Le cas existe : un chirurgien maxillo-facial et un
+ * dentiste homonymes dont les RPPS finissent par les mêmes quatre chiffres.
+ */
+function attribuerSlugs(liste: Praticien[], enBase: Map<string, string>): Map<string, string> {
+  const pris = new Map<string, string>()
+  for (const [id, slug] of enBase) pris.set(slug, id)
+  const resultat = new Map<string, string>()
+  for (const p of liste) {
+    const existant = enBase.get(p.id)
+    if (existant) {
+      resultat.set(p.id, existant)
+      continue
+    }
+    const base = slugPraticien(p)
+    const candidats = [base, `${base}-${SUFFIXE_PROFESSION[p.profession]}`, `${base.slice(0, -5)}-${p.rpps.slice(-6)}`, `${base}-${p.rpps}`]
+    const slug = candidats.find((c) => !pris.has(c) || pris.get(c) === p.id) ?? `${base}-${p.rpps}`
+    pris.set(slug, p.id)
+    resultat.set(p.id, slug)
+  }
+  return resultat
 }
 
 /**
@@ -100,18 +141,41 @@ async function principal() {
     const parLieu = new Map<string, Lieu>()
     let lignesRetenues = 0
 
-    for await (const l of lireAns(chemin, PROFESSION_DENTISTE, () => { run.compteurs.lignesLues += 1 })) {
+    for await (const l of lireAns(chemin, [PROFESSION_DENTISTE, PROFESSION_MEDECIN], () => { run.compteurs.lignesLues += 1 })) {
+      // Dentiste : toutes les lignes. Médecin : seulement les savoir-faire retenus.
+      const profession: ProfessionRpps | null = l.codeProfession === PROFESSION_DENTISTE ? 'dentiste' : professionDuMedecin(l.specialite)
+      if (!profession) continue
       lignesRetenues += 1
-      if (!parPraticien.has(l.identifiantNational)) {
+      const connu = parPraticien.get(l.identifiantNational)
+      if (!connu) {
         parPraticien.set(l.identifiantNational, {
           id: l.identifiantNational,
+          profession,
           rpps: l.rpps,
+          civilite: l.civilite === 'M' || l.civilite === 'MME' ? l.civilite : null,
+          specialite: l.specialite,
+          modeExercice: l.libelleModeExercice,
+          categorieProfessionnelle: l.categorieProfessionnelle,
           nom: l.nom,
           prenom: l.prenom,
           siren: l.siren,
           siret: l.siret,
           raisonSociale: l.raisonSociale,
         })
+      } else {
+        // Un praticien occupe plusieurs lignes, une par situation d'exercice,
+        // et ces trois colonnes ne sont pas renseignées sur toutes. On garde la
+        // première valeur trouvée plutôt que celle de la première ligne.
+        if (!connu.specialite) connu.specialite = l.specialite
+        // Un médecin maxillo-facial et stomatologue est rangé en maxillo-facial, quel que soit l'ordre des lignes.
+        if (profession !== 'dentiste' && PRIORITE.indexOf(profession) < PRIORITE.indexOf(connu.profession)) {
+          connu.profession = profession
+          connu.specialite = l.specialite
+        }
+        if (!connu.modeExercice) connu.modeExercice = l.libelleModeExercice
+        if (!connu.categorieProfessionnelle) connu.categorieProfessionnelle = l.categorieProfessionnelle
+        if (!connu.siret) connu.siret = l.siret
+        if (!connu.raisonSociale) connu.raisonSociale = l.raisonSociale
       }
       if (!l.adresseLigne && !l.codeCommune) continue
       const id = idLieu(l)
@@ -123,6 +187,7 @@ async function principal() {
           codePostal: l.codePostal,
           codeCommune: l.codeCommune,
           telephone: l.telephone,
+          finess: l.finess,
           principal: false,
         })
       }
@@ -138,7 +203,7 @@ async function principal() {
     }
 
     console.log(
-      `[ans] ${run.compteurs.lignesLues} lignes parcourues, ${lignesRetenues} de dentistes, ` +
+      `[ans] ${run.compteurs.lignesLues} lignes parcourues, ${lignesRetenues} retenues (dentistes et médecins de la bouche et du visage), ` +
         `${parPraticien.size} praticiens distincts, ${parLieu.size} lieux`,
     )
 
@@ -146,7 +211,7 @@ async function principal() {
     const enBase = await db
       .select({ id: praticiens.id })
       .from(praticiens)
-      .where(and(eq(praticiens.profession, 'dentiste'), isNull(praticiens.deletedAt)))
+      .where(and(inArray(praticiens.profession, PROFESSIONS_RPPS), isNull(praticiens.deletedAt)))
     const disparus = enBase.filter((p) => !parPraticien.has(p.id)).map((p) => p.id)
     const part = enBase.length > 0 ? disparus.length / enBase.length : 0
     if (doitBloquer(enBase.length, disparus.length)) {
@@ -166,6 +231,8 @@ async function principal() {
 
     // 3. Écriture des praticiens. Le slug n'est jamais réécrit.
     const listePraticiens = [...parPraticien.values()]
+    const { rows: slugsEnBase } = await db.execute<{ id: string; slug: string }>(sql`SELECT id, slug FROM praticiens`)
+    const slugs = attribuerSlugs(listePraticiens, new Map(slugsEnBase.map((r) => [r.id, r.slug])))
     for (let i = 0; i < listePraticiens.length; i += LOT) {
       const lot = listePraticiens.slice(i, i + LOT)
       await db
@@ -173,8 +240,12 @@ async function principal() {
         .values(
           lot.map((p) => ({
             id: p.id,
-            profession: 'dentiste' as const,
-            slug: slugPraticien(p),
+            profession: p.profession,
+            slug: slugs.get(p.id)!,
+            civilite: p.civilite,
+            specialite: p.specialite || null,
+            modeExercice: p.modeExercice || null,
+            categorieProfessionnelle: p.categorieProfessionnelle || null,
             nom: p.nom,
             prenom: p.prenom || null,
             raisonSociale: p.raisonSociale || null,
@@ -189,6 +260,10 @@ async function principal() {
         .onConflictDoUpdate({
           target: praticiens.id,
           set: {
+            civilite: sql`excluded.civilite`,
+            specialite: sql`excluded.specialite`,
+            modeExercice: sql`excluded.mode_exercice`,
+            categorieProfessionnelle: sql`excluded.categorie_professionnelle`,
             nom: sql`excluded.nom`,
             prenom: sql`excluded.prenom`,
             raisonSociale: sql`excluded.raison_sociale`,
@@ -228,6 +303,7 @@ async function principal() {
               codePostal: l.codePostal || null,
               codeInsee: codeOk ? l.codeCommune : null,
               telephoneOfficiel: l.telephone || null,
+              finess: l.finess || null,
               principal: l.principal,
             }
           }),
@@ -239,6 +315,7 @@ async function principal() {
             codePostal: sql`excluded.code_postal`,
             codeInsee: sql`excluded.code_insee`,
             telephoneOfficiel: sql`excluded.telephone_officiel`,
+            finess: sql`excluded.finess`,
             principal: sql`excluded.principal`,
           },
         })
