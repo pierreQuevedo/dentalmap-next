@@ -160,6 +160,7 @@ export function Carte({
   const minuterieSortie = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
   const [selection, setSelection] = useState<Selection | null>(null)
+  const [stylePret, setStylePret] = useState(0)
 
   /*
    * Fermeture en deux temps : la fiche et le voile s'estompent, puis le
@@ -315,7 +316,12 @@ export function Carte({
         'points',
       )
     }
-    m.on('style.load', ajouterCouches)
+    // Le compteur de style rejoue le halo de survol une fois les sources en place :
+    // sur une fiche, le lieu à marquer est connu avant que la carte ait fini de charger.
+    m.on('style.load', () => {
+      ajouterCouches()
+      setStylePret((n) => n + 1)
+    })
 
     m.on('load', () => {
       m.on('click', 'points', (ev: MapLayerMouseEvent) => {
@@ -515,7 +521,7 @@ export function Carte({
       type: 'FeatureCollection',
       features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: coordonnees }, properties: { rayon } }],
     })
-  }, [survol])
+  }, [survol, stylePret])
 
   return (
     <div className="relative h-full">
