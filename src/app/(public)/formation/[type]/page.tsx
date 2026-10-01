@@ -1,27 +1,18 @@
 import { notFound } from 'next/navigation'
-import { PageEnAttente, metadonneesEnAttente } from '@/components/site/page-en-attente'
-import { FORMATION_TYPES, type FormationType } from '@/lib/navigation'
+import { ListeFormations, metadonneesFormations, type ParamsLieu } from '@/components/formation/liste-formations'
+import { estFormationType } from '@/lib/formation/types'
 
-const LIBELLES: Record<FormationType, string> = {
-  'ecoles-de-prothese': 'Écoles de prothèse dentaire',
-  'facultes-odontologie': "Facultés d'odontologie",
-  'formations-privees': 'Formations privées',
-}
-
-function estType(v: string): v is FormationType {
-  return (FORMATION_TYPES as readonly string[]).includes(v)
-}
-
+/** Bloquante : une famille inconnue doit renvoyer 404, et le lieu vient de l'URL. */
 export const instant = false
 
-export async function generateMetadata(props: { params: Promise<{ type: string }> }) {
+export async function generateMetadata(props: { params: Promise<{ type: string }>; searchParams: Promise<ParamsLieu> }) {
   const { type } = await props.params
-  if (!estType(type)) return metadonneesEnAttente('Formation')
-  return metadonneesEnAttente(LIBELLES[type])
+  if (!estFormationType(type)) return { title: 'Formation introuvable' }
+  return metadonneesFormations(type, await props.searchParams)
 }
 
-export default async function Page(props: { params: Promise<{ type: string }> }) {
+export default async function Page(props: { params: Promise<{ type: string }>; searchParams: Promise<ParamsLieu> }) {
   const { type } = await props.params
-  if (!estType(type)) notFound()
-  return <PageEnAttente titre={LIBELLES[type]} />
+  if (!estFormationType(type)) notFound()
+  return <ListeFormations type={type} params={await props.searchParams} />
 }

@@ -1,0 +1,361 @@
+[
+  {
+    "key": "group_dm_formation_details",
+    "title": "Formation, informations détaillées",
+    "fields": [
+      {
+        "key": "field_dm_formation_logo",
+        "label": "Logo de l’établissement",
+        "name": "logo",
+        "type": "image",
+        "instructions": "Logo officiel, PNG sur fond transparent de préférence. Tant que ce champ n’existe pas, le site lit le média nommé « logo-<slug de la fiche> » dans la médiathèque.",
+        "required": 0,
+        "return_format": "url",
+        "preview_size": "medium",
+        "library": "all",
+        "mime_types": "png,svg,jpg,webp"
+      },
+      {
+        "key": "field_dm_form_universite",
+        "label": "Université ou organisme porteur",
+        "name": "universite",
+        "type": "text",
+        "instructions": "Par exemple « Université de Bordeaux », « Lycée d’Alembert », « Progress Santé ».",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "universite"
+      },
+      {
+        "key": "field_dm_form_statut",
+        "label": "Statut",
+        "name": "statut",
+        "type": "select",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "statut",
+        "choices": {
+          "public": "Public",
+          "prive_sous_contrat": "Privé sous contrat",
+          "prive_hors_contrat": "Privé hors contrat",
+          "cfa": "CFA",
+          "organisme_prive": "Organisme privé"
+        },
+        "allow_null": 1,
+        "return_format": "value"
+      },
+      {
+        "key": "field_dm_form_adresse",
+        "label": "Adresse",
+        "name": "adresse",
+        "type": "text",
+        "instructions": "Rue et numéro, sans la ville : la ville et le département sont dans le groupe Formation.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "adresse"
+      },
+      {
+        "key": "field_dm_form_code_postal",
+        "label": "Code postal",
+        "name": "code_postal",
+        "type": "text",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "codePostal"
+      },
+      {
+        "key": "field_dm_form_telephone",
+        "label": "Téléphone",
+        "name": "telephone",
+        "type": "text",
+        "instructions": "Scolarité ou accueil.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "telephone"
+      },
+      {
+        "key": "field_dm_form_email",
+        "label": "Courriel",
+        "name": "email",
+        "type": "email",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "email"
+      },
+      {
+        "key": "field_dm_form_diplomes",
+        "label": "Diplômes délivrés",
+        "name": "diplomes",
+        "type": "textarea",
+        "instructions": "Un diplôme par ligne, au format « Intitulé | durée | modalité ». Exemple : « BTS prothésiste dentaire | 2 ans | alternance ». Ce champ remplace le diplôme unique du groupe Formation quand il est rempli.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "diplomes",
+        "rows": 6,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_form_voies_acces",
+        "label": "Voies d’accès",
+        "name": "voies_acces",
+        "type": "textarea",
+        "instructions": "PASS, L.AS, passerelles, admission sur dossier, Parcoursup…",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "voiesAcces",
+        "rows": 3,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_form_capacite_accueil",
+        "label": "Capacité d’accueil",
+        "name": "capacite_accueil",
+        "type": "number",
+        "instructions": "Nombre de places en deuxième année (facultés) ou par promotion.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "capaciteAccueil"
+      },
+      {
+        "key": "field_dm_form_capacite_annee",
+        "label": "Année de référence de la capacité",
+        "name": "capacite_annee",
+        "type": "text",
+        "instructions": "Par exemple « 2025-2026 ».",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "capaciteAnnee"
+      },
+      {
+        "key": "field_dm_form_internats",
+        "label": "Internats ouverts",
+        "name": "internats",
+        "type": "checkbox",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "internats",
+        "choices": {
+          "odf": "Orthopédie dento-faciale",
+          "chirurgie_orale": "Chirurgie orale",
+          "medecine_bucco_dentaire": "Médecine bucco-dentaire"
+        },
+        "return_format": "value",
+        "layout": "vertical"
+      },
+      {
+        "key": "field_dm_form_internats_postes",
+        "label": "Postes d’internat",
+        "name": "internats_postes",
+        "type": "text",
+        "instructions": "Par exemple « ODF 4, chirurgie orale 2 (2025) ».",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "internatsPostes"
+      },
+      {
+        "key": "field_dm_form_chu",
+        "label": "Service hospitalier de rattachement",
+        "name": "chu",
+        "type": "text",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "chu"
+      },
+      {
+        "key": "field_dm_form_centres_de_soins",
+        "label": "Centres de soins",
+        "name": "centres_de_soins",
+        "type": "textarea",
+        "instructions": "Un centre par ligne.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "centresDeSoins",
+        "rows": 3,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_form_effectif",
+        "label": "Effectif étudiant",
+        "name": "effectif",
+        "type": "number",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "effectif"
+      },
+      {
+        "key": "field_dm_form_modalite",
+        "label": "Modalité",
+        "name": "modalite",
+        "type": "select",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "modalite",
+        "choices": {
+          "presentiel": "Présentiel",
+          "distanciel": "À distance",
+          "mixte": "Mixte"
+        },
+        "allow_null": 1,
+        "return_format": "value"
+      },
+      {
+        "key": "field_dm_form_public_vise",
+        "label": "Public visé",
+        "name": "public_vise",
+        "type": "text",
+        "instructions": "Formation continue : chirurgiens-dentistes, prothésistes, assistants…",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "publicVise"
+      },
+      {
+        "key": "field_dm_form_prerequis",
+        "label": "Prérequis",
+        "name": "prerequis",
+        "type": "textarea",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "prerequis",
+        "rows": 2,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_form_agrements",
+        "label": "Agréments",
+        "name": "agrements",
+        "type": "text",
+        "instructions": "Qualiopi, DPC, numéro de déclaration d’activité…",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "agrements"
+      },
+      {
+        "key": "field_dm_form_sessions",
+        "label": "Prochaines sessions",
+        "name": "sessions",
+        "type": "textarea",
+        "instructions": "Une session par ligne, dates et lieu.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "sessions",
+        "rows": 3,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_form_tarif",
+        "label": "Tarif indicatif",
+        "name": "tarif",
+        "type": "text",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "tarif"
+      },
+      {
+        "key": "field_dm_form_frais",
+        "label": "Frais de scolarité",
+        "name": "frais",
+        "type": "text",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "frais"
+      },
+      {
+        "key": "field_dm_form_rentree",
+        "label": "Rentrée",
+        "name": "rentree",
+        "type": "text",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "rentree"
+      },
+      {
+        "key": "field_dm_form_portes_ouvertes",
+        "label": "Journées portes ouvertes",
+        "name": "portes_ouvertes",
+        "type": "text",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "portesOuvertes"
+      },
+      {
+        "key": "field_dm_form_latitude",
+        "label": "Latitude",
+        "name": "latitude",
+        "type": "number",
+        "instructions": "Position de l’établissement, pour la carte. Laisser vide pour un géocodage depuis l’adresse.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "latitude"
+      },
+      {
+        "key": "field_dm_form_longitude",
+        "label": "Longitude",
+        "name": "longitude",
+        "type": "number",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "longitude"
+      },
+      {
+        "key": "field_dm_form_sources",
+        "label": "Sources",
+        "name": "sources",
+        "type": "textarea",
+        "instructions": "Une URL par ligne, vers les pages officielles d’où viennent les informations.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "sources",
+        "rows": 4,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_form_date_releve",
+        "label": "Date du relevé",
+        "name": "date_releve",
+        "type": "date_picker",
+        "instructions": "",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "dateReleve",
+        "display_format": "d/m/Y",
+        "return_format": "Y-m-d",
+        "first_day": 1
+      }
+    ],
+    "location": [
+      [
+        {
+          "param": "post_type",
+          "operator": "==",
+          "value": "formation"
+        }
+      ]
+    ],
+    "menu_order": 1,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "active": true,
+    "description": "Champs détaillés des facultés, écoles et formations, lus par le site via WPGraphQL. Importé depuis docs/acf/formation-details.json du dépôt.",
+    "show_in_rest": 1,
+    "show_in_graphql": 1,
+    "graphql_field_name": "formationDetails",
+    "map_graphql_types_from_location_rules": 0,
+    "graphql_types": [
+      "Formation"
+    ]
+  }
+]
