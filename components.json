@@ -21,5 +21,13 @@
   },
   "menuColor": "default-translucent",
   "menuAccent": "subtle",
-  "registries": {}
+  "registries": {
+    "@skiper-ui": "https://skiper-ui.com/r/{name}.json",
+    "@shadcnblocks": {
+      "url": "https://www.shadcnblocks.com/r/{style}/{name}",
+      "headers": {
+        "Authorization": "Bearer ${SHADCNBLOCKS_TOKEN}"
+      }
+    }
+  }
 }
