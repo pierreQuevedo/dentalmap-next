@@ -13,6 +13,7 @@ import { LIBELLE } from '@/lib/annuaire/libelles'
 import { PROFESSION_PAR_BASE } from '@/lib/annuaire/types'
 import { Deroulant } from '@/components/site/deroulant'
 import { useRecherche, useRechercheOptionnelle } from './contexte'
+import { HaloRecherche } from './halo-recherche'
 
 /**
  * La barre de recherche, fixée en bas de l'écran et centrée.
@@ -36,6 +37,8 @@ export function BarreRecherche({ base, valeurLieu }: { base: BaseUrl; valeurLieu
   const [cible, setCible] = useState<Cible>(base)
   const [texte, setTexte] = useState(valeurLieu)
   const [filtresOuverts, setFiltresOuverts] = useState(false)
+  // Le champ de lieu a le focus : la carte s'entoure d'un halo le temps du choix.
+  const [lieuActif, setLieuActif] = useState(false)
   const router = useRouter()
 
   const praticiens = CIBLES_ANNUAIRE.includes(cible)
@@ -53,49 +56,53 @@ export function BarreRecherche({ base, valeurLieu }: { base: BaseUrl; valeurLieu
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
-      <div className="pointer-events-auto relative">
-        <Deroulant ouvert={filtresOuverts && praticiens && !!recherche} origine="bas" className="absolute bottom-full left-1/2 z-20 mb-3 -translate-x-1/2">
-          {recherche && <PanneauFiltres fermer={() => setFiltresOuverts(false)} />}
-        </Deroulant>
+    <>
+      {/* Hors de la barre : fixée et dotée d'un plan, elle enfermerait le halo sous l'en-tête. La barre, elle, passe au-dessus du halo pour rester lisible. */}
+      <HaloRecherche actif={lieuActif} />
+      <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[56] flex justify-center px-4">
+        <div className="pointer-events-auto relative">
+          <Deroulant ouvert={filtresOuverts && praticiens && !!recherche} origine="bas" className="absolute bottom-full left-1/2 z-20 mb-3 -translate-x-1/2">
+            {recherche && <PanneauFiltres fermer={() => setFiltresOuverts(false)} />}
+          </Deroulant>
 
-        <form
-          method="get"
-          action="/recherche/"
-          role="search"
-          className="squircle-full flex items-center gap-1 border border-line bg-bg/90 p-1.5 shadow-pop backdrop-blur-xl"
-        >
-          <ChampLieuBarre texte={texte} setTexte={setTexte} cible={cible} />
+          <form
+            method="get"
+            action="/recherche/"
+            role="search"
+            className="squircle-full flex items-center gap-1 border border-line bg-bg/90 p-1.5 shadow-pop backdrop-blur-xl"
+          >
+            <ChampLieuBarre texte={texte} setTexte={setTexte} cible={cible} onActif={setLieuActif} />
 
-          <span aria-hidden className="mx-1 h-6 w-px bg-line" />
+            <span aria-hidden className="mx-1 h-6 w-px bg-line" />
 
-          <label className="relative flex h-10 items-center">
-            <span className="sr-only">Que cherchez-vous ?</span>
-            <select
-              name="profession"
-              value={cible}
-              onChange={(e) => changerCible(e.target.value as Cible)}
-              className="h-10 appearance-none rounded-full bg-transparent pl-3 pr-8 text-sm font-medium text-fg outline-none hover:bg-bg-soft focus-visible:bg-bg-soft"
-            >
-              {CIBLES.map((c) => (
-                <option key={c.cle} value={c.cle}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 size-4 text-fg-2" />
-          </label>
+            <label className="relative flex h-10 items-center">
+              <span className="sr-only">Que cherchez-vous ?</span>
+              <select
+                name="profession"
+                value={cible}
+                onChange={(e) => changerCible(e.target.value as Cible)}
+                className="h-10 appearance-none rounded-full bg-transparent pl-3 pr-8 text-sm font-medium text-fg outline-none hover:bg-bg-soft focus-visible:bg-bg-soft"
+              >
+                {CIBLES.map((c) => (
+                  <option key={c.cle} value={c.cle}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 size-4 text-fg-2" />
+            </label>
 
-          {praticiens && recherche && (
-            <BoutonFiltres ouvert={filtresOuverts} basculer={() => setFiltresOuverts((o) => !o)} />
-          )}
+            {praticiens && recherche && (
+              <BoutonFiltres ouvert={filtresOuverts} basculer={() => setFiltresOuverts((o) => !o)} />
+            )}
 
-          <button type="submit" className="sr-only">
-            Rechercher
-          </button>
-        </form>
+            <button type="submit" className="sr-only">
+              Rechercher
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -121,7 +128,18 @@ function BoutonFiltres({ ouvert, basculer }: { ouvert: boolean; basculer: () => 
 /**
  * Le champ de lieu de la barre : suggestions vers le haut, choix direct.
  */
-function ChampLieuBarre({ texte, setTexte, cible }: { texte: string; setTexte: (t: string) => void; cible: Cible }) {
+function ChampLieuBarre({
+  texte,
+  setTexte,
+  cible,
+  onActif,
+}: {
+  texte: string
+  setTexte: (t: string) => void
+  cible: Cible
+  /** Le champ prend ou perd le focus. */
+  onActif: (actif: boolean) => void
+}) {
   const router = useRouter()
   const [ferme, setFerme] = useState(true)
   const [indexActif, setIndexActif] = useState(-1)
@@ -150,8 +168,14 @@ function ChampLieuBarre({ texte, setTexte, cible }: { texte: string; setTexte: (
           setFerme(false)
           setIndexActif(-1)
         }}
-        onFocus={() => setFerme(false)}
-        onBlur={() => setTimeout(() => setFerme(true), 120)}
+        onFocus={() => {
+          setFerme(false)
+          onActif(true)
+        }}
+        onBlur={() => {
+          onActif(false)
+          setTimeout(() => setFerme(true), 120)
+        }}
         onKeyDown={(e) => {
           if (visibles.length === 0) return
           if (e.key === 'ArrowDown') {

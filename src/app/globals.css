@@ -811,3 +811,71 @@ html[data-recherche='ouverte'] #site-header button[aria-label='Changer de thème
     animation: none;
   }
 }
+
+/*
+ * Halo de recherche : un dégradé qui tourne au bord de l'écran pendant qu'on
+ * choisit un lieu (voir `halo-recherche.tsx`).
+ *
+ * L'angle du dégradé est une propriété enregistrée, ce qui le rend animable :
+ * sans `@property`, un dégradé ne s'interpole pas et la rotation sauterait
+ * d'une image à l'autre. Chaque anneau est un calque plein masqué par
+ * soustraction de sa boîte de contenu : il ne reste que la bordure, de
+ * l'épaisseur du remplissage.
+ */
+@property --halo-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes halo-tourne {
+  to {
+    --halo-angle: 360deg;
+  }
+}
+.halo-recherche {
+  position: fixed;
+  inset: 0;
+  /* Au-dessus de l'en-tête et de la barre, sous le menu mobile plein écran. */
+  z-index: 55;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 700ms var(--ease-lift);
+}
+.halo-recherche[data-actif='true'] {
+  opacity: 1;
+}
+.halo-anneau {
+  position: absolute;
+  inset: 0;
+  padding: var(--epaisseur);
+  border-radius: 14px;
+  opacity: var(--voile);
+  filter: blur(var(--flou));
+  background: conic-gradient(
+    from var(--halo-angle),
+    var(--action),
+    #2fd1d1,
+    #6ec6ff,
+    #bdf3f3,
+    #1aa6a6,
+    var(--action)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: halo-tourne 7s linear infinite;
+}
+/* Le halo ne tourne que lorsqu'il se voit : une animation sur un calque invisible coûte pour rien. */
+.halo-recherche[data-actif='false'] .halo-anneau {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .halo-anneau {
+    animation: none;
+  }
+}
