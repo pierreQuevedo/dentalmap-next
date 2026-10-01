@@ -813,14 +813,14 @@ html[data-recherche='ouverte'] #site-header button[aria-label='Changer de thème
 }
 
 /*
- * Halo de recherche : un dégradé qui tourne au bord de l'écran pendant qu'on
- * choisit un lieu (voir `halo-recherche.tsx`).
+ * Halo de recherche : la lueur d'Apple Intelligence au bord de l'écran
+ * pendant qu'on choisit un lieu (voir `halo-recherche.tsx`).
  *
  * L'angle du dégradé est une propriété enregistrée, ce qui le rend animable :
  * sans `@property`, un dégradé ne s'interpole pas et la rotation sauterait
- * d'une image à l'autre. Chaque anneau est un calque plein masqué par
- * soustraction de sa boîte de contenu : il ne reste que la bordure, de
- * l'épaisseur du remplissage.
+ * d'une image à l'autre. Un tour en cinq secondes, comme le modèle. Le
+ * dégradé est posé sur chaque calque et non sur le parent : une variable
+ * substituée chez le parent y figerait l'angle à sa valeur initiale.
  */
 @property --halo-angle {
   syntax: '<angle>';
@@ -835,31 +835,45 @@ html[data-recherche='ouverte'] #site-header button[aria-label='Changer de thème
 .halo-recherche {
   position: fixed;
   inset: 0;
-  /* Au-dessus de l'en-tête et de la barre, sous le menu mobile plein écran. */
+  /* Au-dessus de l'en-tête, sous la barre de recherche et le menu mobile plein écran. */
   z-index: 55;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 700ms var(--ease-lift);
+  transition: opacity 500ms ease;
 }
 .halo-recherche[data-actif='true'] {
   opacity: 1;
 }
-.halo-anneau {
+.halo-lueur,
+.halo-bord {
   position: absolute;
   inset: 0;
-  padding: var(--epaisseur);
-  border-radius: 14px;
-  opacity: var(--voile);
-  filter: blur(var(--flou));
-  background: conic-gradient(
-    from var(--halo-angle),
-    var(--action),
-    #2fd1d1,
-    #6ec6ff,
-    #bdf3f3,
-    #1aa6a6,
-    var(--action)
-  );
+  background: linear-gradient(var(--halo-angle), var(--action), #2fd1d1, #6ec6ff, #bdeeea);
+  animation: halo-tourne 5s linear infinite;
+}
+/*
+ * La lueur : le dégradé ne subsiste que sur le pourtour, plein au bord et
+ * fondu vers l'intérieur sur la portée, avec une décroissance en cloche qui
+ * imite le voile flouté du modèle. Les quatre masques, un par bord,
+ * s'additionnent.
+ */
+.halo-lueur {
+  --portee: 64px;
+  --fondu: #000 0, rgb(0 0 0 / 0.7) 10px, rgb(0 0 0 / 0.35) 24px, rgb(0 0 0 / 0.12) 42px, transparent var(--portee);
+  -webkit-mask-image:
+    linear-gradient(to bottom, var(--fondu)),
+    linear-gradient(to top, var(--fondu)),
+    linear-gradient(to right, var(--fondu)),
+    linear-gradient(to left, var(--fondu));
+  mask-image:
+    linear-gradient(to bottom, var(--fondu)),
+    linear-gradient(to top, var(--fondu)),
+    linear-gradient(to right, var(--fondu)),
+    linear-gradient(to left, var(--fondu));
+}
+/* Le bord : un anneau de deux pixels, le calque plein moins sa boîte de contenu. */
+.halo-bord {
+  padding: 2px;
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -868,14 +882,15 @@ html[data-recherche='ouverte'] #site-header button[aria-label='Changer de thème
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   mask-composite: exclude;
-  animation: halo-tourne 7s linear infinite;
 }
 /* Le halo ne tourne que lorsqu'il se voit : une animation sur un calque invisible coûte pour rien. */
-.halo-recherche[data-actif='false'] .halo-anneau {
+.halo-recherche[data-actif='false'] .halo-lueur,
+.halo-recherche[data-actif='false'] .halo-bord {
   animation-play-state: paused;
 }
 @media (prefers-reduced-motion: reduce) {
-  .halo-anneau {
+  .halo-lueur,
+  .halo-bord {
     animation: none;
   }
 }
