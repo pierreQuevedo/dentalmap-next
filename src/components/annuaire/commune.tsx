@@ -2,22 +2,21 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import {
+  getArrondissements,
   getCommune,
   getCommunesVoisinesAvecPraticiens,
+  getEmpriseCommune,
   getPraticiensDeCommune,
+  PAR_PAGE,
 } from '@/lib/annuaire/queries'
-import { BASE_URL, nomAffiche, type Profession } from '@/lib/annuaire/types'
-import { PAR_PAGE } from '@/lib/annuaire/queries'
-import { Adresse, chemin, FilAriane, Telephone, Verification } from './primitives'
+import { LIBELLE, compte, majuscule } from '@/lib/annuaire/libelles'
+import { BASE_URL, type Profession } from '@/lib/annuaire/types'
+import { MiseEnPageRecherche } from '@/components/recherche/mise-en-page'
+import { chemin, FilAriane } from './primitives'
 import { Balisage, filAriane } from '@/lib/seo/jsonld'
 
 type Params = { departement: string; commune: string }
 type Recherche = { page?: string }
-
-const LIBELLE: Record<Profession, { singulier: string; pluriel: string }> = {
-  dentiste: { singulier: 'chirurgien-dentiste', pluriel: 'chirurgiens-dentistes' },
-  prothesiste: { singulier: 'laboratoire de prothèse dentaire', pluriel: 'laboratoires de prothèse dentaire' },
-}
 
 export async function metadonneesCommune(
   profession: Profession,
@@ -31,15 +30,13 @@ export async function metadonneesCommune(
   const { total } = await getPraticiensDeCommune(profession, c.codeInsee, page)
   const l = LIBELLE[profession]
   const suffixe = page > 1 ? ` — page ${page}` : ''
-  const titre = total
-    ? `${l.pluriel.charAt(0).toUpperCase()}${l.pluriel.slice(1)} à ${c.nom} (${c.departementNom})${suffixe}`
-    : `Aucun ${l.singulier} à ${c.nom}`
+  const titre = total ? `${majuscule(l.pluriel)} à ${c.nom}${precisionDepartement(c)}${suffixe}` : `Aucun ${l.singulier} à ${c.nom}`
 
   const cheminBase = `/${BASE_URL[profession]}/${departement}/${commune}/`
   return {
     title: titre,
     description: total
-      ? `${total} ${total > 1 ? l.pluriel : l.singulier} à ${c.nom}. Adresses, téléphones et informations vérifiées auprès des registres officiels.`
+      ? `${compte(profession, total)} à ${c.nom}, sur la carte et en liste. Adresses et informations vérifiées auprès des registres officiels.`
       : `Aucun ${l.singulier} recensé à ${c.nom}. Consultez les communes voisines.`,
     // Chaque page de pagination est canonique d'elle-même : la désigner comme un
     // doublon de la première ferait disparaître de l'index les praticiens qui
@@ -52,12 +49,26 @@ export async function metadonneesCommune(
   }
 }
 
+/** « (Gironde) » après le nom de la commune, sauf quand le département porte le même nom, Paris. */
+function precisionDepartement(c: { nom: string; departementNom: string }): string {
+  return c.departementNom === c.nom ? '' : ` (${c.departementNom})`
+}
+
 /** Numéro de page valide, 1 par défaut. */
 export function numeroPage(valeur: string | undefined): number {
   const n = Number(valeur)
   return Number.isInteger(n) && n > 1 ? n : 1
 }
 
+/**
+ * Page d'une commune : une recherche déjà faite.
+ *
+ * La carte est cadrée sur les lieux d'exercice de la commune, la liste est
+ * celle de ses praticiens par ordre alphabétique, paginée par de vrais liens,
+ * et le formulaire est prérempli. Bouger la carte fait basculer la liste sur
+ * ce qu'elle montre, comme sur la recherche. Paris, Lyon et Marseille
+ * agrègent leurs arrondissements, listés en dessous.
+ */
 export async function PageCommune({
   profession,
   params,
@@ -74,83 +85,61 @@ export async function PageCommune({
 
   const base = BASE_URL[profession]
   const l = LIBELLE[profession]
-  const { liste, total } = await getPraticiensDeCommune(profession, c.codeInsee, page)
+  const [{ liste, total }, emprise, arrondissements] = await Promise.all([
+    getPraticiensDeCommune(profession, c.codeInsee, page),
+    getEmpriseCommune(c.codeInsee),
+    getArrondissements(profession, c.codeInsee),
+  ])
   const pages = Math.max(1, Math.ceil(total / PAR_PAGE))
-  const cheminBase = `/${base}/${departement}/${commune}/`
   if (page > pages) notFound()
+
+  const pluriel = majuscule(l.pluriel)
+  const segments = [
+    { nom: 'Accueil', chemin: '/' },
+    { nom: pluriel, chemin: `/${base}/` },
+    { nom: c.departementNom, chemin: `/${base}/${departement}/` },
+    { nom: c.nom, chemin: `/${base}/${departement}/${commune}/` },
+  ]
 
   return (
     <>
-      <Balisage
-        donnees={filAriane([
-          { nom: 'Accueil', chemin: '/' },
-          { nom: `${l.pluriel.charAt(0).toUpperCase()}${l.pluriel.slice(1)}`, chemin: `/${base}/` },
-          { nom: c.departementNom, chemin: `/${base}/${departement}/` },
-          { nom: c.nom, chemin: `/${base}/${departement}/${commune}/` },
-        ])}
+      <Balisage donnees={filAriane(segments)} />
+      <MiseEnPageRecherche
+        cle={`${base}:${c.codeInsee}:${page}`}
+        base={base}
+        emprise={emprise}
+        initial={{ total, page, pages, plafonne: false, resultats: liste }}
+        mode="territoire"
+        territoire={{ libelle: `à ${c.nom}`, classement: 'alphabetique' }}
+        valeurLieu={c.nom}
+        enTete={
+          <>
+            <FilAriane segments={segments.map((s, i) => (i < segments.length - 1 ? { libelle: s.nom, href: s.chemin } : { libelle: s.nom }))} />
+            <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg md:text-3xl">
+              {total > 0 ? `${pluriel} à ${c.nom}` : `Aucun ${l.singulier} à ${c.nom}`}
+            </h1>
+            <p className="mt-2 text-fg-2">
+              {total > 0 ? (
+                <>
+                  {compte(profession, total)} à {c.nom}{precisionDepartement(c)}, recensés à partir {l.registre}
+                  {pages > 1 ? `, page ${page} sur ${pages}` : ''}. Les informations ne sont pas déclaratives : elles
+                  proviennent de registres publics et sont rapprochées chaque semaine.
+                </>
+              ) : (
+                <>Aucun professionnel de cette catégorie n&apos;est recensé sur cette commune. Les plus proches sont listés ci-dessous.</>
+              )}
+            </p>
+          </>
+        }
+        apres={
+          <>
+            {arrondissements.length > 0 && (
+              <ListeTerritoires titre={`Par arrondissement`} liens={arrondissements.map((a) => ({ libelle: a.nom, href: `/${base}/${departement}/${a.slug}/`, total: a.total }))} />
+            )}
+            <CommunesVoisines profession={profession} codeInsee={c.codeInsee} nomCommune={c.nom} />
+          </>
+        }
       />
-      <FilAriane
-        segments={[
-          { libelle: 'Accueil', href: '/' },
-          { libelle: `${l.pluriel.charAt(0).toUpperCase()}${l.pluriel.slice(1)}`, href: `/${base}/` },
-          { libelle: c.departementNom, href: `/${base}/${departement}/` },
-          { libelle: c.nom },
-        ]}
-      />
-
-      <header className="mt-5">
-        <h1 className="text-3xl font-semibold tracking-tight text-fg">
-          {total > 0
-            ? `${l.pluriel.charAt(0).toUpperCase()}${l.pluriel.slice(1)} à ${c.nom}`
-            : `Aucun ${l.singulier} à ${c.nom}`}
-        </h1>
-        <p className="mt-2 text-fg-2">
-          {total > 0 ? (
-            <>
-              {total.toLocaleString('fr-FR')} {total > 1 ? l.pluriel : l.singulier} recensés, classés par ordre
-              alphabétique{pages > 1 ? ` — page ${page} sur ${pages}` : ''}.
-            </>
-          ) : (
-            <>Aucun professionnel de cette catégorie n&apos;est recensé sur cette commune.</>
-          )}
-        </p>
-      </header>
-
-      {total > 0 ? (
-        <ul className="mt-8 divide-y divide-line border-y border-line">
-          {liste.map((p) => (
-            <li key={p.slug} className="py-5">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <h2 className="text-lg font-medium">
-                  <Link
-                    href={chemin(`/${base}/${p.departementSlug}/${p.communeSlug}/${p.slug}/`)}
-                    className="text-fg hover:underline"
-                  >
-                    {nomAffiche({ profession, nom: p.nom, prenom: p.prenom, raisonSociale: p.raisonSociale })}
-                  </Link>
-                </h2>
-                <Verification statut={p.statutVerification} />
-              </div>
-              <div className="mt-2 text-sm">
-                <Adresse ligne={p.adresseLigne} codePostal={p.codePostal} commune={p.communeNom} />
-                {p.telephone && (
-                  <p className="mt-1">
-                    <Telephone numero={p.telephone} />
-                  </p>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <CommunesVoisines profession={profession} codeInsee={c.codeInsee} nomCommune={c.nom} />
-      )}
-
-      {pages > 1 && <Pagination base={cheminBase} page={page} pages={pages} />}
-
-      <p className="mt-8 text-sm text-fg-2">
-        Le classement est alphabétique. Aucune mise en avant payante n&apos;existe sur DentalMap.
-      </p>
     </>
   )
 }
@@ -168,67 +157,64 @@ async function CommunesVoisines({
   const base = BASE_URL[profession]
   if (voisines.length === 0) return null
   return (
-    <section className="mt-8">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-2">
-        Les plus proches de {nomCommune}
-      </h2>
-      <ul className="mt-3 divide-y divide-line border-y border-line">
-        {voisines.map((v) => (
-          <li key={`${v.departementSlug}/${v.slug}`} className="flex items-baseline justify-between gap-4 py-3">
-            <Link
-              href={chemin(`/${base}/${v.departementSlug}/${v.slug}/`)}
-              className="text-fg hover:underline"
-            >
-              {v.nom}
-            </Link>
-            <span className="text-sm tabular-nums text-fg-2">
-              {v.total} à {v.km.toLocaleString('fr-FR')} km
-            </span>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <ListeTerritoires
+      titre={`Autour de ${nomCommune}`}
+      liens={voisines.map((v) => ({
+        libelle: v.nom,
+        href: `/${base}/${v.departementSlug}/${v.slug}/`,
+        total: v.total,
+        detail: `${v.km.toLocaleString('fr-FR')} km`,
+      }))}
+    />
   )
 }
 
 /**
- * Pagination des listes de commune.
+ * Liste de liens vers d'autres territoires, avec leur effectif.
  *
- * Les liens sont de vrais liens, rendus côté serveur : un moteur doit pouvoir
- * atteindre la page 8 de Toulouse sans exécuter de JavaScript.
+ * Commune aux pages de commune, de département et de région : ce sont ces
+ * listes que les moteurs suivent d'une page à l'autre.
  */
-function Pagination({ base, page, pages }: { base: string; page: number; pages: number }) {
-  const lien = (n: number) => (n === 1 ? base : `${base}?page=${n}`)
-  const fenetre = Array.from({ length: pages }, (_, i) => i + 1).filter(
-    (n) => n === 1 || n === pages || Math.abs(n - page) <= 2,
-  )
-
+export function ListeTerritoires({
+  titre,
+  liens,
+  compact = false,
+}: {
+  titre: string
+  liens: { libelle: string; href: string; total: number; detail?: string }[]
+  /** Liste serrée, pour des centaines de communes. */
+  compact?: boolean
+}) {
+  if (liens.length === 0) return null
   return (
-    <nav aria-label="Pagination" className="mt-8 flex flex-wrap items-center gap-2">
-      {page > 1 && (
-        <Link href={chemin(lien(page - 1))} rel="prev" className="rounded border border-line-strong px-3 py-1.5 text-sm hover:border-fg">
-          Précédent
-        </Link>
+    <section className="mt-10">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-2">{titre}</h2>
+      {compact ? (
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          {liens.map((l) => (
+            <li key={l.href}>
+              <Link href={chemin(l.href)} className="text-fg hover:underline">
+                {l.libelle}
+              </Link>
+              <span className="ml-1 tabular-nums text-fg-2">{l.total}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ul className="mt-3 grid gap-x-8 gap-y-1 sm:grid-cols-2">
+          {liens.map((l) => (
+            <li key={l.href} className="flex items-baseline justify-between gap-4 border-b border-line py-2">
+              <Link href={chemin(l.href)} className="text-fg hover:underline">
+                {l.libelle}
+              </Link>
+              <span className="shrink-0 text-sm tabular-nums text-fg-2">
+                {l.total.toLocaleString('fr-FR')}
+                {l.detail ? ` · ${l.detail}` : ''}
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
-      {fenetre.map((n, i) => (
-        <span key={n} className="flex items-center gap-2">
-          {i > 0 && fenetre[i - 1] !== n - 1 && <span className="text-fg-2">…</span>}
-          {n === page ? (
-            <span aria-current="page" className="rounded bg-brand px-3 py-1.5 text-sm text-brand-foreground">
-              {n}
-            </span>
-          ) : (
-            <Link href={chemin(lien(n))} className="rounded border border-line-strong px-3 py-1.5 text-sm hover:border-fg">
-              {n}
-            </Link>
-          )}
-        </span>
-      ))}
-      {page < pages && (
-        <Link href={chemin(lien(page + 1))} rel="next" className="rounded border border-line-strong px-3 py-1.5 text-sm hover:border-fg">
-          Suivant
-        </Link>
-      )}
-    </nav>
+    </section>
   )
 }

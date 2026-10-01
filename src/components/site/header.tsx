@@ -3,19 +3,20 @@ import { Suspense } from 'react'
 import { getAccesRapide } from '@/lib/annuaire/acces-rapide'
 import { getConseils } from '@/lib/wp/queries'
 import type { NavLink } from '@/lib/navigation'
-import { SearchIcon } from './nav-icon'
 import { ThemeToggle } from './theme-toggle'
 import { MainNav } from './main-nav'
 import { MobileNav } from './mobile-nav'
+import { RechercheHeader } from './recherche-header'
 import { UserMenu } from './user-menu'
 
 /**
  * En-tête du site.
  *
- * Une seule barre, de hauteur fixe, qui ne porte que la navigation. La ligne
- * de recherche dépliée et son repli au défilement ont été retirés : la
- * recherche se fait depuis la page dédiée, l'icône de loupe y mène depuis
- * n'importe quelle page.
+ * Une seule barre, de hauteur fixe, qui ne porte que la navigation. La loupe
+ * déplie un panneau de recherche sous la barre, sur le modèle de la navigation
+ * d'Apple, avec la page floutée derrière ; la page `/recherche/` reste la
+ * destination du formulaire. L'entrée « Vous êtes praticien ? » vit dans le
+ * menu du compte, pas dans la barre.
  *
  * Composant serveur : il charge les communes de l'accès rapide (requête
  * cachée, tag `annuaire`) et les passe au méga-menu. Seuls les fragments qui
@@ -28,7 +29,7 @@ export async function Header() {
   const accesRapide: NavLink[] = communes.map((c) => ({ label: c.label, href: c.href }))
 
   return (
-    <header id="site-header" className="sticky top-0 z-50 h-20 border-b border-line bg-bg">
+    <header id="site-header" className="sticky top-0 z-50 h-20 bg-bg">
       <div className="grid h-20 grid-cols-[auto_1fr_auto] items-center px-5 md:grid-cols-[1fr_auto_1fr] md:px-10 xl:px-20">
         <Link href="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-brand">
           <span aria-hidden className="size-[30px] rounded-md bg-brand" />
@@ -38,19 +39,7 @@ export async function Header() {
         <MainNav accesRapide={accesRapide} conseils={conseils.slice(0, 2)} />
 
         <div className="flex items-center justify-end gap-2">
-          <Link
-            href="/recherche"
-            aria-label="Rechercher un professionnel"
-            className="grid size-9 place-items-center rounded-full text-fg hover:bg-bg-soft"
-          >
-            <SearchIcon className="size-[18px]" />
-          </Link>
-          <Link
-            href="/espace-pro/revendiquer"
-            className="hidden whitespace-nowrap rounded-full px-3 py-3 text-sm font-medium text-fg hover:bg-bg-soft lg:inline-block"
-          >
-            Vous êtes praticien ?
-          </Link>
+          <RechercheHeader accesRapide={accesRapide} />
           {/* `size="icon"` fait 36 px, exactement la place réservée pendant
               l'hydratation : sans cela le bouton arrive 4 px plus petit et
               décale ses voisins. */}

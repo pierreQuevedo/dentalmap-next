@@ -1,7 +1,9 @@
+import { BASE_URL, PROFESSION_PAR_BASE, PROFESSIONS, type BaseUrl } from '@/lib/annuaire/types'
 import {
   getCommunesIndexables,
   getDepartementsIndexables,
   getFichesIndexables,
+  getRegionsIndexables,
   type EntreeSitemap,
 } from '@/lib/annuaire/queries'
 import { url } from '@/lib/seo/site'
@@ -13,7 +15,7 @@ import { url } from '@/lib/seo/site'
  * nommage de Next produit `/sitemap/0.xml`, qui n'apprend rien à qui lit le
  * fichier. `/sitemap/dentistes-0.xml` se comprend seul dans la Search Console.
  */
-const PAGES_FIXES = ['/', '/dentistes/', '/prothesistes/']
+const PAGES_FIXES = ['/', ...PROFESSIONS.map((p) => `/${BASE_URL[p]}/`)]
 
 function xml(entrees: EntreeSitemap[]): string {
   const corps = entrees
@@ -31,13 +33,14 @@ async function contenu(id: string): Promise<string | null> {
   const maintenant = new Date().toISOString().replace(/\.\d+Z$/, 'Z')
 
   if (id === 'pages') return xml(PAGES_FIXES.map((chemin) => ({ chemin, majLe: maintenant })))
+  if (id === 'regions') return xml(await getRegionsIndexables())
   if (id === 'departements') return xml(await getDepartementsIndexables())
   if (id === 'communes') return xml(await getCommunesIndexables())
 
-  const m = id.match(/^(dentistes|prothesistes)-(\d+)$/)
+  const m = id.match(/^(dentistes|prothesistes|maxillo-faciaux|stomatologues|orl)-(\d+)$/)
   if (!m) return null
   const [, base, tranche] = m
-  const profession = base === 'dentistes' ? 'dentiste' : 'prothesiste'
+  const profession = PROFESSION_PAR_BASE[base as BaseUrl]
   return xml(await getFichesIndexables(profession, Number(tranche)))
 }
 

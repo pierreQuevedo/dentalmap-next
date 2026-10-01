@@ -1,0 +1,1 @@
+ALTER TABLE "praticiens" ADD COLUMN "civilite" text;

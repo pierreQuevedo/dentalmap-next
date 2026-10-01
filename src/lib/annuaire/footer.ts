@@ -25,9 +25,7 @@ export async function getRegionsPanel(): Promise<LienRegion[]> {
   `)
   return rows.map((r) => ({
     label: r.nom,
-    // Les régions n'ont pas de page propre : le lien mène à l'index des
-    // départements, qui est groupé par région et porte l'ancre.
-    href: `/dentistes#${r.slug}`,
+    href: `/dentistes/${r.slug}`,
     sub: `${r.total} départements`,
   }))
 }

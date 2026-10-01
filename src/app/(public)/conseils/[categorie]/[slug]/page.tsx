@@ -32,15 +32,16 @@ export default async function ArticleConseil(props: { params: Params }) {
   const conseil = await getConseil(slug)
   // La catégorie de l'URL doit être celle de l'article : sans ce contrôle, le
   // même contenu vivrait sous trois adresses, et le référencement paierait la
-  // duplication.
-  if (!conseil || conseil.categorie !== categorie) notFound()
+  // duplication. Un article sans rubrique vit sous « patients », voir
+  // `lienConseil`.
+  if (!conseil || (conseil.categorie ?? 'patients') !== categorie) notFound()
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-10 md:px-10">
       <FilAriane
         segments={[
           { libelle: 'Accueil', href: '/' },
-          { libelle: 'Conseils', href: '/conseils' },
+          { libelle: 'Ressources', href: '/conseils' },
           { libelle: LIBELLE_CATEGORIE[categorie], href: `/conseils/${categorie}` },
           { libelle: conseil.titre },
         ]}

@@ -28,8 +28,8 @@ const LIBELLE: Record<FormationType, string> = {
  */
 const SEGMENT_PAR_VALEUR_ACF: Record<string, FormationType> = {
   ecole_prothese: 'ecoles-de-prothese',
-  faculte_odontologie: 'facultes-odontologie',
-  formation_privee: 'formations-privees',
+  faculte: 'facultes-odontologie',
+  privee: 'formations-privees',
 }
 
 /**
@@ -62,7 +62,7 @@ export async function getFormationPanel(): Promise<ExploreLink[]> {
     const total = comptes.get(type) ?? 0
     return {
       title: LIBELLE[type],
-      sub: total > 0 ? `${total} ${total > 1 ? 'établissements' : 'établissement'}` : 'Bientôt disponible',
+      sub: total > 0 ? `${total} ${total > 1 ? 'établissements' : 'établissement'}` : 'Bientôt',
       href: `/formation/${type}`,
     }
   })

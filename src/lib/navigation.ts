@@ -25,6 +25,8 @@ export type NavLink = {
   href: Route | string
   external?: boolean
   description?: string
+  /** Petite étiquette grisée à côté du libellé : « Bientôt » pour une rubrique annoncée mais pas encore remplie. */
+  badge?: string
 }
 
 export type NavColumn = {
@@ -38,7 +40,8 @@ export type NavColumn = {
 
 export type NavEntry = {
   label: string
-  href: Route
+  /** Route typée, ou chemin d'une route dynamique de l'annuaire que le générateur de types ne nomme pas. */
+  href: Route | string
   columns?: NavColumn[]
   links?: NavLink[]
 }
@@ -55,7 +58,7 @@ export type NavIcon = 'map' | 'article' | 'mail' | 'school' | 'info'
 
 export const mainNavIcons: Record<string, NavIcon> = {
   Annuaire: 'map',
-  Conseils: 'article',
+  Ressources: 'article',
   Annonces: 'mail',
   Formation: 'school',
   'À propos': 'info',
@@ -70,36 +73,44 @@ export const mainNav: NavEntry[] = [
         title: 'Chirurgiens-dentistes',
         links: [
           { label: 'Tous les dentistes', href: '/dentistes' },
-          { label: 'Par département', href: '/dentistes#departements' },
-          { label: 'Trouver un dentiste près de chez vous', href: '/recherche?profession=dentistes' },
+          { label: 'Par département', href: '/dentistes/par-departement' },
+          { label: 'Trouver un dentiste près de chez vous', href: '/dentistes/pres-de-chez-vous' },
         ],
       },
       {
         title: 'Prothésistes dentaires',
         links: [
           { label: 'Tous les laboratoires', href: '/prothesistes' },
-          { label: 'Par département', href: '/prothesistes#departements' },
-          { label: 'Trouver un laboratoire', href: '/recherche?profession=prothesistes' },
+          { label: 'Par département', href: '/prothesistes/par-departement' },
+          { label: 'Trouver un laboratoire près de chez vous', href: '/prothesistes/pres-de-chez-vous' },
+        ],
+      },
+      {
+        title: 'Spécialistes du visage',
+        links: [
+          { label: 'Chirurgiens maxillo-faciaux', href: '/maxillo-faciaux' },
+          { label: 'Stomatologues', href: '/stomatologues' },
+          { label: 'ORL', href: '/orl' },
         ],
       },
       { title: 'Accès rapide', links: [], dynamic: 'acces-rapide' },
       {
-        // Colonne d'affirmation, sans lien : elle rappelle la promesse de
-        // neutralité au moment où le visiteur entre dans l'annuaire.
+        // Colonne d'affirmation, sans lien : elle rappelle la méthode de
+        // vérification au moment où le visiteur entre dans l'annuaire.
         title: 'Notre méthode',
         highlight: true,
         note:
           'Chaque fiche est vérifiée dans les registres RPPS, ADELI et Sirene. ' +
-          'Le classement se fait par distance puis par ordre alphabétique. La place ne s’achète pas.',
+          'Le classement se fait par distance puis par ordre alphabétique.',
         links: [],
       },
     ],
   },
   {
-    label: 'Conseils',
+    label: 'Ressources',
     href: '/conseils',
     links: [
-      { label: 'Tous les conseils', href: '/conseils' },
+      { label: 'Toutes les ressources', href: '/conseils' },
       { label: 'Pour les patients', href: '/conseils/patients' },
       { label: 'Pour les praticiens', href: '/conseils/praticiens' },
       { label: 'Pour les prothésistes', href: '/conseils/prothesistes' },
@@ -123,7 +134,7 @@ export const mainNav: NavEntry[] = [
       { label: 'Toutes les formations', href: '/formation' },
       { label: 'Écoles de prothèse dentaire', href: '/formation/ecoles-de-prothese' },
       { label: "Facultés d'odontologie", href: '/formation/facultes-odontologie' },
-      { label: 'Formations privées', href: '/formation/formations-privees' },
+      { label: 'Formations privées', href: '/formation/formations-privees', badge: 'Bientôt' },
     ],
   },
   {
@@ -173,9 +184,9 @@ export const footerCols: NavColumn[] = [
     title: 'DentalMap',
     links: [
       { label: 'Le projet', href: '/a-propos' },
-      { label: 'Notre engagement de neutralité', href: '/a-propos#neutralite' },
+      { label: 'Notre méthode de vérification', href: '/a-propos#methode' },
       { label: 'Devenir partenaire', href: '/partenaires' },
-      { label: 'Conseils et ressources', href: '/conseils' },
+      { label: 'Ressources', href: '/conseils' },
       { label: 'Formation', href: '/formation' },
     ],
   },
@@ -193,7 +204,7 @@ export type ExplorePanel = { id: string; label: string; links: ExploreLink[] }
 
 export const exploreStatic: ExplorePanel = {
   id: 'conseils',
-  label: 'Conseils',
+  label: 'Ressources',
   links: [
     { title: 'Pour les patients', sub: 'Choisir, comprendre, préparer', href: '/conseils/patients' },
     { title: 'Pour les praticiens', sub: 'Installation, réglementation', href: '/conseils/praticiens' },

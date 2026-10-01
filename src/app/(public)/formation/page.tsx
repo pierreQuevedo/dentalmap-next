@@ -1,7 +1,12 @@
-import { PageEnAttente, metadonneesEnAttente } from '@/components/site/page-en-attente'
+import { ListeFormations, metadonneesFormations, type ParamsLieu } from '@/components/formation/liste-formations'
 
-export const metadata = metadonneesEnAttente('Formation', 'Écoles de prothèse, facultés d’odontologie et formations privées.')
+/** Bloquante : le lieu vient de l'URL. */
+export const instant = false
 
-export default function Page() {
-  return <PageEnAttente titre="Formation" resume="Écoles de prothèse, facultés d’odontologie et formations privées." />
+export async function generateMetadata(props: { searchParams: Promise<ParamsLieu> }) {
+  return metadonneesFormations(null, await props.searchParams)
+}
+
+export default async function Page(props: { searchParams: Promise<ParamsLieu> }) {
+  return <ListeFormations type={null} params={await props.searchParams} />
 }

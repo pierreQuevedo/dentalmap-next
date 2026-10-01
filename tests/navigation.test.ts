@@ -71,7 +71,7 @@ describe('navigation', () => {
   })
 
   it('couvre chaque catégorie et chaque type dans les menus', () => {
-    const conseils = mainNav.find((e) => e.label === 'Conseils')?.links ?? []
+    const conseils = mainNav.find((e) => e.label === 'Ressources')?.links ?? []
     for (const c of CONSEIL_CATEGORIES) expect(conseils.some((l) => l.href === `/conseils/${c}`)).toBe(true)
 
     const annonces = mainNav.find((e) => e.label === 'Annonces')?.links ?? []

@@ -47,3 +47,7 @@ next-env.d.ts
 # Sorties des captures de vérification visuelle
 /captures/
 /undefined/
+
+# Worker MapLibre, copié depuis node_modules par scripts/copie-worker-maplibre.mjs.
+# Les styles de carte dentalmap-*.json, eux, sont versionnés.
+/public/maplibre/maplibre-gl-*.mjs

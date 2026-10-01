@@ -9,8 +9,15 @@ import { Header } from '@/components/site/header'
 export default function PublicLayout({ children }: LayoutProps<'/'>) {
   return (
     <>
+      {/* Lien d'évitement : invisible jusqu'au premier Tab, il saute la barre de navigation. */}
+      <a
+        href="#contenu"
+        className="sr-only z-[70] rounded-md bg-bg px-4 py-2 text-sm font-medium text-fg ring-2 ring-fg focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+      >
+        Aller au contenu
+      </a>
       <Header />
-      <div className="flex-1">{children}</div>
+      <div id="contenu" className="flex-1">{children}</div>
       <Footer />
     </>
   )

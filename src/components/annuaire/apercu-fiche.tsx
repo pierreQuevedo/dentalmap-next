@@ -15,6 +15,7 @@ import { chemin } from '@/lib/navigation'
 import { formaterAdresse } from '@/lib/annuaire/nom'
 import { BASE_URL, nomAffiche, type PraticienResume, type Profession } from '@/lib/annuaire/types'
 import { Verification } from './primitives'
+import { TelephoneProtege } from './telephone-protege'
 
 /**
  * Aperçu d'une fiche, ouvert depuis une liste ou un marqueur de carte.
@@ -102,13 +103,7 @@ export function ApercuFiche({
             <div className="flex gap-4 py-1.5">
               <dt className="w-28 shrink-0 text-fg-2">Téléphone</dt>
               <dd className="text-fg">
-                {praticien.telephone ? (
-                  <a href={`tel:${praticien.telephone.replace(/\s/g, '')}`} className="hover:underline">
-                    {praticien.telephone}
-                  </a>
-                ) : (
-                  'Non communiqué'
-                )}
+                <TelephoneProtege lieuId={praticien.lieuId} possede={praticien.aTelephone} />
               </dd>
             </div>
           </dl>

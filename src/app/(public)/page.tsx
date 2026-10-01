@@ -1,10 +1,17 @@
 import { Suspense } from 'react'
-import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getTotalProfession } from '@/lib/annuaire/queries'
-import { Balisage, organisation } from '@/lib/seo/jsonld'
+import { Balisage, organisation, siteWeb } from '@/lib/seo/jsonld'
 import { SITE_DESCRIPTION } from '@/lib/seo/site'
-import { chemin } from '@/components/annuaire/primitives'
+import { HomeHero } from '@/components/home/HomeHero'
+import { HomeStats } from '@/components/home/HomeStats'
+import { HomeExplore } from '@/components/home/HomeExplore'
+import { HomeProcess } from '@/components/home/HomeProcess'
+import { HomeDentalBridge } from '@/components/home/HomeDentalBridge'
+import { HomeConseils } from '@/components/home/HomeConseils'
+import { HomeFormation } from '@/components/home/HomeFormation'
+import { HomePro } from '@/components/home/HomePro'
+import { HomeFaq } from '@/components/home/HomeFaq'
+import { HomePartenaire } from '@/components/home/HomePartenaire'
 
 export const metadata: Metadata = {
   title: 'DentalMap, annuaire dentaire vérifié',
@@ -12,85 +19,52 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 }
 
-async function Chiffres() {
-  const [dentistes, prothesistes] = await Promise.all([
-    getTotalProfession('dentiste'),
-    getTotalProfession('prothesiste'),
-  ])
-  const cartes = [
-    {
-      titre: 'Chirurgiens-dentistes',
-      total: dentistes.total,
-      communes: dentistes.communes,
-      href: '/dentistes/',
-      source: 'Répertoire partagé des professionnels de santé',
-    },
-    {
-      titre: 'Laboratoires de prothèse',
-      total: prothesistes.total,
-      communes: prothesistes.communes,
-      href: '/prothesistes/',
-      source: 'Base Sirene de l’INSEE',
-    },
-  ]
+/**
+ * Squelette d'attente d'une section qui lit des données.
+ *
+ * Aucun chiffre n'est écrit en dur : tant que la donnée n'est pas là, la
+ * section montre un aplat de la géométrie d'un block, rien d'autre.
+ */
+function Attente({ hauteur = 'h-72' }: { hauteur?: string }) {
   return (
-    <div className="mt-10 grid gap-5 sm:grid-cols-2">
-      {cartes.map((c) => (
-        <Link
-          key={c.href}
-          href={chemin(c.href)}
-          className="rounded-lg border border-line p-6 transition hover:border-line-strong"
-        >
-          <h2 className="text-lg font-medium text-fg">{c.titre}</h2>
-          <p className="mt-3 text-3xl font-semibold tabular-nums text-fg">
-            {c.total.toLocaleString('fr-FR')}
-          </p>
-          <p className="mt-1 text-sm text-fg-2">
-            dans {c.communes.toLocaleString('fr-FR')} communes
-          </p>
-          <p className="mt-4 text-xs text-fg-2">Source : {c.source}</p>
-        </Link>
-      ))}
+    <div className="container py-20 md:py-24" aria-hidden>
+      <div className={`${hauteur} animate-pulse rounded-3xl bg-muted`} />
     </div>
   )
 }
 
-function SqueletteChiffres() {
-  return (
-    <div className="mt-10 grid gap-5 sm:grid-cols-2" aria-hidden>
-      {[0, 1].map((i) => (
-        <div key={i} className="animate-pulse rounded-lg border border-line p-6">
-          <div className="h-6 w-48 rounded bg-line" />
-          <div className="mt-3 h-9 w-32 rounded bg-line" />
-          <div className="mt-2 h-4 w-40 rounded bg-bg-soft" />
-        </div>
-      ))}
-    </div>
-  )
-}
-
+/**
+ * Page d'accueil, composée de blocks shadcnblocks et de trois sections
+ * maison. Ordre : hero, stats, explorer, comment ça marche, DentalBridge,
+ * conseils, formation, praticiens, FAQ, partenaires.
+ *
+ * Z6 est l'encart du logiciel de gestion édité par la même équipe, qui a pris
+ * la place de l'appel à revendiquer sa fiche : voir `HomeDentalBridge`.
+ */
 export default function Accueil() {
   return (
-    <main className="mx-auto max-w-3xl px-5 py-16">
+    <main>
       <Balisage donnees={organisation()} />
-      <h1 className="text-4xl font-semibold tracking-tight text-fg">DentalMap</h1>
-      <p className="mt-4 max-w-2xl text-lg text-fg-2">
-        L&apos;annuaire des chirurgiens-dentistes et des laboratoires de prothèse dentaire en France. Les fiches sont
-        construites à partir des registres publics, pas de déclarations.
-      </p>
+      <Balisage donnees={siteWeb()} />
 
-      <Suspense fallback={<SqueletteChiffres />}>
-        <Chiffres />
+      <HomeHero />
+      <Suspense fallback={<Attente hauteur="h-[28rem]" />}>
+        <HomeStats />
       </Suspense>
-
-      <section className="mt-12 border-t border-line pt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-2">Ce que DentalMap ne fait pas</h2>
-        <ul className="mt-3 space-y-2 text-fg">
-          <li>Aucune mise en avant payante. Le classement est alphabétique ou par distance, rien d&apos;autre.</li>
-          <li>Aucun avis, aucune note. Un annuaire de professionnels de santé n&apos;est pas un site d&apos;avis.</li>
-          <li>Aucune information déclarative présentée comme officielle.</li>
-        </ul>
-      </section>
+      <Suspense fallback={<Attente />}>
+        <HomeExplore />
+      </Suspense>
+      <HomeProcess />
+      <HomeDentalBridge />
+      <Suspense fallback={<Attente />}>
+        <HomeConseils />
+      </Suspense>
+      <HomeFormation />
+      <HomePro />
+      <Suspense fallback={<Attente />}>
+        <HomeFaq />
+      </Suspense>
+      <HomePartenaire />
     </main>
   )
 }

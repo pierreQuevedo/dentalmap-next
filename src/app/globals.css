@@ -230,7 +230,18 @@
    * les fonds de bouton, avec un texte sombre par dessus. Le teal sombre de
    * `--primary` resterait illisible en logo sur un fond presque noir.
    */
+  /*
+   * Les alias du site sont redits ici, et pas seulement à la racine : une
+   * variable se résout là où elle est déclarée. Déclarés à la racine seule,
+   * `--fg` et les autres gardaient leurs valeurs claires dans une section
+   * `dark` posée au milieu d'une page claire, le hero de l'accueil, et un
+   * texte sombre se retrouvait sur un fond sombre.
+   */
+  --bg: var(--background);
   --bg-soft: var(--card);
+  --fg: var(--foreground);
+  --fg-2: var(--muted-foreground);
+  --line: var(--border);
   --line-strong: #36414a;
 
   /* L'encre s'inverse, le bleu s'éclaircit : même rôle, autre luminosité. */
@@ -291,6 +302,10 @@
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-brand: var(--brand);
+  /* Ardoise de la marque, fixe : sert de teinte à la carte du hero, quel que soit le thème. */
+  --color-ardoise: #16222b;
+  /* Teal de la marque, fixe lui aussi : celui du lien « Toutes les ressources » du menu, même dans un bloc sombre. */
+  --color-teal: #0b8484;
   --color-brand-hover: var(--brand-hover);
   --color-brand-foreground: var(--brand-foreground);
   --color-action: var(--action);
@@ -419,6 +434,108 @@
   }
 }
 
+/*
+ * Coin continu, le rayon d'Apple.
+ *
+ * `border-radius` dessine un quart de cercle : la courbure démarre d'un coup,
+ * et l'œil voit la jonction entre le bord droit et l'arc. Les coins d'Apple
+ * sont des superellipses, où la courbure s'installe progressivement le long du
+ * bord. `corner-shape: squircle` produit exactement cette courbe, en une
+ * déclaration, et reste animable comme un rayon ordinaire.
+ *
+ * Chromium 139 et plus l'appliquent. Safari et Firefox l'ignorent et gardent
+ * l'arc de cercle du repli : une dégradation que personne ne voit sans
+ * comparer les deux côte à côte. Aucun polyfill n'est chargé, tous repassent
+ * par un masque SVG ou un `clip-path`, qui coûte une couche de composition et
+ * rogne les ombres portées.
+ *
+ * À rayon égal, un squircle paraît plus serré qu'un arc de cercle. Le facteur
+ * 1.35 rend les deux familles visuellement équivalentes, pour qu'un composant
+ * ne change pas de proportions selon le navigateur.
+ *
+ * Le filtre gluant de `components/ui/skiper-ui/skiper63.tsx` obtient une forme
+ * proche autrement : flou puis contraste alpha. Il n'est pas utilisé ici, le
+ * filtre s'appliquant à tout le sous-arbre, il rendrait illisible le texte des
+ * cartes. Il reste disponible pour des formes décoratives sans contenu.
+ */
+@utility squircle-sm {
+  border-radius: var(--radius-sm);
+  @supports (corner-shape: squircle) {
+    corner-shape: squircle;
+    border-radius: calc(var(--radius-sm) * 1.35);
+  }
+}
+
+@utility squircle-md {
+  border-radius: var(--radius-md);
+  @supports (corner-shape: squircle) {
+    corner-shape: squircle;
+    border-radius: calc(var(--radius-md) * 1.35);
+  }
+}
+
+@utility squircle-lg {
+  border-radius: var(--radius-lg);
+  @supports (corner-shape: squircle) {
+    corner-shape: squircle;
+    border-radius: calc(var(--radius-lg) * 1.35);
+  }
+}
+
+@utility squircle-xl {
+  border-radius: var(--radius-xl);
+  @supports (corner-shape: squircle) {
+    corner-shape: squircle;
+    border-radius: calc(var(--radius-xl) * 1.35);
+  }
+}
+
+@utility squircle-2xl {
+  border-radius: var(--radius-2xl);
+  @supports (corner-shape: squircle) {
+    corner-shape: squircle;
+    border-radius: calc(var(--radius-2xl) * 1.35);
+  }
+}
+
+@utility squircle-3xl {
+  border-radius: var(--radius-3xl);
+  @supports (corner-shape: squircle) {
+    corner-shape: squircle;
+    border-radius: calc(var(--radius-3xl) * 1.35);
+  }
+}
+
+/*
+ * Pilule. Le rayon reste `9999px` pour que les extrémités soient des
+ * demi-cercles parfaits ; seule la transition vers le bord droit se continue.
+ */
+@utility squircle-full {
+  border-radius: 9999px;
+  @supports (corner-shape: squircle) {
+    corner-shape: squircle;
+  }
+}
+
+/*
+ * Popup de la carte : un ancrage, pas une boîte.
+ *
+ * Le contenu est un portail React vers `ApercuFiche`, qui apporte déjà son
+ * fond, sa bordure et son rayon. Sans ces trois règles, la fiche se retrouve
+ * posée dans le cadre blanc par défaut de MapLibre, avec deux bordures et deux
+ * ombres superposées.
+ */
+.maplibregl-popup.dm-popup .maplibregl-popup-content {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.maplibregl-popup.dm-popup .maplibregl-popup-tip {
+  display: none;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -459,5 +576,238 @@
 
   code, pre {
     font-family: var(--font-mono);
+  }
+}
+
+/*
+ * Conteneur des blocks shadcnblocks.
+ *
+ * Les blocks posent leur contenu dans `.container`. Sans réglage, Tailwind 4
+ * ne le centre pas et ne lui donne aucune gouttière. On lui applique les
+ * trois paliers du document de charte : 24 px sous 744 px, 40 px jusqu'à
+ * 1127 px, 80 px au-delà, pour 1128 px de contenu utile.
+ */
+@utility container {
+  width: 100%;
+  margin-inline: auto;
+  max-width: calc(1128px + 2 * 80px);
+  padding-inline: 24px;
+  @media (width >= 744px) {
+    padding-inline: 40px;
+  }
+  @media (width >= 1128px) {
+    padding-inline: 80px;
+  }
+}
+
+/*
+ * En-tête transparent au-dessus du hero de l'accueil.
+ *
+ * L'attribut `data-hero="transparent"` est posé sur `<html>` par le hero,
+ * tant que la page n'a pas défilé. La barre perd alors son fond et son filet,
+ * et ses jetons de couleur passent au blanc : le texte, la loupe, le logo, les
+ * survols. Les menus qui s'ouvrent depuis la barre récupèrent les jetons de
+ * la page, sans quoi ils seraient blancs sur blanc. La transition rend le
+ * retour à l'état normal progressif au premier défilement.
+ */
+#site-header {
+  transition: background-color 0.45s ease, border-color 0.45s ease;
+}
+#site-header :is(a, button, span, svg) {
+  transition: color 0.45s ease, background-color 0.45s ease, border-color 0.45s ease;
+}
+html[data-hero='transparent'] #site-header {
+  background-color: transparent;
+  border-color: transparent;
+  --bg: #101315;
+  --fg: #ffffff;
+  --fg-2: rgb(255 255 255 / 0.78);
+  --brand: #ffffff;
+  --brand-foreground: #101315;
+  --bg-soft: rgb(255 255 255 / 0.12);
+  --line: rgb(255 255 255 / 0.28);
+}
+/* Le bouton de thème vient d'un registre et parle en jetons shadcn : on le force. */
+html[data-hero='transparent'] #site-header button[aria-label='Changer de thème'] {
+  color: #ffffff;
+}
+html[data-hero='transparent'] #site-header :is([role='menu'], .fixed) {
+  --bg: var(--background);
+  --fg: var(--foreground);
+  --fg-2: var(--muted-foreground);
+  --brand: var(--foreground);
+  --brand-foreground: var(--background);
+  --bg-soft: var(--muted);
+  --line: var(--border);
+}
+
+/*
+ * Panneau de recherche ouvert : la barre redevient opaque, même au-dessus du
+ * hero transparent, pour ne faire qu'un avec le panneau déplié dessous. Placé
+ * après les règles du hero, à spécificité égale, pour les surcharger.
+ */
+html[data-recherche='ouverte'] #site-header {
+  background-color: var(--background);
+  --bg: var(--background);
+  --fg: var(--foreground);
+  --fg-2: var(--muted-foreground);
+  --brand: var(--foreground);
+  --brand-foreground: var(--background);
+  --bg-soft: var(--muted);
+  --line: var(--border);
+}
+html[data-recherche='ouverte'] #site-header button[aria-label='Changer de thème'] {
+  color: var(--foreground);
+}
+
+/*
+ * Recherche de l'en-tête : la chorégraphie d'ouverture et de fermeture.
+ *
+ * Quatre phases, posées en `data-etat` par le composant. Le panneau se
+ * déploie en hauteur (rangée de grille 0fr → 1fr), jamais en glissant : c'est
+ * ce qui donne l'impression que la barre s'ouvre. Le rideau prend son flou
+ * progressivement, un peu en retard sur le panneau. Le contenu entre en
+ * fondu du haut vers le bas, chaque élément décalé de 30 ms selon son rang
+ * `--i` ; il sort en ordre inverse, les derniers d'abord et le plus vite. Le
+ * panneau ne se replie qu'une fois le contenu parti.
+ */
+.recherche-panneau {
+  display: grid;
+  grid-template-rows: 0fr;
+  /* Replié, le filet bas du contenu dépasserait d'un pixel sous la barre. */
+  overflow: hidden;
+  transition: grid-template-rows 0.36s cubic-bezier(0.4, 0, 0.6, 1) 0.12s;
+}
+.recherche-panneau > * {
+  min-height: 0;
+  overflow: hidden;
+}
+.recherche-panneau:is([data-etat='ouverture'], [data-etat='ouvert']) {
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.48s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.recherche-panneau:is([data-etat='ouvert']) > * {
+  overflow-y: auto;
+}
+
+.recherche-rideau {
+  opacity: 0;
+  backdrop-filter: blur(0);
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.6, 1) 0.08s,
+    backdrop-filter 0.4s cubic-bezier(0.4, 0, 0.6, 1) 0.08s;
+}
+.recherche-rideau:is([data-etat='ouverture'], [data-etat='ouvert']) {
+  opacity: 1;
+  backdrop-filter: blur(20px);
+  transition:
+    opacity 0.56s cubic-bezier(0.4, 0, 0.6, 1) 0.06s,
+    backdrop-filter 0.56s cubic-bezier(0.4, 0, 0.6, 1) 0.06s;
+}
+
+@keyframes recherche-entree {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes recherche-sortie {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.recherche-intro {
+  opacity: 0;
+}
+[data-etat='ouverture'] .recherche-intro {
+  animation: recherche-entree 0.36s cubic-bezier(0.4, 0, 0.6, 1) both;
+  animation-delay: calc(0.14s + var(--i, 0) * 30ms);
+}
+/* Panneau déjà ouvert : ce qui apparaît en cours de frappe entre sans attendre. */
+[data-etat='ouvert'] .recherche-intro {
+  animation: recherche-entree 0.24s cubic-bezier(0.4, 0, 0.6, 1) both;
+  animation-delay: calc(var(--i, 0) * 15ms);
+}
+[data-etat='fermeture'] .recherche-intro {
+  animation: recherche-sortie calc(0.2s - var(--i, 0) * 12ms) cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Les règles de phase, plus spécifiques, posent le raccourci `transition`. */
+  .recherche-panneau,
+  .recherche-rideau {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+  .recherche-intro {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/*
+ * Mouvement réduit : la bande de logos du hero (react-fast-marquee) ne lit
+ * pas la préférence système. On l'arrête ici, les autres animations passent
+ * par GSAP ou Motion, qui la respectent déjà.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .rfm-marquee,
+  .rfm-child {
+    animation-play-state: paused !important;
+  }
+}
+
+/*
+ * Durées nommées en utilitaires.
+ *
+ * Tailwind v4 n'a pas d'espace de thème pour les durées : `duration-moderate`
+ * n'était généré nulle part, et les transitions qui le portaient tombaient
+ * sur les 150 ms par défaut. Les trois utilitaires lisent les jetons du site.
+ */
+@utility duration-fast {
+  transition-duration: var(--duration-fast);
+}
+@utility duration-moderate {
+  transition-duration: var(--duration-moderate);
+}
+@utility duration-slow {
+  transition-duration: var(--duration-slow);
+}
+
+/*
+ * Entrée des cartes de résultats après un chargement.
+ *
+ * Chaque carte monte de douze pixels et apparaît, décalée de quelques
+ * dizaines de millisecondes après la précédente. Remplissage « backwards »
+ * et non « both » : une fois l'animation finie, elle ne tient plus la
+ * translation, et le soulèvement au survol reprend la main.
+ */
+@keyframes fiche-entree {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+    scale: 0.985;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+@utility animate-fiche-entree {
+  animation: fiche-entree 0.55s var(--ease-lift) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-fiche-entree {
+    animation: none;
   }
 }

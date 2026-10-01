@@ -141,8 +141,11 @@ export function MobileNav({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
                             </h3>
                             {s.note && <p className="px-1 pb-1 text-[13px] leading-relaxed text-fg-2">{s.note}</p>}
                             {s.liens.map((l) => (
-                              <Link key={l.href} href={chemin(l.href)} className="block rounded-xl px-1 py-2.5 text-[15px] text-fg">
+                              <Link key={l.href} href={chemin(l.href)} className={`flex items-center gap-2 rounded-xl px-1 py-2.5 text-[15px] ${l.badge ? 'text-fg-2' : 'text-fg'}`}>
                                 {l.label}
+                                {l.badge && (
+                                  <span className="rounded-full bg-bg-soft text-fg-2 ring-1 ring-inset ring-line px-2 py-0.5 text-[11px] font-medium">{l.badge}</span>
+                                )}
                               </Link>
                             ))}
                           </div>

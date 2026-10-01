@@ -10,11 +10,14 @@ import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import type { Profession } from './types'
 
-export type LienCommune = { label: string; href: string; total: number }
+export type LienCommune = { label: string; href: string; total: number; slug: string }
 
 const BASE_URL: Record<Profession, string> = {
   dentiste: '/dentistes',
   prothesiste: '/prothesistes',
+  maxillo_facial: '/maxillo-faciaux',
+  stomatologue: '/stomatologues',
+  orl: '/orl',
 }
 
 /**
@@ -25,12 +28,9 @@ const BASE_URL: Record<Profession, string> = {
  * cabinets.
  *
  * Paris, Lyon et Marseille n'ont aucun praticien rattaché à leur code commune :
- * l'Annuaire Santé adresse tout à l'arrondissement, et leur page de commune est
- * donc vide. Les compter par leurs arrondissements les fait réapparaître en
- * tête de liste, et leur lien mène à la recherche géolocalisée, seule vue qui
- * couvre aujourd'hui la ville entière. Faire agréger les arrondissements par la
- * page de commune serait une décision d'architecture de l'annuaire, pas un
- * réglage de menu.
+ * l'Annuaire Santé adresse tout à l'arrondissement. Ils sont comptés par leurs
+ * arrondissements, ce qui les fait réapparaître en tête de liste, et leur page
+ * de commune agrège de même ses arrondissements.
  */
 export async function getAccesRapide(limite: number, profession: Profession = 'dentiste'): Promise<LienCommune[]> {
   'use cache'
@@ -41,11 +41,9 @@ export async function getAccesRapide(limite: number, profession: Profession = 'd
     slug: string
     departement_slug: string
     total: number
-    a_des_arrondissements: boolean
   }>(sql`
     SELECT c.nom, c.slug, d.slug AS departement_slug,
-           count(DISTINCT p.id)::int AS total,
-           bool_or(a.commune_parente_code IS NOT NULL) AS a_des_arrondissements
+           count(DISTINCT p.id)::int AS total
     FROM communes c
     JOIN departements d ON d.code = c.departement_code
     -- La commune elle-même, ou l'un de ses arrondissements.
@@ -59,9 +57,8 @@ export async function getAccesRapide(limite: number, profession: Profession = 'd
   `)
   return rows.map((r) => ({
     label: r.nom,
-    href: r.a_des_arrondissements
-      ? `/recherche?profession=${BASE_URL[profession].slice(1)}&q=${encodeURIComponent(r.nom)}`
-      : `${BASE_URL[profession]}/${r.departement_slug}/${r.slug}`,
+    slug: r.slug,
+    href: `${BASE_URL[profession]}/${r.departement_slug}/${r.slug}`,
     total: r.total,
   }))
 }
