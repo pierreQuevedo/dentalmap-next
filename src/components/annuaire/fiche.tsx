@@ -22,6 +22,7 @@ import {
   JOURS,
   LANGUES,
   LIBELLE_JOUR,
+  ORIENTATIONS,
   PAIEMENTS,
   TIERS_PAYANT,
   aDuContenu,
@@ -479,6 +480,14 @@ function ModuleCabinet({ fiche }: { fiche: FicheCompletee }) {
               <Etiquette key={c}>{libelle(PAIEMENTS, c)}</Etiquette>
             ))}
             {fiche.tiersPayant && <p className="basis-full text-sm text-fg-2">{libelle(TIERS_PAYANT, fiche.tiersPayant)}</p>}
+          </Bloc>
+        )}
+        {fiche.orientations.length > 0 && (
+          <Bloc icone={Stethoscope} titre="Orientations déclarées">
+            {fiche.orientations.map((c) => (
+              <Etiquette key={c}>{libelle(ORIENTATIONS, c)}</Etiquette>
+            ))}
+            <p className="basis-full text-sm text-fg-2">Déclarées par le praticien ; ce ne sont pas des spécialités reconnues par l’Ordre.</p>
           </Bloc>
         )}
       </div>

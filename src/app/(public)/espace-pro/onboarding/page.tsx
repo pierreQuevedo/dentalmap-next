@@ -19,8 +19,9 @@ type Params = { fiche?: string; bienvenue?: string }
 /**
  * Parcours d'accueil après revendication.
  *
- * Quatre étapes courtes, dans l'ordre où un patient en a besoin : horaires,
- * langues, accessibilité, paiement. Le praticien peut s'arrêter à tout moment
+ * Des étapes courtes, dans l'ordre où un patient en a besoin : horaires,
+ * langues, accessibilité, paiement, et pour une personne ses orientations
+ * d'exercice. Le praticien peut s'arrêter à tout moment
  * et revenir : chaque étape est enregistrée dès qu'elle est validée.
  *
  * La page revérifie la revendication : un lien copié ne donne rien à qui ne
@@ -55,6 +56,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
     <main className="mx-auto max-w-2xl px-5 py-12">
       <Onboarding
         slug={fiche.slug}
+        profession={fiche.profession}
         nom={nom}
         commune={fiche.communeNom}
         cheminPublic={cheminPublic}

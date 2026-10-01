@@ -10,10 +10,11 @@ import { detientLaFiche, ficheAttribuee, getFicheParSlug } from '@/lib/espace-pr
 import { envoyerFichePubliee } from '@/lib/email'
 import { cheminPraticien, nomAffiche } from '@/lib/annuaire/types'
 import {
-  NB_ETAPES,
+  nombreEtapes,
   schemaAccessibilite,
   schemaHoraires,
   schemaLangues,
+  schemaOrientations,
   schemaPaiement,
 } from '@/lib/espace-pro/fiche-completee'
 
@@ -53,7 +54,9 @@ export async function enregistrerEtape(
   if (!(await detientLaFiche(session.user.id, fiche.id))) {
     return { ok: false, erreur: 'Cette fiche ne vous est pas attribuée.' }
   }
-  if (!Number.isInteger(etape) || etape < 1 || etape > NB_ETAPES) return { ok: false, erreur: 'Étape inconnue.' }
+  // Un laboratoire n'a pas d'étape des orientations : son parcours en compte une de moins.
+  const derniere = nombreEtapes(fiche.profession)
+  if (!Number.isInteger(etape) || etape < 1 || etape > derniere) return { ok: false, erreur: 'Étape inconnue.' }
 
   let colonnes: SQL
   switch (etape) {
@@ -77,14 +80,20 @@ export async function enregistrerEtape(
       colonnes = sql`accessibilite = ${tableauTexte(r.data.accessibilite)}, accessibilite_commentaire = ${r.data.commentaire || null}`
       break
     }
-    default: {
+    case 4: {
       const r = schemaPaiement.safeParse(donnees)
       if (!r.success) return { ok: false, erreur: premierMessage(r.error) }
       colonnes = sql`paiements = ${tableauTexte(r.data.paiements)}, tiers_payant = ${r.data.tiersPayant}`
+      break
+    }
+    default: {
+      const r = schemaOrientations(fiche.profession).safeParse(donnees)
+      if (!r.success) return { ok: false, erreur: premierMessage(r.error) }
+      colonnes = sql`orientations = ${tableauTexte(r.data.orientations)}`
     }
   }
 
-  const termineLe = terminer && etape === NB_ETAPES ? sql`now()` : sql`fiches_completees.termine_le`
+  const termineLe = terminer && etape === derniere ? sql`now()` : sql`fiches_completees.termine_le`
 
   await db.execute(sql`
     INSERT INTO fiches_completees (id, praticien_id, user_id, etape)
@@ -103,7 +112,7 @@ export async function enregistrerEtape(
 
   updateTag(`praticien:${slug}`)
 
-  if (terminer && etape === NB_ETAPES) {
+  if (terminer && etape === derniere) {
     await auth.api.updateUser({ headers: await headers(), body: { etapeTunnel: 'tableau-de-bord' } })
     // Publiée seulement si la fiche est attribuée ; sinon l'email partira à l'acceptation.
     if (await ficheAttribuee(fiche.id)) {

@@ -183,11 +183,12 @@ export async function getFicheCompleteeParPraticien(praticienId: string): Promis
     accessibilite_commentaire: string | null
     paiements: string[]
     tiers_payant: FicheCompletee['tiersPayant']
+    orientations: string[]
     etape: number
     termine_le: string | null
     updated_at: string
   }>(sql`
-    SELECT horaires, langues, accessibilite, accessibilite_commentaire, paiements, tiers_payant, etape, termine_le, updated_at
+    SELECT horaires, langues, accessibilite, accessibilite_commentaire, paiements, tiers_payant, orientations, etape, termine_le, updated_at
     FROM fiches_completees WHERE praticien_id = ${praticienId} LIMIT 1
   `)
   const r = rows[0]
@@ -199,6 +200,7 @@ export async function getFicheCompleteeParPraticien(praticienId: string): Promis
     accessibiliteCommentaire: r.accessibilite_commentaire,
     paiements: r.paiements ?? [],
     tiersPayant: r.tiers_payant,
+    orientations: r.orientations ?? [],
     etape: r.etape,
     termineLe: r.termine_le,
     majLe: r.updated_at,

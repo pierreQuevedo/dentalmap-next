@@ -4,6 +4,7 @@ import {
   schemaAccessibilite,
   schemaHoraires,
   schemaLangues,
+  schemaOrientations,
   schemaPaiement,
 } from '../src/lib/espace-pro/fiche-completee'
 
@@ -59,6 +60,7 @@ describe('aDuContenu', () => {
     accessibiliteCommentaire: null,
     paiements: [],
     tiersPayant: null,
+    orientations: [],
     etape: 0,
     termineLe: null,
     majLe: '2026-09-18',
@@ -71,5 +73,18 @@ describe('aDuContenu', () => {
   it('est vrai dès qu’un champ est renseigné', () => {
     expect(aDuContenu({ ...vide, langues: ['fr'] })).toBe(true)
     expect(aDuContenu({ ...vide, horaires: { lundi: [{ debut: '09:00', fin: '12:00' }] } })).toBe(true)
+    expect(aDuContenu({ ...vide, orientations: ['endodontie'] })).toBe(true)
+  })
+})
+
+describe('schemaOrientations', () => {
+  it('n’accepte que les orientations de la profession', () => {
+    expect(schemaOrientations('dentiste').safeParse({ orientations: ['endodontie', 'implantologie'] }).success).toBe(true)
+    expect(schemaOrientations('orl').safeParse({ orientations: ['endodontie'] }).success).toBe(false)
+    expect(schemaOrientations('orl').safeParse({ orientations: ['rhinologie', 'sommeil'] }).success).toBe(true)
+  })
+  it('ne laisse rien déclarer à un laboratoire', () => {
+    expect(schemaOrientations('prothesiste').safeParse({ orientations: [] }).success).toBe(true)
+    expect(schemaOrientations('prothesiste').safeParse({ orientations: ['implantologie'] }).success).toBe(false)
   })
 })
