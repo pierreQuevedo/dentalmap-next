@@ -97,6 +97,7 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
       emprise={emprise}
       initial={initial}
       valeurLieu={commune?.nom ?? sp.q ?? ''}
+      lieu={commune ? { type: 'commune', code_insee: commune.codeInsee, slug: commune.slug, departement_slug: commune.departementSlug } : undefined}
       enTete={<h1 className="text-2xl font-semibold tracking-tight text-fg">Rechercher un professionnel</h1>}
     />
   )

@@ -59,15 +59,23 @@ export const CIBLES: { cle: Cible; label: string; aide: string }[] = [
  * Pour les écoles et les formations, le lieu part en paramètre de la page de
  * formation, quel que soit son type.
  */
-export function destination(cible: Cible, lieu: SuggestionLieu): string {
+/**
+ * Ce qu'il faut d'un lieu pour construire sa destination : une suggestion
+ * de l'autocomplétion, ou le territoire de la page courante.
+ */
+export type LieuChoisi =
+  | { type: 'commune'; code_insee: string; slug: string; departement_slug: string }
+  | { type: 'departement' | 'region'; code: string; slug: string }
+
+export function destination(cible: Cible, lieu: LieuChoisi): string {
   if (cible === 'ecoles' || cible === 'formations') {
     const base = cible === 'ecoles' ? '/formation/ecoles-de-prothese/' : '/formation/'
     const cle = lieu.type === 'commune' ? 'lieu' : lieu.type
     const valeur = lieu.type === 'commune' ? lieu.code_insee : lieu.code
     return `${base}?${cle}=${encodeURIComponent(valeur)}`
   }
-  if (lieu.type === 'departement' || lieu.type === 'region') return `/${cible}/${lieu.slug}/`
-  return `/${cible}/${lieu.departement_slug}/${lieu.slug}/`
+  if (lieu.type === 'commune') return `/${cible}/${lieu.departement_slug}/${lieu.slug}/`
+  return `/${cible}/${lieu.slug}/`
 }
 
 export const LIBELLE_TYPE: Record<SuggestionLieu['type'], string> = {
