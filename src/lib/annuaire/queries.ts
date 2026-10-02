@@ -926,6 +926,67 @@ export async function chercherCommune(texte: string): Promise<Commune | null> {
   return rows[0] ? getCommuneParCode(rows[0].code_insee) : null
 }
 
+export type Territoire = { type: 'region' | 'departement'; nom: string; slug: string; exact: boolean }
+
+/** Même translittération que `normaliser` dans la route d'autocomplétion. */
+function normaliserTexte(valeur: string): string {
+  return valeur
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+/**
+ * Région ou département correspondant à une saisie libre, pour le formulaire
+ * sans JavaScript et pour une cible changée depuis une page de territoire.
+ *
+ * « Nouvelle-Aquitaine », « Gironde » ou « 33 » ne sont pas des communes : la
+ * recherche doit mener à la page du territoire, qui est une recherche déjà
+ * faite dessus. Une correspondance exacte sur le nom, ou sur le code d'un
+ * département, est dite `exact` ; sinon la plus proche par préfixe ou par
+ * similarité, région avant département. Les noms sont translittérés à la
+ * volée, comme dans l'autocomplétion : les tables sont petites.
+ */
+export async function chercherTerritoire(texte: string): Promise<Territoire | null> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('annuaire')
+  const cherche = normaliserTexte(texte)
+  if (cherche.length < 2 || /^\d{5}$/.test(texte.trim())) return null
+  const estCodeDepartement = /^(\d{2}|2a|2b|97\d)$/i.test(texte.trim())
+  const nomCherchable = (colonne: ReturnType<typeof sql.raw>) =>
+    sql`lower(translate(${colonne}, 'ÀÂÄÉÈÊËÎÏÔÖÙÛÜÇàâäéèêëîïôöùûüç''-', 'AAAEEEEIIOOUUUCaaaeeeeiioouuuc  '))`
+  const { rows } = await db.execute<{ type: 'region' | 'departement'; nom: string; slug: string; exact: boolean }>(sql`
+    SELECT * FROM (
+      SELECT 'region' AS type, r.nom, r.slug,
+             (${nomCherchable(sql.raw('r.nom'))} = ${cherche}) AS exact,
+             (${nomCherchable(sql.raw('r.nom'))} LIKE ${cherche + '%'}) AS prefixe,
+             similarity(${nomCherchable(sql.raw('r.nom'))}, ${cherche}) AS sim, 0 AS rang
+      FROM regions r
+      WHERE EXISTS (SELECT 1 FROM departements d JOIN communes c ON c.departement_code = d.code JOIN lieux_exercice l ON l.code_insee = c.code_insee WHERE d.region_code = r.code)
+      UNION ALL
+      SELECT 'departement' AS type, d.nom, d.slug,
+             (${nomCherchable(sql.raw('d.nom'))} = ${cherche} OR ${estCodeDepartement ? sql`d.code = ${texte.trim().toUpperCase()}` : sql`false`}) AS exact,
+             (${nomCherchable(sql.raw('d.nom'))} LIKE ${cherche + '%'}) AS prefixe,
+             similarity(${nomCherchable(sql.raw('d.nom'))}, ${cherche}) AS sim, 1 AS rang
+      FROM departements d
+      WHERE EXISTS (SELECT 1 FROM communes c JOIN lieux_exercice l ON l.code_insee = c.code_insee WHERE c.departement_code = d.code)
+    ) t
+    WHERE exact OR prefixe OR sim > 0.5
+    ORDER BY exact DESC, prefixe DESC, sim DESC, rang
+    LIMIT 1
+  `)
+  const r = rows[0]
+  return r ? { type: r.type, nom: r.nom, slug: r.slug, exact: r.exact } : null
+}
+
+/** Vrai si la saisie désigne exactement cette commune, accents et tirets mis à part. */
+export function designeExactement(texte: string, nom: string): boolean {
+  return normaliserTexte(texte) === normaliserTexte(nom)
+}
+
 /**
  * Distance du n-ième praticien le plus proche d'un point, en mètres.
  *
