@@ -40,16 +40,26 @@ export function BarreRecherche({ base, valeurLieu }: { base: BaseUrl; valeurLieu
 
   const praticiens = CIBLES_ANNUAIRE.includes(cible)
 
-  /** Changer de cible relance la recherche sur le lieu affiché. */
+  /**
+   * Changer de cible relance la recherche sur le lieu affiché.
+   *
+   * L'état n'est changé que si l'on reste sur la page. Quand on part vers une
+   * autre page, c'est elle qui porte la nouvelle cible ; cette page-ci reste
+   * en vie dans l'historique du routeur, et un retour arrière la retrouverait
+   * avec une cible qui n'est pas la sienne.
+   */
   const changerCible = (c: Cible) => {
-    setCible(c)
     const q = texte.trim()
     if (c === 'ecoles' || c === 'formations') {
       const cheminBase = c === 'ecoles' ? '/formation/ecoles-de-prothese/' : '/formation/'
       router.push(chemin(q ? `${cheminBase}?lieu=${encodeURIComponent(q)}` : cheminBase))
       return
     }
-    if (c !== base) router.push(chemin(`/recherche/?profession=${c}${q ? `&q=${encodeURIComponent(q)}` : ''}`))
+    if (c !== base) {
+      router.push(chemin(`/recherche/?profession=${c}${q ? `&q=${encodeURIComponent(q)}` : ''}`))
+      return
+    }
+    setCible(c)
   }
 
   return (
@@ -129,8 +139,9 @@ function ChampLieuBarre({ texte, setTexte, cible }: { texte: string; setTexte: (
   const suggestions = useSuggestionsLieu(texte, ferme ? texte : '')
   const visibles = ferme ? [] : suggestions
 
+  // Même règle que pour la cible : la page d'arrivée porte le lieu choisi,
+  // celle-ci garde ce qui a été tapé pour un éventuel retour arrière.
   const choisir = (s: SuggestionLieu) => {
-    setTexte(s.nom)
     setFerme(true)
     router.push(chemin(destination(cible, s)))
   }
