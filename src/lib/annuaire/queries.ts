@@ -17,6 +17,7 @@ import {
   empriseAutour,
   reunir,
   type Emprise,
+  type Origine,
   type PageResultats,
 } from './emprise'
 import { EXERCICES, SPECIALITES, type Filtres } from './filtres'
@@ -993,10 +994,12 @@ export async function getPraticiensDansEmprise(
   page = 1,
   parPage = PAR_PAGE_CARTE,
   filtres: Filtres = {},
+  origine: Origine | null = null,
 ): Promise<PageResultats> {
   const { ouest, sud, est, nord } = emprise
-  const centreLon = (ouest + est) / 2
-  const centreLat = (sud + nord) / 2
+  // La distance part du lieu choisi sur la carte quand il y en a un, sinon du centre.
+  const centreLon = origine?.lon ?? (ouest + est) / 2
+  const centreLat = origine?.lat ?? (sud + nord) / 2
 
   const clause = clauseFiltres(filtres)
 

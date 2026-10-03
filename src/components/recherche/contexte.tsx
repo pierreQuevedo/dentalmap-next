@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import type { BaseUrl } from '@/lib/annuaire/types'
-import type { Emprise, PageResultats } from '@/lib/annuaire/emprise'
+import type { Emprise, Origine, PageResultats } from '@/lib/annuaire/emprise'
 import { AUCUN_FILTRE, filtresEnParams, type Filtres } from '@/lib/annuaire/filtres'
 
 /**
@@ -65,7 +65,12 @@ type Etat = {
    */
   survolSlug: string | null
   setSurvol: (cle: string | null, slug?: string | null) => void
-  deplacer: (emprise: Emprise) => void
+  /**
+   * Lieu choisi sur la carte, d'où la liste est classée. Nul quand la liste
+   * décrit simplement ce que la carte montre, classée depuis son centre.
+   */
+  origine: Origine | null
+  deplacer: (emprise: Emprise, origine?: Origine | null) => void
   allerPage: (page: number) => void
 }
 
@@ -109,6 +114,7 @@ export function FournisseurRecherche({
 }) {
   const [mode, setMode] = useState<Mode>(modeInitial)
   const [emprise, setEmprise] = useState(empriseInitiale)
+  const [origine, setOrigine] = useState<Origine | null>(null)
   const [filtres, setFiltresEtat] = useState<Filtres>(AUCUN_FILTRE)
   const [cadrage, setCadrage] = useState<Emprise | null>(null)
   const [page, setPage] = useState(initial.page)
@@ -128,15 +134,16 @@ export function FournisseurRecherche({
    * sauter « le premier passage », résiste au double appel des effets en
    * développement et redemande bien la page 1 quand on y revient.
    */
-  const servi = useRef({ emprise: empriseInitiale, page: initial.page, filtres: AUCUN_FILTRE })
+  const servi = useRef({ emprise: empriseInitiale, page: initial.page, filtres: AUCUN_FILTRE, origine: null as Origine | null })
   const dernierAppel = useRef(0)
 
   useEffect(() => {
-    if (emprise === servi.current.emprise && page === servi.current.page && filtres === servi.current.filtres) return
+    if (emprise === servi.current.emprise && page === servi.current.page && filtres === servi.current.filtres && origine === servi.current.origine) return
     const appel = ++dernierAppel.current
     const controleur = new AbortController()
     const bbox = [emprise.ouest, emprise.sud, emprise.est, emprise.nord].map((n) => n.toFixed(4)).join(',')
     const params = filtresEnParams(filtres, new URLSearchParams({ profession: base, bbox, page: String(page) }))
+    if (origine) params.set('centre', `${origine.lon.toFixed(4)},${origine.lat.toFixed(4)}`)
 
     // Quatre clics sur le bouton de dézoom, c'est quatre emprises en moins
     // d'une seconde. Seule la dernière intéresse l'utilisateur : le délai
@@ -149,7 +156,7 @@ export function FournisseurRecherche({
         .then((d: PageResultats) => {
           // Une réponse en retard ne doit pas écraser un déplacement plus récent.
           if (appel !== dernierAppel.current) return
-          servi.current = { emprise, page, filtres }
+          servi.current = { emprise, page, filtres, origine }
           setDonnees(d)
           setVersion((v) => v + 1)
           setErreur(false)
@@ -166,13 +173,14 @@ export function FournisseurRecherche({
       clearTimeout(minuteur)
       controleur.abort()
     }
-  }, [base, emprise, page, filtres])
+  }, [base, emprise, page, filtres, origine])
 
   // Un déplacement remet à la première page : rester en page sept d'une liste
   // qui vient d'être remplacée n'aurait aucun sens.
-  const deplacer = useCallback((e: Emprise) => {
+  const deplacer = useCallback((e: Emprise, o: Origine | null = null) => {
     setMode('carte')
     setEmprise(e)
+    setOrigine(o)
     setPage(1)
   }, [])
 
@@ -182,6 +190,7 @@ export function FournisseurRecherche({
     setCadrage(e)
     setMode('carte')
     setEmprise(e)
+    setOrigine(null)
     setPage(1)
   }, [])
 
@@ -211,6 +220,7 @@ export function FournisseurRecherche({
         survol,
         survolSlug,
         setSurvol,
+        origine,
         deplacer,
         allerPage,
       }}
