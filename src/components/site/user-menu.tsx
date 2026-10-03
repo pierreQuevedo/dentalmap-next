@@ -57,6 +57,7 @@ export function UserMenu() {
             <>
               <Link role="menuitem" href="/espace-pro" className={`${item} font-semibold`}>Espace pro</Link>
               <Link role="menuitem" href="/espace-pro/fiche" className={item}>Ma fiche</Link>
+              <Link role="menuitem" href="/favoris" className={item}>Mes favoris</Link>
               <Link role="menuitem" href="/espace-pro/revendiquer" className={item}>Vous êtes praticien ?</Link>
               <hr className="mx-2 my-1.5 border-line" />
               <Link role="menuitem" href="/faq" className={item}>Aide</Link>

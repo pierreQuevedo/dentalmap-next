@@ -305,7 +305,9 @@ export const fichesCompletees = pgTable('fiches_completees', {
   /** Modes de paiement acceptés, mêmes codes que le module ci-dessus. */
   paiements: text('paiements').array().notNull().default([]),
   tiersPayant: text('tiers_payant', { enum: ['aucun', 'securite_sociale', 'securite_sociale_et_mutuelle'] }),
-  /** Dernière étape du parcours d'accueil enregistrée, de 0 à 4. */
+  /** Orientations d'exercice déclarées, codes de `ORIENTATIONS` dans le même module. */
+  orientations: text('orientations').array().notNull().default([]),
+  /** Dernière étape du parcours d'accueil enregistrée, de 0 à 5. */
   etape: integer('etape').notNull().default(0),
   /** Renseigné quand le parcours d'accueil a été mené jusqu'au bout. */
   termineLe: timestamp('termine_le', { withTimezone: true }),

@@ -12,16 +12,17 @@ import { useRecherche } from './contexte'
  *
  * La liste décrit ce que la carte montre : elle se renouvelle à chaque
  * déplacement, et se pagine plutôt que de s'allonger. Vingt fiches par page.
- * Une seule colonne tant que la colonne de gauche, quarante-cinq pour cent
- * de la page, n'offre pas six cents pixels utiles, soit un écran de 1600 pixels :
- * en dessous, deux cartes côte à côte n'ont plus la place de montrer leur image.
+ * Deux cartes côte à côte dès que la mise en page passe sur deux colonnes,
+ * soit un écran de 1280 pixels : la colonne de gauche, quarante-cinq pour cent
+ * de la page, offre alors près de cinq cents pixels utiles, de quoi montrer
+ * deux portraits. En dessous, une seule colonne.
  *
  * Le rendu initial vient du serveur, donc la première page s'affiche sans
  * JavaScript et les liens de pagination sont de vrais liens. Le script se
  * contente d'intercepter le clic pour éviter un aller-retour complet.
  */
 export function PanneauResultats() {
-  const { base, territoire, donnees, version, chargement, erreur, survol, survolSlug, setSurvol } = useRecherche()
+  const { base, territoire, donnees, version, chargement, erreur, survol, survolSlug, setSurvol, origine } = useRecherche()
   const profession = PROFESSION_PAR_BASE[base]
   const l = LIBELLE[profession]
   const { resultats, total, page, pages, plafonne } = donnees
@@ -75,7 +76,7 @@ export function PanneauResultats() {
         montre, alors qu'elles décrivaient l'emprise précédente.
       */}
       {chargement ? (
-        <ol className="mt-5 grid gap-4 min-[1600px]:grid-cols-2">
+        <ol className="mt-5 grid gap-4 xl:grid-cols-2">
           {Array.from({ length: nombreDeSquelettes }, (_, i) => (
             <SqueletteFiche key={i} profession={profession} />
           ))}
@@ -87,7 +88,7 @@ export function PanneauResultats() {
            * rejouent leur entrée, décalées par leur rang, au lieu de remplacer
            * les squelettes d'un coup.
            */
-          <ol key={version} className="mt-5 grid gap-4 min-[1600px]:grid-cols-2">
+          <ol key={version} className="mt-5 grid gap-4 xl:grid-cols-2">
             {resultats.map((p, i) => (
               <CarteFiche
                 key={p.slug}
@@ -95,6 +96,7 @@ export function PanneauResultats() {
                 base={base}
                 profession={profession}
                 rang={i}
+                reference={origine ? 'du lieu choisi sur la carte' : undefined}
                 /*
                  * Depuis la liste, la fiche survolée et elle seule. Depuis la
                  * carte, le lieu est connu mais pas la personne : la première

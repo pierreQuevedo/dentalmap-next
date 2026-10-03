@@ -7,6 +7,7 @@ import { ThemeToggle } from './theme-toggle'
 import { MainNav } from './main-nav'
 import { MobileNav } from './mobile-nav'
 import { RechercheHeader } from './recherche-header'
+import { BookmarkIcon } from './nav-icon'
 import { UserMenu } from './user-menu'
 
 /**
@@ -18,8 +19,8 @@ import { UserMenu } from './user-menu'
  * destination du formulaire. L'entrée « Vous êtes praticien ? » vit dans le
  * menu du compte, pas dans la barre.
  *
- * Composant serveur : il charge les communes de l'accès rapide (requête
- * cachée, tag `annuaire`) et les passe au méga-menu. Seuls les fragments qui
+ * Composant serveur : il charge les grandes villes (requête cachée, tag
+ * `annuaire`) pour les liens du panneau de recherche. Seuls les fragments qui
  * ont besoin du navigateur ou de la session sont des composants client.
  */
 export async function Header() {
@@ -36,15 +37,19 @@ export async function Header() {
           DentalMap
         </Link>
 
-        <MainNav accesRapide={accesRapide} conseils={conseils.slice(0, 2)} />
+        <MainNav conseils={conseils.slice(0, 2)} />
 
         <div className="flex items-center justify-end gap-2">
+          {/* Les fiches mises de côté. La page demande la connexion : le lien reste le même pour tous. */}
+          <Link href="/favoris" aria-label="Mes favoris" className="grid size-9 place-items-center rounded-full text-fg hover:bg-bg-soft">
+            <BookmarkIcon className="size-[18px]" />
+          </Link>
           <RechercheHeader accesRapide={accesRapide} />
           {/* `size="icon"` fait 36 px, exactement la place réservée pendant
               l'hydratation : sans cela le bouton arrive 4 px plus petit et
               décale ses voisins. */}
           <ThemeToggle size="icon" aria-label="Changer de thème" tailleReservee="size-9" />
-          <MobileNav accesRapide={accesRapide} />
+          <MobileNav />
           {/* La session n'est lue que par ce fragment : le reste du header
               reste identique pour tout le monde, donc cachable. */}
           <Suspense fallback={<span className="hidden h-[42px] w-[86px] rounded-full border border-line md:inline-block" />}>

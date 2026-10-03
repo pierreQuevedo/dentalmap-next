@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
+import { connection } from 'next/server'
 import type { Metadata } from 'next'
 import {
   Accessibility,
@@ -22,6 +23,7 @@ import {
   JOURS,
   LANGUES,
   LIBELLE_JOUR,
+  ORIENTATIONS,
   PAIEMENTS,
   TIERS_PAYANT,
   aDuContenu,
@@ -179,7 +181,7 @@ export async function PageFiche({ profession, params }: { profession: Profession
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <Verification statut={p.statutVerification} />
-                {geree && <BadgeGeree profession={profession === 'prothesiste' ? 'prothesiste' : 'dentiste'} className="ring-1 ring-inset ring-line" />}
+                {geree && <BadgeGeree profession={profession} className="ring-1 ring-inset ring-line" />}
                 {p.modeExercice && <Etiquette>{MODE_EXERCICE[p.modeExercice] ?? p.modeExercice}</Etiquette>}
                 {etudiant && <Etiquette accent>Inscrit comme étudiant au registre</Etiquette>}
                 {radie && <Etiquette accent>Ne figure plus au registre</Etiquette>}
@@ -422,9 +424,11 @@ function aHoraires(f: FicheCompletee): boolean {
  * langues, accès et paiement en étiquettes. Rendu à part des données de
  * registre, avec la date de déclaration : l'un se vérifie, l'autre se croit.
  */
-function ModuleCabinet({ fiche }: { fiche: FicheCompletee }) {
+async function ModuleCabinet({ fiche }: { fiche: FicheCompletee }) {
   const horaires = fiche.horaires ?? {}
   const maj = new Date(fiche.majLe).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  // Le jour courant change entre deux rendus : il se lit à la requête, jamais au prérendu.
+  await connection()
   const aujourdhui = JOURS[(new Date().getDay() + 6) % 7]
   return (
     <Module id="pratique" titre="Horaires, langues, accès et paiement" intro={`Déclarés par le cabinet, dont l’identité a été vérifiée avant qu’il puisse écrire ici. Mis à jour le ${maj}.`}>
@@ -479,6 +483,14 @@ function ModuleCabinet({ fiche }: { fiche: FicheCompletee }) {
               <Etiquette key={c}>{libelle(PAIEMENTS, c)}</Etiquette>
             ))}
             {fiche.tiersPayant && <p className="basis-full text-sm text-fg-2">{libelle(TIERS_PAYANT, fiche.tiersPayant)}</p>}
+          </Bloc>
+        )}
+        {fiche.orientations.length > 0 && (
+          <Bloc icone={Stethoscope} titre="Orientations déclarées">
+            {fiche.orientations.map((c) => (
+              <Etiquette key={c}>{libelle(ORIENTATIONS, c)}</Etiquette>
+            ))}
+            <p className="basis-full text-sm text-fg-2">Déclarées par le praticien ; ce ne sont pas des spécialités reconnues par l’Ordre.</p>
           </Bloc>
         )}
       </div>

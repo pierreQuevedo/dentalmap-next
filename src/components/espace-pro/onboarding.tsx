@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { chemin } from '@/lib/navigation'
+import type { Profession } from '@/lib/annuaire/types'
 import { enregistrerEtape } from '@/app/(public)/espace-pro/onboarding/actions'
 import {
   ACCESSIBILITE,
@@ -11,12 +12,14 @@ import {
   JOURS,
   LANGUES,
   LIBELLE_JOUR,
-  NB_ETAPES,
   PAIEMENTS,
   TIERS_PAYANT,
+  nombreEtapes,
+  orientationsDe,
   schemaAccessibilite,
   schemaHoraires,
   schemaLangues,
+  schemaOrientations,
   schemaPaiement,
   type CodeTiersPayant,
   type FicheCompletee,
@@ -27,6 +30,7 @@ import {
 
 type Props = {
   slug: string
+  profession: Profession
   nom: string
   commune: string | null
   cheminPublic: string | null
@@ -38,7 +42,8 @@ const PLAGE_MATIN: Plage = { debut: '09:00', fin: '12:30' }
 const PLAGE_APRES_MIDI: Plage = { debut: '14:00', fin: '19:00' }
 
 /**
- * Parcours d'accueil en quatre étapes.
+ * Parcours d'accueil en quatre étapes, cinq pour une personne, qui déclare
+ * aussi ses orientations.
  *
  * L'état de chaque étape vit ici, prérempli par ce qui est déjà en base, et
  * n'est envoyé qu'au clic sur « Continuer ». La validation se fait d'abord
@@ -48,10 +53,13 @@ const PLAGE_APRES_MIDI: Plage = { debut: '14:00', fin: '19:00' }
  * On reprend là où le praticien s'était arrêté, sauf s'il avait fini : il
  * revient alors modifier, et commence au début.
  */
-export function Onboarding({ slug, nom, commune, cheminPublic, existante, bienvenue }: Props) {
+export function Onboarding({ slug, profession, nom, commune, cheminPublic, existante, bienvenue }: Props) {
   const router = useRouter()
   const [enCours, demarrer] = useTransition()
   const [erreur, setErreur] = useState<string | null>(null)
+  const NB_ETAPES = nombreEtapes(profession)
+  const etapes = ETAPES.slice(0, NB_ETAPES)
+  const orientationsPossibles = orientationsDe(profession)
   const [etape, setEtape] = useState(() => {
     if (!existante || existante.termineLe) return 1
     return Math.min(existante.etape + 1, NB_ETAPES)
@@ -63,6 +71,7 @@ export function Onboarding({ slug, nom, commune, cheminPublic, existante, bienve
   const [commentaire, setCommentaire] = useState(existante?.accessibiliteCommentaire ?? '')
   const [paiements, setPaiements] = useState<string[]>(existante?.paiements ?? [])
   const [tiersPayant, setTiersPayant] = useState<CodeTiersPayant | null>(existante?.tiersPayant ?? null)
+  const [orientations, setOrientations] = useState<string[]>(existante?.orientations ?? [])
 
   const donneesDeLEtape = () => {
     switch (etape) {
@@ -72,8 +81,10 @@ export function Onboarding({ slug, nom, commune, cheminPublic, existante, bienve
         return { schema: schemaLangues, donnees: { langues } }
       case 3:
         return { schema: schemaAccessibilite, donnees: { accessibilite, commentaire } }
-      default:
+      case 4:
         return { schema: schemaPaiement, donnees: { paiements, tiersPayant } }
+      default:
+        return { schema: schemaOrientations(profession), donnees: { orientations } }
     }
   }
 
@@ -102,7 +113,7 @@ export function Onboarding({ slug, nom, commune, cheminPublic, existante, bienve
     setEtape(etape + 1)
   }
 
-  const actuelle = ETAPES[etape - 1]
+  const actuelle = etapes[etape - 1]!
 
   return (
     <div>
@@ -119,8 +130,8 @@ export function Onboarding({ slug, nom, commune, cheminPublic, existante, bienve
       </p>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight text-fg">Compléter ma fiche</h1>
 
-      <ol className="mt-6 grid grid-cols-4 gap-2" aria-label="Étapes">
-        {ETAPES.map((e) => {
+      <ol className="mt-6 grid gap-2" style={{ gridTemplateColumns: `repeat(${NB_ETAPES}, minmax(0, 1fr))` }} aria-label="Étapes">
+        {etapes.map((e) => {
           const faite = e.numero < etape
           const active = e.numero === etape
           return (
@@ -192,6 +203,14 @@ export function Onboarding({ slug, nom, commune, cheminPublic, existante, bienve
                 ))}
               </div>
             </>
+          )}
+          {etape === 5 && (
+            <Cases
+              options={orientationsPossibles}
+              valeurs={orientations}
+              onChange={setOrientations}
+              aide="Ce que vous pratiquez le plus. Ces orientations ne sont pas des spécialités reconnues par l’Ordre : elles sont affichées comme déclarées par vous, et servent de filtre aux patients."
+            />
           )}
         </div>
 

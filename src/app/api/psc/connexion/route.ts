@@ -4,6 +4,7 @@ import { configPsc } from '@/lib/psc/config'
 import { urlAutorisation } from '@/lib/psc/client'
 import { COOKIE_PSC, DUREE_ETAT_SECONDES, nouvelEtat, sceller } from '@/lib/psc/etat'
 import { getFicheParSlug } from '@/lib/espace-pro/revendication'
+import { estPersonne } from '@/lib/annuaire/types'
 
 /**
  * Départ vers Pro Santé Connect pour revendiquer une fiche.
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
 
   const fiche = await getFicheParSlug(slug)
   if (!fiche) return versRevendication('fiche')
-  if (fiche.profession !== 'dentiste' || !fiche.rpps) return versRevendication('profession')
+  if (!estPersonne(fiche.profession) || !fiche.rpps) return versRevendication('profession')
 
   const etat = nouvelEtat(slug, session.user.id)
   let destination: string

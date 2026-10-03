@@ -33,9 +33,10 @@ export type NavColumn = {
   title: string
   links: NavLink[]
   highlight?: boolean
-  dynamic?: 'acces-rapide'
   /** Texte d'explication affiché avant les liens, pour la colonne mise en avant. */
   note?: string
+  /** Encart promotionnel à la place des liens : un produit de la maison, en carte. */
+  promo?: { surtitre: string; titre: string; texte: string; cta: string; href: string }
 }
 
 export type NavEntry = {
@@ -93,16 +94,18 @@ export const mainNav: NavEntry[] = [
           { label: 'ORL', href: '/orl' },
         ],
       },
-      { title: 'Accès rapide', links: [], dynamic: 'acces-rapide' },
       {
-        // Colonne d'affirmation, sans lien : elle rappelle la méthode de
-        // vérification au moment où le visiteur entre dans l'annuaire.
-        title: 'Notre méthode',
-        highlight: true,
-        note:
-          'Chaque fiche est vérifiée dans les registres RPPS, ADELI et Sirene. ' +
-          'Le classement se fait par distance puis par ordre alphabétique.',
+        // Encart DentalBridge, le logiciel de gestion de cabinet de la maison,
+        // vendu séparément de l'annuaire : voir aussi `HomeDentalBridge`.
+        title: 'DentalBridge',
         links: [],
+        promo: {
+          surtitre: 'Accès anticipé',
+          titre: 'DentalBridge',
+          texte: 'Le logiciel métier des cabinets et des laboratoires dentaires, boosté à l’IA. Par l’équipe de DentalMap, vendu séparément de l’annuaire.',
+          cta: 'Découvrir DentalBridge',
+          href: 'https://dentalbridge.fr',
+        },
       },
     ],
   },
