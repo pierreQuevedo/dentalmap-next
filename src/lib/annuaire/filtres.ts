@@ -8,13 +8,43 @@
  * déclaration non sourcée.
  */
 import { PROFESSIONS, PROFESSIONS_RPPS, type Profession } from './types'
+import { ORIENTATIONS, orientationsDe, type CodeOrientation } from '@/lib/espace-pro/fiche-completee'
 
-export const SPECIALITES = [
-  { code: 'odf', libelle: 'Orthopédie dento-faciale', valeur: 'Orthopédie dento-faciale' },
-  { code: 'chirurgie-orale', libelle: 'Chirurgie orale', valeur: 'Chirurgie Orale' },
-  { code: 'medecine-bucco-dentaire', libelle: 'Médecine bucco-dentaire', valeur: 'Médecine Bucco-Dentaire' },
-] as const
+export { ORIENTATIONS, orientationsDe, type CodeOrientation }
+
+/**
+ * Spécialités ordinales, telles que le registre les écrit dans
+ * `praticiens.specialite`, par profession.
+ *
+ * Seules figurent les professions où le registre distingue plusieurs
+ * spécialités : les stomatologues et les ORL n'en ont qu'une dans l'annuaire,
+ * un filtre n'y trierait rien. Les deux libellés de la chirurgie
+ * maxillo-faciale, avant et après la réforme de 2017, sont une seule
+ * spécialité pour un patient.
+ */
+export const SPECIALITES: readonly { code: string; libelle: string; valeurs: readonly string[]; professions: readonly Profession[] }[] = [
+  { code: 'odf', libelle: 'Orthopédie dento-faciale', valeurs: ['Orthopédie dento-faciale'], professions: ['dentiste'] },
+  { code: 'chirurgie-orale', libelle: 'Chirurgie orale', valeurs: ['Chirurgie Orale'], professions: ['dentiste'] },
+  { code: 'medecine-bucco-dentaire', libelle: 'Médecine bucco-dentaire', valeurs: ['Médecine Bucco-Dentaire'], professions: ['dentiste'] },
+  {
+    code: 'maxillo-faciale',
+    libelle: 'Chirurgie maxillo-faciale',
+    valeurs: ['Chirurgie maxillo-faciale', 'Chirurgie maxillo-faciale (réforme 2017)'],
+    professions: ['maxillo_facial'],
+  },
+  {
+    code: 'maxillo-faciale-stomatologie',
+    libelle: 'Chirurgie maxillo-faciale et stomatologie',
+    valeurs: ['Chirurgie maxillo-faciale et stomatologie'],
+    professions: ['maxillo_facial'],
+  },
+]
 export type CodeSpecialite = (typeof SPECIALITES)[number]['code']
+
+/** Les spécialités que le registre distingue pour une profession. Vide quand il n'en distingue aucune. */
+export function specialitesDe(profession: Profession) {
+  return SPECIALITES.filter((s) => s.professions.includes(profession))
+}
 
 /** Valeurs du registre pour le mode d'exercice. */
 export const EXERCICES = [
@@ -24,7 +54,10 @@ export const EXERCICES = [
 export type CodeExercice = (typeof EXERCICES)[number]['code']
 
 export type Filtres = {
+  /** Spécialité ordinale, inscrite au registre. */
   specialite?: CodeSpecialite
+  /** Orientation d'exercice, déclarée par le praticien sur une fiche attribuée. */
+  orientation?: CodeOrientation
   exercice?: CodeExercice
   /** Identité confirmée par un registre. */
   verifie?: boolean
@@ -56,6 +89,7 @@ export function nombreDeFiltres(f: Filtres): number {
 /** Les filtres en paramètres d'URL, pour la route de résultats. */
 export function filtresEnParams(f: Filtres, params = new URLSearchParams()): URLSearchParams {
   if (f.specialite) params.set('specialite', f.specialite)
+  if (f.orientation) params.set('orientation', f.orientation)
   if (f.exercice) params.set('exercice', f.exercice)
   for (const c of CASES) if (f[c.cle]) params.set(c.cle, '1')
   return params
@@ -66,6 +100,8 @@ export function lireFiltres(params: URLSearchParams): Filtres {
   const f: Filtres = {}
   const specialite = params.get('specialite')
   if (SPECIALITES.some((s) => s.code === specialite)) f.specialite = specialite as CodeSpecialite
+  const orientation = params.get('orientation')
+  if (ORIENTATIONS.some((o) => o.code === orientation)) f.orientation = orientation as CodeOrientation
   const exercice = params.get('exercice')
   if (EXERCICES.some((e) => e.code === exercice)) f.exercice = exercice as CodeExercice
   for (const c of CASES) if (params.get(c.cle) === '1') f[c.cle] = true

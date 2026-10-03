@@ -8,9 +8,9 @@ import { ChevronDown, MapPin, SlidersHorizontal, X } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 import { useSuggestionsLieu, type SuggestionLieu } from '@/lib/annuaire/use-suggestions'
 import { CIBLES, CIBLES_ANNUAIRE, LIBELLE_TYPE, destination, precision, type Cible } from '@/lib/annuaire/cibles'
-import { AUCUN_FILTRE, CASES, EXERCICES, SPECIALITES, filtresEnParams, nombreDeFiltres, type Filtres } from '@/lib/annuaire/filtres'
+import { AUCUN_FILTRE, CASES, EXERCICES, filtresEnParams, nombreDeFiltres, orientationsDe, specialitesDe, type Filtres } from '@/lib/annuaire/filtres'
 import { LIBELLE } from '@/lib/annuaire/libelles'
-import { PROFESSION_PAR_BASE } from '@/lib/annuaire/types'
+import { PROFESSION_PAR_BASE, estPersonne } from '@/lib/annuaire/types'
 import { Deroulant } from '@/components/site/deroulant'
 import { useRecherche, useRechercheOptionnelle } from './contexte'
 
@@ -250,6 +250,9 @@ function PanneauFiltres({ fermer }: { fermer: () => void }) {
 
   const basculer = (cle: keyof Filtres) => setBrouillon((b) => ({ ...b, [cle]: b[cle] ? undefined : true }))
   const cases = CASES.filter((c) => c.professions.includes(profession))
+  const specialites = specialitesDe(profession)
+  const orientations = orientationsDe(profession)
+  const personne = estPersonne(profession)
   const libelleCompte = compte
     ? `Afficher ${compte.plafonne ? `${compte.total.toLocaleString('fr-FR')}+` : compte.total.toLocaleString('fr-FR')} ${compte.total > 1 ? l.pluriel : l.singulier}`
     : 'Afficher les résultats'
@@ -264,16 +267,25 @@ function PanneauFiltres({ fermer }: { fermer: () => void }) {
       </div>
 
       <div className="max-h-[50vh] space-y-5 overflow-y-auto px-5 py-4">
-        {profession === 'dentiste' && (
-          <Groupe titre="Spécialité">
+        {specialites.length > 0 && (
+          <Groupe titre="Spécialité" note="inscrite au registre">
             <Pastilles
-              options={[{ code: undefined, libelle: 'Toutes' }, ...SPECIALITES]}
+              options={[{ code: undefined, libelle: 'Toutes' }, ...specialites]}
               valeur={brouillon.specialite}
               choisir={(v) => setBrouillon((b) => ({ ...b, specialite: v as Filtres['specialite'] }))}
             />
           </Groupe>
         )}
-        {profession === 'dentiste' && (
+        {orientations.length > 0 && (
+          <Groupe titre="Orientation" note="déclarée par le praticien">
+            <Pastilles
+              options={[{ code: undefined, libelle: 'Toutes' }, ...orientations.map((o) => ({ code: o.code, libelle: o.court }))]}
+              valeur={brouillon.orientation}
+              choisir={(v) => setBrouillon((b) => ({ ...b, orientation: v as Filtres['orientation'] }))}
+            />
+          </Groupe>
+        )}
+        {personne && (
           <Groupe titre="Mode d’exercice">
             <Pastilles
               options={[{ code: undefined, libelle: 'Tous' }, ...EXERCICES]}
@@ -320,10 +332,13 @@ function PanneauFiltres({ fermer }: { fermer: () => void }) {
   )
 }
 
-function Groupe({ titre, children }: { titre: string; children: React.ReactNode }) {
+function Groupe({ titre, note, children }: { titre: string; note?: string; children: React.ReactNode }) {
   return (
     <fieldset>
-      <legend className="mb-2 text-xs font-semibold uppercase tracking-[.06em] text-fg-2">{titre}</legend>
+      <legend className="mb-2 text-xs font-semibold uppercase tracking-[.06em] text-fg-2">
+        {titre}
+        {note && <span className="ml-1.5 font-normal normal-case tracking-normal">{note}</span>}
+      </legend>
       {children}
     </fieldset>
   )

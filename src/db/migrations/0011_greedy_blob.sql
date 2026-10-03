@@ -1,0 +1,1 @@
+ALTER TABLE "fiches_completees" ADD COLUMN "orientations" text[] DEFAULT '{}' NOT NULL;

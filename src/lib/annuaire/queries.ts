@@ -20,7 +20,7 @@ import {
   type Origine,
   type PageResultats,
 } from './emprise'
-import { EXERCICES, SPECIALITES, type Filtres } from './filtres'
+import { EXERCICES, ORIENTATIONS, SPECIALITES, type Filtres } from './filtres'
 import type { BaseUrl, Praticien, PraticienResume, Profession } from './types'
 import { PROFESSION_PAR_BASE } from './types'
 import type { FicheCompletee } from '@/lib/espace-pro/fiche-completee'
@@ -963,7 +963,14 @@ export async function getRayonPourN(profession: Profession, lon: number, lat: nu
 export function clauseFiltres(filtres: Filtres) {
   const conditions = []
   const specialite = SPECIALITES.find((x) => x.code === filtres.specialite)
-  if (specialite) conditions.push(sql`p.specialite = ${specialite.valeur}`)
+  if (specialite) conditions.push(sql`p.specialite IN (${sql.join(specialite.valeurs.map((v) => sql`${v}`), sql`, `)})`)
+  // Déclarée par le praticien : ne compte que sur une fiche attribuée, comme l'accessibilité.
+  const orientation = ORIENTATIONS.find((x) => x.code === filtres.orientation)
+  if (orientation) {
+    conditions.push(
+      sql`EXISTS (SELECT 1 FROM fiches_completees f WHERE f.praticien_id = p.id AND ${orientation.code} = ANY(f.orientations) AND EXISTS (SELECT 1 FROM revendications r WHERE r.praticien_id = p.id AND r.statut = 'acceptee'))`,
+    )
+  }
   const exercice = EXERCICES.find((x) => x.code === filtres.exercice)
   if (exercice) conditions.push(sql`p.mode_exercice = ${exercice.valeur}`)
   if (filtres.verifie) conditions.push(sql`p.statut_verification = 'verifie'`)
@@ -1101,11 +1108,12 @@ export async function getFicheCompletee(slug: string): Promise<FicheCompletee | 
     accessibilite_commentaire: string | null
     paiements: string[]
     tiers_payant: FicheCompletee['tiersPayant']
+    orientations: string[]
     etape: number
     termine_le: string | null
     updated_at: string
   }>(sql`
-    SELECT f.horaires, f.langues, f.accessibilite, f.accessibilite_commentaire, f.paiements, f.tiers_payant,
+    SELECT f.horaires, f.langues, f.accessibilite, f.accessibilite_commentaire, f.paiements, f.tiers_payant, f.orientations,
            f.etape, f.termine_le, f.updated_at
     FROM fiches_completees f
     JOIN praticiens p ON p.id = f.praticien_id
@@ -1123,6 +1131,7 @@ export async function getFicheCompletee(slug: string): Promise<FicheCompletee | 
     accessibiliteCommentaire: r.accessibilite_commentaire,
     paiements: r.paiements ?? [],
     tiersPayant: r.tiers_payant,
+    orientations: r.orientations ?? [],
     etape: r.etape,
     termineLe: r.termine_le,
     majLe: r.updated_at,
