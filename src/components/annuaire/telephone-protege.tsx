@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
@@ -23,12 +23,20 @@ export function TelephoneProtege({ lieuId, possede }: { lieuId: string; possede:
   const chemin_ = usePathname()
   const [numero, setNumero] = useState<string | null>(null)
   const [etat, setEtat] = useState<'repos' | 'chargement' | 'erreur'>('repos')
+  // La session peut être déjà connue au premier rendu client, alors que le
+  // serveur a rendu l'attente : on attend d'être hydraté pour en tenir compte,
+  // sinon l'hydratation trouve un lien là où elle attendait un point de suspension.
+  const monte = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 
   if (!possede) return <span className="text-fg-2">Non communiqué au registre</span>
 
   if (numero) return <Telephone numero={numero} />
 
-  if (isPending) return <span className="text-fg-2">…</span>
+  if (!monte || isPending) return <span className="text-fg-2">…</span>
 
   if (!session) {
     return (

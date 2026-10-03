@@ -22,7 +22,7 @@ import {
 } from './emprise'
 import { EXERCICES, ORIENTATIONS, SPECIALITES, type Filtres } from './filtres'
 import type { BaseUrl, Praticien, PraticienResume, Profession } from './types'
-import { PROFESSION_PAR_BASE } from './types'
+import { BASE_URL, PROFESSION_PAR_BASE } from './types'
 import type { FicheCompletee } from '@/lib/espace-pro/fiche-completee'
 
 /**
@@ -661,7 +661,7 @@ export async function getFichesIndexables(
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
-    SELECT '/' || ${profession === 'dentiste' ? 'dentistes' : 'prothesistes'} || '/' ||
+    SELECT '/' || ${BASE_URL[profession]} || '/' ||
            d.slug || '/' || c.slug || '/' || p.slug || '/' AS chemin,
            to_char(p.updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
     FROM praticiens p

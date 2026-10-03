@@ -8,7 +8,7 @@ import { db } from '@/db'
 import { auth } from '@/lib/auth'
 import { detientLaFiche, ficheAttribuee, getFicheParSlug } from '@/lib/espace-pro/revendication'
 import { envoyerFichePubliee } from '@/lib/email'
-import { cheminPraticien, nomAffiche } from '@/lib/annuaire/types'
+import { BASE_URL, cheminPraticien, nomAffiche } from '@/lib/annuaire/types'
 import {
   nombreEtapes,
   schemaAccessibilite,
@@ -116,8 +116,7 @@ export async function enregistrerEtape(
     await auth.api.updateUser({ headers: await headers(), body: { etapeTunnel: 'tableau-de-bord' } })
     // Publiée seulement si la fiche est attribuée ; sinon l'email partira à l'acceptation.
     if (await ficheAttribuee(fiche.id)) {
-      const base = fiche.profession === 'dentiste' ? 'dentistes' : 'prothesistes'
-      const lien = fiche.communeSlug && fiche.departementSlug ? cheminPraticien(base, fiche.departementSlug, fiche.communeSlug, fiche.slug) : '/espace-pro/'
+      const lien = fiche.communeSlug && fiche.departementSlug ? cheminPraticien(BASE_URL[fiche.profession], fiche.departementSlug, fiche.communeSlug, fiche.slug) : '/espace-pro/'
       await envoyerFichePubliee(session.user.email, nomAffiche(fiche), lien)
     }
   }

@@ -55,6 +55,8 @@ import { PROFESSION_PAR_BASE, type BaseUrl, type PraticienResume } from '@/lib/a
  * seule fiche, un seul rendu, une seule règle d'affichage du nom.
  */
 const SOURCE = 'praticiens'
+/** Police des étiquettes : celle que sert OpenFreeMap. Sans elle, MapLibre demande « Open Sans » et reçoit une 404. */
+const POLICE = ['Noto Sans Regular']
 const SURVOL = 'survol'
 
 const VIDE = { type: 'FeatureCollection' as const, features: [] }
@@ -272,7 +274,7 @@ export function Carte({
         filter: ['has', 'point_count'],
         // L'abrégé est calculé en SQL : MapLibre ne produit
         // `point_count_abbreviated` que pour ses propres grappes.
-        layout: { 'text-field': ['get', 'point_count_abrege'], 'text-size': 12 },
+        layout: { 'text-field': ['get', 'point_count_abrege'], 'text-size': 12, 'text-font': POLICE },
         paint: { 'text-color': '#ffffff' },
       })
       m.addLayer({
@@ -296,7 +298,7 @@ export function Carte({
         source: SOURCE,
         'source-layer': SOURCE,
         filter: ['all', ['!', ['has', 'point_count']], ['>', ['get', 'groupe_n'], 1]],
-        layout: { 'text-field': ['to-string', ['get', 'groupe_n']], 'text-size': 11 },
+        layout: { 'text-field': ['to-string', ['get', 'groupe_n']], 'text-size': 11, 'text-font': POLICE },
         paint: { 'text-color': '#ffffff' },
       })
 

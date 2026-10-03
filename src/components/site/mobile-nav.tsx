@@ -158,7 +158,10 @@ export function MobileNav({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
             </nav>
           </div>
 
-          <div className="border-t border-line px-5 py-4">
+          <div className="grid gap-3 border-t border-line px-5 py-4">
+            <Link href="/favoris" className="block rounded-full border border-line px-5 py-3 text-center text-[15px] font-medium text-fg">
+              Mes favoris
+            </Link>
             <Link
               href="/espace-pro"
               className="block rounded-full bg-action px-5 py-3 text-center text-[15px] font-semibold text-action-foreground"

@@ -5,6 +5,7 @@ import { echangerCode, lireUserinfo, verifierIdToken } from '@/lib/psc/client'
 import { COOKIE_PSC, desceller } from '@/lib/psc/etat'
 import { estChirurgienDentiste, lireIdentitePsc } from '@/lib/psc/identite'
 import { accorderParPsc, getFicheParSlug } from '@/lib/espace-pro/revendication'
+import { estPersonne } from '@/lib/annuaire/types'
 
 /**
  * Retour de Pro Santé Connect.
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
   if (!estChirurgienDentiste(identite)) return versRevendication('profession')
 
   const fiche = await getFicheParSlug(etat.fiche)
-  if (!fiche || fiche.profession !== 'dentiste') return versRevendication('fiche')
+  if (!fiche || !estPersonne(fiche.profession)) return versRevendication('fiche')
   if (fiche.rpps !== identite.rpps) return versRevendication('rpps')
 
   await accorderParPsc({

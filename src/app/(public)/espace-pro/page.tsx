@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { chemin } from '@/lib/navigation'
-import { cheminPraticien } from '@/lib/annuaire/types'
+import { BASE_URL, cheminPraticien } from '@/lib/annuaire/types'
 import { getFichesDuCompte } from '@/lib/espace-pro/revendication'
 import { estModerateur, getCompte } from '@/lib/tunnel/compte'
 import { CHEMIN_ETAPE, etapeDe, libelleRole } from '@/lib/tunnel/etapes'
@@ -58,7 +58,7 @@ export default async function Page() {
                   </Link>
                 )}
                 {f.communeSlug && f.departementSlug && (
-                  <Link href={chemin(cheminPraticien(f.profession === 'dentiste' ? 'dentistes' : 'prothesistes', f.departementSlug, f.communeSlug, f.slug))} className="text-fg underline">
+                  <Link href={chemin(cheminPraticien(BASE_URL[f.profession], f.departementSlug, f.communeSlug, f.slug))} className="text-fg underline">
                     Voir la fiche publique
                   </Link>
                 )}

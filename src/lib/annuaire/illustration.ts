@@ -9,8 +9,9 @@ import type { Civilite, Profession } from './types'
  * se trompe, et se trompe visiblement.
  *
  * Les laboratoires de prothèse sont des structures et non des personnes : une
- * silhouette en blouse y serait un contresens, ils retombent sur la surface
- * neutre, comme les treize dentistes dont la civilité manque.
+ * silhouette en blouse y serait un contresens, ils ont leur propre visuel, un
+ * établi de prothésiste dans les mêmes gris. Seuls les treize dentistes dont la
+ * civilité manque retombent sur la surface neutre.
  *
  * Partagée par les cartes de résultats et l'en-tête des fiches, pour qu'un
  * praticien ne change pas de visage d'une page à l'autre.
@@ -18,11 +19,13 @@ import type { Civilite, Profession } from './types'
 const FONDS = {
   M: '/images/fiche-dentiste-homme.png',
   MME: '/images/fiche-dentiste-femme.png',
+  laboratoire: '/images/fiche-laboratoire.png',
   neutre: '/images/fiche-sans-photo.png',
 } as const
 
 export function illustration(profession: Profession, civilite: Civilite | null): string {
+  if (profession === 'prothesiste') return FONDS.laboratoire
   // Les médecins de la bouche et du visage partagent la silhouette en blouse des dentistes.
-  if (profession === 'prothesiste' || !civilite) return FONDS.neutre
+  if (!civilite) return FONDS.neutre
   return FONDS[civilite]
 }
