@@ -14,7 +14,7 @@ import { NavIconSvg, SearchIcon } from './nav-icon'
  * texte, est repliée dans l'accordéon « À propos » pour ne pas ouvrir une
  * section vide.
  */
-export function MobileNav({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
+export function MobileNav() {
   const pathname = usePathname()
   const router = useRouter()
   // Voir `main-nav.tsx` : la route d'ouverture fait partie de l'état, ce qui
@@ -40,10 +40,6 @@ export function MobileNav({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
       document.removeEventListener('keydown', surTouche)
     }
   }, [ouvert])
-
-  const methode = mainNav
-    .find((e) => e.label === 'Annuaire')
-    ?.columns?.find((c) => c.highlight)?.note
 
   const envoyer = (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,13 +98,11 @@ export function MobileNav({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
                   ? entry.columns
                       .map((c) => ({
                         titre: c.title,
-                        liens: c.dynamic === 'acces-rapide' ? accesRapide : c.links,
+                        liens: c.links,
                       }))
                       .filter((c) => c.liens.length > 0)
                   : [{ titre: entry.label, liens: entry.links ?? [] }]
-                if (entry.label === 'À propos' && methode) {
-                  sections.push({ titre: 'Notre méthode', liens: [], note: methode })
-                }
+                const promo = entry.columns?.find((c) => c.promo)?.promo
                 const deplie = section === entry.label
                 return (
                   <div key={entry.label} className="border-b border-line">
@@ -150,6 +144,20 @@ export function MobileNav({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
                             ))}
                           </div>
                         ))}
+                        {promo && (
+                          <a
+                            href={promo.href}
+                            target="_blank"
+                            rel="noopener"
+                            className="relative isolate mt-1 block overflow-hidden rounded-2xl bg-fg p-4 text-bg"
+                          >
+                            <span aria-hidden className="absolute -right-10 -top-10 -z-10 size-36 rounded-full bg-teal/50 blur-3xl" />
+                            <span className="text-[11px] font-semibold uppercase tracking-[.06em] text-bg/70">{promo.surtitre}</span>
+                            <p className="mt-1 text-lg font-semibold">{promo.titre}</p>
+                            <p className="mt-1 text-[13px] leading-relaxed text-bg/70">{promo.texte}</p>
+                            <span className="mt-3 inline-block text-sm font-semibold">{promo.cta} ↗</span>
+                          </a>
+                        )}
                       </div>
                     )}
                   </div>

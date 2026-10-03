@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { chemin, mainNav, mainNavIcons, type NavEntry, type NavLink } from '@/lib/navigation'
+import { chemin, mainNav, mainNavIcons, type NavColumn, type NavEntry } from '@/lib/navigation'
 import { lienConseil, Rubrique } from '@/components/conseils/primitives'
 import type { ConseilResume } from '@/lib/wp/queries'
 import { Deroulant } from './deroulant'
@@ -24,10 +24,8 @@ function estActif(entry: NavEntry, pathname: string) {
 }
 
 export function MainNav({
-  accesRapide = [],
   conseils = [],
 }: {
-  accesRapide?: NavLink[]
   /** Deux articles au plus : au-delà, le menu devient une page d'accueil. */
   conseils?: ConseilResume[]
 }) {
@@ -104,7 +102,7 @@ export function MainNav({
 
             <Deroulant ouvert={estOuvert} className="absolute left-1/2 top-[calc(100%+12px)] z-[55] -translate-x-1/2">
               {mega ? (
-                <MegaMenu entry={entry} accesRapide={accesRapide} />
+                <MegaMenu entry={entry} />
               ) : entry.label === 'Ressources' && conseils.length > 0 ? (
                 <MenuConseils entry={entry} conseils={conseils} />
               ) : (
@@ -239,18 +237,19 @@ function MenuConseils({ entry, conseils }: { entry: NavEntry; conseils: ConseilR
   )
 }
 
-function MegaMenu({ entry, accesRapide }: { entry: NavEntry; accesRapide: NavLink[] }) {
+function MegaMenu({ entry }: { entry: NavEntry }) {
   return (
     <div
       role="menu"
       onClick={stopper}
-      // Cinq colonnes sur une seule rangée : les trois familles de praticiens,
-      // l'accès rapide, puis la méthode en encart. Le panneau s'élargit en
-      // conséquence et reste contenu dans l'écran sur les portables.
-      className="grid w-[1180px] max-w-[calc(100vw-4rem)] grid-cols-5 gap-5 rounded-[20px] border border-line bg-bg p-6 shadow-pop"
+      // Quatre colonnes sur une seule rangée : les trois familles de
+      // praticiens, les principales recherches, puis la méthode en encart. Le
+      // panneau reste contenu dans l'écran sur les portables.
+      className="grid w-[980px] max-w-[calc(100vw-4rem)] grid-cols-4 gap-5 rounded-[20px] border border-line bg-bg p-6 shadow-pop"
     >
       {entry.columns?.map((col) => {
-        const liens = col.dynamic === 'acces-rapide' ? accesRapide.slice(0, 5) : col.links
+        if (col.promo) return <Encart key={col.title} promo={col.promo} />
+        const liens = col.links
         return (
           <div key={col.title} className={col.highlight ? 'self-start rounded-2xl bg-bg-soft px-1 py-3' : ''}>
             <h4 className="mb-2 px-3 text-xs font-semibold uppercase tracking-[.06em] text-fg-2">{col.title}</h4>
@@ -272,6 +271,39 @@ function MegaMenu({ entry, accesRapide }: { entry: NavEntry; accesRapide: NavLin
         )
       })}
     </div>
+  )
+}
+
+/**
+ * L'encart d'un produit de la maison, en carte sombre à la place d'une
+ * colonne de liens : un seul lien, externe, qui ouvre dans un nouvel onglet.
+ */
+function Encart({ promo }: { promo: NonNullable<NavColumn['promo']> }) {
+  return (
+    <a
+      role="menuitem"
+      href={promo.href}
+      target="_blank"
+      rel="noopener"
+      className="group relative isolate flex flex-col justify-between overflow-hidden rounded-2xl bg-fg p-5 text-bg"
+    >
+      {/* Une lueur sarcelle dans l'angle : l'encart se distingue des colonnes sans crier. */}
+      <span aria-hidden className="absolute -right-12 -top-12 -z-10 size-44 rounded-full bg-teal/50 blur-3xl transition-transform duration-slow ease-lift group-hover:scale-125" />
+      <span aria-hidden className="absolute -bottom-16 -left-10 -z-10 size-40 rounded-full bg-teal/25 blur-3xl" />
+      <div>
+        <span className="inline-flex rounded-full bg-bg/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[.06em] text-bg/80 ring-1 ring-inset ring-bg/20">
+          {promo.surtitre}
+        </span>
+        <p className="mt-3 text-xl font-semibold tracking-tight">{promo.titre}</p>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-bg/70">{promo.texte}</p>
+      </div>
+      <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold">
+        {promo.cta}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="size-4 transition-transform duration-fast group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden>
+          <path d="M7 17 17 7M8 7h9v9" />
+        </svg>
+      </span>
+    </a>
   )
 }
 
