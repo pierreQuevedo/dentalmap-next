@@ -112,6 +112,7 @@ export async function PageCommune({
         mode="territoire"
         territoire={{ libelle: `à ${c.nom}`, classement: 'alphabetique' }}
         valeurLieu={c.nom}
+        lieu={{ type: 'commune', code_insee: c.codeInsee, slug: c.slug, departement_slug: c.departementSlug }}
         enTete={
           <>
             <FilAriane segments={segments.map((s, i) => (i < segments.length - 1 ? { libelle: s.nom, href: s.chemin } : { libelle: s.nom }))} />

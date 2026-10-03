@@ -119,6 +119,7 @@ export async function PageDepartement({ profession, slug, page }: { profession: 
         mode="territoire"
         territoire={{ libelle: 'dans la zone affichée', classement: 'distance' }}
         valeurLieu={d.nom}
+        lieu={{ type: 'departement', code: d.code, slug: d.slug }}
         enTete={
           <>
             <FilAriane segments={segments.map((s, i) => (i < segments.length - 1 ? { libelle: s.nom, href: s.chemin } : { libelle: s.nom }))} />

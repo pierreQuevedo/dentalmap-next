@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
-import { chercherCommune, getCommuneParCode, getPraticiensDansEmprise } from '@/lib/annuaire/queries'
+import { chercherCommune, chercherTerritoire, designeExactement, getCommuneParCode, getPraticiensDansEmprise } from '@/lib/annuaire/queries'
 import { EMPRISE_FRANCE, empriseAutour } from '@/lib/annuaire/emprise'
 import { estBaseUrl, PROFESSION_PAR_BASE, type BaseUrl } from '@/lib/annuaire/types'
 import { chemin } from '@/components/annuaire/primitives'
@@ -53,8 +53,25 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
   const profession = PROFESSION_PAR_BASE[base]
 
   // `lieu` porte un code INSEE choisi dans les suggestions ; `q` la saisie brute
-  // quand le formulaire est envoyé sans JavaScript.
-  const commune = sp.lieu ? await getCommuneParCode(sp.lieu) : sp.q ? await chercherCommune(sp.q) : null
+  // quand le formulaire est envoyé sans JavaScript, ou quand la cible change
+  // depuis une page de territoire.
+  let commune = sp.lieu ? await getCommuneParCode(sp.lieu) : null
+  if (!commune && sp.q) {
+    /*
+     * Une région ou un département ont leur page, qui est une recherche déjà
+     * faite dessus : on y va. Une région nommée exactement l'emporte toujours ;
+     * un département nommé exactement cède à la commune du même nom, Paris
+     * est d'abord une ville ; sinon le territoire ne sert que faute de
+     * commune.
+     */
+    const [territoire, trouvee] = await Promise.all([chercherTerritoire(sp.q), chercherCommune(sp.q)])
+    const communeExacte = trouvee !== null && designeExactement(sp.q, trouvee.nom)
+    const versTerritoire =
+      territoire !== null &&
+      (territoire.exact ? territoire.type === 'region' || !communeExacte : trouvee === null)
+    if (versTerritoire) redirect(chemin(`/${base}/${territoire.slug}/`))
+    commune = trouvee
+  }
 
   // La carte est toujours là, même avant la première recherche : elle montre la
   // couverture nationale au lieu d'un demi-écran vide, et la mise en page ne
@@ -80,6 +97,7 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
       emprise={emprise}
       initial={initial}
       valeurLieu={commune?.nom ?? sp.q ?? ''}
+      lieu={commune ? { type: 'commune', code_insee: commune.codeInsee, slug: commune.slug, departement_slug: commune.departementSlug } : undefined}
       enTete={<h1 className="text-2xl font-semibold tracking-tight text-fg">Rechercher un professionnel</h1>}
     />
   )

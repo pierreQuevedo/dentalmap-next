@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronDown, MapPin, SlidersHorizontal, X } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 import { useSuggestionsLieu, type SuggestionLieu } from '@/lib/annuaire/use-suggestions'
-import { CIBLES, CIBLES_ANNUAIRE, LIBELLE_TYPE, destination, precision, type Cible } from '@/lib/annuaire/cibles'
+import { CIBLES, CIBLES_ANNUAIRE, LIBELLE_TYPE, destination, precision, type Cible, type LieuChoisi } from '@/lib/annuaire/cibles'
 import { AUCUN_FILTRE, CASES, EXERCICES, filtresEnParams, nombreDeFiltres, orientationsDe, specialitesDe, type Filtres } from '@/lib/annuaire/filtres'
 import { LIBELLE } from '@/lib/annuaire/libelles'
 import { PROFESSION_PAR_BASE, estPersonne } from '@/lib/annuaire/types'
@@ -29,7 +29,7 @@ import { useRecherche, useRechercheOptionnelle } from './contexte'
  * une suggestion choisie mène directement à sa page, et les filtres
  * s'appliquent sur place, sans rechargement.
  */
-export function BarreRecherche({ base, valeurLieu }: { base: BaseUrl; valeurLieu: string }) {
+export function BarreRecherche({ base, valeurLieu, lieu }: { base: BaseUrl; valeurLieu: string; lieu?: LieuChoisi }) {
   // Sans fournisseur de recherche, page par département par exemple, la
   // barre garde le lieu et la cible mais n'a pas de filtres à proposer.
   const recherche = useRechercheOptionnelle()
@@ -50,6 +50,13 @@ export function BarreRecherche({ base, valeurLieu }: { base: BaseUrl; valeurLieu
    */
   const changerCible = (c: Cible) => {
     const q = texte.trim()
+    // Le lieu de la page est connu : on va droit à sa page pour la nouvelle
+    // cible, sans passer par la recherche ni sa redirection. Seulement si le
+    // champ montre encore ce lieu : un autre nom tapé est une autre recherche.
+    if (lieu && q === valeurLieu.trim() && c !== base) {
+      router.push(chemin(destination(c, lieu)))
+      return
+    }
     if (c === 'ecoles' || c === 'formations') {
       const cheminBase = c === 'ecoles' ? '/formation/ecoles-de-prothese/' : '/formation/'
       router.push(chemin(q ? `${cheminBase}?lieu=${encodeURIComponent(q)}` : cheminBase))

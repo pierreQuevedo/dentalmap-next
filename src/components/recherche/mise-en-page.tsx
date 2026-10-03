@@ -1,4 +1,5 @@
 import type { Emprise, PageResultats } from '@/lib/annuaire/emprise'
+import type { LieuChoisi } from '@/lib/annuaire/cibles'
 import type { BaseUrl } from '@/lib/annuaire/types'
 import { BarreRecherche } from './barre-recherche'
 import { CarteRecherche } from './carte-recherche'
@@ -76,6 +77,7 @@ export function MiseEnPageRecherche({
   mode = 'carte',
   territoire,
   valeurLieu,
+  lieu,
   enTete,
   apres,
 }: {
@@ -88,6 +90,8 @@ export function MiseEnPageRecherche({
   territoire?: Territoire
   /** Valeur du champ de lieu de la barre, le nom du territoire sur une page d'annuaire. */
   valeurLieu: string
+  /** Le territoire de la page, pour qu'un changement de cible y mène directement. */
+  lieu?: LieuChoisi
   /** Fil d'Ariane, titre et présentation, au-dessus du formulaire. */
   enTete: React.ReactNode
   /** Sous les résultats : communes voisines, liste des communes ou des départements. */
@@ -104,7 +108,7 @@ export function MiseEnPageRecherche({
             {apres}
           </>
         }
-        barre={<BarreRecherche base={base} valeurLieu={valeurLieu} />}
+        barre={<BarreRecherche base={base} valeurLieu={valeurLieu} lieu={lieu} />}
       />
     </FournisseurRecherche>
   )

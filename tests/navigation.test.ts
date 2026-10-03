@@ -62,12 +62,13 @@ describe('navigation', () => {
     for (const l of tousLesLiens()) expect(l.href).not.toContain('/methode-de-verification')
   })
 
-  it("garde la colonne Notre méthode sans lien, avec sa seule affirmation", () => {
+  it('termine par l’encart DentalBridge, sans lien de colonne', () => {
     const annuaire = mainNav.find((e) => e.label === 'Annuaire')
-    const methode = annuaire?.columns?.find((c) => c.highlight)
-    expect(methode?.title).toBe('Notre méthode')
-    expect(methode?.links).toHaveLength(0)
-    expect(methode?.note).toContain('RPPS')
+    const encart = annuaire?.columns?.find((c) => c.promo)
+    expect(encart?.title).toBe('DentalBridge')
+    expect(encart?.links).toHaveLength(0)
+    expect(encart?.promo?.href).toBe('https://dentalbridge.fr')
+    expect(annuaire?.columns?.some((c) => c.title === 'Accès rapide')).toBe(false)
   })
 
   it('couvre chaque catégorie et chaque type dans les menus', () => {
