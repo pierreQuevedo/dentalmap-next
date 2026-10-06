@@ -14,6 +14,7 @@
  *   node scripts/design/france-svg.mjs
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 
 const geo = JSON.parse(readFileSync(new URL('../../public/geo/departements.geojson', import.meta.url), 'utf8'))
 // Emprise métropolitaine et Corse ; les points hors de là (outre-mer) sont ignorés.
@@ -128,4 +129,10 @@ ${cerclesVifs}
 `
 mkdirSync(new URL('../../public/images/compte/', import.meta.url), { recursive: true })
 writeFileSync(new URL('../../public/images/compte/carte-ouest.svg', import.meta.url), svg)
+// Une empreinte du fichier, ajoutée à son adresse : une nouvelle image n'est jamais servie depuis le cache de l'ancienne.
+const empreinte = createHash('sha256').update(svg).digest('hex').slice(0, 10)
+writeFileSync(
+  new URL('../../src/components/compte/carte-ouest.ts', import.meta.url),
+  `/* Généré par scripts/design/france-svg.mjs, ne pas modifier à la main. */\nexport const VERSION_CARTE = '${empreinte}'\n`,
+)
 console.log('anneaux', anneaux.length, 'points', trame.length, 'vifs', vifs.length, 'octets', svg.length)

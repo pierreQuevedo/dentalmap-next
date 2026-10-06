@@ -9,8 +9,8 @@ import { CarteFrance } from './carte-france'
  *
  * Le volet de gauche est sombre quel que soit le thème, c'est une image :
  * l'ardoise du site, la carte pointillée, un voile de la couleur du fond qui
- * s'épaissit vers les bords, et en bas une carte de verre sur toute la
- * largeur, qui dit la taille de l'annuaire avec ses chiffres réels. Sur petit
+ * s'épaissit vers les bords, et en bas une carte de verre dans les marges du
+ * site, qui dit la taille de l'annuaire avec ses chiffres réels. Sur petit
  * écran le volet devient un bandeau au-dessus du contenu. À droite, deux
  * lueurs sarcelle derrière le formulaire, le lien de retour et la marque.
  */
@@ -47,8 +47,8 @@ export async function Coquille({ children, retour = '/' }: { children: React.Rea
               DentalMap
             </Link>
           </div>
-          {/* Carte de verre sur toute la largeur : le titre sur deux lignes et le sous-titre. */}
-          <blockquote className="hidden border-t border-white/15 bg-white/10 px-5 py-8 shadow-pop backdrop-blur-xl md:px-10 lg:block xl:px-20">
+          {/* Carte de verre, dans les marges du site : le titre sur deux lignes et le sous-titre. */}
+          <blockquote className="mx-5 mb-8 hidden rounded-2xl border border-white/15 bg-white/10 p-6 shadow-pop backdrop-blur-xl md:mx-10 lg:block xl:mx-20 xl:p-8">
             <p className="text-balance text-2xl font-semibold leading-snug tracking-tight xl:text-3xl">
               Plus de {professionnels} professionnels
               <br />
