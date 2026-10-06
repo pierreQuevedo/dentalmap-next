@@ -32,8 +32,8 @@ const dx = (TAILLE - largeur * echelle) / 2
 const dy = (TAILLE - hauteur * echelle) / 2
 const projeter = ([lon, lat]) => [((lon - OUEST) * COS) * echelle + dx, (NORD - lat) * echelle + dy]
 
-/** La fenêtre montrée : l'ouest et le sud-ouest, de la Bretagne aux Pyrénées. */
-const FENETRE = { x: 0, y: 130, largeur: 330, hauteur: 450 }
+/** La fenêtre montrée : la moitié ouest de la France, de la Manche aux Pyrénées. */
+const FENETRE = { x: 0, y: 70, largeur: 440, hauteur: 540 }
 const MARGE = 24
 const dedans = ([x, y]) =>
   x >= FENETRE.x - MARGE && x <= FENETRE.x + FENETRE.largeur + MARGE && y >= FENETRE.y - MARGE && y <= FENETRE.y + FENETRE.hauteur + MARGE
