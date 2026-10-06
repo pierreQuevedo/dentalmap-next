@@ -35,8 +35,10 @@ const PROFILS: { role: Role; titre: string; detail: string }[] = [
 
 const LONGUEUR_MOT_DE_PASSE = 12
 
+// Fond opaque, pas de flou : le préremplissage du navigateur peint le champ
+// seul, il doit se fondre dans la pastille (voir `.champ-compte` dans globals.css).
 const pastille =
-  'squircle-full flex items-center gap-2.5 border border-line bg-bg/80 px-4 shadow-pill backdrop-blur-xl transition-colors focus-within:border-line-strong'
+  'champ-compte squircle-full flex items-center gap-2.5 border border-line bg-bg px-4 shadow-pill transition-colors focus-within:border-line-strong'
 const saisie = 'min-w-0 flex-1 bg-transparent py-2.5 text-sm text-fg outline-none placeholder:text-fg-2'
 const principal =
   'hover-lift squircle-full inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 bg-action px-5 text-sm font-semibold text-action-foreground shadow-pill hover:bg-action-hover disabled:cursor-default disabled:opacity-60'

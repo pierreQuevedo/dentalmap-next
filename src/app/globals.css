@@ -811,3 +811,26 @@ html[data-recherche='ouverte'] #site-header button[aria-label='Changer de thème
     animation: none;
   }
 }
+
+/*
+ * Champs de l'espace compte : le préremplissage du navigateur ne doit pas
+ * découper la pastille. Chrome et Safari peignent un fond propre sur le champ
+ * seul, en jaune ou en bleu ; une ombre intérieure de la couleur du fond le
+ * recouvre, et la couleur du texte est rendue à celle du site. La longue
+ * transition retient en plus tout changement de fond que le navigateur
+ * tenterait d'animer.
+ */
+.champ-compte input:-webkit-autofill,
+.champ-compte input:-webkit-autofill:hover,
+.champ-compte input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg) inset;
+  box-shadow: 0 0 0 1000px var(--bg) inset;
+  -webkit-text-fill-color: var(--fg);
+  caret-color: var(--fg);
+  border-radius: 9999px;
+  transition: background-color 9999s ease-out;
+}
+.champ-compte input:autofill {
+  box-shadow: 0 0 0 1000px var(--bg) inset;
+  -webkit-text-fill-color: var(--fg);
+}
