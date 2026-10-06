@@ -15,7 +15,7 @@ import {
   envoyerRevendicationAcceptee,
   envoyerRevendicationRefusee,
 } from '@/lib/email'
-import { estModerateur, getCompte } from './compte'
+import { enregistrerProfil, estModerateur, getCompte } from './compte'
 import { estRole, prochaineEtape, retourSur, type Role } from './etapes'
 
 /**
@@ -60,10 +60,7 @@ export async function choisirProfil(donnees: FormData): Promise<never> {
   const r = schemaProfil.safeParse({ role: donnees.get('role'), nom: donnees.get('nom'), retour: donnees.get('retour') ?? undefined })
   if (!r.success) redirect(chemin(`/inscription/profil/?erreur=${encodeURIComponent(r.error.issues[0]?.message ?? 'Formulaire incomplet')}`))
 
-  await auth.api.updateUser({
-    headers: await headers(),
-    body: { name: r.data.nom, role: r.data.role, etapeTunnel: r.data.role === 'patient' ? 'tableau-de-bord' : 'fiche' },
-  })
+  await enregistrerProfil(r.data.role, r.data.nom)
   const compte = await getCompte()
   redirect(chemin(prochaineEtape(compte!.etat, retourSur(r.data.retour, r.data.role === 'patient' ? '/' : '/espace-pro/'))))
 }
