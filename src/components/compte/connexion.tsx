@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
-import { ArrowRight, Building2, Check, CreditCard, Eye, EyeOff, Hash, Lock, Mail, Stethoscope, User, UserRound } from 'lucide-react'
+import { ArrowRight, Building2, CreditCard, Eye, EyeOff, Hash, Lock, Mail, UserRound } from 'lucide-react'
 import { emailOtp, signIn, signUp } from '@/lib/auth-client'
 import { chemin } from '@/lib/navigation'
 import type { Role } from '@/lib/tunnel/etapes'
@@ -26,11 +26,11 @@ import { ETATS, type Etat } from './etats'
  * `apercu` affiche des onglets pour passer d'un état à l'autre sans rien
  * envoyer : pour vérifier chaque rendu.
  */
-const PROFILS: { role: Role; titre: string; detail: string; icone: typeof User }[] = [
-  { role: 'patient', titre: 'Patient', detail: 'Je cherche un professionnel', icone: UserRound },
-  { role: 'dentiste', titre: 'Chirurgien-dentiste', detail: 'Je gère ma fiche', icone: Stethoscope },
-  { role: 'prothesiste', titre: 'Laboratoire', detail: 'Prothèse dentaire', icone: Building2 },
-  { role: 'medecin', titre: 'Médecin', detail: 'Maxillo-facial, stomatologue, ORL', icone: User },
+const PROFILS: { role: Role; titre: string; detail: string }[] = [
+  { role: 'patient', titre: 'Patient', detail: 'Je cherche un professionnel.' },
+  { role: 'dentiste', titre: 'Dentiste', detail: 'Chirurgien-dentiste, je gère ma fiche.' },
+  { role: 'prothesiste', titre: 'Laboratoire', detail: 'Laboratoire de prothèse dentaire.' },
+  { role: 'medecin', titre: 'Médecin', detail: 'Chirurgien maxillo-facial, stomatologue ou ORL.' },
 ]
 
 const LONGUEUR_MOT_DE_PASSE = 12
@@ -234,35 +234,38 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                 Connectez-vous
               </button>
             </p>
+            {/*
+              Le profil : un sélecteur à quatre segments sur toute la largeur
+              des champs, comme celui de la recherche de l'accueil. Le
+              surligneur glisse sous le segment choisi ; une ligne dessous dit
+              ce qu'il recouvre.
+            */}
             <fieldset className="mt-6">
               <legend className="mb-2.5 text-sm font-medium text-fg">Vous êtes</legend>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="relative grid grid-cols-4 rounded-full border border-line bg-bg-soft p-1">
+                <span
+                  aria-hidden
+                  className="absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/4)] rounded-full bg-bg shadow-pill transition-transform duration-moderate ease-spring motion-reduce:transition-none"
+                  style={{ transform: `translateX(${PROFILS.findIndex((p) => p.role === role) * 100}%)` }}
+                />
                 {PROFILS.map((p) => {
                   const choisi = role === p.role
                   return (
                     <label
                       key={p.role}
-                      className={`squircle-xl hover-lift relative flex cursor-pointer items-start gap-3 border p-3 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${
-                        choisi ? 'border-teal bg-teal/5 shadow-pill' : 'border-line bg-bg hover:border-line-strong'
+                      className={`relative z-10 flex h-9 cursor-pointer items-center justify-center whitespace-nowrap rounded-full px-1 text-[13px] font-medium transition-colors duration-fast has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${
+                        choisi ? 'text-fg' : 'text-fg-2 hover:text-fg'
                       }`}
                     >
                       <input type="radio" name="role" value={p.role} checked={choisi} onChange={() => setRole(p.role)} className="sr-only" />
-                      <span className={`grid size-8 shrink-0 place-items-center rounded-full ${choisi ? 'bg-teal text-white' : 'bg-bg-soft text-teal'}`}>
-                        <p.icone className="size-4" aria-hidden />
-                      </span>
-                      <span className="min-w-0 pr-5">
-                        <span className="block text-[13px] font-semibold leading-tight text-fg">{p.titre}</span>
-                        <span className="mt-0.5 block text-[11px] text-fg-2">{p.detail}</span>
-                      </span>
-                      {choisi && (
-                        <span className="absolute right-2.5 top-2.5 grid size-4 place-items-center rounded-full bg-teal text-white">
-                          <Check className="size-2.5" aria-hidden strokeWidth={3} />
-                        </span>
-                      )}
+                      {p.titre}
                     </label>
                   )
                 })}
               </div>
+              <p className="mt-2 text-xs text-fg-2" aria-live="polite">
+                {PROFILS.find((p) => p.role === role)?.detail}
+              </p>
             </fieldset>
             <div className="mt-5 grid gap-2.5">
               <Champ id="inscription-nom" icone={role === 'prothesiste' ? Building2 : UserRound} libelle={role === 'prothesiste' ? 'Nom du laboratoire' : 'Votre nom'}>
