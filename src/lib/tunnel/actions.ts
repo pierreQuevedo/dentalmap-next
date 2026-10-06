@@ -32,7 +32,7 @@ export type Resultat = { ok: true } | { ok: false; erreur: string }
  * Le compte existe-t-il ? Décide entre « connexion » et « qui êtes-vous ? ».
  *
  * Ce choix de parcours révèle qu'une adresse est inscrite. C'est assumé pour
- * un annuaire dont les comptes ne sont pas secrets ; le lien magique, lui, ne
+ * un annuaire dont les comptes ne sont pas secrets ; le code envoyé, lui, ne
  * part que vers l'adresse elle-même.
  */
 export async function etatCompte(email: string): Promise<{ existe: boolean; role: Role | null }> {

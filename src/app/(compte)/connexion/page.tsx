@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { Coquille } from '@/components/compte/coquille'
-import { Connexion, type Etat } from '@/components/compte/connexion'
+import { Connexion } from '@/components/compte/connexion'
+import { ETATS, type Etat } from '@/components/compte/etats'
 
 export const metadata: Metadata = {
   title: 'Connexion',
-  description: 'Connectez-vous à DentalMap pour accéder aux coordonnées des professionnels et revendiquer votre fiche.',
+  description: 'Connectez-vous à DentalMap avec votre adresse et votre mot de passe pour accéder aux coordonnées des professionnels et revendiquer votre fiche.',
   robots: { index: false, follow: true },
 }
 
@@ -21,20 +22,15 @@ function retourSur(valeur: string | undefined): string {
   return valeur
 }
 
-const ETATS: Etat[] = ['email', 'connu', 'motdepasse', 'nouveau', 'envoye', 'expire']
-
 /**
- * `erreur=lien` est posé par Better Auth quand le lien magique a expiré ou a
- * déjà servi (`errorCallbackURL`) ; `error` est le même signal sous sa forme
- * brute. Hors production, des onglets passent d'un état à l'autre pour
- * vérifier chaque rendu, `etat=` en ouvre un et `apercu=0` les cache.
+ * Hors production, des onglets passent d'un état à l'autre pour vérifier
+ * chaque rendu, `etat=` en ouvre un et `apercu=0` les cache.
  */
-export default async function ConnexionPage(props: { searchParams: Promise<{ retour?: string; erreur?: string; error?: string; apercu?: string; etat?: string }> }) {
+export default async function ConnexionPage(props: { searchParams: Promise<{ retour?: string; apercu?: string; etat?: string }> }) {
   const sp = await props.searchParams
   const retour = retourSur(sp.retour)
   const apercu = process.env.NODE_ENV !== 'production' && sp.apercu !== '0'
-  const lienCasse = sp.erreur === 'lien' || Boolean(sp.error)
-  const etatInitial: Etat = apercu && ETATS.includes(sp.etat as Etat) ? (sp.etat as Etat) : lienCasse ? 'expire' : 'email'
+  const etatInitial: Etat = apercu && ETATS.some((e) => e.cle === sp.etat) ? (sp.etat as Etat) : 'email'
 
   return (
     <Coquille retour={retour === '/' ? '/' : retour}>

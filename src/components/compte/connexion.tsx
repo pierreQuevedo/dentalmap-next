@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
-import { ArrowRight, BadgeCheck, Building2, Check, Clock, KeyRound, Lock, Mail, ShieldCheck, Stethoscope, User, UserRound } from 'lucide-react'
-import { signIn } from '@/lib/auth-client'
+import { ArrowRight, BadgeCheck, Building2, Check, Clock, CreditCard, Hash, KeyRound, Lock, Mail, ShieldCheck, Stethoscope, User, UserRound } from 'lucide-react'
+import { emailOtp, signIn, signUp } from '@/lib/auth-client'
 import { chemin } from '@/lib/navigation'
 import { etatCompte } from '@/lib/tunnel/actions'
 import type { Role } from '@/lib/tunnel/etapes'
@@ -11,32 +11,22 @@ import type { Role } from '@/lib/tunnel/etapes'
 /**
  * Le flux de connexion, en un seul écran qui change d'état.
  *
- * 1. l'adresse ; 2a. compte connu : lien magique, ou mot de passe pour qui
- * en a un ; 2b. nouveau compte : qui êtes-vous, puis le nom ; 3. le lien est
- * parti ; 5. le lien était expiré ou invalide. Le retour du lien (4) n'a pas
- * d'écran : la session s'ouvre et la page de retour s'affiche.
+ * 1. l'adresse ; 2a. compte connu : le mot de passe, ou un code à six
+ * chiffres envoyé par courriel pour qui l'a oublié ; 2b. nouveau compte : qui
+ * êtes-vous, le nom, le mot de passe ; 3. le code reçu confirme l'adresse et
+ * ouvre la session. Pro Santé Connect est annoncé en encart, il arrive.
  *
  * Les champs reprennent la pastille de la recherche de l'accueil, icône à
  * gauche et bouton rond à droite : c'est le geste du site. Chaque état
  * entre en fondu, et un fil d'étapes dit où l'on en est.
  *
- * Un nouveau compte part avec son nom et son rôle : le nom est créé avec le
- * compte par le lien, le rôle est porté dans l'URL d'arrivée, que la page de
- * profil enregistre sans rien redemander.
+ * Un nouveau compte part avec son nom et son rôle, enregistrés avec le
+ * compte : la page de profil n'a rien à redemander.
  *
  * `apercu` affiche des onglets pour passer d'un état à l'autre sans rien
  * envoyer : pour vérifier chaque rendu.
  */
-export type Etat = 'email' | 'connu' | 'motdepasse' | 'nouveau' | 'envoye' | 'expire'
-
-const ETATS: { cle: Etat; libelle: string }[] = [
-  { cle: 'email', libelle: 'Adresse' },
-  { cle: 'connu', libelle: 'Compte connu' },
-  { cle: 'motdepasse', libelle: 'Mot de passe' },
-  { cle: 'nouveau', libelle: 'Nouveau compte' },
-  { cle: 'envoye', libelle: 'Lien envoyé' },
-  { cle: 'expire', libelle: 'Lien expiré' },
-]
+import { ETATS, type Etat } from './etats'
 
 const PROFILS: { role: Role; titre: string; detail: string; icone: typeof User }[] = [
   { role: 'patient', titre: 'Patient', detail: 'Je cherche un professionnel', icone: UserRound },
@@ -47,74 +37,51 @@ const PROFILS: { role: Role; titre: string; detail: string; icone: typeof User }
 
 /** Le fil d'étapes de chaque état : le chemin parcouru, l'étape en cours, ce qui reste. */
 const FIL: Record<Etat, { etapes: string[]; courante: number }> = {
-  email: { etapes: ['Adresse', 'Vérification', 'Connecté'], courante: 0 },
-  connu: { etapes: ['Adresse', 'Vérification', 'Connecté'], courante: 1 },
+  email: { etapes: ['Adresse', 'Identification', 'Connecté'], courante: 0 },
   motdepasse: { etapes: ['Adresse', 'Mot de passe', 'Connecté'], courante: 1 },
-  nouveau: { etapes: ['Adresse', 'Profil', 'Vérification'], courante: 1 },
-  envoye: { etapes: ['Adresse', 'Vérification', 'Connecté'], courante: 2 },
-  expire: { etapes: ['Adresse', 'Vérification', 'Connecté'], courante: 1 },
+  code: { etapes: ['Adresse', 'Code reçu', 'Connecté'], courante: 1 },
+  oubli: { etapes: ['Adresse', 'Nouveau mot de passe', 'Connecté'], courante: 1 },
+  nouveau: { etapes: ['Adresse', 'Profil', 'Confirmation'], courante: 1 },
+  verifier: { etapes: ['Adresse', 'Profil', 'Confirmation'], courante: 2 },
 }
+
+const LONGUEUR_MOT_DE_PASSE = 12
 
 const pastille =
   'squircle-full flex items-center gap-3 border border-line bg-bg/80 p-1.5 pl-5 shadow-pill backdrop-blur-xl transition-colors focus-within:border-line-strong'
 const saisie = 'min-w-0 flex-1 bg-transparent py-2.5 text-base text-fg outline-none placeholder:text-fg-2'
 const rond =
   'squircle-full hover-lift flex size-11 shrink-0 items-center justify-center bg-action text-action-foreground hover:bg-action-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action disabled:opacity-60'
-const principal =
-  'hover-lift squircle-full inline-flex h-12 w-full items-center justify-center gap-2 bg-action px-5 font-semibold text-action-foreground shadow-pill hover:bg-action-hover disabled:opacity-60'
-const discret =
-  'squircle-full inline-flex h-12 w-full items-center justify-center gap-2 border border-line bg-bg px-5 font-medium text-fg hover:border-line-strong hover:bg-bg-soft'
 const lien = 'font-medium text-fg underline underline-offset-4 hover:no-underline'
 
 export function Connexion({ retour, etatInitial = 'email', apercu = false }: { retour: string; etatInitial?: Etat; apercu?: boolean }) {
   const [etat, setEtat] = useState<Etat>(etatInitial)
   const [email, setEmail] = useState('')
   const [motDePasse, setMotDePasse] = useState('')
+  const [codeSaisi, setCodeSaisi] = useState('')
   const [role, setRole] = useState<Role>('patient')
   const [nom, setNom] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
   const [enCours, demarrer] = useTransition()
-  // Le dernier envoi était-il une création de compte ? Pour « Renvoyer le lien ».
-  const [dernierNouveau, setDernierNouveau] = useState(false)
   const adresse = email || 'vous@exemple.fr'
 
   const aller = (e: Etat) => {
     setErreur(null)
+    setInfo(null)
+    setCodeSaisi('')
     setEtat(e)
   }
 
-  const envoyerLien = async (nouveau: boolean) => {
-    setDernierNouveau(nouveau)
-    const { error } = await signIn.magicLink({
-      email,
-      callbackURL: retour,
-      errorCallbackURL: `/connexion/?erreur=lien&retour=${encodeURIComponent(retour)}`,
-      ...(nouveau
-        ? { name: nom.trim(), newUserCallbackURL: `/inscription/profil/?role=${role}&retour=${encodeURIComponent(retour)}` }
-        : {}),
-    })
-    if (error) throw new Error(error.message ?? 'envoi')
-  }
+  /** Mène là où l'on voulait aller : la page de profil relit le compte et décide de la suite. */
+  const continuer = () => window.location.assign(chemin(`/inscription/profil/?retour=${encodeURIComponent(retour)}`))
 
   const soumettreEmail = (e: React.FormEvent) => {
     e.preventDefault()
     setErreur(null)
     demarrer(async () => {
       const { existe } = await etatCompte(email)
-      setEtat(existe ? 'connu' : 'nouveau')
-    })
-  }
-
-  const soumettreLien = (nouveau: boolean) => (e: React.FormEvent) => {
-    e.preventDefault()
-    setErreur(null)
-    demarrer(async () => {
-      try {
-        await envoyerLien(nouveau)
-        setEtat('envoye')
-      } catch {
-        setErreur('Le lien n’a pas pu être envoyé. Vérifiez l’adresse et réessayez.')
-      }
+      setEtat(existe ? 'motdepasse' : 'nouveau')
     })
   }
 
@@ -123,19 +90,94 @@ export function Connexion({ retour, etatInitial = 'email', apercu = false }: { r
     setErreur(null)
     demarrer(async () => {
       const { error } = await signIn.email({ email, password: motDePasse })
-      if (error) setErreur('Adresse ou mot de passe incorrect.')
-      else window.location.assign(retour)
+      if (!error) return window.location.assign(chemin(retour))
+      if (error.status === 403) {
+        // Adresse jamais confirmée : on renvoie un code et on passe à la confirmation.
+        await emailOtp.sendVerificationOtp({ email, type: 'email-verification' })
+        setMotDePasse('')
+        aller('verifier')
+        return
+      }
+      setErreur('Adresse ou mot de passe incorrect.')
     })
   }
 
-  const renvoyer = () => {
+  const demanderCode = (type: 'sign-in' | 'forget-password') => {
     setErreur(null)
     demarrer(async () => {
-      try {
-        await envoyerLien(dernierNouveau)
-      } catch {
-        setErreur('Le lien n’a pas pu être renvoyé.')
+      const { error } = await emailOtp.sendVerificationOtp({ email, type })
+      if (error) {
+        setErreur('Le code n’a pas pu être envoyé. Réessayez dans un instant.')
+        return
       }
+      setMotDePasse('')
+      aller(type === 'sign-in' ? 'code' : 'oubli')
+      setInfo(`Un code à six chiffres vient de partir à ${email}.`)
+    })
+  }
+
+  const soumettreCode = (e: React.FormEvent) => {
+    e.preventDefault()
+    setErreur(null)
+    demarrer(async () => {
+      const { error } = await signIn.emailOtp({ email, otp: codeSaisi })
+      if (error) setErreur('Ce code ne correspond pas, ou il a expiré.')
+      else window.location.assign(chemin(retour))
+    })
+  }
+
+  const soumettreOubli = (e: React.FormEvent) => {
+    e.preventDefault()
+    setErreur(null)
+    demarrer(async () => {
+      const { error } = await emailOtp.resetPassword({ email, otp: codeSaisi, password: motDePasse })
+      if (error) {
+        setErreur(error.status === 400 && /password/i.test(error.message ?? '') ? `Douze caractères au moins.` : 'Ce code ne correspond pas, ou il a expiré.')
+        return
+      }
+      const connexion = await signIn.email({ email, password: motDePasse })
+      if (connexion.error) aller('motdepasse')
+      else window.location.assign(chemin(retour))
+    })
+  }
+
+  const soumettreNouveau = (e: React.FormEvent) => {
+    e.preventDefault()
+    setErreur(null)
+    demarrer(async () => {
+      const { error } = await signUp.email({
+        email,
+        password: motDePasse,
+        name: nom.trim(),
+        role,
+        etapeTunnel: role === 'patient' ? 'tableau-de-bord' : 'fiche',
+      })
+      if (error) {
+        setErreur(error.status === 422 || /exist/i.test(error.message ?? '') ? 'Un compte existe déjà avec cette adresse.' : 'Le compte n’a pas pu être créé. Vérifiez le mot de passe, douze caractères au moins.')
+        return
+      }
+      // Le code de confirmation part avec l'inscription.
+      aller('verifier')
+      setInfo(`Un code à six chiffres vient de partir à ${email}.`)
+    })
+  }
+
+  const soumettreVerification = (e: React.FormEvent) => {
+    e.preventDefault()
+    setErreur(null)
+    demarrer(async () => {
+      const { error } = await emailOtp.verifyEmail({ email, otp: codeSaisi })
+      if (error) setErreur('Ce code ne correspond pas, ou il a expiré.')
+      else continuer()
+    })
+  }
+
+  const renvoyerVerification = () => {
+    setErreur(null)
+    demarrer(async () => {
+      const { error } = await emailOtp.sendVerificationOtp({ email, type: 'email-verification' })
+      setInfo(error ? null : `Un nouveau code vient de partir à ${email}.`)
+      if (error) setErreur('Le code n’a pas pu être renvoyé.')
     })
   }
 
@@ -169,12 +211,8 @@ export function Connexion({ retour, etatInitial = 'email', apercu = false }: { r
         {etat === 'email' && (
           <form onSubmit={soumettreEmail}>
             <Badge>Annuaire vérifié par les registres</Badge>
-            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">
-              Bienvenue sur DentalMap
-            </h1>
-            <p className="mt-4 text-lg text-fg-2">
-              Votre adresse suffit. Nous vous envoyons un lien, rien à retenir.
-            </p>
+            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Bienvenue sur DentalMap</h1>
+            <p className="mt-4 text-lg text-fg-2">Votre adresse, puis votre mot de passe. Nouveau ici ? Le compte se crée dans la foulée.</p>
             <label htmlFor="connexion-email" className="sr-only">
               Adresse électronique
             </label>
@@ -197,12 +235,13 @@ export function Connexion({ retour, etatInitial = 'email', apercu = false }: { r
               </button>
             </div>
             <ul className="mt-6 grid gap-3 text-sm text-fg-2 sm:grid-cols-3">
-              <Atout icone={KeyRound}>Sans mot de passe</Atout>
-              <Atout icone={Clock}>Lien valable cinq minutes</Atout>
-              <Atout icone={ShieldCheck}>Adresse jamais revendue</Atout>
+              <Atout icone={KeyRound}>Mot de passe, ou code reçu par courriel</Atout>
+              <Atout icone={ShieldCheck}>Adresse confirmée par un code</Atout>
+              <Atout icone={Clock}>Deux minutes pour s’inscrire</Atout>
             </ul>
-            <p className="mt-8 border-t border-line pt-6 text-sm text-fg-2">
-              Nouveau ici ? Votre compte se crée en une étape. Vous êtes praticien ou laboratoire ?{' '}
+            <ProSanteConnect />
+            <p className="mt-6 text-sm text-fg-2">
+              Vous êtes praticien ou laboratoire ?{' '}
               <Link href={chemin('/espace-pro/revendiquer/')} className={lien}>
                 Revendiquez votre fiche
               </Link>
@@ -210,62 +249,103 @@ export function Connexion({ retour, etatInitial = 'email', apercu = false }: { r
           </form>
         )}
 
-        {(etat === 'connu' || etat === 'motdepasse') && (
-          <form onSubmit={etat === 'connu' ? soumettreLien(false) : soumettreMotDePasse}>
+        {etat === 'motdepasse' && (
+          <form onSubmit={soumettreMotDePasse}>
             <Badge>Bon retour</Badge>
-            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">
-              {etat === 'connu' ? 'On vous envoie votre lien' : 'Votre mot de passe'}
-            </h1>
+            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Votre mot de passe</h1>
             <Adresse email={adresse} changer={() => aller('email')} />
-            {etat === 'connu' ? (
-              <>
-                <p className="mt-6 text-lg text-fg-2">Un clic dans le courriel et vous êtes connecté. Le lien vaut cinq minutes.</p>
-                <button type="submit" disabled={enCours} className={`${principal} mt-8`}>
-                  {enCours ? <Point /> : <Mail className="size-4" aria-hidden />}
-                  {enCours ? 'Envoi…' : 'Recevoir mon lien de connexion'}
-                </button>
-                <button type="button" onClick={() => aller('motdepasse')} className={`${discret} mt-3`}>
-                  <Lock className="size-4 text-fg-2" aria-hidden />
-                  Utiliser mon mot de passe
-                </button>
-              </>
-            ) : (
-              <>
-                <label htmlFor="connexion-mdp" className="sr-only">
-                  Mot de passe
-                </label>
-                <div className={`${pastille} mt-8`}>
-                  <Lock className="size-5 shrink-0 text-fg-2" aria-hidden />
-                  <input
-                    id="connexion-mdp"
-                    type="password"
-                    name="password"
-                    required
-                    autoComplete="current-password"
-                    autoFocus
-                    value={motDePasse}
-                    onChange={(e) => setMotDePasse(e.target.value)}
-                    placeholder="Votre mot de passe"
-                    className={saisie}
-                  />
-                  <button type="submit" disabled={enCours} aria-label="Se connecter" className={rond}>
-                    {enCours ? <Point /> : <ArrowRight className="size-5" aria-hidden />}
-                  </button>
-                </div>
-                <p className="mt-6 text-sm text-fg-2">
-                  Oublié ?{' '}
-                  <button type="button" onClick={() => aller('connu')} className={lien}>
-                    Recevoir un lien à la place
-                  </button>
-                </p>
-              </>
-            )}
+            <label htmlFor="connexion-mdp" className="sr-only">
+              Mot de passe
+            </label>
+            <div className={`${pastille} mt-8`}>
+              <Lock className="size-5 shrink-0 text-fg-2" aria-hidden />
+              <input
+                id="connexion-mdp"
+                type="password"
+                name="password"
+                required
+                autoComplete="current-password"
+                autoFocus
+                value={motDePasse}
+                onChange={(e) => setMotDePasse(e.target.value)}
+                placeholder="Votre mot de passe"
+                className={saisie}
+              />
+              <button type="submit" disabled={enCours} aria-label="Se connecter" className={rond}>
+                {enCours ? <Point /> : <ArrowRight className="size-5" aria-hidden />}
+              </button>
+            </div>
             {erreur && <Erreur>{erreur}</Erreur>}
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-fg-2">
+              <button type="button" onClick={() => demanderCode('forget-password')} disabled={enCours} className={lien}>
+                Mot de passe oublié
+              </button>
+              <button type="button" onClick={() => demanderCode('sign-in')} disabled={enCours} className={lien}>
+                Recevoir un code à la place
+              </button>
+            </div>
+            <ProSanteConnect />
+          </form>
+        )}
+
+        {etat === 'code' && (
+          <form onSubmit={soumettreCode}>
+            <Badge>Code de connexion</Badge>
+            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Saisissez le code reçu</h1>
+            <Adresse email={adresse} changer={() => aller('email')} />
+            {info && <Info>{info}</Info>}
+            <ChampCode valeur={codeSaisi} onChange={setCodeSaisi} enCours={enCours} />
+            {erreur && <Erreur>{erreur}</Erreur>}
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-fg-2">
+              <button type="button" onClick={() => demanderCode('sign-in')} disabled={enCours} className={lien}>
+                Renvoyer un code
+              </button>
+              <button type="button" onClick={() => aller('motdepasse')} className={lien}>
+                Utiliser mon mot de passe
+              </button>
+            </div>
+          </form>
+        )}
+
+        {etat === 'oubli' && (
+          <form onSubmit={soumettreOubli}>
+            <Badge>Mot de passe oublié</Badge>
+            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Choisissez-en un nouveau</h1>
+            <Adresse email={adresse} changer={() => aller('email')} />
+            {info && <Info>{info}</Info>}
+            <ChampCode valeur={codeSaisi} onChange={setCodeSaisi} enCours={enCours} sansBouton />
+            <label htmlFor="connexion-nouveau-mdp" className="sr-only">
+              Nouveau mot de passe
+            </label>
+            <div className={`${pastille} mt-3`}>
+              <Lock className="size-5 shrink-0 text-fg-2" aria-hidden />
+              <input
+                id="connexion-nouveau-mdp"
+                type="password"
+                name="new-password"
+                required
+                minLength={LONGUEUR_MOT_DE_PASSE}
+                autoComplete="new-password"
+                value={motDePasse}
+                onChange={(e) => setMotDePasse(e.target.value)}
+                placeholder={`Nouveau mot de passe, ${LONGUEUR_MOT_DE_PASSE} caractères au moins`}
+                className={saisie}
+              />
+              <button type="submit" disabled={enCours} aria-label="Enregistrer et se connecter" className={rond}>
+                {enCours ? <Point /> : <ArrowRight className="size-5" aria-hidden />}
+              </button>
+            </div>
+            {erreur && <Erreur>{erreur}</Erreur>}
+            <p className="mt-6 text-sm text-fg-2">
+              <button type="button" onClick={() => demanderCode('forget-password')} disabled={enCours} className={lien}>
+                Renvoyer un code
+              </button>
+            </p>
           </form>
         )}
 
         {etat === 'nouveau' && (
-          <form onSubmit={soumettreLien(true)}>
+          <form onSubmit={soumettreNouveau}>
             <Badge>Bienvenue</Badge>
             <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Qui êtes-vous ?</h1>
             <Adresse email={adresse} changer={() => aller('email')} />
@@ -314,66 +394,133 @@ export function Connexion({ retour, etatInitial = 'email', apercu = false }: { r
                 value={nom}
                 onChange={(e) => setNom(e.target.value)}
                 placeholder={role === 'prothesiste' ? 'Nom du laboratoire' : 'Votre nom'}
+                className={`${saisie} pr-3`}
+              />
+            </div>
+            <label htmlFor="connexion-mdp-nouveau" className="sr-only">
+              Mot de passe
+            </label>
+            <div className={`${pastille} mt-3`}>
+              <Lock className="size-5 shrink-0 text-fg-2" aria-hidden />
+              <input
+                id="connexion-mdp-nouveau"
+                type="password"
+                name="new-password"
+                required
+                minLength={LONGUEUR_MOT_DE_PASSE}
+                autoComplete="new-password"
+                value={motDePasse}
+                onChange={(e) => setMotDePasse(e.target.value)}
+                placeholder={`Mot de passe, ${LONGUEUR_MOT_DE_PASSE} caractères au moins`}
                 className={saisie}
               />
               <button type="submit" disabled={enCours} aria-label="Créer mon compte" className={rond}>
                 {enCours ? <Point /> : <ArrowRight className="size-5" aria-hidden />}
               </button>
             </div>
+            <Jauge motDePasse={motDePasse} />
             {erreur && <Erreur>{erreur}</Erreur>}
             <p className="mt-5 text-xs leading-relaxed text-fg-2">
               En continuant vous acceptez les{' '}
               <Link href={chemin('/cgu/')} className="underline underline-offset-2 hover:text-fg">
                 conditions d’utilisation
               </Link>
-              . Votre adresse ne sert qu’à vous connecter et vous répondre.
+              . Un code vous sera envoyé pour confirmer l’adresse.
             </p>
           </form>
         )}
 
-        {etat === 'envoye' && (
-          <div>
+        {etat === 'verifier' && (
+          <form onSubmit={soumettreVerification}>
             <Sceau>
               <Mail className="size-6" aria-hidden />
             </Sceau>
-            <h1 className="mt-6 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Regardez votre boîte mail</h1>
+            <h1 className="mt-6 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Confirmez votre adresse</h1>
             <p className="mt-4 text-lg text-fg-2">
-              Un lien de connexion vient de partir à <span className="font-medium text-fg">{adresse}</span>. Ouvrez-le depuis cet appareil.
+              Un code à six chiffres vient de partir à <span className="font-medium text-fg">{adresse}</span>. Il vaut dix minutes.
             </p>
+            <ChampCode valeur={codeSaisi} onChange={setCodeSaisi} enCours={enCours} />
+            {erreur && <Erreur>{erreur}</Erreur>}
+            {info && !erreur && <Info>{info}</Info>}
             <ul className="mt-6 grid gap-3 text-sm text-fg-2">
-              <Atout icone={Clock}>Il vaut cinq minutes et ne s’ouvre qu’une fois.</Atout>
               <Atout icone={BadgeCheck}>L’expéditeur est DentalMap. Rien après une minute ? Regardez vos indésirables.</Atout>
             </ul>
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              <button type="button" onClick={renvoyer} disabled={enCours} className={discret}>
-                {enCours ? <Point sombre /> : <Mail className="size-4 text-fg-2" aria-hidden />}
-                {enCours ? 'Envoi…' : 'Renvoyer le lien'}
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-fg-2">
+              <button type="button" onClick={renvoyerVerification} disabled={enCours} className={lien}>
+                Renvoyer un code
               </button>
-              <button type="button" onClick={() => aller('email')} className={discret}>
+              <button type="button" onClick={() => aller('email')} className={lien}>
                 Changer d’adresse
               </button>
             </div>
-            {erreur && <Erreur>{erreur}</Erreur>}
-          </div>
-        )}
-
-        {etat === 'expire' && (
-          <div>
-            <Sceau attention>
-              <Clock className="size-6" aria-hidden />
-            </Sceau>
-            <h1 className="mt-6 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Ce lien ne fonctionne plus</h1>
-            <p className="mt-4 text-lg text-fg-2">
-              Il a expiré ou a déjà servi. Un lien vaut cinq minutes et ne s’ouvre qu’une fois. Demandez-en un nouveau, c’est
-              immédiat.
-            </p>
-            <button type="button" onClick={() => aller('email')} className={`${principal} mt-8`}>
-              Recevoir un nouveau lien
-              <ArrowRight className="size-4" aria-hidden />
-            </button>
-          </div>
+          </form>
         )}
       </div>
+    </div>
+  )
+}
+
+/** L'encart Pro Santé Connect : annoncé, pas encore ouvert. */
+function ProSanteConnect() {
+  return (
+    <div className="squircle-xl mt-8 flex items-center gap-4 border border-dashed border-line bg-bg-soft/60 p-4">
+      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-bg text-fg-2 ring-1 ring-inset ring-line">
+        <CreditCard className="size-5" aria-hidden />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-fg">
+          Pro Santé Connect
+          <span className="rounded-full bg-bg px-2 py-0.5 text-[11px] font-medium text-fg-2 ring-1 ring-inset ring-line">Bientôt</span>
+        </p>
+        <p className="mt-0.5 text-xs text-fg-2">Pour les professionnels de santé : connexion par carte CPS ou e-CPS, avec l’Agence du Numérique en Santé.</p>
+      </div>
+    </div>
+  )
+}
+
+/** Le champ du code à six chiffres, espacé comme sur un clavier, avec ou sans son bouton. */
+function ChampCode({ valeur, onChange, enCours, sansBouton = false }: { valeur: string; onChange: (v: string) => void; enCours: boolean; sansBouton?: boolean }) {
+  return (
+    <>
+      <label htmlFor="connexion-code" className="sr-only">
+        Code à six chiffres
+      </label>
+      <div className={`${pastille} mt-8`}>
+        <Hash className="size-5 shrink-0 text-fg-2" aria-hidden />
+        <input
+          id="connexion-code"
+          name="code"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9]{6}"
+          maxLength={6}
+          required
+          autoFocus
+          value={valeur}
+          onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          placeholder="000000"
+          className={`${saisie} font-mono text-xl tracking-[0.4em] ${sansBouton ? 'pr-3' : ''}`}
+        />
+        {!sansBouton && (
+          <button type="submit" disabled={enCours || valeur.length < 6} aria-label="Valider le code" className={rond}>
+            {enCours ? <Point /> : <ArrowRight className="size-5" aria-hidden />}
+          </button>
+        )}
+      </div>
+    </>
+  )
+}
+
+/** Une jauge sobre : la longueur du mot de passe, jusqu'au minimum puis au-delà. */
+function Jauge({ motDePasse }: { motDePasse: string }) {
+  const part = Math.min(1, motDePasse.length / (LONGUEUR_MOT_DE_PASSE + 4))
+  const ok = motDePasse.length >= LONGUEUR_MOT_DE_PASSE
+  return (
+    <div className="mt-3 flex items-center gap-3 text-xs text-fg-2" aria-live="polite">
+      <span className="h-1 flex-1 overflow-hidden rounded-full bg-line">
+        <span className={`block h-full rounded-full transition-[width] duration-moderate ${ok ? 'bg-teal' : 'bg-fg-2'}`} style={{ width: `${part * 100}%` }} />
+      </span>
+      <span className="shrink-0">{ok ? 'Longueur suffisante' : `${LONGUEUR_MOT_DE_PASSE} caractères au moins`}</span>
     </div>
   )
 }
@@ -401,14 +548,12 @@ function Badge({ children }: { children: React.ReactNode }) {
   )
 }
 
-/** Le gros rond qui annonce un état : sarcelle avec une onde, ou ambre pour l'avertissement. */
-function Sceau({ children, attention = false }: { children: React.ReactNode; attention?: boolean }) {
+/** Le gros rond qui annonce un état, sarcelle avec une onde. */
+function Sceau({ children }: { children: React.ReactNode }) {
   return (
     <span className="relative inline-grid size-16 place-items-center">
-      {!attention && <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-teal/20 motion-reduce:animate-none" />}
-      <span className={`relative grid size-16 place-items-center rounded-full ${attention ? 'bg-partiel-bg text-partiel' : 'bg-teal text-white shadow-pill'}`}>
-        {children}
-      </span>
+      <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-teal/20 motion-reduce:animate-none" />
+      <span className="relative grid size-16 place-items-center rounded-full bg-teal text-white shadow-pill">{children}</span>
     </span>
   )
 }
@@ -437,14 +582,21 @@ function Adresse({ email, changer }: { email: string; changer: () => void }) {
 }
 
 /** Trois points qui battent, le temps d'une attente. */
-function Point({ sombre = false }: { sombre?: boolean }) {
-  const c = sombre ? 'bg-fg-2' : 'bg-current'
+function Point() {
   return (
     <span className="inline-flex items-center gap-1" aria-label="Chargement">
-      <span className={`size-1.5 animate-bounce rounded-full ${c} [animation-delay:-0.3s]`} />
-      <span className={`size-1.5 animate-bounce rounded-full ${c} [animation-delay:-0.15s]`} />
-      <span className={`size-1.5 animate-bounce rounded-full ${c}`} />
+      <span className="size-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.3s]" />
+      <span className="size-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.15s]" />
+      <span className="size-1.5 animate-bounce rounded-full bg-current" />
     </span>
+  )
+}
+
+function Info({ children }: { children: React.ReactNode }) {
+  return (
+    <p role="status" className="mt-4 text-sm text-fg-2">
+      {children}
+    </p>
   )
 }
 

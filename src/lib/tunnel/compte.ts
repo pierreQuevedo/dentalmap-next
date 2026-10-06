@@ -61,7 +61,7 @@ export async function getCompte(): Promise<Compte | null> {
 /**
  * Enregistre le rôle et le nom sur le compte connecté, et le conduit à
  * l'étape qui suit. Partagé par le formulaire de profil et par l'arrivée du
- * lien magique d'un nouveau compte, qui a déjà répondu avant de se connecter.
+ * nouveau compte, qui a déjà répondu en s'inscrivant.
  */
 export async function enregistrerProfil(role: Role, nom: string): Promise<void> {
   await auth.api.updateUser({

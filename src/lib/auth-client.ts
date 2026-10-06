@@ -1,5 +1,6 @@
 import { createAuthClient } from 'better-auth/react'
-import { magicLinkClient } from 'better-auth/client/plugins'
+import { emailOTPClient, inferAdditionalFields } from 'better-auth/client/plugins'
+import type { auth } from './auth'
 
 /**
  * Client Better Auth.
@@ -14,7 +15,7 @@ import { magicLinkClient } from 'better-auth/client/plugins'
  * routeur interne de Better Auth ne la reconnaissant pas non plus.
  */
 export const authClient = createAuthClient({
-  plugins: [magicLinkClient()],
+  plugins: [emailOTPClient(), inferAdditionalFields<typeof auth>()],
   fetchOptions: {
     customFetchImpl: (entree, init) => {
       const base = typeof window === 'undefined' ? 'http://localhost' : window.location.origin
@@ -25,4 +26,4 @@ export const authClient = createAuthClient({
   },
 })
 
-export const { signIn, signOut, useSession } = authClient
+export const { signIn, signUp, signOut, useSession, emailOtp } = authClient

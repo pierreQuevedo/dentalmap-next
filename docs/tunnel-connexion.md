@@ -8,9 +8,9 @@ actions et les routes sont en place, chaque écran reste à dessiner.
 | Étape | Chemin | Qui | Ce qui s'y passe |
 |---|---|---|---|
 | 1 | `/connexion/` | tous | un email ; `etatCompte(email)` dit si le compte existe |
-| 2a | `/connexion/` | compte connu | lien magique (ou mot de passe) |
-| 2b et 3 | `/inscription/profil/` | compte nouveau ou sans rôle | rôle (patient, dentiste, prothésiste) et nom ; action `choisirProfil` |
-| 4 | retour du lien magique | tous | session ouverte, email vérifié, `prochaineEtape()` décide |
+| 2a | `/connexion/` | compte connu | mot de passe ; ou un code à six chiffres reçu par courriel, pour se connecter ou choisir un nouveau mot de passe |
+| 2b et 3 | `/connexion/` | compte nouveau | rôle (patient, dentiste, prothésiste, médecin), nom et mot de passe, enregistrés avec le compte ; puis le code reçu confirme l'adresse et ouvre la session. `/inscription/profil/` ne sert plus qu'à un compte créé sans rôle |
+| 4 | `/inscription/profil/` | tous | relit le compte et `prochaineEtape()` décide |
 | 5 | `/espace-pro/fiche/choisir/` | professionnel | recherche de sa fiche par nom, RPPS ou SIRET |
 | 5 bis | `/espace-pro/fiche/creer/` | professionnel | fiche absente : demande de création, table `demandes_creation_fiche` |
 | 6 | `/espace-pro/revendiquer/?fiche=` | professionnel | preuve de qualité : Pro Santé Connect ou demande manuelle |
@@ -37,6 +37,7 @@ vers la connexion sans session et vers la bonne étape sinon.
 
 ## Emails (`src/lib/email.ts`)
 
+`envoyerCode` (code à six chiffres : inscription, connexion, mot de passe oublié),
 `envoyerBienvenue` (hook Better Auth à la création du compte),
 `envoyerRevendicationRecue`, `envoyerRevendicationAcceptee`,
 `envoyerRevendicationRefusee`, `envoyerFichePubliee`, `envoyerAModerer`. Sans
@@ -44,7 +45,7 @@ vers la connexion sans session et vers la bonne étape sinon.
 
 ## Règles
 
-- Le lien magique est la voie par défaut ; le mot de passe est optionnel.
+- Adresse et mot de passe, douze caractères au moins. L'adresse est confirmée par un code à six chiffres (plugin `emailOTP` de Better Auth, `envoyerCode` dans `email.ts`), valable dix minutes, cinq essais. Pro Santé Connect est annoncé en encart sur la page de connexion, pas encore ouvert.
 - Une revendication en attente ouvre le parcours d'accueil ; la publication
   attend l'acceptation.
 - `retour` n'accepte qu'un chemin interne (`retourSur`).
@@ -53,7 +54,6 @@ vers la connexion sans session et vers la bonne étape sinon.
 
 ## À faire quand l'interface arrive
 
-Chaque page du tunnel est un squelette : mêmes champs, mêmes actions, à
-habiller. La page `/connexion/` doit enchaîner email, puis 2a ou 2b selon
-`etatCompte`, et passer le rôle choisi à `/inscription/profil/?role=` dans
-l'URL de retour du lien magique.
+La page `/connexion/` est faite (écran partagé, états adresse, mot de passe,
+code, mot de passe oublié, nouveau compte, confirmation). Les autres pages du
+tunnel restent des squelettes : mêmes champs, mêmes actions, à habiller.
