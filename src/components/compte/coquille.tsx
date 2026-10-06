@@ -14,11 +14,11 @@ import { CarteFrance } from './carte-france'
 export function Coquille({ children, retour = '/' }: { children: React.ReactNode; retour?: string }) {
   return (
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      <aside className="relative isolate h-40 overflow-hidden bg-[#0e1317] text-white sm:h-56 lg:h-auto lg:min-h-dvh">
-        <div className="absolute inset-0 -z-10 flex items-center justify-center">
-          <CarteFrance className="h-[170%] w-auto max-w-none lg:h-auto lg:w-[94%]" />
-        </div>
-        <span aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-gradient-to-t from-[#0e1317] to-transparent" />
+      {/* L'ardoise du site, quel que soit le thème : c'est une image. */}
+      <aside className="relative isolate h-44 overflow-hidden bg-[#16222b] text-white sm:h-60 lg:h-auto lg:min-h-dvh">
+        <CarteFrance className="absolute inset-0 -z-10 size-full" />
+        <span aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-2/5 bg-gradient-to-t from-[#16222b] to-transparent" />
+        <span aria-hidden className="absolute inset-x-0 top-0 -z-10 h-24 bg-gradient-to-b from-[#16222b]/80 to-transparent" />
 
         <div className="relative flex h-full flex-col justify-between p-6 lg:p-10">
           <Link href="/" className="inline-flex items-center gap-2 text-lg font-bold tracking-tight text-white">
