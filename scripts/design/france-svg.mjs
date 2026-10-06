@@ -1,8 +1,9 @@
 /**
- * Génère `public/images/compte/carte-ouest.svg`, la carte décorative de
- * l'espace compte : l'ouest et le sud-ouest de la France en carte pointillée,
- * une trame régulière de petits points qui remplit les terres, dans les gris
- * ardoise du site. Des points, tirés au sort une fois pour toutes, blanchissent
+ * Génère `public/images/compte/carte-ouest-clair.svg` et `-sombre.svg`, la
+ * carte décorative de l'espace compte : l'ouest et le sud-ouest de la France
+ * en carte pointillée, une trame régulière de petits points qui remplit les
+ * terres, dans les gris du site, ceux des cartes « Rien de déclaratif » de
+ * l'accueil, en clair comme en sombre. Des points, tirés au sort une fois pour toutes, blanchissent
  * lentement puis s'éteignent, chacun à son rythme : plus nombreux et plus
  * blancs là où l'annuaire compte plus de professionnels, d'après les lieux
  * d'exercice de la base. Rien ne bouge quand l'animation est réduite.
@@ -104,9 +105,6 @@ for (let y = FENETRE.y - MARGE; y <= FENETRE.y + FENETRE.hauteur + MARGE; y += P
   }
 }
 
-// Les gris du thème sombre du site : l'ardoise des grappes en fond, le gris des textes secondaires pour les points.
-const ARDOISE = '#16222b'
-const POINT = '#93a0a8'
 /*
  * La densité : les lieux d'exercice par commune, lus dans la base, puis pour
  * chaque point de la trame la somme des effectifs à moins de RAYON_DENSITE,
@@ -147,29 +145,43 @@ trame.forEach((p, i) => {
   if (alea() < chance) vifs.push([...p, 0.55 + 0.45 * part])
   else fixes.push(p)
 })
-const cheminTrame = `<path stroke="${POINT}" stroke-opacity="0.45" stroke-width="${(RAYON * 2).toFixed(2)}" stroke-linecap="round" fill="none" d="${fixes.map(([x, y]) => `M${x.toFixed(1)} ${y.toFixed(1)}h0`).join('')}"/>`
+/*
+ * Les couleurs des deux thèmes, celles des jetons du site : le fond est
+ * `--muted`, les points `--muted-foreground`, et un point qui s'allume va
+ * vers `--foreground`, blanc cassé en sombre, ardoise en clair.
+ */
+const THEMES = {
+  clair: { fond: '#f5f6f7', point: '#5d666d', vif: '#16222b', repos: 0.4 },
+  sombre: { fond: '#161c21', point: '#93a0a8', vif: '#f2f5f7', repos: 0.45 },
+}
 const DUREE = 11
+// Les retards et durées sont tirés une fois, pour que les deux thèmes battent pareil.
+const rythmes = vifs.map(() => [alea() * DUREE, DUREE * (0.7 + alea() * 0.6)])
+const trameFixe = (t) => `<path stroke="${t.point}" stroke-opacity="${t.repos}" stroke-width="${(RAYON * 2).toFixed(2)}" stroke-linecap="round" fill="none" d="${fixes.map(([x, y]) => `M${x.toFixed(1)} ${y.toFixed(1)}h0`).join('')}"/>`
 const cerclesVifs = vifs
-  .map(([x, y, pic]) => `<circle class="b" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${RAYON}" style="--p:${pic.toFixed(2)};animation-delay:-${(alea() * DUREE).toFixed(1)}s;animation-duration:${(DUREE * (0.7 + alea() * 0.6)).toFixed(1)}s"/>`)
+  .map(([x, y, pic], i) => `<circle class="b" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${RAYON}" style="--p:${pic.toFixed(2)};animation-delay:-${rythmes[i][0].toFixed(1)}s;animation-duration:${rythmes[i][1].toFixed(1)}s"/>`)
   .join('')
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${FENETRE.x} ${FENETRE.y} ${FENETRE.largeur} ${FENETRE.hauteur}" preserveAspectRatio="xMidYMid slice">
+mkdirSync(new URL('../../public/images/compte/', import.meta.url), { recursive: true })
+const empreintes = {}
+for (const [nom, t] of Object.entries(THEMES)) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${FENETRE.x} ${FENETRE.y} ${FENETRE.largeur} ${FENETRE.hauteur}" preserveAspectRatio="xMidYMid slice">
 <style>
-.b{fill:${POINT};fill-opacity:.45;animation:blanchir ${DUREE}s ease-in-out infinite}
-@keyframes blanchir{0%,100%{fill:${POINT};fill-opacity:.45}50%{fill:#ffffff;fill-opacity:var(--p,.8)}}
+.b{fill:${t.point};fill-opacity:${t.repos};animation:allumer ${DUREE}s ease-in-out infinite}
+@keyframes allumer{0%,100%{fill:${t.point};fill-opacity:${t.repos}}50%{fill:${t.vif};fill-opacity:var(--p,.8)}}
 @media (prefers-reduced-motion:reduce){.b{animation:none}}
 </style>
-<rect x="${FENETRE.x - 200}" y="${FENETRE.y - 200}" width="${FENETRE.largeur + 400}" height="${FENETRE.hauteur + 400}" fill="${ARDOISE}"/>
-${cheminTrame}
+<rect x="${FENETRE.x - 200}" y="${FENETRE.y - 200}" width="${FENETRE.largeur + 400}" height="${FENETRE.hauteur + 400}" fill="${t.fond}"/>
+${trameFixe(t)}
 ${cerclesVifs}
 </svg>
 `
-mkdirSync(new URL('../../public/images/compte/', import.meta.url), { recursive: true })
-writeFileSync(new URL('../../public/images/compte/carte-ouest.svg', import.meta.url), svg)
-// Une empreinte du fichier, ajoutée à son adresse : une nouvelle image n'est jamais servie depuis le cache de l'ancienne.
-const empreinte = createHash('sha256').update(svg).digest('hex').slice(0, 10)
+  writeFileSync(new URL(`../../public/images/compte/carte-ouest-${nom}.svg`, import.meta.url), svg)
+  // Une empreinte par fichier, ajoutée à son adresse : une nouvelle image n'est jamais servie depuis le cache de l'ancienne.
+  empreintes[nom] = createHash('sha256').update(svg).digest('hex').slice(0, 10)
+}
 writeFileSync(
   new URL('../../src/components/compte/carte-ouest.ts', import.meta.url),
-  `/* Généré par scripts/design/france-svg.mjs, ne pas modifier à la main. */\nexport const VERSION_CARTE = '${empreinte}'\n`,
+  `/* Généré par scripts/design/france-svg.mjs, ne pas modifier à la main. */\nexport const VERSION_CARTE = ${JSON.stringify(empreintes)} as const\n`,
 )
-console.log('anneaux', anneaux.length, 'points', trame.length, 'vifs', vifs.length, 'octets', svg.length)
+console.log('anneaux', anneaux.length, 'points', trame.length, 'vifs', vifs.length, 'empreintes', empreintes)
