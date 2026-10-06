@@ -12,8 +12,8 @@ import { CarteFrance } from './carte-france'
  * voile de la couleur du fond qui s'épaissit vers les bords, et en bas une
  * carte de verre dans les marges du site, qui dit la taille de l'annuaire
  * avec ses chiffres réels. Sur petit
- * écran le volet devient un bandeau au-dessus du contenu. À droite, deux
- * lueurs sarcelle derrière le formulaire, le lien de retour et la marque.
+ * écran le volet devient un bandeau au-dessus du contenu. À droite, le
+ * formulaire sur le fond du site, le lien de retour et la marque.
  */
 /** « 67 000 » pour 67 697 : le millier inférieur, pour annoncer « plus de ». */
 const millierInferieur = (n: number) => (Math.floor(n / 1000) * 1000).toLocaleString('fr-FR')
@@ -63,8 +63,6 @@ export async function Coquille({ children, retour = '/' }: { children: React.Rea
       </aside>
 
       <main className="relative isolate flex flex-col px-5 py-8 sm:px-10 lg:px-16 lg:py-12">
-        <span aria-hidden className="pointer-events-none absolute left-1/4 top-1/4 -z-10 size-80 rounded-full bg-teal/15 blur-3xl" />
-        <span aria-hidden className="pointer-events-none absolute bottom-1/4 right-0 -z-10 size-72 rounded-full bg-teal/10 blur-3xl" />
         <Link href={chemin(retour)} className="inline-flex items-center gap-2 self-start text-sm text-fg-2 hover:text-fg">
           <ArrowLeft className="size-4" aria-hidden />
           Retour au site

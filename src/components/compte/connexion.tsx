@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
-import { ArrowRight, Building2, CreditCard, Eye, EyeOff, Hash, Lock, Mail, UserRound } from 'lucide-react'
+import { ArrowRight, Building2, CreditCard, Eye, EyeOff, Lock, Mail, UserRound } from 'lucide-react'
 import { emailOtp, signIn, signUp } from '@/lib/auth-client'
 import { chemin } from '@/lib/navigation'
 import type { Role } from '@/lib/tunnel/etapes'
@@ -183,7 +183,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
           <form onSubmit={soumettreConnexion}>
             <h1 className="text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Connexion</h1>
             <p className="mt-2 text-sm text-fg-2">Votre adresse et votre mot de passe.</p>
-            <div className="mt-6 grid gap-2.5">
+            <div className="mt-6 grid gap-4">
               <Champ id="connexion-email" icone={Mail} libelle="Adresse électronique">
                 <input
                   id="connexion-email"
@@ -194,11 +194,11 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                   autoFocus
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Adresse électronique"
+                  placeholder="prenom.nom@exemple.fr"
                   className={saisie}
                 />
               </Champ>
-              <ChampMotDePasse id="connexion-mdp" libelle="Mot de passe" placeholder="Mot de passe" autoComplete="current-password" valeur={motDePasse} onChange={setMotDePasse} />
+              <ChampMotDePasse id="connexion-mdp" libelle="Mot de passe" placeholder="••••••••••••" autoComplete="current-password" valeur={motDePasse} onChange={setMotDePasse} />
             </div>
             <div className="mt-2.5 text-right text-xs">
               <button type="button" onClick={() => aller('oubli')} className="cursor-pointer text-fg-2 underline-offset-4 hover:text-fg hover:underline">
@@ -269,7 +269,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                 {PROFILS.find((p) => p.role === role)?.detail}
               </p>
             </fieldset>
-            <div className="mt-5 grid gap-2.5">
+            <div className="mt-5 grid gap-4">
               <Champ id="inscription-nom" icone={role === 'prothesiste' ? Building2 : UserRound} libelle={role === 'prothesiste' ? 'Nom du laboratoire' : 'Votre nom'}>
                 <input
                   id="inscription-nom"
@@ -280,7 +280,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                   autoComplete={role === 'prothesiste' ? 'organization' : 'name'}
                   value={nom}
                   onChange={(e) => setNom(e.target.value)}
-                  placeholder={role === 'prothesiste' ? 'Nom du laboratoire' : 'Votre nom'}
+                  placeholder={role === 'prothesiste' ? 'Laboratoire Dupont' : 'Marie Dupont'}
                   className={saisie}
                 />
               </Champ>
@@ -293,14 +293,14 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Adresse électronique"
+                  placeholder="prenom.nom@exemple.fr"
                   className={saisie}
                 />
               </Champ>
               <ChampMotDePasse
                 id="inscription-mdp"
                 libelle="Mot de passe"
-                placeholder={`Mot de passe, ${LONGUEUR_MOT_DE_PASSE} caractères au moins`}
+                placeholder={`${LONGUEUR_MOT_DE_PASSE} caractères au moins`}
                 autoComplete="new-password"
                 minLength={LONGUEUR_MOT_DE_PASSE}
                 valeur={motDePasse}
@@ -329,7 +329,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
             <p className="mt-2 text-sm text-fg-2">
               {codeEnvoye ? 'Saisissez le code reçu et choisissez votre nouveau mot de passe.' : 'Indiquez votre adresse, nous vous envoyons un code à six chiffres.'}
             </p>
-            <div className="mt-6 grid gap-2.5">
+            <div className="mt-6 grid gap-4">
               <Champ id="oubli-email" icone={Mail} libelle="Adresse électronique">
                 <input
                   id="oubli-email"
@@ -340,7 +340,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                   autoFocus={!codeEnvoye}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Adresse électronique"
+                  placeholder="prenom.nom@exemple.fr"
                   readOnly={codeEnvoye}
                   className={`${saisie} ${codeEnvoye ? 'text-fg-2' : ''}`}
                 />
@@ -351,7 +351,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                   <ChampMotDePasse
                     id="oubli-mdp"
                     libelle="Nouveau mot de passe"
-                    placeholder={`Nouveau mot de passe, ${LONGUEUR_MOT_DE_PASSE} caractères au moins`}
+                    placeholder={`${LONGUEUR_MOT_DE_PASSE} caractères au moins`}
                     autoComplete="new-password"
                     minLength={LONGUEUR_MOT_DE_PASSE}
                     valeur={motDePasse}
@@ -381,10 +381,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
 
         {etat === 'verifier' && (
           <form onSubmit={soumettreVerification}>
-            <Sceau>
-              <Mail className="size-5" aria-hidden />
-            </Sceau>
-            <h1 className="mt-5 text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Confirmez votre adresse</h1>
+            <h1 className="text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Confirmez votre adresse</h1>
             <p className="mt-2 text-sm text-fg-2">
               Un code à six chiffres vient de partir à <span className="font-medium text-fg">{email || 'votre adresse'}</span>. Il vaut dix minutes.
             </p>
@@ -461,7 +458,7 @@ function ChampMotDePasse({
 function Champ({ id, icone: Icone, libelle, children }: { id: string; icone: typeof Mail; libelle: string; children: React.ReactNode }) {
   return (
     <div>
-      <label htmlFor={id} className="sr-only">
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-fg">
         {libelle}
       </label>
       <div className={pastille}>
@@ -490,25 +487,66 @@ function ProSanteConnect() {
   )
 }
 
-/** Le champ du code à six chiffres, espacé comme sur un clavier. */
+/**
+ * Le code à six chiffres, une case par chiffre.
+ *
+ * Chaque case ne prend qu'un chiffre et passe la main à la suivante ; un
+ * retour arrière sur une case vide revient à la précédente ; un code collé
+ * remplit les six d'un coup. La première case porte `one-time-code` pour
+ * que le navigateur propose le code reçu. Le formulaire voit une seule
+ * valeur, par le champ caché.
+ */
 function ChampCode({ valeur, onChange }: { valeur: string; onChange: (v: string) => void }) {
+  const cases = Array.from({ length: 6 }, (_, i) => valeur[i] ?? '')
+  const focaliser = (i: number) => document.getElementById(`connexion-code-${Math.max(0, Math.min(5, i))}`)?.focus()
+  const poser = (i: number, chiffres: string) => {
+    const propres = chiffres.replace(/\D/g, '')
+    if (!propres) return
+    const suivant = (valeur.slice(0, i) + propres + valeur.slice(i + propres.length)).slice(0, 6)
+    onChange(suivant)
+    focaliser(i + propres.length)
+  }
   return (
-    <Champ id="connexion-code" icone={Hash} libelle="Code à six chiffres">
-      <input
-        id="connexion-code"
-        name="code"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        pattern="[0-9]{6}"
-        maxLength={6}
-        required
-        autoFocus
-        value={valeur}
-        onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
-        placeholder="000000"
-        className={`${saisie} font-mono text-base tracking-[0.4em]`}
-      />
-    </Champ>
+    <fieldset>
+      <legend className="mb-1.5 block text-sm font-medium text-fg">Code à six chiffres</legend>
+      <input type="hidden" name="code" value={valeur} />
+      <div className="grid grid-cols-6 gap-2">
+        {cases.map((c, i) => (
+          <input
+            key={i}
+            id={`connexion-code-${i}`}
+            inputMode="numeric"
+            autoComplete={i === 0 ? 'one-time-code' : 'off'}
+            aria-label={`Chiffre ${i + 1} sur 6`}
+            maxLength={6}
+            autoFocus={i === 0}
+            value={c}
+            onChange={(e) => {
+              const v = e.target.value
+              if (v === '') {
+                onChange(valeur.slice(0, i) + valeur.slice(i + 1))
+                return
+              }
+              poser(i, v.length > 1 ? v.replace(c, '') || v : v)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Backspace' && !c && i > 0) {
+                e.preventDefault()
+                onChange(valeur.slice(0, i - 1) + valeur.slice(i))
+                focaliser(i - 1)
+              } else if (e.key === 'ArrowLeft') focaliser(i - 1)
+              else if (e.key === 'ArrowRight') focaliser(i + 1)
+            }}
+            onPaste={(e) => {
+              e.preventDefault()
+              poser(0, e.clipboardData.getData('text'))
+            }}
+            onFocus={(e) => e.target.select()}
+            className="champ-compte squircle-lg h-12 w-full border border-line bg-bg text-center font-mono text-xl text-fg shadow-pill outline-none focus:border-fg"
+          />
+        ))}
+      </div>
+    </fieldset>
   )
 }
 
@@ -523,16 +561,6 @@ function Jauge({ motDePasse }: { motDePasse: string }) {
       </span>
       <span className="shrink-0">{ok ? 'Longueur suffisante' : `${LONGUEUR_MOT_DE_PASSE} caractères au moins`}</span>
     </div>
-  )
-}
-
-/** Le gros rond qui annonce un état, sarcelle avec une onde. */
-function Sceau({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="relative inline-grid size-12 place-items-center">
-      <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-teal/20 motion-reduce:animate-none" />
-      <span className="relative grid size-12 place-items-center rounded-full bg-teal text-white shadow-pill">{children}</span>
-    </span>
   )
 }
 
