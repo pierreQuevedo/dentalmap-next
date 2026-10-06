@@ -1,22 +1,43 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
+import { getChiffresCles } from '@/lib/annuaire/queries'
 import { CarteFrance } from './carte-france'
 
 /**
  * La coquille des pages du compte : à gauche la carte, à droite le contenu.
  *
- * Le volet de gauche est sombre quel que soit le thème, c'est une image. Sur
- * petit écran il devient un bandeau au-dessus du contenu, la carte recadrée
- * sur sa partie haute. À droite, deux lueurs sarcelle derrière le formulaire,
- * le lien de retour au site et la marque.
+ * Le volet de gauche est sombre quel que soit le thème, c'est une image :
+ * l'ardoise du site, la carte pointillée, un voile de la couleur du fond qui
+ * s'épaissit vers les bords, et en bas une carte de verre sur toute la
+ * largeur, qui dit la taille de l'annuaire avec ses chiffres réels. Sur petit
+ * écran le volet devient un bandeau au-dessus du contenu. À droite, deux
+ * lueurs sarcelle derrière le formulaire, le lien de retour et la marque.
  */
-export function Coquille({ children, retour = '/' }: { children: React.ReactNode; retour?: string }) {
+const ARDOISE = '#16222b'
+
+/** « 67 000 » pour 67 697 : le millier inférieur, pour annoncer « plus de ». */
+const millierInferieur = (n: number) => (Math.floor(n / 1000) * 1000).toLocaleString('fr-FR')
+
+export async function Coquille({ children, retour = '/' }: { children: React.ReactNode; retour?: string }) {
+  const chiffres = await getChiffresCles()
+  const professionnels = millierInferieur(chiffres.dentistes + chiffres.prothesistes)
+  const communes = chiffres.communes.toLocaleString('fr-FR')
+
   return (
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      {/* L'ardoise du site, quel que soit le thème : c'est une image. */}
-      <aside className="relative isolate h-44 overflow-hidden bg-[#16222b] text-white sm:h-60 lg:h-auto lg:min-h-dvh">
-        <CarteFrance className="absolute inset-0 -z-10 size-full" />
+      <aside className="relative isolate h-44 overflow-hidden text-white sm:h-60 lg:h-auto lg:min-h-dvh" style={{ backgroundColor: ARDOISE }}>
+        <CarteFrance className="absolute inset-0 -z-20 size-full" />
+        {/* Le voile : la couleur du fond, transparente au centre, pleine aux bords, adoucie par un flou. */}
+        <span
+          aria-hidden
+          className="absolute -inset-8 -z-10"
+          style={{
+            background: `radial-gradient(ellipse 60% 55% at 50% 46%, transparent 0%, ${ARDOISE}00 60%, ${ARDOISE}b3 88%, ${ARDOISE} 100%)`,
+            boxShadow: `inset 0 0 90px 30px ${ARDOISE}`,
+            filter: 'blur(12px)',
+          }}
+        />
 
         <div className="relative flex h-full flex-col justify-between">
           {/* Même place et même taille que dans l'en-tête du site : barre de 5 rem, mêmes marges. */}
@@ -26,14 +47,17 @@ export function Coquille({ children, retour = '/' }: { children: React.ReactNode
               DentalMap
             </Link>
           </div>
-          {/* Carte de verre : le titre sur deux lignes et le sous-titre, posés sur la carte. */}
-          <blockquote className="mx-5 mb-8 hidden max-w-md rounded-2xl border border-white/15 bg-white/10 p-6 shadow-pop backdrop-blur-xl md:mx-10 lg:block xl:mx-20">
-            <p className="text-2xl font-semibold leading-snug tracking-tight">
-              Chaque fiche est vérifiée
+          {/* Carte de verre sur toute la largeur : le titre sur deux lignes et le sous-titre. */}
+          <blockquote className="hidden border-t border-white/15 bg-white/10 px-5 py-8 shadow-pop backdrop-blur-xl md:px-10 lg:block xl:px-20">
+            <p className="text-balance text-2xl font-semibold leading-snug tracking-tight xl:text-3xl">
+              Plus de {professionnels} professionnels
               <br />
-              auprès des registres officiels.
+              dans {communes} communes.
             </p>
-            <footer className="mt-3 text-sm text-white/70">Chirurgiens-dentistes, laboratoires, spécialistes du visage.</footer>
+            <footer className="mt-3 max-w-lg text-sm text-white/70">
+              Chirurgiens-dentistes, laboratoires de prothèse et spécialistes du visage, rapprochés des registres officiels
+              chaque semaine.
+            </footer>
           </blockquote>
         </div>
       </aside>

@@ -2,7 +2,9 @@
  * Génère `public/images/compte/carte-ouest.svg`, la carte décorative de
  * l'espace compte : l'ouest et le sud-ouest de la France en carte pointillée,
  * une trame régulière de petits points qui remplit les terres, dans les gris
- * ardoise du site. Rien ne bouge.
+ * ardoise du site. Un point sur quatre, tiré au sort une fois pour toutes,
+ * blanchit lentement puis s'éteint, chacun à son rythme ; rien ne bouge
+ * quand l'animation est réduite.
  *
  * Un fichier statique plutôt que du SVG dans la page : des milliers de points
  * pèseraient un méga-octet de HTML.
@@ -73,8 +75,8 @@ for (const f of geo.features) {
  * d'appartenance se fait contre chaque anneau de département, en coordonnées
  * projetées, par la règle du nombre de croisements.
  */
-const PAS = 3.2
-const RAYON = 0.85
+const PAS = 2.9
+const RAYON = 0.55
 function dansAnneau([x, y], anneau) {
   let dedans = false
   for (let i = 0, j = anneau.length - 1; i < anneau.length; j = i++) {
@@ -101,13 +103,29 @@ for (let y = FENETRE.y - MARGE; y <= FENETRE.y + FENETRE.hauteur + MARGE; y += P
 // Les gris du thème sombre du site : l'ardoise des grappes en fond, le gris des textes secondaires pour les points.
 const ARDOISE = '#16222b'
 const POINT = '#93a0a8'
-const cheminTrame = `<path stroke="${POINT}" stroke-opacity="0.5" stroke-width="${(RAYON * 2).toFixed(2)}" stroke-linecap="round" fill="none" d="${trame.map(([x, y]) => `M${x.toFixed(1)} ${y.toFixed(1)}h0`).join('')}"/>`
+// Tirage reproductible : les mêmes points blanchissent à chaque génération.
+let graine = 20261006
+const alea = () => ((graine = (graine * 1664525 + 1013904223) % 4294967296) / 4294967296)
+const fixes = []
+const vifs = []
+for (const p of trame) (alea() < 0.25 ? vifs : fixes).push(p)
+const cheminTrame = `<path stroke="${POINT}" stroke-opacity="0.45" stroke-width="${(RAYON * 2).toFixed(2)}" stroke-linecap="round" fill="none" d="${fixes.map(([x, y]) => `M${x.toFixed(1)} ${y.toFixed(1)}h0`).join('')}"/>`
+const DUREE = 11
+const cerclesVifs = vifs
+  .map(([x, y]) => `<circle class="b" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${RAYON}" style="animation-delay:-${(alea() * DUREE).toFixed(1)}s;animation-duration:${(DUREE * (0.7 + alea() * 0.6)).toFixed(1)}s"/>`)
+  .join('')
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${FENETRE.x} ${FENETRE.y} ${FENETRE.largeur} ${FENETRE.hauteur}" preserveAspectRatio="xMidYMid slice">
+<style>
+.b{fill:${POINT};fill-opacity:.45;animation:blanchir ${DUREE}s ease-in-out infinite}
+@keyframes blanchir{0%,100%{fill:${POINT};fill-opacity:.45}50%{fill:#ffffff;fill-opacity:.95}}
+@media (prefers-reduced-motion:reduce){.b{animation:none}}
+</style>
 <rect x="${FENETRE.x - 200}" y="${FENETRE.y - 200}" width="${FENETRE.largeur + 400}" height="${FENETRE.hauteur + 400}" fill="${ARDOISE}"/>
 ${cheminTrame}
+${cerclesVifs}
 </svg>
 `
 mkdirSync(new URL('../../public/images/compte/', import.meta.url), { recursive: true })
 writeFileSync(new URL('../../public/images/compte/carte-ouest.svg', import.meta.url), svg)
-console.log('anneaux', anneaux.length, 'points', trame.length, 'octets', svg.length)
+console.log('anneaux', anneaux.length, 'points', trame.length, 'vifs', vifs.length, 'octets', svg.length)
