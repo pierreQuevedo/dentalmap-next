@@ -11,8 +11,8 @@ import { CarteFrance } from './carte-france'
  * l'accueil, `bg-muted` en clair comme en sombre : la carte pointillée, un
  * voile de la couleur du fond qui s'épaissit vers les bords, et en bas une
  * carte de verre dans les marges du site, qui dit la taille de l'annuaire
- * avec ses chiffres réels. Sur petit
- * écran le volet devient un bandeau au-dessus du contenu. À droite, le
+ * avec ses chiffres réels. Sur tablette, le volet disparaît et le formulaire
+ * tient dans un encart ; sur mobile, ni volet ni encart. À droite, le
  * formulaire sur le fond du site, le lien de retour et la marque.
  */
 /** « 67 000 » pour 67 697 : le millier inférieur, pour annoncer « plus de ». */
@@ -25,7 +25,7 @@ export async function Coquille({ children, retour = '/' }: { children: React.Rea
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      <aside className="relative isolate h-44 overflow-hidden bg-muted text-fg sm:h-60 lg:h-auto lg:min-h-dvh">
+      <aside className="relative isolate hidden min-h-dvh overflow-hidden bg-muted text-fg lg:block">
         <CarteFrance className="absolute inset-0 -z-20 size-full" />
         {/* Le voile : la couleur du fond, transparente au centre, pleine aux bords, adoucie par un flou. */}
         <span
@@ -48,7 +48,7 @@ export async function Coquille({ children, retour = '/' }: { children: React.Rea
             </Link>
           </div>
           {/* Carte de verre, dans les marges du site : le titre sur deux lignes et le sous-titre. */}
-          <blockquote className="mx-5 mb-8 hidden rounded-2xl border border-line bg-bg/50 p-6 shadow-pop backdrop-blur-xl md:mx-10 lg:block xl:mx-20 xl:p-8">
+          <blockquote className="mx-5 mb-8 rounded-2xl border border-line bg-bg/50 p-6 shadow-pop backdrop-blur-xl md:mx-10 xl:mx-20 xl:p-8">
             <p className="text-balance text-2xl font-semibold leading-snug tracking-tight text-fg xl:text-3xl">
               Plus de {professionnels} professionnels
               <br />
@@ -68,7 +68,10 @@ export async function Coquille({ children, retour = '/' }: { children: React.Rea
           Retour au site
         </Link>
         <div className="flex flex-1 items-center py-10">
-          <div className="w-full max-w-md lg:mx-auto">{children}</div>
+          {/* Tablette : l'encart. Mobile et desktop : le formulaire nu. */}
+          <div className="mx-auto w-full max-w-md md:rounded-3xl md:border md:border-line md:bg-bg md:p-8 md:shadow-pop lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
+            {children}
+          </div>
         </div>
       </main>
     </div>
