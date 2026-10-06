@@ -2,19 +2,22 @@
  * Génère `public/images/compte/carte-ouest.svg`, la carte décorative de
  * l'espace compte : l'ouest et le sud-ouest de la France en carte pointillée,
  * une trame régulière de petits points qui remplit les terres, dans les gris
- * ardoise du site. Un point sur quatre, tiré au sort une fois pour toutes,
- * blanchit lentement puis s'éteint, chacun à son rythme ; rien ne bouge
- * quand l'animation est réduite.
+ * ardoise du site. Des points, tirés au sort une fois pour toutes, blanchissent
+ * lentement puis s'éteignent, chacun à son rythme : plus nombreux et plus
+ * blancs là où l'annuaire compte plus de professionnels, d'après les lieux
+ * d'exercice de la base. Rien ne bouge quand l'animation est réduite.
  *
  * Un fichier statique plutôt que du SVG dans la page : des milliers de points
  * pèseraient un méga-octet de HTML.
  *
- * Source : `public/geo/departements.geojson` pour les terres.
+ * Sources : `public/geo/departements.geojson` pour les terres, la base de
+ * développement (DATABASE_URL de .env.local, via psql) pour la densité.
  *
  *   node scripts/design/france-svg.mjs
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { createHash } from 'node:crypto'
+import { execSync } from 'node:child_process'
 
 const geo = JSON.parse(readFileSync(new URL('../../public/geo/departements.geojson', import.meta.url), 'utf8'))
 // Emprise métropolitaine et Corse ; les points hors de là (outre-mer) sont ignorés.
@@ -104,22 +107,56 @@ for (let y = FENETRE.y - MARGE; y <= FENETRE.y + FENETRE.hauteur + MARGE; y += P
 // Les gris du thème sombre du site : l'ardoise des grappes en fond, le gris des textes secondaires pour les points.
 const ARDOISE = '#16222b'
 const POINT = '#93a0a8'
-// Tirage reproductible : les mêmes points blanchissent à chaque génération.
+/*
+ * La densité : les lieux d'exercice par commune, lus dans la base, puis pour
+ * chaque point de la trame la somme des effectifs à moins de RAYON_DENSITE,
+ * rangée dans des cases pour ne pas tout comparer à tout.
+ */
+const requete = `SELECT ST_X(c.centre), ST_Y(c.centre), count(l.id) FROM communes c JOIN lieux_exercice l ON l.code_insee = c.code_insee WHERE c.centre IS NOT NULL GROUP BY c.code_insee`
+const csv = execSync(`set -a; . ./.env.local; set +a; psql "$DATABASE_URL" -Atc "${requete}"`, { encoding: 'utf8', shell: '/bin/zsh' })
+const RAYON_DENSITE = 7
+const cases = new Map()
+const cle = (x, y) => `${Math.floor(x / RAYON_DENSITE)}:${Math.floor(y / RAYON_DENSITE)}`
+for (const ligne of csv.trim().split('\n')) {
+  const [lon, lat, n] = ligne.split('|').map(Number)
+  if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue
+  const [x, y] = projeter([lon, lat])
+  const k = cle(x, y)
+  cases.set(k, [...(cases.get(k) ?? []), [x, y, n]])
+}
+const densite = ([x, y]) => {
+  let total = 0
+  const cx = Math.floor(x / RAYON_DENSITE), cy = Math.floor(y / RAYON_DENSITE)
+  for (let i = cx - 1; i <= cx + 1; i++)
+    for (let j = cy - 1; j <= cy + 1; j++)
+      for (const [px, py, n] of cases.get(`${i}:${j}`) ?? []) if ((px - x) ** 2 + (py - y) ** 2 <= RAYON_DENSITE ** 2) total += n
+  return total
+}
+const densites = trame.map(densite)
+const maximum = Math.max(1, ...densites)
+
+// Tirage reproductible, pondéré : la chance de blanchir, et la blancheur, suivent la densité.
 let graine = 20261006
 const alea = () => ((graine = (graine * 1664525 + 1013904223) % 4294967296) / 4294967296)
 const fixes = []
 const vifs = []
-for (const p of trame) (alea() < 0.25 ? vifs : fixes).push(p)
+trame.forEach((p, i) => {
+  // Racine de la part du maximum : les zones vides gardent quelques points, les villes en ont beaucoup.
+  const part = Math.sqrt(densites[i] / maximum)
+  const chance = 0.08 + 0.55 * part
+  if (alea() < chance) vifs.push([...p, 0.55 + 0.45 * part])
+  else fixes.push(p)
+})
 const cheminTrame = `<path stroke="${POINT}" stroke-opacity="0.45" stroke-width="${(RAYON * 2).toFixed(2)}" stroke-linecap="round" fill="none" d="${fixes.map(([x, y]) => `M${x.toFixed(1)} ${y.toFixed(1)}h0`).join('')}"/>`
 const DUREE = 11
 const cerclesVifs = vifs
-  .map(([x, y]) => `<circle class="b" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${RAYON}" style="animation-delay:-${(alea() * DUREE).toFixed(1)}s;animation-duration:${(DUREE * (0.7 + alea() * 0.6)).toFixed(1)}s"/>`)
+  .map(([x, y, pic]) => `<circle class="b" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${RAYON}" style="--p:${pic.toFixed(2)};animation-delay:-${(alea() * DUREE).toFixed(1)}s;animation-duration:${(DUREE * (0.7 + alea() * 0.6)).toFixed(1)}s"/>`)
   .join('')
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${FENETRE.x} ${FENETRE.y} ${FENETRE.largeur} ${FENETRE.hauteur}" preserveAspectRatio="xMidYMid slice">
 <style>
 .b{fill:${POINT};fill-opacity:.45;animation:blanchir ${DUREE}s ease-in-out infinite}
-@keyframes blanchir{0%,100%{fill:${POINT};fill-opacity:.45}50%{fill:#ffffff;fill-opacity:.95}}
+@keyframes blanchir{0%,100%{fill:${POINT};fill-opacity:.45}50%{fill:#ffffff;fill-opacity:var(--p,.8)}}
 @media (prefers-reduced-motion:reduce){.b{animation:none}}
 </style>
 <rect x="${FENETRE.x - 200}" y="${FENETRE.y - 200}" width="${FENETRE.largeur + 400}" height="${FENETRE.hauteur + 400}" fill="${ARDOISE}"/>
