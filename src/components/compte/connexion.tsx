@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
-import { ArrowRight, BadgeCheck, Building2, Check, CreditCard, Hash, Lock, Mail, Stethoscope, User, UserRound } from 'lucide-react'
+import { ArrowRight, Building2, Check, CreditCard, Eye, EyeOff, Hash, Lock, Mail, Stethoscope, User, UserRound } from 'lucide-react'
 import { emailOtp, signIn, signUp } from '@/lib/auth-client'
 import { chemin } from '@/lib/navigation'
 import type { Role } from '@/lib/tunnel/etapes'
@@ -39,8 +39,8 @@ const pastille =
   'squircle-full flex items-center gap-2.5 border border-line bg-bg/80 px-4 shadow-pill backdrop-blur-xl transition-colors focus-within:border-line-strong'
 const saisie = 'min-w-0 flex-1 bg-transparent py-2.5 text-sm text-fg outline-none placeholder:text-fg-2'
 const principal =
-  'hover-lift squircle-full inline-flex h-11 w-full items-center justify-center gap-2 bg-action px-5 text-sm font-semibold text-action-foreground shadow-pill hover:bg-action-hover disabled:opacity-60'
-const lien = 'font-medium text-fg underline underline-offset-4 hover:no-underline'
+  'hover-lift squircle-full inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 bg-action px-5 text-sm font-semibold text-action-foreground shadow-pill hover:bg-action-hover disabled:cursor-default disabled:opacity-60'
+const lien = 'cursor-pointer font-medium text-fg underline underline-offset-4 hover:no-underline'
 
 export function Connexion({ retour, etatInitial = 'connexion', apercu = false }: { retour: string; etatInitial?: Etat; apercu?: boolean }) {
   const [etat, setEtat] = useState<Etat>(etatInitial)
@@ -162,7 +162,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
               type="button"
               aria-pressed={etat === e.cle}
               onClick={() => aller(e.cle)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium ${etat === e.cle ? 'bg-fg text-bg' : 'text-fg-2 hover:bg-bg-soft hover:text-fg'}`}
+              className={`cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium ${etat === e.cle ? 'bg-fg text-bg' : 'text-fg-2 hover:bg-bg-soft hover:text-fg'}`}
             >
               {e.libelle}
             </button>
@@ -179,14 +179,8 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
       <div key={etat} className="animate-fiche-entree">
         {etat === 'connexion' && (
           <form onSubmit={soumettreConnexion}>
-            <Badge>Annuaire vérifié par les registres</Badge>
-            <h1 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Connexion</h1>
-            <p className="mt-2 text-sm text-fg-2">
-              Pas encore de compte ?{' '}
-              <button type="button" onClick={() => aller('inscription')} className={lien}>
-                Créez-le en deux minutes
-              </button>
-            </p>
+            <h1 className="text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Connexion</h1>
+            <p className="mt-2 text-sm text-fg-2">Votre adresse et votre mot de passe.</p>
             <div className="mt-6 grid gap-2.5">
               <Champ id="connexion-email" icone={Mail} libelle="Adresse électronique">
                 <input
@@ -202,22 +196,10 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                   className={saisie}
                 />
               </Champ>
-              <Champ id="connexion-mdp" icone={Lock} libelle="Mot de passe">
-                <input
-                  id="connexion-mdp"
-                  type="password"
-                  name="password"
-                  required
-                  autoComplete="current-password"
-                  value={motDePasse}
-                  onChange={(e) => setMotDePasse(e.target.value)}
-                  placeholder="Mot de passe"
-                  className={saisie}
-                />
-              </Champ>
+              <ChampMotDePasse id="connexion-mdp" libelle="Mot de passe" placeholder="Mot de passe" autoComplete="current-password" valeur={motDePasse} onChange={setMotDePasse} />
             </div>
             <div className="mt-2.5 text-right text-xs">
-              <button type="button" onClick={() => aller('oubli')} className="text-fg-2 underline-offset-4 hover:text-fg hover:underline">
+              <button type="button" onClick={() => aller('oubli')} className="cursor-pointer text-fg-2 underline-offset-4 hover:text-fg hover:underline">
                 Mot de passe oublié ?
               </button>
             </div>
@@ -245,8 +227,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
 
         {etat === 'inscription' && (
           <form onSubmit={soumettreInscription}>
-            <Badge>Bienvenue</Badge>
-            <h1 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Créer un compte</h1>
+            <h1 className="text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Créer un compte</h1>
             <p className="mt-2 text-sm text-fg-2">
               Déjà inscrit ?{' '}
               <button type="button" onClick={() => aller('connexion')} className={lien}>
@@ -311,20 +292,15 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                   className={saisie}
                 />
               </Champ>
-              <Champ id="inscription-mdp" icone={Lock} libelle="Mot de passe">
-                <input
-                  id="inscription-mdp"
-                  type="password"
-                  name="new-password"
-                  required
-                  minLength={LONGUEUR_MOT_DE_PASSE}
-                  autoComplete="new-password"
-                  value={motDePasse}
-                  onChange={(e) => setMotDePasse(e.target.value)}
-                  placeholder={`Mot de passe, ${LONGUEUR_MOT_DE_PASSE} caractères au moins`}
-                  className={saisie}
-                />
-              </Champ>
+              <ChampMotDePasse
+                id="inscription-mdp"
+                libelle="Mot de passe"
+                placeholder={`Mot de passe, ${LONGUEUR_MOT_DE_PASSE} caractères au moins`}
+                autoComplete="new-password"
+                minLength={LONGUEUR_MOT_DE_PASSE}
+                valeur={motDePasse}
+                onChange={setMotDePasse}
+              />
             </div>
             <Jauge motDePasse={motDePasse} />
             {erreur && <Erreur>{erreur}</Erreur>}
@@ -344,8 +320,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
 
         {etat === 'oubli' && (
           <form onSubmit={codeEnvoye ? soumettreOubli : demanderCodeOubli}>
-            <Badge>Mot de passe oublié</Badge>
-            <h1 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Un nouveau mot de passe</h1>
+            <h1 className="text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Un nouveau mot de passe</h1>
             <p className="mt-2 text-sm text-fg-2">
               {codeEnvoye ? 'Saisissez le code reçu et choisissez votre nouveau mot de passe.' : 'Indiquez votre adresse, nous vous envoyons un code à six chiffres.'}
             </p>
@@ -368,20 +343,15 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
               {codeEnvoye && (
                 <>
                   <ChampCode valeur={codeSaisi} onChange={setCodeSaisi} />
-                  <Champ id="oubli-mdp" icone={Lock} libelle="Nouveau mot de passe">
-                    <input
-                      id="oubli-mdp"
-                      type="password"
-                      name="new-password"
-                      required
-                      minLength={LONGUEUR_MOT_DE_PASSE}
-                      autoComplete="new-password"
-                      value={motDePasse}
-                      onChange={(e) => setMotDePasse(e.target.value)}
-                      placeholder={`Nouveau mot de passe, ${LONGUEUR_MOT_DE_PASSE} caractères au moins`}
-                      className={saisie}
-                    />
-                  </Champ>
+                  <ChampMotDePasse
+                    id="oubli-mdp"
+                    libelle="Nouveau mot de passe"
+                    placeholder={`Nouveau mot de passe, ${LONGUEUR_MOT_DE_PASSE} caractères au moins`}
+                    autoComplete="new-password"
+                    minLength={LONGUEUR_MOT_DE_PASSE}
+                    valeur={motDePasse}
+                    onChange={setMotDePasse}
+                  />
                 </>
               )}
             </div>
@@ -433,6 +403,52 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
         )}
       </div>
     </div>
+  )
+}
+
+/** Un champ de mot de passe avec l'œil qui le montre ou le masque. */
+function ChampMotDePasse({
+  id,
+  libelle,
+  placeholder,
+  autoComplete,
+  valeur,
+  onChange,
+  minLength,
+}: {
+  id: string
+  libelle: string
+  placeholder: string
+  autoComplete: 'current-password' | 'new-password'
+  valeur: string
+  onChange: (v: string) => void
+  minLength?: number
+}) {
+  const [visible, setVisible] = useState(false)
+  return (
+    <Champ id={id} icone={Lock} libelle={libelle}>
+      <input
+        id={id}
+        type={visible ? 'text' : 'password'}
+        name={autoComplete}
+        required
+        minLength={minLength}
+        autoComplete={autoComplete}
+        value={valeur}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={saisie}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+        aria-pressed={visible}
+        className="-mr-1.5 grid size-8 shrink-0 cursor-pointer place-items-center rounded-full text-fg-2 hover:bg-bg-soft hover:text-fg"
+      >
+        {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
+      </button>
+    </Champ>
   )
 }
 
@@ -502,15 +518,6 @@ function Jauge({ motDePasse }: { motDePasse: string }) {
       </span>
       <span className="shrink-0">{ok ? 'Longueur suffisante' : `${LONGUEUR_MOT_DE_PASSE} caractères au moins`}</span>
     </div>
-  )
-}
-
-function Badge({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-0.5 text-[11px] font-semibold text-teal ring-1 ring-inset ring-teal/30">
-      <BadgeCheck className="size-3" aria-hidden />
-      {children}
-    </span>
   )
 }
 
