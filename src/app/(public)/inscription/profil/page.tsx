@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { chemin } from '@/lib/navigation'
 import { choisirProfil } from '@/lib/tunnel/actions'
-import { getCompte } from '@/lib/tunnel/compte'
+import { enregistrerProfil, getCompte } from '@/lib/tunnel/compte'
 import { estRole, prochaineEtape, retourSur, ROLES, libelleRole } from '@/lib/tunnel/etapes'
 
 export const metadata: Metadata = { title: 'Qui êtes-vous ?', robots: { index: false, follow: false } }
@@ -20,6 +20,17 @@ export default async function Page(props: { searchParams: Promise<{ role?: strin
   const compte = await getCompte()
   if (!compte) redirect(chemin(`/connexion/?retour=${encodeURIComponent(`/inscription/profil/${role ? `?role=${role}` : ''}`)}`))
   if (compte.role && !role) redirect(chemin(prochaineEtape(compte.etat, retourSur(retour))))
+  /*
+   * Un nouveau compte venu du flux de connexion a déjà dit qui il est et
+   * comment il s'appelle : le rôle est dans l'URL d'arrivée du lien, le nom
+   * a été créé avec le compte. On enregistre et on passe à la suite, sans
+   * redemander.
+   */
+  if (!compte.role && estRole(role) && compte.nom.trim().length >= 2) {
+    await enregistrerProfil(role, compte.nom.trim())
+    const maj = await getCompte()
+    redirect(chemin(prochaineEtape(maj!.etat, retourSur(retour, role === 'patient' ? '/' : '/espace-pro/'))))
+  }
   const preselection = estRole(role) ? role : compte.role
 
   return (
