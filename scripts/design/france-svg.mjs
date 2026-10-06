@@ -1,13 +1,11 @@
 /**
  * Génère `public/images/compte/carte-ouest.svg`, la carte décorative de
- * l'espace compte : l'ouest et le sud-ouest de la France en carte pointillée
- * sur ardoise, une trame régulière de points qui remplit les terres, dont
- * quelques-uns, tirés au sort, passent au sarcelle à tour de rôle.
+ * l'espace compte : l'ouest et le sud-ouest de la France en carte pointillée,
+ * une trame régulière de petits points qui remplit les terres, dans les gris
+ * ardoise du site. Rien ne bouge.
  *
  * Un fichier statique plutôt que du SVG dans la page : des milliers de points
- * pèseraient un méga-octet de HTML. Les styles et les animations sont dans le
- * fichier, un navigateur les joue dans une image ; rien ne bouge quand
- * l'animation est réduite.
+ * pèseraient un méga-octet de HTML.
  *
  * Source : `public/geo/departements.geojson` pour les terres.
  *
@@ -100,33 +98,16 @@ for (let y = FENETRE.y - MARGE; y <= FENETRE.y + FENETRE.hauteur + MARGE; y += P
   }
 }
 
-// Tirage reproductible : les mêmes points s'allument à chaque génération.
-let graine = 20261006
-const alea = () => ((graine = (graine * 1664525 + 1013904223) % 4294967296) / 4294967296)
-const vifs = []
-const fixes = []
-for (const p of trame) (alea() < 0.07 ? vifs : fixes).push(p)
-const cheminTrame = `<path stroke="rgba(255,255,255,0.28)" stroke-width="${(RAYON * 2).toFixed(2)}" stroke-linecap="round" fill="none" d="${fixes.map(([x, y]) => `M${x.toFixed(1)} ${y.toFixed(1)}h0`).join('')}"/>`
-const DUREE = 7
-const cerclesVifs = vifs
-  .map(([x, y]) => `<circle class="vif" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${RAYON}" style="animation-delay:-${(alea() * DUREE).toFixed(2)}s"/>`)
-  .join('')
+// Les gris du thème sombre du site : l'ardoise des grappes en fond, le gris des textes secondaires pour les points.
+const ARDOISE = '#16222b'
+const POINT = '#93a0a8'
+const cheminTrame = `<path stroke="${POINT}" stroke-opacity="0.5" stroke-width="${(RAYON * 2).toFixed(2)}" stroke-linecap="round" fill="none" d="${trame.map(([x, y]) => `M${x.toFixed(1)} ${y.toFixed(1)}h0`).join('')}"/>`
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${FENETRE.x} ${FENETRE.y} ${FENETRE.largeur} ${FENETRE.hauteur}" preserveAspectRatio="xMidYMid slice">
-<style>
-.vif{fill:rgba(255,255,255,0.28);transform-box:fill-box;transform-origin:center;animation:vif ${DUREE}s ease-in-out infinite}
-@keyframes vif{0%,62%,100%{fill:rgba(255,255,255,0.28);transform:scale(1)}72%{fill:#2fd1d1;transform:scale(1.9)}84%{fill:#2fd1d1;transform:scale(1.3)}}
-@media (prefers-reduced-motion:reduce){.vif{animation:none;fill:#2fd1d1}}
-</style>
-<defs>
-<radialGradient id="halo" cx="45%" cy="50%" r="55%"><stop offset="0" stop-color="#2fd1d1" stop-opacity=".10"/><stop offset="1" stop-color="#2fd1d1" stop-opacity="0"/></radialGradient>
-</defs>
-<rect x="${FENETRE.x - 200}" y="${FENETRE.y - 200}" width="${FENETRE.largeur + 400}" height="${FENETRE.hauteur + 400}" fill="#16222b"/>
-<rect x="${FENETRE.x}" y="${FENETRE.y}" width="${FENETRE.largeur}" height="${FENETRE.hauteur}" fill="url(#halo)"/>
+<rect x="${FENETRE.x - 200}" y="${FENETRE.y - 200}" width="${FENETRE.largeur + 400}" height="${FENETRE.hauteur + 400}" fill="${ARDOISE}"/>
 ${cheminTrame}
-${cerclesVifs}
 </svg>
 `
 mkdirSync(new URL('../../public/images/compte/', import.meta.url), { recursive: true })
 writeFileSync(new URL('../../public/images/compte/carte-ouest.svg', import.meta.url), svg)
-console.log('anneaux', anneaux.length, 'points', trame.length, 'vifs', vifs.length, 'octets', svg.length)
+console.log('anneaux', anneaux.length, 'points', trame.length, 'octets', svg.length)
