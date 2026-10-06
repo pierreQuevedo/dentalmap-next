@@ -310,7 +310,7 @@ export function Connexion({ retour, etatInitial = 'email', apercu = false }: { r
         {etat === 'oubli' && (
           <form onSubmit={soumettreOubli}>
             <Badge>Mot de passe oublié</Badge>
-            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Choisissez-en un nouveau</h1>
+            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Un nouveau mot de passe</h1>
             <Adresse email={adresse} changer={() => aller('email')} />
             {info && <Info>{info}</Info>}
             <ChampCode valeur={codeSaisi} onChange={setCodeSaisi} enCours={enCours} sansBouton />
