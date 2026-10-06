@@ -7,9 +7,9 @@ actions et les routes sont en place, chaque écran reste à dessiner.
 
 | Étape | Chemin | Qui | Ce qui s'y passe |
 |---|---|---|---|
-| 1 | `/connexion/` | tous | un email ; `etatCompte(email)` dit si le compte existe |
-| 2a | `/connexion/` | compte connu | mot de passe ; ou un code à six chiffres reçu par courriel, pour se connecter ou choisir un nouveau mot de passe |
-| 2b et 3 | `/connexion/` | compte nouveau | rôle (patient, dentiste, prothésiste, médecin), nom et mot de passe, enregistrés avec le compte ; puis le code reçu confirme l'adresse et ouvre la session. `/inscription/profil/` ne sert plus qu'à un compte créé sans rôle |
+| 1 | `/connexion/` | tous | adresse et mot de passe, à la classique ; liens vers l'inscription et le mot de passe oublié |
+| 2a | `/connexion/` | mot de passe oublié | un code à six chiffres reçu par courriel, puis le nouveau mot de passe |
+| 2b et 3 | `/connexion/` | inscription | rôle (patient, dentiste, prothésiste, médecin), nom, adresse et mot de passe, enregistrés avec le compte ; puis le code reçu confirme l'adresse et ouvre la session. `/inscription/profil/` ne sert plus qu'à un compte créé sans rôle |
 | 4 | `/inscription/profil/` | tous | relit le compte et `prochaineEtape()` décide |
 | 5 | `/espace-pro/fiche/choisir/` | professionnel | recherche de sa fiche par nom, RPPS ou SIRET |
 | 5 bis | `/espace-pro/fiche/creer/` | professionnel | fiche absente : demande de création, table `demandes_creation_fiche` |
@@ -54,6 +54,6 @@ vers la connexion sans session et vers la bonne étape sinon.
 
 ## À faire quand l'interface arrive
 
-La page `/connexion/` est faite (écran partagé, états adresse, mot de passe,
-code, mot de passe oublié, nouveau compte, confirmation). Les autres pages du
+La page `/connexion/` est faite (écran partagé, états connexion, inscription,
+mot de passe oublié, confirmation de l'adresse). Les autres pages du
 tunnel restent des squelettes : mêmes champs, mêmes actions, à habiller.

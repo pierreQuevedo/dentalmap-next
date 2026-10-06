@@ -30,7 +30,7 @@ export default async function ConnexionPage(props: { searchParams: Promise<{ ret
   const sp = await props.searchParams
   const retour = retourSur(sp.retour)
   const apercu = process.env.NODE_ENV !== 'production' && sp.apercu !== '0'
-  const etatInitial: Etat = apercu && ETATS.some((e) => e.cle === sp.etat) ? (sp.etat as Etat) : 'email'
+  const etatInitial: Etat = apercu && ETATS.some((e) => e.cle === sp.etat) ? (sp.etat as Etat) : 'connexion'
 
   return (
     <Coquille retour={retour === '/' ? '/' : retour}>
