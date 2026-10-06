@@ -36,10 +36,10 @@ const PROFILS: { role: Role; titre: string; detail: string; icone: typeof User }
 const LONGUEUR_MOT_DE_PASSE = 12
 
 const pastille =
-  'squircle-full flex items-center gap-3 border border-line bg-bg/80 px-5 shadow-pill backdrop-blur-xl transition-colors focus-within:border-line-strong'
-const saisie = 'min-w-0 flex-1 bg-transparent py-3.5 text-base text-fg outline-none placeholder:text-fg-2'
+  'squircle-full flex items-center gap-2.5 border border-line bg-bg/80 px-4 shadow-pill backdrop-blur-xl transition-colors focus-within:border-line-strong'
+const saisie = 'min-w-0 flex-1 bg-transparent py-2.5 text-sm text-fg outline-none placeholder:text-fg-2'
 const principal =
-  'hover-lift squircle-full inline-flex h-12 w-full items-center justify-center gap-2 bg-action px-5 font-semibold text-action-foreground shadow-pill hover:bg-action-hover disabled:opacity-60'
+  'hover-lift squircle-full inline-flex h-11 w-full items-center justify-center gap-2 bg-action px-5 text-sm font-semibold text-action-foreground shadow-pill hover:bg-action-hover disabled:opacity-60'
 const lien = 'font-medium text-fg underline underline-offset-4 hover:no-underline'
 
 export function Connexion({ retour, etatInitial = 'connexion', apercu = false }: { retour: string; etatInitial?: Etat; apercu?: boolean }) {
@@ -180,14 +180,14 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
         {etat === 'connexion' && (
           <form onSubmit={soumettreConnexion}>
             <Badge>Annuaire vérifié par les registres</Badge>
-            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Connexion</h1>
-            <p className="mt-4 text-lg text-fg-2">
+            <h1 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Connexion</h1>
+            <p className="mt-2 text-sm text-fg-2">
               Pas encore de compte ?{' '}
               <button type="button" onClick={() => aller('inscription')} className={lien}>
                 Créez-le en deux minutes
               </button>
             </p>
-            <div className="mt-8 grid gap-3">
+            <div className="mt-6 grid gap-2.5">
               <Champ id="connexion-email" icone={Mail} libelle="Adresse électronique">
                 <input
                   id="connexion-email"
@@ -216,22 +216,29 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                 />
               </Champ>
             </div>
-            <div className="mt-3 text-right text-sm">
+            <div className="mt-2.5 text-right text-xs">
               <button type="button" onClick={() => aller('oubli')} className="text-fg-2 underline-offset-4 hover:text-fg hover:underline">
                 Mot de passe oublié ?
               </button>
             </div>
             {erreur && <Erreur>{erreur}</Erreur>}
-            <button type="submit" disabled={enCours} className={`${principal} mt-6`}>
+            <button type="submit" disabled={enCours} className={`${principal} mt-5`}>
               {enCours ? <Point /> : 'Se connecter'}
               {!enCours && <ArrowRight className="size-4" aria-hidden />}
             </button>
             <ProSanteConnect />
-            <p className="mt-6 text-sm text-fg-2">
-              Vous êtes praticien ou laboratoire ?{' '}
-              <Link href={chemin('/espace-pro/revendiquer/')} className={lien}>
-                Revendiquez votre fiche
-              </Link>
+            <p className="mt-5 text-sm text-fg-2">
+              Professionnel de santé sans compte ?{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  setRole('dentiste')
+                  aller('inscription')
+                }}
+                className={lien}
+              >
+                Inscrivez-vous
+              </button>
             </p>
           </form>
         )}
@@ -239,36 +246,36 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
         {etat === 'inscription' && (
           <form onSubmit={soumettreInscription}>
             <Badge>Bienvenue</Badge>
-            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Créer un compte</h1>
-            <p className="mt-4 text-lg text-fg-2">
+            <h1 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Créer un compte</h1>
+            <p className="mt-2 text-sm text-fg-2">
               Déjà inscrit ?{' '}
               <button type="button" onClick={() => aller('connexion')} className={lien}>
                 Connectez-vous
               </button>
             </p>
-            <fieldset className="mt-8">
-              <legend className="mb-3 text-sm font-medium text-fg">Vous êtes</legend>
+            <fieldset className="mt-6">
+              <legend className="mb-2.5 text-sm font-medium text-fg">Vous êtes</legend>
               <div className="grid gap-3 sm:grid-cols-2">
                 {PROFILS.map((p) => {
                   const choisi = role === p.role
                   return (
                     <label
                       key={p.role}
-                      className={`squircle-xl hover-lift relative flex cursor-pointer items-start gap-3 border p-4 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${
+                      className={`squircle-xl hover-lift relative flex cursor-pointer items-start gap-3 border p-3 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${
                         choisi ? 'border-teal bg-teal/5 shadow-pill' : 'border-line bg-bg hover:border-line-strong'
                       }`}
                     >
                       <input type="radio" name="role" value={p.role} checked={choisi} onChange={() => setRole(p.role)} className="sr-only" />
-                      <span className={`grid size-10 shrink-0 place-items-center rounded-full ${choisi ? 'bg-teal text-white' : 'bg-bg-soft text-teal'}`}>
-                        <p.icone className="size-4.5" aria-hidden />
+                      <span className={`grid size-8 shrink-0 place-items-center rounded-full ${choisi ? 'bg-teal text-white' : 'bg-bg-soft text-teal'}`}>
+                        <p.icone className="size-4" aria-hidden />
                       </span>
                       <span className="min-w-0 pr-5">
-                        <span className="block text-sm font-semibold text-fg">{p.titre}</span>
-                        <span className="block text-xs text-fg-2">{p.detail}</span>
+                        <span className="block text-[13px] font-semibold leading-tight text-fg">{p.titre}</span>
+                        <span className="mt-0.5 block text-[11px] text-fg-2">{p.detail}</span>
                       </span>
                       {choisi && (
-                        <span className="absolute right-3 top-3 grid size-5 place-items-center rounded-full bg-teal text-white">
-                          <Check className="size-3" aria-hidden strokeWidth={3} />
+                        <span className="absolute right-2.5 top-2.5 grid size-4 place-items-center rounded-full bg-teal text-white">
+                          <Check className="size-2.5" aria-hidden strokeWidth={3} />
                         </span>
                       )}
                     </label>
@@ -276,7 +283,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                 })}
               </div>
             </fieldset>
-            <div className="mt-5 grid gap-3">
+            <div className="mt-5 grid gap-2.5">
               <Champ id="inscription-nom" icone={role === 'prothesiste' ? Building2 : UserRound} libelle={role === 'prothesiste' ? 'Nom du laboratoire' : 'Votre nom'}>
                 <input
                   id="inscription-nom"
@@ -338,11 +345,11 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
         {etat === 'oubli' && (
           <form onSubmit={codeEnvoye ? soumettreOubli : demanderCodeOubli}>
             <Badge>Mot de passe oublié</Badge>
-            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Un nouveau mot de passe</h1>
-            <p className="mt-4 text-lg text-fg-2">
+            <h1 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Un nouveau mot de passe</h1>
+            <p className="mt-2 text-sm text-fg-2">
               {codeEnvoye ? 'Saisissez le code reçu et choisissez votre nouveau mot de passe.' : 'Indiquez votre adresse, nous vous envoyons un code à six chiffres.'}
             </p>
-            <div className="mt-8 grid gap-3">
+            <div className="mt-6 grid gap-2.5">
               <Champ id="oubli-email" icone={Mail} libelle="Adresse électronique">
                 <input
                   id="oubli-email"
@@ -400,10 +407,10 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
         {etat === 'verifier' && (
           <form onSubmit={soumettreVerification}>
             <Sceau>
-              <Mail className="size-6" aria-hidden />
+              <Mail className="size-5" aria-hidden />
             </Sceau>
-            <h1 className="mt-6 text-balance text-4xl font-semibold tracking-tight text-fg md:text-5xl">Confirmez votre adresse</h1>
-            <p className="mt-4 text-lg text-fg-2">
+            <h1 className="mt-5 text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Confirmez votre adresse</h1>
+            <p className="mt-2 text-sm text-fg-2">
               Un code à six chiffres vient de partir à <span className="font-medium text-fg">{email || 'votre adresse'}</span>. Il vaut dix minutes.
             </p>
             <div className="mt-8">
@@ -437,7 +444,7 @@ function Champ({ id, icone: Icone, libelle, children }: { id: string; icone: typ
         {libelle}
       </label>
       <div className={pastille}>
-        <Icone className="size-5 shrink-0 text-fg-2" aria-hidden />
+        <Icone className="size-4 shrink-0 text-fg-2" aria-hidden />
         {children}
       </div>
     </div>
@@ -447,16 +454,16 @@ function Champ({ id, icone: Icone, libelle, children }: { id: string; icone: typ
 /** L'encart Pro Santé Connect : annoncé, pas encore ouvert. */
 function ProSanteConnect() {
   return (
-    <div className="squircle-xl mt-8 flex items-center gap-4 border border-dashed border-line bg-bg-soft/60 p-4">
-      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-bg text-fg-2 ring-1 ring-inset ring-line">
-        <CreditCard className="size-5" aria-hidden />
+    <div className="squircle-xl mt-6 flex items-center gap-3 border border-dashed border-line bg-bg-soft/60 p-3.5">
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-bg text-fg-2 ring-1 ring-inset ring-line">
+        <CreditCard className="size-4" aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-fg">
+        <p className="flex flex-wrap items-center gap-2 text-[13px] font-semibold text-fg">
           Pro Santé Connect
           <span className="rounded-full bg-bg px-2 py-0.5 text-[11px] font-medium text-fg-2 ring-1 ring-inset ring-line">Bientôt</span>
         </p>
-        <p className="mt-0.5 text-xs text-fg-2">Pour les professionnels de santé : connexion par carte CPS ou e-CPS, avec l’Agence du Numérique en Santé.</p>
+        <p className="mt-0.5 text-[11px] leading-snug text-fg-2">Pour les professionnels de santé : connexion par carte CPS ou e-CPS, avec l’Agence du Numérique en Santé.</p>
       </div>
     </div>
   )
@@ -478,7 +485,7 @@ function ChampCode({ valeur, onChange }: { valeur: string; onChange: (v: string)
         value={valeur}
         onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
         placeholder="000000"
-        className={`${saisie} font-mono text-xl tracking-[0.4em]`}
+        className={`${saisie} font-mono text-base tracking-[0.4em]`}
       />
     </Champ>
   )
@@ -500,8 +507,8 @@ function Jauge({ motDePasse }: { motDePasse: string }) {
 
 function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-teal/10 px-3 py-1 text-xs font-semibold text-teal ring-1 ring-inset ring-teal/30">
-      <BadgeCheck className="size-3.5" aria-hidden />
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-0.5 text-[11px] font-semibold text-teal ring-1 ring-inset ring-teal/30">
+      <BadgeCheck className="size-3" aria-hidden />
       {children}
     </span>
   )
@@ -510,9 +517,9 @@ function Badge({ children }: { children: React.ReactNode }) {
 /** Le gros rond qui annonce un état, sarcelle avec une onde. */
 function Sceau({ children }: { children: React.ReactNode }) {
   return (
-    <span className="relative inline-grid size-16 place-items-center">
+    <span className="relative inline-grid size-12 place-items-center">
       <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-teal/20 motion-reduce:animate-none" />
-      <span className="relative grid size-16 place-items-center rounded-full bg-teal text-white shadow-pill">{children}</span>
+      <span className="relative grid size-12 place-items-center rounded-full bg-teal text-white shadow-pill">{children}</span>
     </span>
   )
 }
