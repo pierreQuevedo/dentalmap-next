@@ -1,2 +1,2 @@
 /* Généré par scripts/design/france-svg.mjs, ne pas modifier à la main. */
-export const VERSION_CARTE = {"clair":"2d73c370e0","sombre":"3f7a5042d0"} as const
+export const VERSION_CARTE = {"clair":"4107068603","sombre":"9369f22e69"} as const

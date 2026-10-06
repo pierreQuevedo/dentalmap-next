@@ -81,7 +81,7 @@ for (const f of geo.features) {
  * projetées, par la règle du nombre de croisements.
  */
 const PAS = 2.9
-const RAYON = 0.55
+const RAYON = 0.7
 function dansAnneau([x, y], anneau) {
   let dedans = false
   for (let i = 0, j = anneau.length - 1; i < anneau.length; j = i++) {
