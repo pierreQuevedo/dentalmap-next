@@ -212,7 +212,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
             </button>
             <ProSanteConnect />
             <p className="mt-5 text-sm text-fg-2">
-              Professionnel de santé sans compte ?{' '}
+              Vous n’avez pas encore de compte ?{' '}
               <button
                 type="button"
                 onClick={() => {
