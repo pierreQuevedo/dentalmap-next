@@ -26,13 +26,13 @@ const ETATS: Etat[] = ['email', 'connu', 'motdepasse', 'nouveau', 'envoye', 'exp
 /**
  * `erreur=lien` est posé par Better Auth quand le lien magique a expiré ou a
  * déjà servi (`errorCallbackURL`) ; `error` est le même signal sous sa forme
- * brute. `apercu=1` montre les onglets d'états, et `etat=` en ouvre un :
- * pour vérifier chaque rendu, hors production seulement.
+ * brute. Hors production, des onglets passent d'un état à l'autre pour
+ * vérifier chaque rendu, `etat=` en ouvre un et `apercu=0` les cache.
  */
 export default async function ConnexionPage(props: { searchParams: Promise<{ retour?: string; erreur?: string; error?: string; apercu?: string; etat?: string }> }) {
   const sp = await props.searchParams
   const retour = retourSur(sp.retour)
-  const apercu = process.env.NODE_ENV !== 'production' && sp.apercu === '1'
+  const apercu = process.env.NODE_ENV !== 'production' && sp.apercu !== '0'
   const lienCasse = sp.erreur === 'lien' || Boolean(sp.error)
   const etatInitial: Etat = apercu && ETATS.includes(sp.etat as Etat) ? (sp.etat as Etat) : lienCasse ? 'expire' : 'email'
 

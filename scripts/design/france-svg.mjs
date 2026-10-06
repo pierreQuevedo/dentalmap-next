@@ -1,21 +1,19 @@
 /**
  * Génère `public/images/compte/carte-ouest.svg`, la carte décorative de
- * l'espace compte : l'ouest et le sud-ouest de la France par départements,
- * en filet clair sur ardoise, semés de tous les lieux d'exercice de
- * l'annuaire, et des trajets qui se tracent d'une ville à l'autre.
+ * l'espace compte : l'ouest et le sud-ouest de la France en carte pointillée
+ * sur ardoise, une trame régulière de points qui remplit les terres, dont
+ * quelques-uns, tirés au sort, passent au sarcelle à tour de rôle.
  *
- * Un fichier statique plutôt que du SVG dans la page : trois mille points
+ * Un fichier statique plutôt que du SVG dans la page : des milliers de points
  * pèseraient un méga-octet de HTML. Les styles et les animations sont dans le
  * fichier, un navigateur les joue dans une image ; rien ne bouge quand
  * l'animation est réduite.
  *
- * Sources : `public/geo/departements.geojson` pour les contours, la base de
- * développement (DATABASE_URL de .env.local, via psql) pour les points.
+ * Source : `public/geo/departements.geojson` pour les terres.
  *
  *   node scripts/design/france-svg.mjs
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
-import { execSync } from 'node:child_process'
 
 const geo = JSON.parse(readFileSync(new URL('../../public/geo/departements.geojson', import.meta.url), 'utf8'))
 // Emprise métropolitaine et Corse ; les points hors de là (outre-mer) sont ignorés.
@@ -71,86 +69,64 @@ for (const f of geo.features) {
     anneaux.push(simplifier(pts, 1.1))
   }
 }
-const contours = anneaux.map((pts) => 'M' + pts.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join('L') + 'Z').join('')
 
-// Points : un par commune où l'annuaire a au moins un lieu d'exercice.
-const requete = `SELECT ST_X(c.centre), ST_Y(c.centre), count(l.id) FROM communes c JOIN lieux_exercice l ON l.code_insee = c.code_insee WHERE c.centre IS NOT NULL GROUP BY c.code_insee`
-const csv = execSync(`set -a; . ./.env.local; set +a; psql "$DATABASE_URL" -Atc "${requete}"`, { encoding: 'utf8', shell: '/bin/zsh' })
-const points = []
-for (const ligne of csv.trim().split('\n')) {
-  const [lon, lat, n] = ligne.split('|').map(Number)
-  if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue
-  const p = projeter([lon, lat])
-  if (dedans(p)) points.push([p[0], p[1], n])
-}
-points.sort((a, b) => b[2] - a[2])
-
-/** Rayon selon l'effectif : les grandes villes se voient, les villages restent des grains. */
-const rayon = (n) => Math.min(2.6, 0.5 + Math.sqrt(n) * 0.22)
 /*
- * Les points sont des traits de longueur nulle à bouts ronds : un chemin par
- * rayon, « M x y h0 » par point, douze octets au lieu de cinquante pour un
- * arc. L'opacité suit l'effectif, comme la taille.
+ * La trame : un point tous les PAS, là où il y a de la terre. Le test
+ * d'appartenance se fait contre chaque anneau de département, en coordonnées
+ * projetées, par la règle du nombre de croisements.
  */
-const opacite = (n) => (n > 20 ? 0.95 : n > 4 ? 0.7 : 0.42)
-const groupes = new Map()
-for (const [x, y, n] of points) {
-  const cle = `${rayon(n).toFixed(1)}|${opacite(n)}`
-  groupes.set(cle, (groupes.get(cle) ?? '') + `M${x.toFixed(1)} ${y.toFixed(1)}h0`)
+const PAS = 3.2
+const RAYON = 0.85
+function dansAnneau([x, y], anneau) {
+  let dedans = false
+  for (let i = 0, j = anneau.length - 1; i < anneau.length; j = i++) {
+    const [xi, yi] = anneau[i], [xj, yj] = anneau[j]
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) dedans = !dedans
+  }
+  return dedans
 }
-const cheminsPoints = [...groupes.entries()].map(([cle, d]) => {
-  const [r, o] = cle.split('|')
-  return `<path stroke="#2fd1d1" stroke-opacity="${o}" stroke-width="${(Number(r) * 2).toFixed(1)}" stroke-linecap="round" fill="none" d="${d}"/>`
-})
-// Un point sur vingt-trois bat, pris parmi les plus gros : une activité, pas un sapin.
-const battements = points
-  .filter((_, i) => i % 23 === 0)
-  .slice(0, 60)
-  .map(([x, y, n], i) => `<circle class="bat" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rayon(n).toFixed(2)}" style="animation-delay:${(i * 0.37).toFixed(2)}s"/>`)
-  .join('')
+const boites = anneaux.map((a) => ({
+  a,
+  minx: Math.min(...a.map((p) => p[0])), maxx: Math.max(...a.map((p) => p[0])),
+  miny: Math.min(...a.map((p) => p[1])), maxy: Math.max(...a.map((p) => p[1])),
+}))
+const surTerre = (p) => boites.some((b) => p[0] >= b.minx && p[0] <= b.maxx && p[1] >= b.miny && p[1] <= b.maxy && dansAnneau(p, b.a))
+const trame = []
+for (let y = FENETRE.y - MARGE; y <= FENETRE.y + FENETRE.hauteur + MARGE; y += PAS) {
+  // Une ligne sur deux est décalée d'un demi-pas : la trame respire au lieu de quadriller.
+  const decale = Math.round((y - FENETRE.y) / PAS) % 2 ? PAS / 2 : 0
+  for (let x = FENETRE.x - MARGE + decale; x <= FENETRE.x + FENETRE.largeur + MARGE; x += PAS) {
+    if (surTerre([x, y])) trame.push([x, y])
+  }
+}
 
-// Trajets entre grandes villes de la fenêtre.
-const VILLES = {
-  bordeaux: [-0.5792, 44.8378], nantes: [-1.5536, 47.2184], toulouse: [1.4442, 43.6047], rennes: [-1.6778, 48.1173],
-  brest: [-4.4861, 48.3904], larochelle: [-1.1511, 46.1603], limoges: [1.2611, 45.8336],
-}
-const villes = Object.fromEntries(Object.entries(VILLES).map(([k, v]) => [k, projeter(v)]))
-const TRAJETS = [['rennes', 'bordeaux'], ['toulouse', 'nantes'], ['brest', 'larochelle'], ['nantes', 'toulouse'], ['bordeaux', 'limoges'], ['larochelle', 'rennes']]
-const DUREE = 6.7
-const courbe = (a, b) => {
-  const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, ddx = b[0] - a[0], ddy = b[1] - a[1], k = 0.22
-  return `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${(mx - ddy * k).toFixed(1)} ${(my + ddx * k).toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`
-}
-const trajets = TRAJETS.map(([de, vers], i) => {
-  const d = courbe(villes[de], villes[vers])
-  const delai = `animation-delay:${((i * DUREE) / TRAJETS.length).toFixed(2)}s`
-  const [x, y] = villes[vers]
-  return `<path class="trajet lueur" d="${d}" pathLength="1" style="${delai}" filter="url(#lueur)"/><path class="trajet" d="${d}" pathLength="1" style="${delai}"/><circle class="arrivee" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" style="${delai}"/>`
-}).join('')
+// Tirage reproductible : les mêmes points s'allument à chaque génération.
+let graine = 20261006
+const alea = () => ((graine = (graine * 1664525 + 1013904223) % 4294967296) / 4294967296)
+const vifs = []
+const fixes = []
+for (const p of trame) (alea() < 0.07 ? vifs : fixes).push(p)
+const cheminTrame = `<path stroke="rgba(255,255,255,0.28)" stroke-width="${(RAYON * 2).toFixed(2)}" stroke-linecap="round" fill="none" d="${fixes.map(([x, y]) => `M${x.toFixed(1)} ${y.toFixed(1)}h0`).join('')}"/>`
+const DUREE = 7
+const cerclesVifs = vifs
+  .map(([x, y]) => `<circle class="vif" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${RAYON}" style="animation-delay:-${(alea() * DUREE).toFixed(2)}s"/>`)
+  .join('')
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${FENETRE.x} ${FENETRE.y} ${FENETRE.largeur} ${FENETRE.hauteur}" preserveAspectRatio="xMidYMid slice">
 <style>
-.trajet{fill:none;stroke:#2fd1d1;stroke-width:1.5;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;opacity:0;animation:trace ${DUREE}s ease-in-out infinite}
-.lueur{stroke-width:4}
-.arrivee{fill:#2fd1d1;opacity:0;transform-box:fill-box;transform-origin:center;animation:arrivee ${DUREE}s ease-out infinite}
-.bat{fill:#2fd1d1;opacity:.8;transform-box:fill-box;transform-origin:center;animation:bat 5.4s ease-in-out infinite}
-@keyframes trace{0%{stroke-dashoffset:1;opacity:0}8%{opacity:1}42%{stroke-dashoffset:0;opacity:1}58%{stroke-dashoffset:0;opacity:1}72%,100%{stroke-dashoffset:0;opacity:0}}
-@keyframes arrivee{0%,38%{opacity:0;transform:scale(.4)}46%{opacity:1;transform:scale(1.6)}58%{opacity:.9;transform:scale(1)}72%,100%{opacity:0;transform:scale(1)}}
-@keyframes bat{0%,70%,100%{transform:scale(1);opacity:.8}80%{transform:scale(2.6);opacity:1}90%{transform:scale(1.2);opacity:.85}}
-@media (prefers-reduced-motion:reduce){.trajet,.lueur{animation:none;stroke-dashoffset:0;opacity:.7}.arrivee{animation:none;opacity:.8}.bat{animation:none}}
+.vif{fill:rgba(255,255,255,0.28);transform-box:fill-box;transform-origin:center;animation:vif ${DUREE}s ease-in-out infinite}
+@keyframes vif{0%,62%,100%{fill:rgba(255,255,255,0.28);transform:scale(1)}72%{fill:#2fd1d1;transform:scale(1.9)}84%{fill:#2fd1d1;transform:scale(1.3)}}
+@media (prefers-reduced-motion:reduce){.vif{animation:none;fill:#2fd1d1}}
 </style>
 <defs>
-<radialGradient id="halo" cx="45%" cy="50%" r="55%"><stop offset="0" stop-color="#2fd1d1" stop-opacity=".16"/><stop offset="1" stop-color="#2fd1d1" stop-opacity="0"/></radialGradient>
-<filter id="lueur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.5"/></filter>
+<radialGradient id="halo" cx="45%" cy="50%" r="55%"><stop offset="0" stop-color="#2fd1d1" stop-opacity=".10"/><stop offset="1" stop-color="#2fd1d1" stop-opacity="0"/></radialGradient>
 </defs>
 <rect x="${FENETRE.x - 200}" y="${FENETRE.y - 200}" width="${FENETRE.largeur + 400}" height="${FENETRE.hauteur + 400}" fill="#16222b"/>
 <rect x="${FENETRE.x}" y="${FENETRE.y}" width="${FENETRE.largeur}" height="${FENETRE.hauteur}" fill="url(#halo)"/>
-<path d="${contours}" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.22)" stroke-width=".5" stroke-linejoin="round"/>
-${cheminsPoints.join('\n')}
-${battements}
-${trajets}
+${cheminTrame}
+${cerclesVifs}
 </svg>
 `
 mkdirSync(new URL('../../public/images/compte/', import.meta.url), { recursive: true })
 writeFileSync(new URL('../../public/images/compte/carte-ouest.svg', import.meta.url), svg)
-console.log('anneaux', anneaux.length, 'points', points.length, 'octets', svg.length)
+console.log('anneaux', anneaux.length, 'points', trame.length, 'vifs', vifs.length, 'octets', svg.length)

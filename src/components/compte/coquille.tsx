@@ -17,19 +17,23 @@ export function Coquille({ children, retour = '/' }: { children: React.ReactNode
       {/* L'ardoise du site, quel que soit le thème : c'est une image. */}
       <aside className="relative isolate h-44 overflow-hidden bg-[#16222b] text-white sm:h-60 lg:h-auto lg:min-h-dvh">
         <CarteFrance className="absolute inset-0 -z-10 size-full" />
-        <span aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-2/5 bg-gradient-to-t from-[#16222b] to-transparent" />
-        <span aria-hidden className="absolute inset-x-0 top-0 -z-10 h-24 bg-gradient-to-b from-[#16222b]/80 to-transparent" />
 
-        <div className="relative flex h-full flex-col justify-between p-6 lg:p-10">
-          <Link href="/" className="inline-flex items-center gap-2 text-lg font-bold tracking-tight text-white">
-            <span aria-hidden className="size-[26px] rounded-md bg-white" />
-            DentalMap
-          </Link>
-          <blockquote className="hidden max-w-sm lg:block">
-            <p className="text-balance text-2xl font-semibold leading-snug tracking-tight">
-              Chaque fiche est vérifiée auprès des registres officiels avant d’apparaître ici.
+        <div className="relative flex h-full flex-col justify-between">
+          {/* Même place et même taille que dans l'en-tête du site : barre de 5 rem, mêmes marges. */}
+          <div className="flex h-20 items-center px-5 md:px-10 xl:px-20">
+            <Link href="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-white">
+              <span aria-hidden className="size-[30px] rounded-md bg-white" />
+              DentalMap
+            </Link>
+          </div>
+          {/* Carte de verre : le titre sur deux lignes et le sous-titre, posés sur la carte. */}
+          <blockquote className="mx-5 mb-8 hidden max-w-md rounded-2xl border border-white/15 bg-white/10 p-6 shadow-pop backdrop-blur-xl md:mx-10 lg:block xl:mx-20">
+            <p className="text-2xl font-semibold leading-snug tracking-tight">
+              Chaque fiche est vérifiée
+              <br />
+              auprès des registres officiels.
             </p>
-            <footer className="mt-3 text-sm text-white/60">Chirurgiens-dentistes, laboratoires, spécialistes du visage.</footer>
+            <footer className="mt-3 text-sm text-white/70">Chirurgiens-dentistes, laboratoires, spécialistes du visage.</footer>
           </blockquote>
         </div>
       </aside>
