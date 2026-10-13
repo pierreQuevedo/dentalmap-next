@@ -1,6 +1,9 @@
 import Link from 'next/link'
+import { AlerteFormations } from './alerte-formations'
 import type { Metadata } from 'next'
-import { ArrowUpRight, X } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight, Bell, GraduationCap, Hourglass, X } from 'lucide-react'
+import { THEMES_FORMATION } from '@/lib/formation/themes'
 import { FilAriane } from '@/components/annuaire/primitives'
 import { chemin, FORMATION_TYPES, type FormationType } from '@/lib/navigation'
 import { FAMILLES, typeDe } from '@/lib/formation/types'
@@ -141,35 +144,62 @@ export async function ListeFormations({ type, params }: { type: FormationType | 
 }
 
 /**
- * Famille annoncée, pas encore recensée. Une liste vide se lit comme une
- * panne ; ce bloc dit ce qui arrive et renvoie vers ce qui existe déjà.
+ * Famille annoncée, pas encore recensée (maquette validée « Site · Formations
+ * privées », attente) : un bandeau qui dit où en est le recensement et ses
+ * thèmes, puis deux entrées, proposer une formation et être prévenu des
+ * nouvelles. Les liens vers ce qui existe déjà ferment la page.
  */
 function AVenir() {
   return (
-    <section className="mt-8 grid gap-6 squircle-2xl border border-line bg-bg-soft p-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:p-8">
-      <div>
-        <span className="inline-flex rounded-full bg-bg-soft text-fg-2 ring-1 ring-inset ring-line px-2.5 py-0.5 text-xs font-medium">
-          Bientôt
-        </span>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-fg">Le recensement des formations privées est en cours</h2>
-        <p className="mt-2 max-w-2xl text-fg-2">
-          Implantologie, parodontologie, esthétique, gestion de cabinet ou de laboratoire : les organismes de formation continue seront
-          présentés ici avec leurs programmes, leurs durées et leurs conditions d’accès, au même titre que les écoles et les facultés. Vous
-          représentez un organisme de formation ? Écrivez-nous pour figurer dans le recensement.
-        </p>
+    <>
+      <section className="squircle-3xl dark relative mt-8 overflow-hidden bg-background text-fg">
+        <Image src="/images/demo/pexels-6627447.jpg" alt="" fill sizes="100vw" className="object-cover opacity-25" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/40" />
+        <div className="relative p-6 md:p-12">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white ring-1 ring-inset ring-white/15">
+            <Hourglass className="size-3.5 text-teal" aria-hidden /> Bientôt
+          </span>
+          <h2 className="mt-5 max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl">
+            Le recensement
+            <span className="block text-white/55">n’est pas encore ouvert.</span>
+          </h2>
+          <ul className="mt-8 flex max-w-3xl flex-wrap gap-2" aria-label="Thèmes recensés">
+            {THEMES_FORMATION.map((t) => (
+              <li key={t} className="rounded-full border border-white/15 px-3 py-1.5 text-sm text-white/80">
+                {t}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <div className="squircle-3xl flex flex-col border border-line bg-bg-soft p-6 md:p-8">
+          <GraduationCap className="size-7 text-teal" strokeWidth={1.5} aria-hidden />
+          <h3 className="mt-8 text-2xl font-semibold tracking-tight text-fg">Vous proposez une formation</h3>
+          <p className="mt-2 text-fg-2">Tout professionnel peut ajouter une formation : faites la demande depuis votre espace, l’équipe la vérifie avant publication.</p>
+          <div className="mt-auto pt-8">
+            <Link href={chemin('/espace-pro/compte/formation/')} className="inline-flex h-11 items-center gap-2 rounded-full bg-action px-6 text-sm font-semibold text-action-foreground hover:bg-action-hover">
+              Proposer une formation <ArrowRight className="size-4" aria-hidden />
+            </Link>
+          </div>
+        </div>
+        <div className="squircle-3xl flex flex-col border border-line bg-bg-soft p-6 md:p-8">
+          <Bell className="size-7 text-teal" strokeWidth={1.5} aria-hidden />
+          <h3 className="mt-8 text-2xl font-semibold tracking-tight text-fg">Être prévenu des nouvelles formations</h3>
+          <p className="mb-6 mt-2 text-fg-2">Choisissez vos thèmes et votre région : un email à chaque nouvelle formation publiée qui vous correspond, sans créer de compte.</p>
+          <AlerteFormations />
+        </div>
       </div>
-      <div className="flex flex-col gap-2 md:min-w-[16rem]">
-        <Link href={chemin('/contact/?objet=autre')} className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-action px-5 text-sm font-semibold text-action-foreground hover:bg-action-hover">
-          Référencer une formation
-          <ArrowUpRight className="size-4" aria-hidden />
-        </Link>
-        <Link href={chemin('/formation/ecoles-de-prothese/')} className="inline-flex h-11 items-center justify-center rounded-full border border-line bg-bg px-5 text-sm font-medium text-fg hover:bg-bg-soft">
+
+      <p className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        <Link href={chemin('/formation/ecoles-de-prothese/')} className="font-medium text-fg underline decoration-line underline-offset-4">
           Voir les écoles de prothèse
         </Link>
-        <Link href={chemin('/formation/facultes-odontologie/')} className="inline-flex h-11 items-center justify-center rounded-full border border-line bg-bg px-5 text-sm font-medium text-fg hover:bg-bg-soft">
+        <Link href={chemin('/formation/facultes-odontologie/')} className="font-medium text-fg underline decoration-line underline-offset-4">
           Voir les facultés d’odontologie
         </Link>
-      </div>
-    </section>
+      </p>
+    </>
   )
 }

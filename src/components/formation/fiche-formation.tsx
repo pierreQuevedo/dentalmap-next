@@ -25,6 +25,10 @@ import { Balisage, etablissementFormation, filAriane } from '@/lib/seo/jsonld'
 import type { FormationComplete, FormationResume } from '@/lib/wp/queries'
 import { CarteFaculte, type PointFaculte } from './carte-faculte'
 import { CarteFormation } from './carte-formation'
+import { EncartGestion, ModuleEtablissement } from './module-etablissement'
+import { ModuleFormationPrivee } from './module-formation-privee'
+import type { FormationPubliee } from '@/lib/formation/privee-donnees'
+import type { DeclarationPublique } from '@/lib/espace-pro/etablissement-donnees'
 
 /**
  * Fiche d'un établissement de formation.
@@ -48,9 +52,13 @@ export type FicheFormationProps = {
   /** Autres formations de la même famille, les plus proches d'abord. */
   autres: FormationResume[]
   regionNom: string | null
+  /** Ce que l'établissement déclare depuis son espace ; `undefined` pour une formation qui ne se gère pas. */
+  declaration?: DeclarationPublique | null
+  /** Le détail déclaré d'une formation privée (Neon), quand elle en a un. */
+  privee?: FormationPubliee | null
 }
 
-export function FicheFormation({ f, type, faculte: fac, ecole, points, autres, regionNom }: FicheFormationProps) {
+export function FicheFormation({ f, type, faculte: fac, ecole, points, autres, regionNom, declaration, privee }: FicheFormationProps) {
   const famille = FAMILLES[type]
   const cheminFiche = lienFormation(f)
   const segments = [
@@ -223,6 +231,8 @@ export function FicheFormation({ f, type, faculte: fac, ecole, points, autres, r
 
         <div className="mt-14 grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
           <div className="min-w-0 space-y-16">
+            {declaration && <ModuleEtablissement declaration={declaration} faculte={!!fac} />}
+            {privee && <ModuleFormationPrivee formation={privee} />}
             {fac ? (
               <>
                 <ModuleParcours fac={fac} />
@@ -293,6 +303,8 @@ export function FicheFormation({ f, type, faculte: fac, ecole, points, autres, r
                 </a>
               )}
             </div>
+
+            {declaration !== undefined && <EncartGestion slug={f.slug} geree={!!declaration} />}
 
             {sommaire.length > 0 && (
               <nav aria-label="Sommaire" className="squircle-2xl border border-line p-5">

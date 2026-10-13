@@ -277,6 +277,13 @@ function lireDiplome(ligne: string): DiplomeEcole {
   return { intitule: intitule ?? ligne, niveau: niveau || null, duree: duree || null, modalite: modalite || null }
 }
 
+/** Le numéro UAI cité dans le contenu : mention « UAI », ou adresse académique bâtie sur lui. */
+export function lireUai(html: string | null | undefined): string | null {
+  if (!html) return null
+  const m = /UAI\s*:?\s*(\d{7}[a-z])\b/i.exec(html) ?? /\b(?:ce\.)?(\d{7}[a-z])@ac-[a-z-]+\.fr\b/i.exec(html)
+  return m ? m[1]!.toUpperCase() : null
+}
+
 /** Les diplômes d'une fiche balisée, ou une liste vide : sert aussi aux cartes de la liste. */
 export function lireDiplomes(html: string | null | undefined): DiplomeEcole[] {
   if (!html) return []
