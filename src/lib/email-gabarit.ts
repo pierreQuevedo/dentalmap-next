@@ -89,7 +89,7 @@ export function composer(e: Email, site: string): { html: string; text: string }
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.fond};"><tr><td align="center" style="padding:24px 12px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
 <tr><td style="background:${C.carte};border:1px solid ${C.ligne};border-radius:20px;padding:32px 28px;">
-<img src="${logo}" width="126" height="28" alt="DentalMap" style="display:block;margin:0 0 24px;border:0;font:700 18px/28px ${POLICE};color:${C.texte};">
+<img src="${logo}" width="129" height="28" alt="DentalMap" style="display:block;margin:0 0 24px;border:0;font:700 18px/28px ${POLICE};color:${C.texte};">
 <h1 style="margin:0 0 20px;font:600 24px/30px ${POLICE};color:${C.texte};">${echapper(e.titre)}</h1>
 ${salutation ? `<p style="margin:0 0 16px;font:400 16px/24px ${POLICE};color:${C.texte};">${echapper(salutation)}</p>` : ''}
 ${e.blocs.map(blocHtml).join('\n')}

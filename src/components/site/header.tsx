@@ -40,8 +40,8 @@ export async function Header() {
         <MainNav conseils={conseils.slice(0, 2)} />
 
         <div className="flex items-center justify-end gap-2">
-          {/* Les fiches mises de côté. La page demande la connexion : le lien reste le même pour tous. */}
-          <Link href="/favoris" aria-label="Mes favoris" className="grid size-9 place-items-center rounded-full text-fg hover:bg-bg-soft">
+          {/* Les fiches mises de côté. La page demande la connexion : le lien reste le même pour tous. Sous `md`, il passe dans le menu (`mobile-nav.tsx`). */}
+          <Link href="/favoris" aria-label="Mes favoris" className="hidden size-9 place-items-center rounded-full md:grid text-fg hover:bg-bg-soft">
             <BookmarkIcon className="size-[18px]" />
           </Link>
           <RechercheHeader accesRapide={accesRapide} />

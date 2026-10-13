@@ -296,7 +296,7 @@ const BookADemo2Testimonials = ({ testimonials }: TestimonialsProps) => {
                 {testimonial.companyLogo && (
                   <img
                     src={testimonial.companyLogo}
-                    alt={`${testimonial.author.name} company logo`}
+                    alt=""
                     className="h-6 w-auto object-contain brightness-0 md:h-8 dark:invert"
                   />
                 )}
@@ -366,7 +366,7 @@ const BookADemo2Footer = ({ heading, logos }: Footer) => {
             <img
               key={`bookademo2-footer-logo-${index}`}
               src={logo}
-              alt={`logo ${index + 1}`}
+              alt=""
               className={cn(
                 "h-6 place-self-center object-contain brightness-0 md:h-8 dark:invert",
                 index > 5 && "hidden md:block",
