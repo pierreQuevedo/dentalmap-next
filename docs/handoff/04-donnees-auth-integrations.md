@@ -300,7 +300,7 @@ app/
     emploi/[offreId]/candidatures/page.tsx       D-CAND, L-CAND
     laboratoire/...                              L1 à LO4
     organisme/...                                O1 à O3b
-  (pro)/emploi/
+  (pro)/espace-candidat/                         ex-(pro)/emploi/ : `/emploi/` est la page publique de l’Emploi, deux routes ne peuvent pas résoudre le même chemin
     bienvenue/[etape]/page.tsx                   SE1 à SE5, SE3E
     page.tsx                                     CAND-VUE ou ETU-VUE
     offres/page.tsx, offres/[offreId]/page.tsx   CAND-OFFRES, CAND-OFFRE (ETU-*)

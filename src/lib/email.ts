@@ -421,3 +421,77 @@ export async function envoyerAlerteFormation(to: string, jeton: string, formatio
     raison: 'Vous recevez cet email parce que vous avez confirmé une alerte formations sur DentalMap. Un clic sur « Me désinscrire » l’arrête.',
   })
 }
+
+/* ------------------------------------------------------------------ */
+/* Annonces de cession                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Un repreneur a écrit au cédant depuis l'annonce. Le message est rangé dans
+ * la messagerie de l'espace pro ; l'email en donne un extrait, sans
+ * l'adresse du repreneur : la réponse passe par la messagerie.
+ */
+export async function envoyerNouveauMessageCession(to: string, titreAnnonce: string, extrait: string, urlMessagerie: string) {
+  await envoyer(to, `Nouveau message pour votre annonce « ${titreAnnonce} »`, {
+    titre: 'Un repreneur vous a écrit',
+    blocs: [
+      { type: 'texte', texte: `Un praticien s’intéresse à votre annonce « ${titreAnnonce} » et vous a écrit :` },
+      { type: 'encart', texte: extrait },
+      { type: 'bouton', libelle: 'Lire et répondre', url: `${SITE}${urlMessagerie}` },
+      { type: 'texte', texte: 'Vos coordonnées ne lui sont pas transmises : vous choisissez ce que vous lui communiquez dans votre réponse.' },
+    ],
+    raison: 'Vous recevez cet email parce que vous avez publié une annonce de cession sur DentalMap.',
+  })
+}
+
+/** Confirmer l'alerte cessions (inscription sans compte). */
+export async function envoyerConfirmationAlerteCession(to: string, jeton: string) {
+  const url = `${SITE}/annonces/cession/alerte/confirmer/${jeton}/`
+  await envoyer(to, 'Confirmez votre alerte cessions de cabinet', {
+    titre: 'Confirmez votre alerte cessions',
+    blocs: [
+      { type: 'texte', texte: 'Vous avez demandé à être prévenu des nouvelles annonces de cession de cabinet publiées sur DentalMap. Confirmez votre adresse pour activer l’alerte.' },
+      { type: 'bouton', libelle: 'Confirmer mon alerte', url },
+      { type: 'lienBrut', url },
+      { type: 'encart', texte: 'Un email par semaine au plus, seulement s’il y a du nouveau. Si vous n’êtes pas à l’origine de cette demande, ignorez ce message : rien ne sera envoyé.' },
+    ],
+    raison: 'Vous recevez cet email parce que cette adresse a été inscrite à l’alerte cessions de DentalMap.',
+  })
+}
+
+/** Les annonces de cession nouvellement publiées qui répondent à l'alerte, une fois par semaine au plus. */
+export async function envoyerAlerteCession(to: string, jeton: string, annonces: { titre: string; detail: string; lien: string }[]) {
+  const desinscription = `${SITE}/annonces/cession/alerte/desinscrire/${jeton}/`
+  const plusieurs = annonces.length > 1
+  await envoyer(to, plusieurs ? `${annonces.length} nouvelles cessions de cabinet` : 'Une nouvelle cession de cabinet', {
+    titre: plusieurs ? `${annonces.length} nouvelles cessions de cabinet` : 'Une nouvelle cession de cabinet',
+    blocs: [
+      { type: 'texte', texte: 'Ces annonces viennent d’être publiées et répondent à votre alerte.' },
+      ...annonces.flatMap((a) => [
+        { type: 'champs' as const, lignes: [['Annonce', a.titre], ['Repères', a.detail]] as [string, string][] },
+        { type: 'lien' as const, libelle: 'Voir l’annonce', url: `${SITE}${a.lien}` },
+      ]),
+      { type: 'lien', libelle: 'Me désinscrire de l’alerte', url: desinscription },
+    ],
+    raison: 'Vous recevez cet email parce que vous avez confirmé une alerte cessions sur DentalMap. Un clic sur « Me désinscrire » l’arrête.',
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/* Emploi                                                               */
+/* ------------------------------------------------------------------ */
+
+/** Confirmer l'alerte emploi (inscription sans compte). */
+export async function envoyerConfirmationAlerteEmploi(to: string, jeton: string) {
+  const url = `${SITE}/emploi/alerte/confirmer/${jeton}/`
+  await envoyer(to, 'Confirmez votre alerte emploi', {
+    titre: 'Confirmez votre alerte emploi',
+    blocs: [
+      { type: 'texte', texte: 'Vous avez demandé à recevoir les nouvelles offres d’emploi publiées sur DentalMap. Confirmez votre adresse pour activer l’alerte.' },
+      { type: 'bouton', libelle: 'Confirmer mon alerte', url },
+      { type: 'lienBrut', url },
+      { type: 'encart', texte: 'Un email par semaine au plus, seulement s’il y a du nouveau. Si vous n’êtes pas à l’origine de cette demande, ignorez ce message : rien ne sera envoyé.' },
+    ],
+    raison: 'Vous recevez cet email parce que cette adresse a été inscrite à une alerte emploi de DentalMap.',
+  })
+}
