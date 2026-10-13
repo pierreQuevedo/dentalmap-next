@@ -6,7 +6,9 @@ import { CONSEIL_CATEGORIES, type ConseilCategorie } from '@/lib/navigation'
 import { FicheMetierPage } from '@/components/conseils/metier'
 import { HeaderTransparent } from '@/components/home/HeaderTransparent'
 import { getFicheMetier, getMetiers } from '@/lib/conseils/metier'
-import { getConseil } from '@/lib/wp/queries'
+import { ArticleModulairePage } from '@/components/conseils/article/article'
+import { getArticleModulaire, tempsDeLecture, type ArticleModulaire } from '@/lib/conseils/modules'
+import { getConseil, getConseils, type ConseilResume } from '@/lib/wp/queries'
 
 export const instant = false
 
@@ -19,11 +21,13 @@ type Params = Promise<{ categorie: string; slug: string }>
 export async function generateMetadata(props: { params: Params }): Promise<Metadata> {
   const { categorie, slug } = await props.params
   if (!estCategorie(categorie)) return {}
-  const conseil = await getConseil(slug)
+  const [conseil, article] = await Promise.all([getConseil(slug), getArticleModulaire(slug)])
   if (!conseil) return {}
   return {
     title: conseil.seoTitre || conseil.titre,
-    description: conseil.seoDescription || conseil.extrait || undefined,
+    // Le chapô d'un article modulaire tient lieu de meta description si
+    // celle-ci est vide.
+    description: conseil.seoDescription || article?.chapo || conseil.extrait || undefined,
     robots: conseil.noindex ? { index: false, follow: true } : undefined,
   }
 }
@@ -51,6 +55,28 @@ export default async function ArticleConseil(props: { params: Params }) {
         </>
       )
     }
+  }
+
+  // Un article dont au moins une section du groupe « Article modulaire » est
+  // remplie prend la mise en page modulaire ; sinon, le contenu de l'éditeur
+  // WordPress, comme avant.
+  const article = await getArticleModulaire(slug)
+  if (article) {
+    return (
+      <ArticleModulairePage
+        entete={{
+          titre: conseil.titre,
+          categorie,
+          chapo: article.chapo ?? conseil.extrait,
+          reluPar: article.reluPar,
+          majLe: article.dateRelecture ?? conseil.modifie ?? conseil.date,
+          tempsLecture: conseil.tempsLecture ?? tempsDeLecture(article),
+          image: conseil.image,
+        }}
+        article={article}
+        aLireAussi={await aLireAussi(article, categorie, slug)}
+      />
+    )
   }
 
   return (
@@ -85,4 +111,19 @@ export default async function ArticleConseil(props: { params: Params }) {
       )}
     </main>
   )
+}
+
+/**
+ * Les articles liés choisis dans WordPress, sinon les trois plus récents de la
+ * même rubrique, l'article courant exclu.
+ */
+async function aLireAussi(article: ArticleModulaire, categorie: ConseilCategorie, slug: string): Promise<ConseilResume[]> {
+  const tous = await getConseils()
+  if (article.lies.slugs.length > 0) {
+    const parSlug = new Map(tous.map((c) => [c.slug, c]))
+    const choisis = article.lies.slugs.flatMap((s) => (s !== slug && parSlug.has(s) ? [parSlug.get(s)!] : []))
+    if (choisis.length > 0) return choisis
+  }
+  // Un article sans rubrique vit sous « patients », voir `lienConseil`.
+  return tous.filter((c) => c.slug !== slug && (c.categorie ?? 'patients') === categorie).slice(0, 3)
 }
