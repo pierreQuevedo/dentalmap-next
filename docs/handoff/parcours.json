@@ -1,0 +1,3256 @@
+{
+  "figma_file_key": "oxe3W5vGaT9QEYH6ur6Z3p",
+  "page": "Parcours · step by step",
+  "page_node": "68:1827",
+  "etapes": [
+    {
+      "id": "CX1",
+      "nom": "Connexion ou inscription",
+      "couloir": "tronc",
+      "grille": {
+        "colonne": 0,
+        "rangee": 0
+      },
+      "route": "/connexion",
+      "titre": "Connexion",
+      "cta": "Recevoir mon lien de connexion",
+      "action_secondaire": "Utiliser une clé d'accès",
+      "objectif": "Point d'entrée unique, connexion et inscription confondues.",
+      "regles": "Email au format RFC, normalisé en minuscules. Contexte d'origine mémorisé (paramètre next). Limite : 5 envois par heure et par adresse.",
+      "donnees": "Écrit : demande de lien (table verification de Better Auth).",
+      "sorties": [
+        {
+          "vers": "CX2",
+          "condition": "email valide"
+        },
+        {
+          "vers": "CX1-E",
+          "condition": "email invalide"
+        },
+        {
+          "vers": "PSC1",
+          "condition": "bouton Pro Santé Connect"
+        },
+        {
+          "vers": "CX6",
+          "condition": "plus accès à l'email"
+        },
+        {
+          "vers": "Espace",
+          "condition": "clé d'accès reconnue"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=69-1811",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=69-1855",
+        "desktop_node": "69:1811",
+        "mobile_node": "69:1855"
+      }
+    },
+    {
+      "id": "CX2",
+      "nom": "Lien envoyé ou code",
+      "couloir": "tronc",
+      "grille": {
+        "colonne": 1,
+        "rangee": 0
+      },
+      "route": "/connexion/verifier",
+      "titre": "Lien envoyé, ou saisissez le code",
+      "cta": "Valider le code",
+      "action_secondaire": "Renvoyer (disponible dans 45 s)",
+      "objectif": "Vérifier la possession de l'adresse.",
+      "regles": "Lien valable 5 min, usage unique. Code 6 chiffres valable 10 min, 5 essais. Renvoi après 45 s.",
+      "donnees": "Better Auth : plugins magicLink + emailOTP, un seul email contenant les deux.",
+      "sorties": [
+        {
+          "vers": "CX3",
+          "condition": "1re connexion avec cette adresse"
+        },
+        {
+          "vers": "T3",
+          "condition": "compte sans profil"
+        },
+        {
+          "vers": "Origine",
+          "condition": "compte avec profil : retour à la page d'origine"
+        },
+        {
+          "vers": "CX4",
+          "condition": "2e connexion : proposer une clé"
+        },
+        {
+          "vers": "CX2-E",
+          "condition": "code incorrect"
+        },
+        {
+          "vers": "CX5",
+          "condition": "lien expiré"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=69-1997",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=69-2047",
+        "desktop_node": "69:1997",
+        "mobile_node": "69:2047"
+      }
+    },
+    {
+      "id": "CX3",
+      "nom": "Première connexion",
+      "couloir": "tronc",
+      "grille": {
+        "colonne": 2,
+        "rangee": 0
+      },
+      "route": "/connexion/bienvenue",
+      "titre": "Bienvenue sur DentalMap",
+      "cta": "Créer mon compte",
+      "action_secondaire": "",
+      "objectif": "Créer le compte et recueillir le consentement.",
+      "regles": "CGU obligatoires (bouton inactif sinon). Rappels en opt-in, décochés par défaut.",
+      "donnees": "Écrit : user (Better Auth), consentements horodatés (version des CGU).",
+      "sorties": [
+        {
+          "vers": "T3",
+          "condition": "toujours, au premier passage"
+        },
+        {
+          "vers": "Fiche d'origine",
+          "condition": "si arrivé par « Revendiquer cette fiche » : profil santé et fiche présélectionnés, saut vers S2"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=70-1948",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=70-1996",
+        "desktop_node": "70:1948",
+        "mobile_node": "70:1996"
+      }
+    },
+    {
+      "id": "T3",
+      "nom": "Qui êtes-vous ?",
+      "couloir": "tronc",
+      "grille": {
+        "colonne": 3,
+        "rangee": 0
+      },
+      "route": "/bienvenue/profil",
+      "titre": "Qui êtes-vous ?",
+      "cta": "Continuer",
+      "action_secondaire": "Je préfère ne pas répondre",
+      "objectif": "Aiguiller vers le parcours adapté.",
+      "regles": "Choix unique parmi cinq profils. Posé une seule fois par compte.",
+      "donnees": "Écrit : user.profil (patient, sante, labo, organisme, salarie).",
+      "sorties": [
+        {
+          "vers": "P2 ou P1",
+          "condition": "Patient (selon l'origine)"
+        },
+        {
+          "vers": "S0",
+          "condition": "Dentiste ou spécialiste"
+        },
+        {
+          "vers": "L1",
+          "condition": "Prothésiste, laboratoire"
+        },
+        {
+          "vers": "O1",
+          "condition": "École ou organisme"
+        },
+        {
+          "vers": "SE1",
+          "condition": "Salarié ou étudiant (assistant(e), secrétaire, prothésiste salarié, étudiant)"
+        },
+        {
+          "vers": "P1",
+          "condition": "Ne pas répondre"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=70-2053",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=70-2112",
+        "desktop_node": "70:2053",
+        "mobile_node": "70:2112"
+      }
+    },
+    {
+      "id": "CX1-E",
+      "nom": "Connexion, adresse invalide",
+      "couloir": "tronc",
+      "grille": {
+        "colonne": 0,
+        "rangee": 1
+      },
+      "route": "/connexion (état erreur)",
+      "titre": "Connexion",
+      "cta": "Recevoir mon lien de connexion",
+      "action_secondaire": "",
+      "objectif": "Signaler une adresse mal formée sans quitter l'écran.",
+      "regles": "Validation côté client puis côté serveur. Suggestion de correction pour les domaines courants (gmial.com → gmail.com).",
+      "donnees": "Rien n'est écrit.",
+      "sorties": [
+        {
+          "vers": "CX2",
+          "condition": "adresse corrigée"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=69-1910",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=69-1948",
+        "desktop_node": "69:1910",
+        "mobile_node": "69:1948"
+      }
+    },
+    {
+      "id": "CX2-E",
+      "nom": "Code incorrect",
+      "couloir": "tronc",
+      "grille": {
+        "colonne": 1,
+        "rangee": 1
+      },
+      "route": "/connexion/verifier (état erreur)",
+      "titre": "Lien envoyé, ou saisissez le code",
+      "cta": "Valider le code",
+      "action_secondaire": "Recevoir un nouveau code",
+      "objectif": "Expliquer l'échec et le nombre d'essais restants.",
+      "regles": "Compteur par code. Au 5e échec, code invalidé et renvoi proposé.",
+      "donnees": "Incrément du compteur d'essais.",
+      "sorties": [
+        {
+          "vers": "CX3",
+          "condition": "code correct"
+        },
+        {
+          "vers": "CX2",
+          "condition": "nouveau code demandé"
+        },
+        {
+          "vers": "CX5",
+          "condition": "5 erreurs"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=69-2108",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=69-2157",
+        "desktop_node": "69:2108",
+        "mobile_node": "69:2157"
+      }
+    },
+    {
+      "id": "CX4",
+      "nom": "Proposer une clé d'accès",
+      "couloir": "tronc",
+      "grille": {
+        "colonne": 2,
+        "rangee": 1
+      },
+      "route": "/connexion/cle-d-acces",
+      "titre": "La prochaine fois, d'un geste",
+      "cta": "Créer une clé d'accès",
+      "action_secondaire": "Plus tard",
+      "objectif": "Accélérer les connexions suivantes.",
+      "regles": "Affiché si : 2e connexion réussie et aucune clé enregistrée. Une relance maximum.",
+      "donnees": "Écrit : passkey (plugin Better Auth).",
+      "sorties": [
+        {
+          "vers": "Origine",
+          "condition": "après création ou « Plus tard »"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=70-2182",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=70-2222",
+        "desktop_node": "70:2182",
+        "mobile_node": "70:2222"
+      }
+    },
+    {
+      "id": "CX6",
+      "nom": "Plus accès à mon email",
+      "couloir": "tronc",
+      "grille": {
+        "colonne": 0,
+        "rangee": 2
+      },
+      "route": "/connexion/recuperation",
+      "titre": "Plus accès à votre adresse ?",
+      "cta": "Continuer",
+      "action_secondaire": "",
+      "objectif": "Récupérer un compte sans accès à l'adresse.",
+      "regles": "Choix unique, selon le profil déclaré.",
+      "donnees": "Écrit : demande de changement d'adresse (examen manuel pour labos et établissements).",
+      "sorties": [
+        {
+          "vers": "PSC1",
+          "condition": "professionnel de santé"
+        },
+        {
+          "vers": "Formulaire",
+          "condition": "laboratoire ou établissement"
+        },
+        {
+          "vers": "CX1",
+          "condition": "patient, nouvelle adresse"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=70-2362",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=70-2413",
+        "desktop_node": "70:2362",
+        "mobile_node": "70:2413"
+      }
+    },
+    {
+      "id": "CX5",
+      "nom": "Lien expiré ou déjà utilisé",
+      "couloir": "tronc",
+      "grille": {
+        "colonne": 1,
+        "rangee": 2
+      },
+      "route": "/connexion/expire",
+      "titre": "Ce lien a expiré",
+      "cta": "Recevoir un nouveau lien",
+      "action_secondaire": "Saisir un code à la place",
+      "objectif": "Sortir d'un lien mort sans repartir de zéro.",
+      "regles": "L'adresse est pré-remplie depuis le jeton expiré.",
+      "donnees": "Nouvelle demande de lien.",
+      "sorties": [
+        {
+          "vers": "CX2",
+          "condition": "nouveau lien ou code"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=70-2273",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=70-2311",
+        "desktop_node": "70:2273",
+        "mobile_node": "70:2311"
+      }
+    },
+    {
+      "id": "P2",
+      "nom": "Retour à la fiche, numéro visible",
+      "couloir": "patient",
+      "grille": {
+        "colonne": 4,
+        "rangee": 2
+      },
+      "route": "fiche publique, numéro révélé (/dentistes/.../[slug])",
+      "titre": "Le numéro est maintenant visible",
+      "cta": "Appeler le cabinet",
+      "action_secondaire": "Ajouter aux favoris",
+      "objectif": "Rendre le service demandé : le numéro du cabinet.",
+      "regles": "Affiché si le compte arrive depuis « Afficher le numéro ».",
+      "donnees": "Lu : fiche (registre). Écrit : favori si demandé.",
+      "sorties": [
+        {
+          "vers": "tel:",
+          "condition": "Appeler"
+        },
+        {
+          "vers": "Favoris",
+          "condition": "Ajouter aux favoris"
+        },
+        {
+          "vers": "Fiche",
+          "condition": "retour à la fiche consultée"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=73-2166",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=73-2210",
+        "desktop_node": "73:2166",
+        "mobile_node": "73:2210"
+      }
+    },
+    {
+      "id": "P1",
+      "nom": "Personnaliser (facultatif)",
+      "couloir": "patient",
+      "grille": {
+        "colonne": 4,
+        "rangee": 3
+      },
+      "route": "/bienvenue/patient",
+      "titre": "Où cherchez-vous en général ?",
+      "cta": "Terminer",
+      "action_secondaire": "Passer",
+      "objectif": "Personnaliser l'accueil pour un patient arrivé sans contexte.",
+      "regles": "Ville via autocomplétion (table communes puis BAN). Tout est facultatif.",
+      "donnees": "Écrit : préférences du compte (commune, profession).",
+      "sorties": [
+        {
+          "vers": "Accueil",
+          "condition": "recherche pré-remplie"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=73-2263",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=73-2313",
+        "desktop_node": "73:2263",
+        "mobile_node": "73:2313"
+      }
+    },
+    {
+      "id": "S0",
+      "nom": "Comment vous identifier ?",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 4,
+        "rangee": 4
+      },
+      "route": "/espace-pro/revendiquer",
+      "titre": "Comment vous identifier ?",
+      "cta": "S'identifier avec Pro Santé Connect",
+      "action_secondaire": "Rechercher ma fiche sans PSC",
+      "objectif": "Choisir la voie d'identification du soignant.",
+      "regles": "PSC proposé par défaut. Description de la recherche sans PSC : « Vérification par email du registre, justificatif ou Pro Santé Connect ». Prérequis : raccordement DentalMap à PSC (api.gouv, bac à sable puis production).",
+      "donnees": "Aucune écriture.",
+      "sorties": [
+        {
+          "vers": "PSC1",
+          "condition": "Pro Santé Connect"
+        },
+        {
+          "vers": "S1",
+          "condition": "recherche manuelle"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=73-2374",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=73-2424",
+        "desktop_node": "73:2374",
+        "mobile_node": "73:2424"
+      }
+    },
+    {
+      "id": "PSC1",
+      "nom": "Redirection Pro Santé Connect",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 5,
+        "rangee": 4
+      },
+      "route": "/espace-pro/revendiquer/psc",
+      "titre": "Vous quittez DentalMap quelques instants",
+      "cta": "Continuer vers Pro Santé Connect",
+      "action_secondaire": "Annuler",
+      "objectif": "Préparer la redirection vers l'ANS.",
+      "regles": "Le choix e-CPS ou carte n'est qu'indicatif : PSC propose les deux.",
+      "donnees": "Écrit : state, nonce en session.",
+      "sorties": [
+        {
+          "vers": "PSC-ANS",
+          "condition": "continuer"
+        },
+        {
+          "vers": "S0",
+          "condition": "annuler"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=73-2483",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=73-2534",
+        "desktop_node": "73:2483",
+        "mobile_node": "73:2534"
+      }
+    },
+    {
+      "id": "PSC-ANS",
+      "nom": "Écran de l'ANS (externe)",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 6,
+        "rangee": 4
+      },
+      "route": "externe (ANS)",
+      "titre": "Validez sur votre téléphone",
+      "cta": "",
+      "action_secondaire": "",
+      "objectif": "Authentifier le soignant chez l'ANS.",
+      "regles": "Hors du contrôle de DentalMap.",
+      "donnees": "Retour : code d'autorisation échangé contre un jeton.",
+      "sorties": [
+        {
+          "vers": "PSC2",
+          "condition": "authentification réussie"
+        },
+        {
+          "vers": "PSC-E",
+          "condition": "annulée, refusée ou erreur"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=73-2598",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=73-2631",
+        "desktop_node": "73:2598",
+        "mobile_node": "73:2631"
+      }
+    },
+    {
+      "id": "PSC2",
+      "nom": "Retour PSC, fiche trouvée",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 7,
+        "rangee": 4
+      },
+      "route": "/espace-pro/revendiquer/psc/retour",
+      "titre": "Bonjour Dr Martin Dupont",
+      "cta": "Revendiquer et continuer",
+      "action_secondaire": "Ce n'est pas ma fiche",
+      "objectif": "Confirmer le rapprochement RPPS et fiche.",
+      "regles": "Correspondance exacte sur le RPPS. Si la fiche est déjà revendiquée par un autre compte : C1.",
+      "donnees": "Écrit : revendications (méthode psc, statut validée), verifications.",
+      "sorties": [
+        {
+          "vers": "M1",
+          "condition": "plusieurs lieux"
+        },
+        {
+          "vers": "B0",
+          "condition": "un seul lieu"
+        },
+        {
+          "vers": "C1",
+          "condition": "déjà revendiquée"
+        },
+        {
+          "vers": "S1",
+          "condition": "ce n'est pas ma fiche"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2382",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2433",
+        "desktop_node": "74:2382",
+        "mobile_node": "74:2433"
+      }
+    },
+    {
+      "id": "M1",
+      "nom": "Choisir les lieux d'exercice",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 8,
+        "rangee": 4
+      },
+      "route": "/espace-pro/lieux",
+      "titre": "Où exercez-vous ?",
+      "cta": "Gérer ces lieux",
+      "action_secondaire": "",
+      "objectif": "Choisir les lieux à compléter.",
+      "regles": "Au moins un lieu. L'ordre de complétion suit le lieu principal.",
+      "donnees": "Écrit : lieux gérés par le compte.",
+      "sorties": [
+        {
+          "vers": "B0",
+          "condition": "lieux choisis"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2711",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2757",
+        "desktop_node": "74:2711",
+        "mobile_node": "74:2757"
+      }
+    },
+    {
+      "id": "B0",
+      "nom": "Ce que nous savons déjà",
+      "couloir": "onboarding-sante",
+      "grille": {
+        "colonne": 9,
+        "rangee": 4
+      },
+      "route": "/espace-pro/onboarding/recuperation",
+      "titre": "Voici ce que nous savons déjà",
+      "cta": "C'est juste, continuer",
+      "action_secondaire": "Signaler une erreur",
+      "objectif": "Montrer la valeur déjà acquise avant de demander quoi que ce soit.",
+      "regles": "Aucune saisie. « Signaler une erreur » ouvre un formulaire hors tunnel.",
+      "donnees": "Lu : praticiens, lieux_exercice, verifications.",
+      "sorties": [
+        {
+          "vers": "B0S",
+          "condition": "c'est juste"
+        },
+        {
+          "vers": "Signalement",
+          "condition": "erreur dans le registre"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=77-3269",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=77-3337",
+        "desktop_node": "77:3269",
+        "mobile_node": "77:3337"
+      }
+    },
+    {
+      "id": "B0S",
+      "nom": "Spécialité et domaines de soins",
+      "couloir": "onboarding-sante",
+      "grille": null,
+      "route": "/espace-pro/onboarding/specialite",
+      "titre": "Votre spécialité et vos domaines de soins",
+      "cta": "Continuer",
+      "action_secondaire": "Passer cette étape",
+      "objectif": "Afficher la qualification du registre et recueillir les domaines d'exercice.",
+      "regles": "Étape 1 sur 4. Qualification lue au registre (Annuaire Santé), verrouillée : omnipratique, ou spécialité qualifiante (orthopédie dento-faciale, chirurgie orale, médecine bucco-dentaire). Domaines d'exercice déclarés, 5 au plus, liste fermée : soins conservateurs, endodontie, parodontologie, implantologie, prothèse, orthodontie, soins des enfants, chirurgie orale, esthétique, occlusodontie, soins sous sédation, patients en situation de handicap. Affichés « renseigné par le praticien ». Ouvre le filtre « Domaine de soins ». Remplace la mission « Domaines de soins » du tableau de bord (ancienne B6). Poids à arbitrer : la mission valait +8 %, aucun gain affiché sur le bouton tant qu'il n'est pas fixé.",
+      "donnees": "Lu : qualification (praticiens, Annuaire Santé). Écrit : fiches_completees.domaines (text[]).",
+      "sorties": [
+        {
+          "vers": "B1",
+          "condition": "valider ou passer"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "B1",
+      "nom": "Horaires",
+      "couloir": "onboarding-sante",
+      "grille": {
+        "colonne": 10,
+        "rangee": 4
+      },
+      "route": "/espace-pro/onboarding/horaires",
+      "titre": "Quand êtes-vous ouvert ?",
+      "cta": "Valider · +20 %",
+      "action_secondaire": "Passer cette étape",
+      "objectif": "Recueillir les horaires hebdomadaires.",
+      "regles": "Étape 2 sur 4. Au moins un jour ouvert. Créneaux sans chevauchement. Pause déjeuner facultative.",
+      "donnees": "Écrit : fiches_completees.horaires (jsonb), horaires_confirmes_le.",
+      "sorties": [
+        {
+          "vers": "B2",
+          "condition": "valider ou passer"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=77-3421",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=77-3501",
+        "desktop_node": "77:3421",
+        "mobile_node": "77:3501"
+      }
+    },
+    {
+      "id": "B2",
+      "nom": "Conventionnement",
+      "couloir": "onboarding-sante",
+      "grille": {
+        "colonne": 11,
+        "rangee": 4
+      },
+      "route": "/espace-pro/onboarding/conventionnement",
+      "titre": "Conventionnement et paiement",
+      "cta": "Valider · +10 %",
+      "action_secondaire": "Passer cette étape",
+      "objectif": "Renseigner secteur et tiers payant.",
+      "regles": "Étape 3 sur 4. Choix uniques, tous deux requis pour les 10 points.",
+      "donnees": "Écrit : fiches_completees.secteur, tiers_payant.",
+      "sorties": [
+        {
+          "vers": "B3",
+          "condition": "valider ou passer"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=77-3597",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=77-3658",
+        "desktop_node": "77:3597",
+        "mobile_node": "77:3658"
+      }
+    },
+    {
+      "id": "B3",
+      "nom": "Accueil des patients",
+      "couloir": "onboarding-sante",
+      "grille": {
+        "colonne": 12,
+        "rangee": 4
+      },
+      "route": "/espace-pro/onboarding/accueil",
+      "titre": "Qui pouvez-vous accueillir ?",
+      "cta": "Valider · +10 %",
+      "action_secondaire": "Passer cette étape",
+      "objectif": "Renseigner langues, accessibilité, âge minimum.",
+      "regles": "Étape 4 sur 4. Trois réponses requises pour les 10 points.",
+      "donnees": "Écrit : langues (text[]), acces_pmr, age_min.",
+      "sorties": [
+        {
+          "vers": "B4",
+          "condition": "valider ou passer"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=77-3737",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=77-3801",
+        "desktop_node": "77:3737",
+        "mobile_node": "77:3801"
+      }
+    },
+    {
+      "id": "B4",
+      "nom": "Photo du cabinet",
+      "couloir": "onboarding-sante",
+      "grille": {
+        "colonne": 13,
+        "rangee": 4
+      },
+      "route": "/espace-pro/onboarding/photo",
+      "titre": "Montrez l'entrée du cabinet",
+      "cta": "Utiliser cette photo · +12 %",
+      "action_secondaire": "Passer cette étape",
+      "objectif": "Ajouter la photo de l'entrée.",
+      "regles": "JPG ou PNG, 5 Mo max, recadrage 16:9 proposé. Métadonnées EXIF supprimées.",
+      "donnees": "Écrit : Vercel Blob (public), fiches_completees.photo_blob_url.",
+      "sorties": [
+        {
+          "vers": "B5",
+          "condition": "valider ou passer"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-3535",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-3576",
+        "desktop_node": "78:3535",
+        "mobile_node": "78:3576"
+      }
+    },
+    {
+      "id": "B5",
+      "nom": "Présentation",
+      "couloir": "onboarding-sante",
+      "grille": {
+        "colonne": 14,
+        "rangee": 4
+      },
+      "route": "/espace-pro/onboarding/presentation",
+      "titre": "Présentez votre pratique",
+      "cta": "Valider · +10 %",
+      "action_secondaire": "Passer cette étape",
+      "objectif": "Recueillir une présentation utile et neutre.",
+      "regles": "200 à 800 caractères. Liste de termes refusés (meilleur, n°1, garanti, prix…). Points accordés si aucun terme refusé.",
+      "donnees": "Écrit : fiches_completees.presentation.",
+      "sorties": [
+        {
+          "vers": "B7",
+          "condition": "valider ou passer"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-3632",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-3677",
+        "desktop_node": "78:3632",
+        "mobile_node": "78:3677"
+      }
+    },
+    {
+      "id": "B6",
+      "nom": "Domaines de soins",
+      "couloir": "onboarding-sante",
+      "grille": {
+        "colonne": 15,
+        "rangee": 4
+      },
+      "route": "/espace-pro/onboarding/soins",
+      "titre": "Vos domaines de soins",
+      "cta": "Valider · +8 %",
+      "action_secondaire": "Passer cette étape",
+      "objectif": "Préciser les soins pratiqués.",
+      "regles": "Liste fermée, minimum 2 pour les 8 points.",
+      "donnees": "Écrit : fiches_completees.specialites (text[]).",
+      "sorties": [
+        {
+          "vers": "B0S",
+          "condition": "remplacé par B0S"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-3737",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-3797",
+        "desktop_node": "78:3737",
+        "mobile_node": "78:3797"
+      },
+      "note": "remplacé par B0S le 11 octobre 2026 (domaines déclarés dès l'onboarding). Fiche conservée pour la trace, ne pas implémenter."
+    },
+    {
+      "id": "B7",
+      "nom": "Votre fiche est prête",
+      "couloir": "onboarding-sante",
+      "grille": {
+        "colonne": 16,
+        "rangee": 4
+      },
+      "route": "/espace-pro/onboarding/recapitulatif",
+      "titre": "Voici ce que verront les patients",
+      "cta": "Publier ma fiche",
+      "action_secondaire": "Modifier une réponse",
+      "objectif": "Faire valider le rendu public avant publication.",
+      "regles": "Publication immédiate. revalidateTag praticien et commune.",
+      "donnees": "Écrit : fiches_completees.updated_at, statut publié.",
+      "sorties": [
+        {
+          "vers": "J",
+          "condition": "palier franchi (90 % ou plus)"
+        },
+        {
+          "vers": "DASH",
+          "condition": "sinon, espace pro"
+        },
+        {
+          "vers": "B0S à B5",
+          "condition": "modifier une réponse"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-3874",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-3938",
+        "desktop_node": "78:3874",
+        "mobile_node": "78:3938"
+      }
+    },
+    {
+      "id": "J",
+      "nom": "Célébration, palier atteint",
+      "couloir": "onboarding-sante",
+      "grille": {
+        "colonne": 17,
+        "rangee": 4
+      },
+      "route": "/espace-pro (modale de palier)",
+      "titre": "",
+      "cta": "",
+      "action_secondaire": "",
+      "objectif": "Marquer le franchissement d'un palier.",
+      "regles": "Plein écran à 90 points et plus, toast léger aux paliers 40 et 70. Respecte prefers-reduced-motion (pas de confettis animés).",
+      "donnees": "Écrit : distinction débloquée (horodatée).",
+      "sorties": [
+        {
+          "vers": "DASH",
+          "condition": "continuer"
+        },
+        {
+          "vers": "Fiche publique",
+          "condition": "voir comme un patient"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-4012",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-4077",
+        "desktop_node": "78:4012",
+        "mobile_node": "78:4077"
+      }
+    },
+    {
+      "id": "DASH",
+      "nom": "Espace pro, force de fiche",
+      "couloir": "onboarding-sante",
+      "grille": {
+        "colonne": 18,
+        "rangee": 4
+      },
+      "route": "/espace-pro",
+      "titre": "",
+      "cta": "",
+      "action_secondaire": "",
+      "objectif": "Point d'arrivée : piloter la complétude et la fraîcheur.",
+      "regles": "Prochaine action calculée : élément non rempli au plus fort gain, puis élément à reconfirmer.",
+      "donnees": "Lu : fiches_completees, verifications, distinctions. Score calculé à la volée.",
+      "sorties": [
+        {
+          "vers": "Ma fiche",
+          "condition": "prochaine action"
+        },
+        {
+          "vers": "Données du registre",
+          "condition": "onglet Registre"
+        },
+        {
+          "vers": "Compte et sécurité",
+          "condition": "onglet Compte"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-4135",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=78-4319",
+        "desktop_node": "78:4135",
+        "mobile_node": "78:4319"
+      }
+    },
+    {
+      "id": "PSC-E",
+      "nom": "Échec Pro Santé Connect",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 6,
+        "rangee": 5
+      },
+      "route": "/espace-pro/revendiquer/psc/retour (état erreur)",
+      "titre": "Pro Santé Connect n'a pas abouti",
+      "cta": "Réessayer",
+      "action_secondaire": "Rechercher ma fiche",
+      "objectif": "Ne jamais bloquer : proposer une autre voie.",
+      "regles": "Erreur OIDC traduite en message unique. state invalide : nouvelle tentative obligatoire.",
+      "donnees": "Journal technique uniquement.",
+      "sorties": [
+        {
+          "vers": "PSC1",
+          "condition": "réessayer"
+        },
+        {
+          "vers": "S1",
+          "condition": "recherche manuelle"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2497",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2547",
+        "desktop_node": "74:2497",
+        "mobile_node": "74:2547"
+      }
+    },
+    {
+      "id": "PSC-0",
+      "nom": "RPPS sans fiche",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 7,
+        "rangee": 5
+      },
+      "route": "/espace-pro/revendiquer/psc/retour (sans fiche)",
+      "titre": "Votre fiche n'existe pas encore",
+      "cta": "M'avertir par email",
+      "action_secondaire": "Retour à l'accueil",
+      "objectif": "Traiter un praticien valide absent de la base.",
+      "regles": "Revendication en attente liée au RPPS, appliquée automatiquement à la création de la fiche.",
+      "donnees": "Écrit : revendications (statut en_attente_fiche).",
+      "sorties": [
+        {
+          "vers": "Email",
+          "condition": "fiche créée et revendiquée"
+        },
+        {
+          "vers": "Accueil",
+          "condition": "retour"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2610",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2655",
+        "desktop_node": "74:2610",
+        "mobile_node": "74:2655"
+      }
+    },
+    {
+      "id": "S1",
+      "nom": "Profession et RPPS",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 5,
+        "rangee": 6
+      },
+      "route": "/espace-pro/revendiquer/recherche",
+      "titre": "Retrouvons votre fiche",
+      "cta": "Rechercher ma fiche",
+      "action_secondaire": "Je n'ai pas mon RPPS sous la main",
+      "objectif": "Retrouver la fiche sans PSC.",
+      "regles": "RPPS : 11 chiffres, contrôle de clé. Nom : 2 caractères minimum, recherche trigram.",
+      "donnees": "Lu : praticiens.",
+      "sorties": [
+        {
+          "vers": "S2",
+          "condition": "1 résultat"
+        },
+        {
+          "vers": "H1",
+          "condition": "plusieurs résultats"
+        },
+        {
+          "vers": "S1-0",
+          "condition": "aucun résultat"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2814",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2862",
+        "desktop_node": "74:2814",
+        "mobile_node": "74:2862"
+      }
+    },
+    {
+      "id": "S2",
+      "nom": "C'est bien vous ?",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 6,
+        "rangee": 6
+      },
+      "route": "/espace-pro/revendiquer/[praticienId]",
+      "titre": "C'est bien vous ?",
+      "cta": "C'est ma fiche",
+      "action_secondaire": "Ce n'est pas moi",
+      "objectif": "Confirmer l'identité de la fiche.",
+      "regles": "Liens texte : retrait (R1), remplaçant (REMP).",
+      "donnees": "Lu : praticiens, revendications.",
+      "sorties": [
+        {
+          "vers": "S3a",
+          "condition": "email connu du registre"
+        },
+        {
+          "vers": "S3b",
+          "condition": "pas d'email au registre"
+        },
+        {
+          "vers": "C1",
+          "condition": "déjà revendiquée"
+        },
+        {
+          "vers": "R1",
+          "condition": "retirer ma fiche"
+        },
+        {
+          "vers": "REMP",
+          "condition": "remplaçant"
+        },
+        {
+          "vers": "S1",
+          "condition": "ce n'est pas moi"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2921",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=74-2971",
+        "desktop_node": "74:2921",
+        "mobile_node": "74:2971"
+      }
+    },
+    {
+      "id": "S3a",
+      "nom": "Lien sur l'email du registre",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 7,
+        "rangee": 6
+      },
+      "route": "/espace-pro/revendiquer/[praticienId]/email",
+      "titre": "Ouvrez le lien sur votre email professionnel",
+      "cta": "J'ai cliqué sur le lien",
+      "action_secondaire": "Je n'ai plus accès à cette adresse",
+      "objectif": "Prouver la possession de l'email du registre.",
+      "regles": "Lien valable 24 h, usage unique. L'écran se met à jour seul quand le lien est ouvert.",
+      "donnees": "Écrit : revendications (méthode email_pro, validée).",
+      "sorties": [
+        {
+          "vers": "M1",
+          "condition": "validé, plusieurs lieux"
+        },
+        {
+          "vers": "B0",
+          "condition": "validé, un seul lieu"
+        },
+        {
+          "vers": "S3b",
+          "condition": "plus accès à l'adresse"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=75-2633",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=75-2671",
+        "desktop_node": "75:2633",
+        "mobile_node": "75:2671"
+      }
+    },
+    {
+      "id": "H1",
+      "nom": "Homonymes",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 5,
+        "rangee": 7
+      },
+      "route": "/espace-pro/revendiquer/recherche?resultats=multiples",
+      "titre": "3 fiches portent ce nom",
+      "cta": "C'est ma fiche",
+      "action_secondaire": "Aucune n'est la mienne",
+      "objectif": "Départager plusieurs résultats.",
+      "regles": "Tri par ville saisie puis alphabétique. 20 résultats max.",
+      "donnees": "Lu : praticiens, lieux_exercice.",
+      "sorties": [
+        {
+          "vers": "S2",
+          "condition": "fiche choisie"
+        },
+        {
+          "vers": "S1-0",
+          "condition": "aucune n'est la mienne"
+        },
+        {
+          "vers": "S1",
+          "condition": "nouvelle recherche"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=75-2720",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=75-2776",
+        "desktop_node": "75:2720",
+        "mobile_node": "75:2776"
+      }
+    },
+    {
+      "id": "C1",
+      "nom": "Fiche déjà revendiquée",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 6,
+        "rangee": 7
+      },
+      "route": "/espace-pro/revendiquer/[praticienId]/conflit",
+      "titre": "Cette fiche est déjà gérée par un autre compte",
+      "cta": "Prouver avec Pro Santé Connect",
+      "action_secondaire": "Envoyer un justificatif",
+      "objectif": "Résoudre un conflit de revendication.",
+      "regles": "Seules PSC ou justificatif sont acceptés. Délai de réponse de 7 jours pour le compte actuel.",
+      "donnees": "Écrit : contestation liée aux deux comptes.",
+      "sorties": [
+        {
+          "vers": "PSC1",
+          "condition": "prouver avec PSC"
+        },
+        {
+          "vers": "JD1",
+          "condition": "envoyer un justificatif"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=75-2845",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=75-2886",
+        "desktop_node": "75:2845",
+        "mobile_node": "75:2886"
+      }
+    },
+    {
+      "id": "S3b",
+      "nom": "Choisir la vérification",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 7,
+        "rangee": 7
+      },
+      "route": "/espace-pro/revendiquer/[praticienId]/methode",
+      "titre": "Comment prouver que c'est vous ?",
+      "cta": "Continuer",
+      "action_secondaire": "",
+      "objectif": "Choisir une preuve quand le registre ne porte pas d'email.",
+      "regles": "Deux preuves seulement : justificatif (vérification automatique en quelques minutes) ou Pro Santé Connect. Le courrier au cabinet est abandonné (décision du 11 octobre 2026). Le justificatif n'est pas enregistré sur nos serveurs : il est lu pour la vérification puis supprimé dès la fin de celle-ci, validée ou non.",
+      "donnees": "Écrit : méthode choisie.",
+      "sorties": [
+        {
+          "vers": "JD1",
+          "condition": "justificatif"
+        },
+        {
+          "vers": "PSC1",
+          "condition": "Pro Santé Connect"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=75-2938",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=75-2992",
+        "desktop_node": "75:2938",
+        "mobile_node": "75:2992"
+      }
+    },
+    {
+      "id": "S1-0",
+      "nom": "Aucune fiche trouvée",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 5,
+        "rangee": 8
+      },
+      "route": "/espace-pro/revendiquer/recherche?resultats=aucun",
+      "titre": "Aucune fiche ne correspond",
+      "cta": "M'avertir à la création",
+      "action_secondaire": "Modifier ma recherche",
+      "objectif": "Ne pas laisser un praticien sans issue.",
+      "regles": "Alerte liée au RPPS saisi, déclenchée par le job sync-ans.",
+      "donnees": "Écrit : alerte (rpps, user).",
+      "sorties": [
+        {
+          "vers": "Email",
+          "condition": "fiche créée"
+        },
+        {
+          "vers": "S1",
+          "condition": "modifier la recherche"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-2948",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-2999",
+        "desktop_node": "76:2948",
+        "mobile_node": "76:2999"
+      }
+    },
+    {
+      "id": "R1",
+      "nom": "Retirer ma fiche",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 6,
+        "rangee": 8
+      },
+      "route": "/espace-pro/revendiquer/[praticienId]/retrait",
+      "titre": "Retirer votre fiche de DentalMap",
+      "cta": "Vérifier mon identité",
+      "action_secondaire": "Finalement, la garder",
+      "objectif": "Exercer le droit de retrait.",
+      "regles": "Retrait effectif seulement après vérification d'identité.",
+      "donnees": "Écrit : demande de retrait (statut en_attente).",
+      "sorties": [
+        {
+          "vers": "PSC1 ou S3a ou S3b",
+          "condition": "vérification"
+        },
+        {
+          "vers": "R2",
+          "condition": "identité vérifiée"
+        },
+        {
+          "vers": "S2",
+          "condition": "garder la fiche"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3063",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3112",
+        "desktop_node": "76:3063",
+        "mobile_node": "76:3112"
+      }
+    },
+    {
+      "id": "R2",
+      "nom": "Fiche retirée",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 7,
+        "rangee": 8
+      },
+      "route": "/espace-pro/revendiquer/[praticienId]/retrait/confirme",
+      "titre": "Votre fiche est retirée",
+      "cta": "Terminer",
+      "action_secondaire": "Annuler le retrait",
+      "objectif": "Confirmer le retrait.",
+      "regles": "Marqueur de retrait respecté par la synchro (la fiche n'est pas recréée).",
+      "donnees": "Écrit : praticiens.retrait_demande_le, revalidateTag praticien et commune.",
+      "sorties": [
+        {
+          "vers": "Accueil",
+          "condition": "terminer"
+        },
+        {
+          "vers": "S2",
+          "condition": "annuler le retrait (30 j)"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3172",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3217",
+        "desktop_node": "76:3172",
+        "mobile_node": "76:3217"
+      }
+    },
+    {
+      "id": "JD1",
+      "nom": "Déposer un justificatif",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 8,
+        "rangee": 8
+      },
+      "route": "/espace-pro/revendiquer/[praticienId]/justificatif",
+      "titre": "Déposez un justificatif",
+      "cta": "Envoyer le justificatif",
+      "action_secondaire": "Choisir une autre méthode",
+      "objectif": "Recueillir une preuve documentaire, vérifiée automatiquement.",
+      "regles": "Types : PDF, JPG, PNG. Taille max 10 Mo. Vérification automatique en quelques minutes : lisibilité, présence du nom, comparaison au registre RPPS.",
+      "donnees": "Le document est analysé puis supprimé dès la fin de la vérification, validée ou non : il n'est jamais stocké. Écrit : revendications (méthode document, résultat de la vérification).",
+      "sorties": [
+        {
+          "vers": "K",
+          "condition": "envoyé"
+        },
+        {
+          "vers": "S3b",
+          "condition": "autre méthode"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3273",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3315",
+        "desktop_node": "76:3273",
+        "mobile_node": "76:3315"
+      }
+    },
+    {
+      "id": "K",
+      "nom": "Vérification automatique du justificatif",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 9,
+        "rangee": 8
+      },
+      "route": "/espace-pro/revendiquer/suivi",
+      "titre": "Vérification automatique en cours",
+      "cta": "Préparer ma fiche",
+      "action_secondaire": "Remplacer le document",
+      "objectif": "Faire patienter quelques minutes sans immobiliser le praticien.",
+      "regles": "Écran d'attente de quelques minutes, mis à jour seul. Frise : justificatif reçu, comparaison au registre RPPS (en cours), document supprimé, fiche publiée. Encart : « Votre justificatif n'est pas conservé ». Aucun délai d'examen ni relance interne.",
+      "donnees": "Lu : revendications (résultat de la vérification). Écrit : brouillon fiches_completees.",
+      "sorties": [
+        {
+          "vers": "B0",
+          "condition": "préparer en brouillon"
+        },
+        {
+          "vers": "M1 ou B0",
+          "condition": "validé"
+        },
+        {
+          "vers": "L",
+          "condition": "refusé"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3368",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3434",
+        "desktop_node": "76:3368",
+        "mobile_node": "76:3434"
+      }
+    },
+    {
+      "id": "L",
+      "nom": "Justificatif refusé",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 10,
+        "rangee": 8
+      },
+      "route": "/espace-pro/revendiquer/suivi (refus)",
+      "titre": "Nous n'avons pas pu valider ce justificatif",
+      "cta": "Continuer",
+      "action_secondaire": "Écrire à l'équipe",
+      "objectif": "Expliquer le refus et relancer une nouvelle vérification.",
+      "regles": "Motif issu de la vérification automatique, choisi dans une liste fermée (exemple : « numéro RPPS illisible »). Pas d'option courrier. Nouvelle vérification automatique en quelques minutes.",
+      "donnees": "Écrit : revendications (refusée, motif). Le document refusé est déjà supprimé : rien n'est conservé.",
+      "sorties": [
+        {
+          "vers": "JD1",
+          "condition": "autre document, nouvelle vérification automatique en quelques minutes"
+        },
+        {
+          "vers": "PSC1",
+          "condition": "Pro Santé Connect"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3513",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3569",
+        "desktop_node": "76:3513",
+        "mobile_node": "76:3569"
+      }
+    },
+    {
+      "id": "REMP",
+      "nom": "Remplaçant ou collaborateur",
+      "couloir": "sante",
+      "grille": {
+        "colonne": 6,
+        "rangee": 9
+      },
+      "route": "/espace-pro/revendiquer/[praticienId]/remplacant",
+      "titre": "Vous exercez dans le cabinet d'un confrère ?",
+      "cta": "Me prévenir",
+      "action_secondaire": "Retour",
+      "objectif": "Traiter les exercices sans lieu propre.",
+      "regles": "Inscription à une liste d'intérêt, aucune revendication créée.",
+      "donnees": "Écrit : liste d'intérêt (user, motif).",
+      "sorties": [
+        {
+          "vers": "Accueil",
+          "condition": "me prévenir"
+        },
+        {
+          "vers": "S2",
+          "condition": "retour"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3638",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=76-3686",
+        "desktop_node": "76:3638",
+        "mobile_node": "76:3686"
+      }
+    },
+    {
+      "id": "L1",
+      "nom": "Retrouver le laboratoire",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 4,
+        "rangee": 10
+      },
+      "route": "/espace-pro/laboratoire/revendiquer",
+      "titre": "Retrouvons votre laboratoire",
+      "cta": "Rechercher",
+      "action_secondaire": "Mon laboratoire vient d'être créé",
+      "objectif": "Retrouver la fiche du laboratoire.",
+      "regles": "SIREN 9 chiffres ou SIRET 14 (clé de Luhn), ou raison sociale (trigram).",
+      "donnees": "Lu : praticiens (profession prothesiste).",
+      "sorties": [
+        {
+          "vers": "L2",
+          "condition": "1 établissement"
+        },
+        {
+          "vers": "LE1",
+          "condition": "plusieurs établissements"
+        },
+        {
+          "vers": "LA1",
+          "condition": "introuvable ou création récente"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-3874",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-3916",
+        "desktop_node": "79:3874",
+        "mobile_node": "79:3916"
+      }
+    },
+    {
+      "id": "L2",
+      "nom": "Votre laboratoire et votre rôle",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 5,
+        "rangee": 10
+      },
+      "route": "/espace-pro/laboratoire/revendiquer/[praticienId]",
+      "titre": "C'est bien votre laboratoire ?",
+      "cta": "C'est mon laboratoire",
+      "action_secondaire": "Ce n'est pas le bon établissement",
+      "objectif": "Confirmer l'établissement et le rôle.",
+      "regles": "Rôle obligatoire.",
+      "donnees": "Écrit : rôle déclaré.",
+      "sorties": [
+        {
+          "vers": "L3",
+          "condition": "gérant"
+        },
+        {
+          "vers": "MAN",
+          "condition": "salarié mandaté"
+        },
+        {
+          "vers": "LINFO",
+          "condition": "prothésiste salarié"
+        },
+        {
+          "vers": "LC1",
+          "condition": "déjà revendiqué"
+        },
+        {
+          "vers": "L1",
+          "condition": "pas le bon établissement"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-4188",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-4242",
+        "desktop_node": "79:4188",
+        "mobile_node": "79:4242"
+      }
+    },
+    {
+      "id": "L3",
+      "nom": "Kbis ou courrier au siège",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 6,
+        "rangee": 10
+      },
+      "route": "/espace-pro/laboratoire/revendiquer/[praticienId]/preuve",
+      "titre": "Vérifions que vous représentez ce laboratoire",
+      "cta": "Envoyer l'extrait Kbis",
+      "action_secondaire": "Recevoir un code au siège",
+      "objectif": "Prouver le lien avec l'établissement.",
+      "regles": "Kbis : date de moins de 3 mois, SIREN identique, gérant nommé.",
+      "donnees": "Écrit : Kbis (Blob privé), revendications (méthode document ou courrier).",
+      "sorties": [
+        {
+          "vers": "KL",
+          "condition": "Kbis envoyé"
+        },
+        {
+          "vers": "LCODE",
+          "condition": "courrier au siège"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4186",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4235",
+        "desktop_node": "80:4186",
+        "mobile_node": "80:4235"
+      }
+    },
+    {
+      "id": "KL",
+      "nom": "Kbis en examen",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 7,
+        "rangee": 10
+      },
+      "route": "/espace-pro/revendiquer/suivi",
+      "titre": "Votre Kbis est en cours d'examen",
+      "cta": "Préparer la fiche",
+      "action_secondaire": "Remplacer le document",
+      "objectif": "Faire patienter en restant actif.",
+      "regles": "SLA 48 h ouvrées.",
+      "donnees": "Écrit : brouillon fiche laboratoire.",
+      "sorties": [
+        {
+          "vers": "LK1 ou LO1",
+          "condition": "validé"
+        },
+        {
+          "vers": "LREF",
+          "condition": "refusé"
+        },
+        {
+          "vers": "LO1",
+          "condition": "préparer en brouillon"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4502",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4569",
+        "desktop_node": "80:4502",
+        "mobile_node": "80:4569"
+      }
+    },
+    {
+      "id": "LK1",
+      "nom": "Lier à une fiche praticien",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 8,
+        "rangee": 10
+      },
+      "route": "/espace-pro/laboratoire/liaison",
+      "titre": "Laboratoire intégré à un cabinet ?",
+      "cta": "Lier les deux fiches",
+      "action_secondaire": "Ignorer",
+      "objectif": "Relier un labo intégré à la fiche du praticien.",
+      "regles": "Proposé si correspondance nom du gérant et RPPS. Facultatif.",
+      "donnees": "Écrit : liaison labo et praticien.",
+      "sorties": [
+        {
+          "vers": "LO1",
+          "condition": "lier ou ignorer"
+        },
+        {
+          "vers": "PSC1",
+          "condition": "fiche praticien non revendiquée"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4762",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4810",
+        "desktop_node": "80:4762",
+        "mobile_node": "80:4810"
+      }
+    },
+    {
+      "id": "LO0",
+      "nom": "Ce que nous savons du laboratoire",
+      "couloir": "onboarding-labo",
+      "grille": {
+        "colonne": 9,
+        "rangee": 10
+      },
+      "route": "/espace-pro/laboratoire/onboarding/recuperation",
+      "titre": "Voici ce que nous savons déjà",
+      "cta": "C'est juste, continuer",
+      "action_secondaire": "Signaler une erreur",
+      "objectif": "Montrer la valeur acquise.",
+      "regles": "Aucune saisie.",
+      "donnees": "Lu : praticiens (prothesiste), lieux_exercice.",
+      "sorties": [
+        {
+          "vers": "LO1",
+          "condition": "continuer"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=81-4445",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=81-4505",
+        "desktop_node": "81:4445",
+        "mobile_node": "81:4505"
+      }
+    },
+    {
+      "id": "LO1",
+      "nom": "Savoir-faire et matériaux",
+      "couloir": "onboarding-labo",
+      "grille": {
+        "colonne": 10,
+        "rangee": 10
+      },
+      "route": "/espace-pro/laboratoire/onboarding/savoir-faire",
+      "titre": "Ce que votre laboratoire fabrique",
+      "cta": "Valider · +25 %",
+      "action_secondaire": "Passer cette étape",
+      "objectif": "Décrire le savoir-faire.",
+      "regles": "Listes fermées. 3 techniques minimum pour les 15 points.",
+      "donnees": "Écrit : fiche labo (techniques, materiaux).",
+      "sorties": [
+        {
+          "vers": "LO2",
+          "condition": "valider ou passer"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=81-4582",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=81-4642",
+        "desktop_node": "81:4582",
+        "mobile_node": "81:4642"
+      }
+    },
+    {
+      "id": "LO2",
+      "nom": "Délais et zone desservie",
+      "couloir": "onboarding-labo",
+      "grille": {
+        "colonne": 11,
+        "rangee": 10
+      },
+      "route": "/espace-pro/laboratoire/onboarding/delais",
+      "titre": "Délais et zone desservie",
+      "cta": "Valider · +20 %",
+      "action_secondaire": "Passer cette étape",
+      "objectif": "Indiquer délais moyens et zone.",
+      "regles": "Délais en jours ouvrés, 1 à 60. Rayon 5 à 150 km.",
+      "donnees": "Écrit : delais (jsonb), rayon_km, ramassage.",
+      "sorties": [
+        {
+          "vers": "LO3",
+          "condition": "valider ou passer"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=81-4719",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=81-4771",
+        "desktop_node": "81:4719",
+        "mobile_node": "81:4771"
+      }
+    },
+    {
+      "id": "LO3",
+      "nom": "Réalisations et ANSM",
+      "couloir": "onboarding-labo",
+      "grille": {
+        "colonne": 12,
+        "rangee": 10
+      },
+      "route": "/espace-pro/laboratoire/onboarding/realisations",
+      "titre": "Montrez vos réalisations",
+      "cta": "Valider · +20 %",
+      "action_secondaire": "Passer cette étape",
+      "objectif": "Montrer le travail et la conformité.",
+      "regles": "1 à 8 photos, 5 Mo chacune. EXIF supprimé.",
+      "donnees": "Écrit : Blob public, declare_ansm.",
+      "sorties": [
+        {
+          "vers": "LO4",
+          "condition": "valider ou passer"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=81-4840",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=81-4882",
+        "desktop_node": "81:4840",
+        "mobile_node": "81:4882"
+      }
+    },
+    {
+      "id": "LO4",
+      "nom": "Fiche laboratoire prête",
+      "couloir": "onboarding-labo",
+      "grille": {
+        "colonne": 13,
+        "rangee": 10
+      },
+      "route": "/espace-pro/laboratoire/onboarding/recapitulatif",
+      "titre": "Voici ce que verront les cabinets",
+      "cta": "Publier la fiche",
+      "action_secondaire": "Ajouter une présentation",
+      "objectif": "Valider le rendu avant publication.",
+      "regles": "Publication immédiate, revalidation des tags.",
+      "donnees": "Écrit : statut publié.",
+      "sorties": [
+        {
+          "vers": "U",
+          "condition": "publier"
+        },
+        {
+          "vers": "J",
+          "condition": "palier franchi"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=81-4941",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=81-4996",
+        "desktop_node": "81:4941",
+        "mobile_node": "81:4996"
+      }
+    },
+    {
+      "id": "U",
+      "nom": "Espace laboratoire",
+      "couloir": "onboarding-labo",
+      "grille": {
+        "colonne": 14,
+        "rangee": 10
+      },
+      "route": "/espace-pro (profil laboratoire)",
+      "titre": "",
+      "cta": "",
+      "action_secondaire": "",
+      "objectif": "Point d'arrivée du laboratoire.",
+      "regles": "Barème laboratoire : identité 30, savoir-faire 15, matériaux 10, délais 10, zone 10, réalisations 10, ANSM 10, présentation 5.",
+      "donnees": "Score calculé à la volée, jamais triable.",
+      "sorties": [
+        {
+          "vers": "Ma fiche",
+          "condition": "prochaine action"
+        },
+        {
+          "vers": "Collaborateurs",
+          "condition": "inviter un salarié"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=83-5454",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=83-5710",
+        "desktop_node": "83:5454",
+        "mobile_node": "83:5710"
+      }
+    },
+    {
+      "id": "LE1",
+      "nom": "Choisir l'établissement",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 4,
+        "rangee": 11
+      },
+      "route": "/espace-pro/laboratoire/revendiquer?etablissements=multiples",
+      "titre": "Ce SIREN a 3 établissements",
+      "cta": "Gérer la sélection",
+      "action_secondaire": "Retour",
+      "objectif": "Choisir les établissements à revendiquer.",
+      "regles": "Sélection multiple. Établissements fermés non sélectionnables.",
+      "donnees": "Lu : établissements par SIREN.",
+      "sorties": [
+        {
+          "vers": "L2",
+          "condition": "sélection faite"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-3968",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-4020",
+        "desktop_node": "79:3968",
+        "mobile_node": "79:4020"
+      }
+    },
+    {
+      "id": "MAN",
+      "nom": "Mandat du gérant",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 5,
+        "rangee": 11
+      },
+      "route": "/espace-pro/laboratoire/revendiquer/[praticienId]/mandat",
+      "titre": "Vous agissez pour le gérant",
+      "cta": "Envoyer Kbis et mandat",
+      "action_secondaire": "Télécharger le modèle de mandat",
+      "objectif": "Autoriser un salarié à gérer la fiche.",
+      "regles": "Deux fichiers requis. Email du gérant obligatoire.",
+      "donnees": "Écrit : Kbis et mandat (Blob privé), notification au gérant.",
+      "sorties": [
+        {
+          "vers": "KL",
+          "condition": "envoyé"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-4306",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-4351",
+        "desktop_node": "79:4306",
+        "mobile_node": "79:4351"
+      }
+    },
+    {
+      "id": "LCODE",
+      "nom": "Code reçu au siège",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 6,
+        "rangee": 11
+      },
+      "route": "/espace-pro/laboratoire/revendiquer/[praticienId]/courrier",
+      "titre": "Saisissez le code reçu au siège",
+      "cta": "Valider le code",
+      "action_secondaire": "Je n'ai rien reçu",
+      "objectif": "Valider la revendication par courrier.",
+      "regles": "Comparaison sur hash, 3 essais.",
+      "donnees": "Écrit : revendications (validée).",
+      "sorties": [
+        {
+          "vers": "LK1 ou LO1",
+          "condition": "code correct"
+        },
+        {
+          "vers": "CE1",
+          "condition": "code bloqué ou expiré"
+        },
+        {
+          "vers": "L3",
+          "condition": "rien reçu"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4294",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4345",
+        "desktop_node": "80:4294",
+        "mobile_node": "80:4345"
+      }
+    },
+    {
+      "id": "LREF",
+      "nom": "Kbis refusé",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 7,
+        "rangee": 11
+      },
+      "route": "/espace-pro/revendiquer/suivi (refus)",
+      "titre": "Nous n'avons pas pu valider ce Kbis",
+      "cta": "Continuer",
+      "action_secondaire": "Écrire à l'équipe",
+      "objectif": "Relancer après refus.",
+      "regles": "Motif issu d'une liste fermée.",
+      "donnees": "Écrit : revendications (refusée, motif).",
+      "sorties": [
+        {
+          "vers": "L3",
+          "condition": "autre Kbis ou courrier"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4648",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4699",
+        "desktop_node": "80:4648",
+        "mobile_node": "80:4699"
+      }
+    },
+    {
+      "id": "LA1",
+      "nom": "Demande d'ajout",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 4,
+        "rangee": 12
+      },
+      "route": "/espace-pro/laboratoire/ajout",
+      "titre": "Votre laboratoire n'est pas listé",
+      "cta": "Envoyer la demande",
+      "action_secondaire": "Retour",
+      "objectif": "Faire entrer un laboratoire absent.",
+      "regles": "Contrôle Sirene : établissement actif. NAF hors 32.50A : examen manuel de l'activité.",
+      "donnees": "Écrit : demande d'ajout + Kbis (Blob privé).",
+      "sorties": [
+        {
+          "vers": "Email",
+          "condition": "fiche créée"
+        },
+        {
+          "vers": "L1",
+          "condition": "retour"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-4084",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-4131",
+        "desktop_node": "79:4084",
+        "mobile_node": "79:4131"
+      }
+    },
+    {
+      "id": "LINFO",
+      "nom": "Prothésiste salarié",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 5,
+        "rangee": 12
+      },
+      "route": "/espace-pro/laboratoire/revendiquer/[praticienId]/salarie",
+      "titre": "Pas de fiche individuelle pour l'instant",
+      "cta": "Continuer",
+      "action_secondaire": "Retour",
+      "objectif": "Ne pas laisser sans issue un salarié non habilité.",
+      "regles": "Aucune revendication créée.",
+      "donnees": "Écrit : liste d'intérêt.",
+      "sorties": [
+        {
+          "vers": "Accueil",
+          "condition": "continuer"
+        },
+        {
+          "vers": "L2",
+          "condition": "retour"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-4408",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-4454",
+        "desktop_node": "79:4408",
+        "mobile_node": "79:4454"
+      }
+    },
+    {
+      "id": "LC1",
+      "nom": "Laboratoire déjà revendiqué",
+      "couloir": "labo",
+      "grille": {
+        "colonne": 6,
+        "rangee": 12
+      },
+      "route": "/espace-pro/laboratoire/revendiquer/[praticienId]/conflit",
+      "titre": "Ce laboratoire est déjà géré par un autre compte",
+      "cta": "Envoyer un extrait Kbis",
+      "action_secondaire": "Demander une invitation",
+      "objectif": "Résoudre un conflit sur une fiche laboratoire.",
+      "regles": "Kbis obligatoire, délai de réponse de 7 jours.",
+      "donnees": "Écrit : contestation.",
+      "sorties": [
+        {
+          "vers": "KL",
+          "condition": "Kbis envoyé"
+        },
+        {
+          "vers": "Invitation",
+          "condition": "demande transmise au titulaire"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4408",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4450",
+        "desktop_node": "80:4408",
+        "mobile_node": "80:4450"
+      }
+    },
+    {
+      "id": "O1",
+      "nom": "Type d'organisme",
+      "couloir": "organisme",
+      "grille": {
+        "colonne": 4,
+        "rangee": 13
+      },
+      "route": "/espace-pro/organisme",
+      "titre": "Quel type d'organisme ?",
+      "cta": "Continuer",
+      "action_secondaire": "",
+      "objectif": "Aiguiller les organismes.",
+      "regles": "Choix unique.",
+      "donnees": "Écrit : user.profil = organisme, sous-type.",
+      "sorties": [
+        {
+          "vers": "O2a",
+          "condition": "école ou faculté"
+        },
+        {
+          "vers": "W1",
+          "condition": "formation continue"
+        },
+        {
+          "vers": "O2b",
+          "condition": "Ordre, syndicat, éditeur"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=82-4704",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=82-4767",
+        "desktop_node": "82:4704",
+        "mobile_node": "82:4767"
+      }
+    },
+    {
+      "id": "O2a",
+      "nom": "Retrouver l'établissement",
+      "couloir": "organisme",
+      "grille": {
+        "colonne": 5,
+        "rangee": 13
+      },
+      "route": "/espace-pro/organisme/etablissement",
+      "titre": "Retrouvons votre établissement",
+      "cta": "C'est mon établissement",
+      "action_secondaire": "Mon établissement n'est pas listé",
+      "objectif": "Retrouver la fiche établissement.",
+      "regles": "Recherche sur nom, ville, UAI.",
+      "donnees": "Lu : CPT formation (WordPress) et référentiel UAI.",
+      "sorties": [
+        {
+          "vers": "O3a",
+          "condition": "email sur le domaine"
+        },
+        {
+          "vers": "OAT",
+          "condition": "email hors domaine"
+        },
+        {
+          "vers": "OA1",
+          "condition": "non listé"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=82-4840",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=82-4891",
+        "desktop_node": "82:4840",
+        "mobile_node": "82:4891"
+      }
+    },
+    {
+      "id": "O3a",
+      "nom": "Compléter les formations",
+      "couloir": "organisme",
+      "grille": {
+        "colonne": 6,
+        "rangee": 13
+      },
+      "route": "/espace-pro/organisme/formations",
+      "titre": "Vos formations",
+      "cta": "Publier",
+      "action_secondaire": "Terminer plus tard",
+      "objectif": "Compléter la fiche établissement.",
+      "regles": "Au moins une formation active.",
+      "donnees": "Écrit : CPT formation via API (champs ACF).",
+      "sorties": [
+        {
+          "vers": "OEND",
+          "condition": "publier"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=82-5152",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=82-5213",
+        "desktop_node": "82:5152",
+        "mobile_node": "82:5213"
+      }
+    },
+    {
+      "id": "OEND",
+      "nom": "Établissement publié",
+      "couloir": "organisme",
+      "grille": {
+        "colonne": 7,
+        "rangee": 13
+      },
+      "route": "/espace-pro/organisme/publie",
+      "titre": "Votre établissement est en ligne",
+      "cta": "Voir la fiche publique",
+      "action_secondaire": "Modifier les formations",
+      "objectif": "Confirmer la publication.",
+      "regles": "revalidateTag wp:formation.",
+      "donnees": "Lu : CPT formation.",
+      "sorties": [
+        {
+          "vers": "Fiche publique",
+          "condition": "voir"
+        },
+        {
+          "vers": "O3a",
+          "condition": "modifier"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=83-5004",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=83-5050",
+        "desktop_node": "83:5004",
+        "mobile_node": "83:5050"
+      }
+    },
+    {
+      "id": "W1",
+      "nom": "Liste d'attente formation continue",
+      "couloir": "organisme",
+      "grille": {
+        "colonne": 4,
+        "rangee": 14
+      },
+      "route": "/espace-pro/organisme/liste-d-attente",
+      "titre": "Le recensement de la formation continue n'est pas encore ouvert",
+      "cta": "M'inscrire sur la liste",
+      "action_secondaire": "Voir les écoles et facultés",
+      "objectif": "Capter l'intérêt sans publier de données non vérifiées.",
+      "regles": "Organisme et spécialités obligatoires.",
+      "donnees": "Écrit : liste d'attente.",
+      "sorties": [
+        {
+          "vers": "Accueil",
+          "condition": "inscription faite"
+        },
+        {
+          "vers": "O2a",
+          "condition": "écoles et facultés"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=83-5108",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=83-5155",
+        "desktop_node": "83:5108",
+        "mobile_node": "83:5155"
+      }
+    },
+    {
+      "id": "OA1",
+      "nom": "Demande d'ajout d'établissement",
+      "couloir": "organisme",
+      "grille": {
+        "colonne": 5,
+        "rangee": 14
+      },
+      "route": "/espace-pro/organisme/etablissement/ajout",
+      "titre": "Ajouter votre établissement",
+      "cta": "Envoyer la demande",
+      "action_secondaire": "Retour",
+      "objectif": "Faire entrer un établissement absent.",
+      "regles": "UAI au format 7 chiffres + 1 lettre.",
+      "donnees": "Écrit : demande d'ajout.",
+      "sorties": [
+        {
+          "vers": "Email",
+          "condition": "fiche créée"
+        },
+        {
+          "vers": "O2a",
+          "condition": "retour"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=82-4954",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=82-5003",
+        "desktop_node": "82:4954",
+        "mobile_node": "82:5003"
+      }
+    },
+    {
+      "id": "OAT",
+      "nom": "Attestation de fonction",
+      "couloir": "organisme",
+      "grille": {
+        "colonne": 6,
+        "rangee": 14
+      },
+      "route": "/espace-pro/organisme/etablissement/attestation",
+      "titre": "Votre email n'est pas sur le domaine de l'établissement",
+      "cta": "Envoyer l'attestation",
+      "action_secondaire": "Utiliser une adresse de l'établissement",
+      "objectif": "Prouver le lien sans email institutionnel.",
+      "regles": "PDF signé, moins de 3 mois.",
+      "donnees": "Écrit : attestation (Blob privé).",
+      "sorties": [
+        {
+          "vers": "O3a",
+          "condition": "validée"
+        },
+        {
+          "vers": "O2a",
+          "condition": "autre adresse"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=82-5062",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=82-5102",
+        "desktop_node": "82:5062",
+        "mobile_node": "82:5102"
+      }
+    },
+    {
+      "id": "O2b",
+      "nom": "Proposer un partenariat",
+      "couloir": "organisme",
+      "grille": {
+        "colonne": 4,
+        "rangee": 15
+      },
+      "route": "/espace-pro/organisme/partenariat",
+      "titre": "Devenir partenaire",
+      "cta": "Envoyer ma demande",
+      "action_secondaire": "Retour",
+      "objectif": "Recueillir une demande de partenariat.",
+      "regles": "Tous les champs requis. Aucun compte pro créé.",
+      "donnees": "Écrit : demande de partenariat (même formulaire que l'accueil).",
+      "sorties": [
+        {
+          "vers": "O3b",
+          "condition": "envoyer"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=83-5212",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=83-5261",
+        "desktop_node": "83:5212",
+        "mobile_node": "83:5261"
+      }
+    },
+    {
+      "id": "O3b",
+      "nom": "Demande reçue",
+      "couloir": "organisme",
+      "grille": {
+        "colonne": 5,
+        "rangee": 15
+      },
+      "route": "/espace-pro/organisme/partenariat/recu",
+      "titre": "Demande reçue",
+      "cta": "Retour à l'accueil",
+      "action_secondaire": "",
+      "objectif": "Confirmer et fixer les attentes.",
+      "regles": "Accusé de réception par email.",
+      "donnees": "Lu : demande.",
+      "sorties": [
+        {
+          "vers": "Accueil",
+          "condition": "retour"
+        }
+      ],
+      "figma": {
+        "desktop": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=83-5320",
+        "mobile": "https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=83-5382",
+        "desktop_node": "83:5320",
+        "mobile_node": "83:5382"
+      }
+    },
+    {
+      "id": "SE1",
+      "nom": "Votre situation",
+      "couloir": "salarie",
+      "grille": null,
+      "route": "/emploi/bienvenue/situation",
+      "titre": "Quelle est votre situation ?",
+      "cta": "Continuer",
+      "action_secondaire": "",
+      "objectif": "Adapter l'espace emploi à la situation de la personne.",
+      "regles": "Choix unique : assistant(e) dentaire, secrétaire ou assistant(e) de gestion, prothésiste salarié(e), étudiant(e).",
+      "donnees": "Écrit : user.profil = salarie, profil candidat (situation).",
+      "sorties": [
+        {
+          "vers": "SE2",
+          "condition": "situation choisie"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "SE2",
+      "nom": "Ce que vous recherchez",
+      "couloir": "salarie",
+      "grille": null,
+      "route": "/emploi/bienvenue/recherche",
+      "titre": "Que recherchez-vous ?",
+      "cta": "Continuer",
+      "action_secondaire": "",
+      "objectif": "Recueillir les critères de recherche et créer la première alerte.",
+      "regles": "Contrats, choix multiple : CDI, CDD, remplacement, alternance, stage. Temps plein ou partiel. Ville par autocomplétion (table communes puis BAN), rayon de 5 à 50 km. Disponibilité. Crée la première alerte avec ces critères.",
+      "donnees": "Écrit : profil candidat (contrats, temps, commune, rayon_km, disponibilité), première alerte.",
+      "sorties": [
+        {
+          "vers": "SE3",
+          "condition": "salarié"
+        },
+        {
+          "vers": "SE3E",
+          "condition": "étudiant"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "SE3",
+      "nom": "Votre qualification",
+      "couloir": "salarie",
+      "grille": null,
+      "route": "/emploi/bienvenue/qualification",
+      "titre": "Votre qualification",
+      "cta": "Continuer",
+      "action_secondaire": "Vérifier mon titre plus tard",
+      "objectif": "Connaître la qualification et permettre de la faire vérifier.",
+      "regles": "Choix unique : titre d'assistant(e) dentaire, en formation, autre. Vérification du titre facultative et automatique ; le document est supprimé dès la fin de la vérification, validée ou non. Badge « Titre vérifié » si la vérification aboutit.",
+      "donnees": "Écrit : profil candidat (qualification, titre_verifie_le). Aucun document conservé.",
+      "sorties": [
+        {
+          "vers": "SE4",
+          "condition": "continuer ou vérifier plus tard"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "SE3E",
+      "nom": "Votre formation",
+      "couloir": "salarie",
+      "grille": null,
+      "route": "/emploi/bienvenue/formation",
+      "titre": "Votre formation",
+      "cta": "Continuer",
+      "action_secondaire": "Passer cette étape",
+      "objectif": "Connaître la formation d'un étudiant pour lui proposer alternance, stage ou job étudiant.",
+      "regles": "École choisie parmi les pages établissement vérifiées. Formation, année d'études. Recherche : alternance, stage, job étudiant. Certificat de scolarité facultatif, vérifié automatiquement puis supprimé.",
+      "donnees": "Lu : établissements vérifiés. Écrit : profil candidat (école, formation, année, recherche). Aucun document conservé.",
+      "sorties": [
+        {
+          "vers": "SE4",
+          "condition": "continuer ou passer"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "SE4",
+      "nom": "Visibilité du profil",
+      "couloir": "salarie",
+      "grille": null,
+      "route": "/emploi/bienvenue/visibilite",
+      "titre": "Qui peut voir votre profil ?",
+      "cta": "Continuer",
+      "action_secondaire": "",
+      "objectif": "Laisser la personne choisir ce que voient les recruteurs.",
+      "regles": "Choix unique : visible par les recruteurs vérifiés, anonymisé, ou discret (aucun recruteur ne voit le profil, la personne postule elle-même). Masquage d'une ou plusieurs structures (l'employeur actuel par exemple). Alertes par courriel, cochées ou non par la personne. Jamais de coordonnées transmises sans accord.",
+      "donnees": "Écrit : profil candidat (visibilite, structures_masquees), préférences d'alerte.",
+      "sorties": [
+        {
+          "vers": "SE5",
+          "condition": "continuer"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "SE5",
+      "nom": "Votre profil est prêt",
+      "couloir": "salarie",
+      "grille": null,
+      "route": "/emploi/bienvenue/pret",
+      "titre": "Votre profil est prêt",
+      "cta": "Voir les offres",
+      "action_secondaire": "Compléter mon profil",
+      "objectif": "Confirmer la création du profil et ouvrir l'espace emploi.",
+      "regles": "Récapitulatif : situation, critères, qualification ou formation, visibilité. Tout reste modifiable depuis l'espace emploi.",
+      "donnees": "Lu : profil candidat.",
+      "sorties": [
+        {
+          "vers": "CAND-VUE",
+          "condition": "salarié : espace emploi"
+        },
+        {
+          "vers": "ETU-VUE",
+          "condition": "étudiant : espace emploi"
+        },
+        {
+          "vers": "CAND-PROFIL ou ETU-PROFIL",
+          "condition": "compléter mon profil"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "D-EMPLOI",
+      "nom": "Emploi, dentiste",
+      "couloir": "emploi-pro",
+      "grille": null,
+      "route": "/espace-pro/emploi",
+      "titre": "Emploi",
+      "cta": "Publier une offre",
+      "action_secondaire": "Voir les candidatures",
+      "objectif": "Gérer les offres du cabinet et voir les profils disponibles autour.",
+      "regles": "Rubrique « Emploi » de la barre latérale, après « Fraîcheur ». Offres regroupées par statut : en ligne, brouillon, pourvue. Profils disponibles près de vous : anonymisés, triés par distance, seulement les profils visibles ou anonymisés, jamais les profils discrets ni ceux qui ont masqué la structure. Jamais de coordonnées sans accord de la personne. La copie ne promet ni gratuité ni absence de mise en avant payante.",
+      "donnees": "Lu : offres de la structure, profils candidats (selon leur visibilité et leurs structures masquées).",
+      "sorties": [
+        {
+          "vers": "OUV-PD-OFFRE",
+          "condition": "publier une offre"
+        },
+        {
+          "vers": "D-CAND",
+          "condition": "voir les candidatures"
+        },
+        {
+          "vers": "OUV-PD-ECHANGE",
+          "condition": "proposer un échange à un profil"
+        },
+        {
+          "vers": "OUV-PD-POURVUE",
+          "condition": "marquer une offre pourvue"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "L-EMPLOI",
+      "nom": "Emploi, laboratoire",
+      "couloir": "emploi-pro",
+      "grille": null,
+      "route": "/espace-pro/emploi (profil laboratoire)",
+      "titre": "Emploi",
+      "cta": "Publier une offre",
+      "action_secondaire": "Voir les candidatures",
+      "objectif": "Gérer les offres du laboratoire et voir les profils disponibles autour.",
+      "regles": "Rubrique « Emploi » de la barre latérale, après « Conformité ». Offres regroupées par statut : en ligne, brouillon, pourvue. Profils disponibles près de vous : anonymisés, triés par distance, seulement les profils visibles ou anonymisés, jamais les profils discrets ni ceux qui ont masqué la structure. Jamais de coordonnées sans accord de la personne. La copie ne promet ni gratuité ni absence de mise en avant payante.",
+      "donnees": "Lu : offres de la structure, profils candidats (selon leur visibilité et leurs structures masquées).",
+      "sorties": [
+        {
+          "vers": "OUV-PL-OFFRE",
+          "condition": "publier une offre"
+        },
+        {
+          "vers": "L-CAND",
+          "condition": "voir les candidatures"
+        },
+        {
+          "vers": "OUV-PD-ECHANGE",
+          "condition": "proposer un échange à un profil"
+        },
+        {
+          "vers": "OUV-PD-POURVUE",
+          "condition": "marquer une offre pourvue"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "D-CAND",
+      "nom": "Candidatures reçues, dentiste",
+      "couloir": "emploi-pro",
+      "grille": null,
+      "route": "/espace-pro/emploi/candidatures",
+      "titre": "Candidatures reçues",
+      "cta": "Proposer un échange",
+      "action_secondaire": "Ne pas retenir",
+      "objectif": "Suivre les candidatures reçues sur les offres du cabinet.",
+      "regles": "Statuts : Nouvelle, Vue, Échange proposé, Retenue, Non retenue. Ouvrir une candidature la passe à Vue. Coordonnées masquées tant que la personne n'a pas accepté un échange. Candidatures supprimées 6 mois après la clôture de l'offre (à valider).",
+      "donnees": "Lu : candidatures. Écrit : statut de la candidature.",
+      "sorties": [
+        {
+          "vers": "OUV-PD-ECHANGE",
+          "condition": "proposer un échange"
+        },
+        {
+          "vers": "D-EMPLOI",
+          "condition": "retour à l'emploi"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "L-CAND",
+      "nom": "Candidatures reçues, laboratoire",
+      "couloir": "emploi-pro",
+      "grille": null,
+      "route": "/espace-pro/emploi/candidatures (profil laboratoire)",
+      "titre": "Candidatures reçues",
+      "cta": "Proposer un échange",
+      "action_secondaire": "Ne pas retenir",
+      "objectif": "Suivre les candidatures reçues sur les offres du laboratoire.",
+      "regles": "Statuts : Nouvelle, Vue, Échange proposé, Retenue, Non retenue. Ouvrir une candidature la passe à Vue. Coordonnées masquées tant que la personne n'a pas accepté un échange. Candidatures supprimées 6 mois après la clôture de l'offre (à valider).",
+      "donnees": "Lu : candidatures. Écrit : statut de la candidature.",
+      "sorties": [
+        {
+          "vers": "OUV-PD-ECHANGE",
+          "condition": "proposer un échange"
+        },
+        {
+          "vers": "L-EMPLOI",
+          "condition": "retour à l'emploi"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "OUV-PD-OFFRE",
+      "nom": "Publier une offre, dentiste",
+      "couloir": "emploi-pro",
+      "grille": null,
+      "route": "/espace-pro/emploi (état : publier une offre)",
+      "titre": "Publier une offre",
+      "cta": "Publier l'offre",
+      "action_secondaire": "Enregistrer en brouillon",
+      "objectif": "Créer une offre d'emploi pour le cabinet.",
+      "regles": "Liste des postes à définir. Champs : poste, contrat, temps de travail, date de début, rémunération brute mensuelle en fourchette (minimum et maximum, obligatoire), lieu (parmi les lieux gérés), description, avantages. Publication 30 jours. Enregistrable en brouillon.",
+      "donnees": "Lu : lieux gérés. Écrit : offres (statut brouillon ou en_ligne, publiee_le, expire_le).",
+      "sorties": [
+        {
+          "vers": "OUV-PD-PUBLIEE",
+          "condition": "offre publiée"
+        },
+        {
+          "vers": "D-EMPLOI",
+          "condition": "brouillon enregistré"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "OUV-PL-OFFRE",
+      "nom": "Publier une offre, laboratoire",
+      "couloir": "emploi-pro",
+      "grille": null,
+      "route": "/espace-pro/emploi (profil laboratoire, état : publier une offre)",
+      "titre": "Publier une offre",
+      "cta": "Publier l'offre",
+      "action_secondaire": "Enregistrer en brouillon",
+      "objectif": "Créer une offre d'emploi pour le laboratoire.",
+      "regles": "Liste des postes à définir. Champs : poste, contrat, temps de travail, date de début, rémunération brute mensuelle en fourchette (minimum et maximum, obligatoire), lieu (parmi les lieux gérés), description, avantages. Publication 30 jours. Enregistrable en brouillon.",
+      "donnees": "Lu : établissement du laboratoire. Écrit : offres (statut brouillon ou en_ligne, publiee_le, expire_le).",
+      "sorties": [
+        {
+          "vers": "OUV-PD-PUBLIEE",
+          "condition": "offre publiée"
+        },
+        {
+          "vers": "L-EMPLOI",
+          "condition": "brouillon enregistré"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "OUV-PD-PUBLIEE",
+      "nom": "Offre publiée",
+      "couloir": "emploi-pro",
+      "grille": null,
+      "route": "/espace-pro/emploi (état : offre publiée)",
+      "titre": "Votre offre est en ligne",
+      "cta": "Voir l'offre",
+      "action_secondaire": "Retour à l'emploi",
+      "objectif": "Confirmer la publication et la date de fin.",
+      "regles": "Affiche la date de fin de publication (30 jours). Les candidats dont une alerte correspond sont prévenus selon leurs préférences. Commun au dentiste et au laboratoire.",
+      "donnees": "Lu : offre.",
+      "sorties": [
+        {
+          "vers": "D-EMPLOI ou L-EMPLOI",
+          "condition": "retour à l'emploi"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "OUV-PD-ECHANGE",
+      "nom": "Proposer un échange",
+      "couloir": "emploi-pro",
+      "grille": null,
+      "route": "/espace-pro/emploi (état : proposer un échange)",
+      "titre": "Proposer un échange",
+      "cta": "Envoyer la proposition",
+      "action_secondaire": "Annuler",
+      "objectif": "Proposer un échange à un candidat ou à un profil disponible.",
+      "regles": "Message court. Les coordonnées ne sont partagées que si la personne accepte ; sans réponse ou en cas de refus, rien n'est transmis. Commun au dentiste et au laboratoire.",
+      "donnees": "Écrit : proposition d'échange (en attente), candidature au statut Échange proposé.",
+      "sorties": [
+        {
+          "vers": "D-CAND ou L-CAND",
+          "condition": "proposition envoyée"
+        },
+        {
+          "vers": "D-EMPLOI ou L-EMPLOI",
+          "condition": "annuler"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "OUV-PD-POURVUE",
+      "nom": "Offre pourvue",
+      "couloir": "emploi-pro",
+      "grille": null,
+      "route": "/espace-pro/emploi (état : offre pourvue)",
+      "titre": "Marquer l'offre comme pourvue",
+      "cta": "Confirmer",
+      "action_secondaire": "Annuler",
+      "objectif": "Clore une offre pourvue.",
+      "regles": "L'offre quitte les résultats et passe au statut pourvue. Le délai de suppression des candidatures (6 mois après la clôture, à valider) démarre. Commun au dentiste et au laboratoire.",
+      "donnees": "Écrit : offres (statut pourvue, cloturee_le).",
+      "sorties": [
+        {
+          "vers": "D-EMPLOI ou L-EMPLOI",
+          "condition": "confirmer ou annuler"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "CAND-VUE",
+      "nom": "Vue d'ensemble, salarié",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi",
+      "titre": "Votre espace emploi",
+      "cta": "Voir les offres",
+      "action_secondaire": "",
+      "objectif": "Point d'arrivée : offres proches, candidatures en cours, alertes.",
+      "regles": "Offres récentes triées par distance. Candidatures avec leur statut. Propositions d'échange en attente mises en évidence.",
+      "donnees": "Lu : profil candidat, offres, candidatures, alertes.",
+      "sorties": [
+        {
+          "vers": "CAND-OFFRES",
+          "condition": "voir les offres"
+        },
+        {
+          "vers": "CAND-CANDID",
+          "condition": "candidatures"
+        },
+        {
+          "vers": "CAND-PROFIL",
+          "condition": "profil"
+        },
+        {
+          "vers": "OUV-C-ECHANGE",
+          "condition": "proposition d'échange reçue"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "CAND-OFFRES",
+      "nom": "Offres, salarié",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/offres",
+      "titre": "Offres près de chez vous",
+      "cta": "Voir l'offre",
+      "action_secondaire": "Créer une alerte",
+      "objectif": "Parcourir les offres correspondant aux critères.",
+      "regles": "Tri par distance, puis ordre alphabétique à distance égale. Filtres : contrat, temps de travail, rayon (5 à 50 km). La copie ne promet ni gratuité ni absence de mise en avant payante.",
+      "donnees": "Lu : offres en ligne, critères du profil.",
+      "sorties": [
+        {
+          "vers": "CAND-OFFRE",
+          "condition": "offre choisie"
+        },
+        {
+          "vers": "OUV-C-ALERTE",
+          "condition": "créer une alerte"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "CAND-OFFRE",
+      "nom": "Détail d'une offre, salarié",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/offres/[offreId]",
+      "titre": "",
+      "cta": "Postuler",
+      "action_secondaire": "Masquer cette structure",
+      "objectif": "Présenter l'offre complète.",
+      "regles": "Rémunération brute mensuelle toujours affichée en fourchette. Structure vérifiée (fiche revendiquée). Distance depuis la ville du profil.",
+      "donnees": "Lu : offre, structure.",
+      "sorties": [
+        {
+          "vers": "OUV-C-POSTULER",
+          "condition": "postuler"
+        },
+        {
+          "vers": "OUV-C-MASQUER",
+          "condition": "masquer cette structure"
+        },
+        {
+          "vers": "OUV-C-ALERTE",
+          "condition": "créer une alerte similaire"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "CAND-CANDID",
+      "nom": "Candidatures, salarié",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/candidatures",
+      "titre": "Vos candidatures",
+      "cta": "Voir l'offre",
+      "action_secondaire": "",
+      "objectif": "Suivre les candidatures envoyées.",
+      "regles": "Statuts vus par la personne : Envoyée, Vue, Échange proposé, Retenue, Non retenue. Candidatures supprimées 6 mois après la clôture de l'offre (à valider).",
+      "donnees": "Lu : candidatures.",
+      "sorties": [
+        {
+          "vers": "OUV-C-ECHANGE",
+          "condition": "répondre à une proposition d'échange"
+        },
+        {
+          "vers": "CAND-OFFRE",
+          "condition": "voir l'offre"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "CAND-PROFIL",
+      "nom": "Profil, salarié",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/profil",
+      "titre": "Votre profil",
+      "cta": "Enregistrer",
+      "action_secondaire": "",
+      "objectif": "Tenir à jour le profil vu par les recruteurs.",
+      "regles": "Situation, critères, qualification et badge « Titre vérifié », CV facultatif. Aperçu du profil tel que le voit un recruteur selon la visibilité choisie.",
+      "donnees": "Lu et écrit : profil candidat, CV facultatif.",
+      "sorties": [
+        {
+          "vers": "CAND-VISI",
+          "condition": "visibilité"
+        },
+        {
+          "vers": "CAND-ALERTES",
+          "condition": "alertes"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "CAND-ALERTES",
+      "nom": "Alertes",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/alertes",
+      "titre": "Vos alertes",
+      "cta": "Créer une alerte",
+      "action_secondaire": "",
+      "objectif": "Gérer les alertes d'offres.",
+      "regles": "Une alerte par jeu de critères (contrat, temps, ville, rayon). Envoi par courriel seulement si la personne l'a accepté. Commun au salarié et à l'étudiant.",
+      "donnees": "Lu et écrit : alertes.",
+      "sorties": [
+        {
+          "vers": "OUV-C-ALERTE",
+          "condition": "créer ou modifier une alerte"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "CAND-VISI",
+      "nom": "Visibilité",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/visibilite",
+      "titre": "Qui peut voir votre profil ?",
+      "cta": "Enregistrer",
+      "action_secondaire": "",
+      "objectif": "Modifier la visibilité et les structures masquées.",
+      "regles": "Visible par les recruteurs vérifiés, anonymisé ou discret. Liste des structures masquées, retirables. Commun au salarié et à l'étudiant.",
+      "donnees": "Écrit : profil candidat (visibilite, structures_masquees).",
+      "sorties": [
+        {
+          "vers": "OUV-C-MASQUER",
+          "condition": "masquer une structure"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "ETU-VUE",
+      "nom": "Vue d'ensemble, étudiant",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi (profil étudiant)",
+      "titre": "Votre espace emploi",
+      "cta": "Voir les offres",
+      "action_secondaire": "",
+      "objectif": "Point d'arrivée : offres proches, candidatures en cours, alertes.",
+      "regles": "Offres récentes triées par distance. Candidatures avec leur statut. Propositions d'échange en attente mises en évidence.",
+      "donnees": "Lu : profil candidat, offres, candidatures, alertes.",
+      "sorties": [
+        {
+          "vers": "ETU-OFFRES",
+          "condition": "voir les offres"
+        },
+        {
+          "vers": "ETU-CANDID",
+          "condition": "candidatures"
+        },
+        {
+          "vers": "ETU-PROFIL",
+          "condition": "profil"
+        },
+        {
+          "vers": "OUV-C-ECHANGE",
+          "condition": "proposition d'échange reçue"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "ETU-OFFRES",
+      "nom": "Offres, étudiant",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/offres (profil étudiant)",
+      "titre": "Offres près de chez vous",
+      "cta": "Voir l'offre",
+      "action_secondaire": "Créer une alerte",
+      "objectif": "Parcourir les offres correspondant aux critères.",
+      "regles": "Tri par distance, puis ordre alphabétique à distance égale. Filtres : contrat, temps de travail, rayon (5 à 50 km). Contrats proposés par défaut : alternance, stage, job étudiant. La copie ne promet ni gratuité ni absence de mise en avant payante.",
+      "donnees": "Lu : offres en ligne, critères du profil.",
+      "sorties": [
+        {
+          "vers": "ETU-OFFRE",
+          "condition": "offre choisie"
+        },
+        {
+          "vers": "OUV-C-ALERTE",
+          "condition": "créer une alerte"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "ETU-OFFRE",
+      "nom": "Détail d'une offre, étudiant",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/offres/[offreId] (profil étudiant)",
+      "titre": "",
+      "cta": "Postuler",
+      "action_secondaire": "Masquer cette structure",
+      "objectif": "Présenter l'offre complète.",
+      "regles": "Rémunération brute mensuelle toujours affichée en fourchette. Structure vérifiée (fiche revendiquée). Distance depuis la ville du profil.",
+      "donnees": "Lu : offre, structure.",
+      "sorties": [
+        {
+          "vers": "OUV-C-POSTULER",
+          "condition": "postuler"
+        },
+        {
+          "vers": "OUV-C-MASQUER",
+          "condition": "masquer cette structure"
+        },
+        {
+          "vers": "OUV-C-ALERTE",
+          "condition": "créer une alerte similaire"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "ETU-CANDID",
+      "nom": "Candidatures, étudiant",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/candidatures (profil étudiant)",
+      "titre": "Vos candidatures",
+      "cta": "Voir l'offre",
+      "action_secondaire": "",
+      "objectif": "Suivre les candidatures envoyées.",
+      "regles": "Statuts vus par la personne : Envoyée, Vue, Échange proposé, Retenue, Non retenue. Candidatures supprimées 6 mois après la clôture de l'offre (à valider).",
+      "donnees": "Lu : candidatures.",
+      "sorties": [
+        {
+          "vers": "OUV-C-ECHANGE",
+          "condition": "répondre à une proposition d'échange"
+        },
+        {
+          "vers": "ETU-OFFRE",
+          "condition": "voir l'offre"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "ETU-PROFIL",
+      "nom": "Profil, étudiant",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/profil (profil étudiant)",
+      "titre": "Votre profil",
+      "cta": "Enregistrer",
+      "action_secondaire": "",
+      "objectif": "Tenir à jour le profil vu par les recruteurs.",
+      "regles": "Situation, critères, formation (voir ETU-FORM), CV facultatif. Aperçu du profil tel que le voit un recruteur selon la visibilité choisie.",
+      "donnees": "Lu et écrit : profil candidat, CV facultatif.",
+      "sorties": [
+        {
+          "vers": "ETU-FORM",
+          "condition": "formation"
+        },
+        {
+          "vers": "CAND-VISI",
+          "condition": "visibilité"
+        },
+        {
+          "vers": "CAND-ALERTES",
+          "condition": "alertes"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "ETU-FORM",
+      "nom": "Formation",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/formation",
+      "titre": "Votre formation",
+      "cta": "Enregistrer",
+      "action_secondaire": "Ajouter un certificat de scolarité",
+      "objectif": "Tenir à jour la formation de l'étudiant.",
+      "regles": "École choisie parmi les pages établissement vérifiées, formation, année, recherche (alternance, stage, job étudiant). Certificat de scolarité facultatif, vérifié automatiquement puis supprimé.",
+      "donnees": "Écrit : profil candidat (école, formation, année, recherche). Aucun document conservé.",
+      "sorties": [
+        {
+          "vers": "ETU-PROFIL",
+          "condition": "retour au profil"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "OUV-C-POSTULER",
+      "nom": "Postuler",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/offres/[offreId] (état : postuler)",
+      "titre": "Postuler à cette offre",
+      "cta": "Envoyer ma candidature",
+      "action_secondaire": "Annuler",
+      "objectif": "Envoyer une candidature.",
+      "regles": "Message facultatif, CV facultatif. La structure voit le profil selon la visibilité choisie ; les coordonnées ne sont transmises qu'après accord d'un échange.",
+      "donnees": "Écrit : candidature (statut Nouvelle).",
+      "sorties": [
+        {
+          "vers": "OUV-C-ENVOYEE",
+          "condition": "candidature envoyée"
+        },
+        {
+          "vers": "CAND-OFFRE ou ETU-OFFRE",
+          "condition": "annuler"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "OUV-C-ENVOYEE",
+      "nom": "Candidature envoyée",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/offres/[offreId] (état : envoyée)",
+      "titre": "Votre candidature est envoyée",
+      "cta": "Voir mes candidatures",
+      "action_secondaire": "Retour aux offres",
+      "objectif": "Confirmer l'envoi et fixer les attentes.",
+      "regles": "Rappelle que les coordonnées ne sont partagées qu'après accord d'un échange.",
+      "donnees": "Lu : candidature.",
+      "sorties": [
+        {
+          "vers": "CAND-CANDID ou ETU-CANDID",
+          "condition": "voir mes candidatures"
+        },
+        {
+          "vers": "CAND-OFFRES ou ETU-OFFRES",
+          "condition": "retour aux offres"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "OUV-C-ALERTE",
+      "nom": "Créer une alerte",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/alertes (état : créer une alerte)",
+      "titre": "Créer une alerte",
+      "cta": "Créer l'alerte",
+      "action_secondaire": "Annuler",
+      "objectif": "Créer ou modifier une alerte d'offres.",
+      "regles": "Critères pré-remplis depuis la recherche ou l'offre. Courriel envoyé seulement si la personne l'a accepté.",
+      "donnees": "Écrit : alertes.",
+      "sorties": [
+        {
+          "vers": "CAND-ALERTES",
+          "condition": "alerte créée"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "OUV-C-ECHANGE",
+      "nom": "Répondre à un échange",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/candidatures (état : proposition d'échange)",
+      "titre": "Une structure vous propose un échange",
+      "cta": "Accepter et partager mes coordonnées",
+      "action_secondaire": "Refuser",
+      "objectif": "Laisser la personne décider du partage de ses coordonnées.",
+      "regles": "Les coordonnées ne sont partagées qu'en cas d'accord, horodaté. Un refus ne transmet rien.",
+      "donnees": "Écrit : proposition d'échange (acceptée ou refusée, horodatée).",
+      "sorties": [
+        {
+          "vers": "CAND-CANDID ou ETU-CANDID",
+          "condition": "accepter ou refuser"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    },
+    {
+      "id": "OUV-C-MASQUER",
+      "nom": "Masquer une structure",
+      "couloir": "emploi-candidat",
+      "grille": null,
+      "route": "/emploi/visibilite (état : masquer une structure)",
+      "titre": "Masquer une structure",
+      "cta": "Masquer",
+      "action_secondaire": "Annuler",
+      "objectif": "Empêcher une structure de voir le profil.",
+      "regles": "La structure masquée ne voit plus le profil dans ses profils disponibles et ses offres ne sont plus proposées à la personne. Réversible depuis CAND-VISI.",
+      "donnees": "Écrit : profil candidat (structures_masquees).",
+      "sorties": [
+        {
+          "vers": "CAND-VISI",
+          "condition": "masquée ou annulée"
+        }
+      ],
+      "figma": {
+        "desktop": null,
+        "mobile": null,
+        "desktop_node": null,
+        "mobile_node": null
+      },
+      "note": "node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma)."
+    }
+  ]
+}

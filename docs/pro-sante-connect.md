@@ -28,7 +28,7 @@ Le simulateur ne répond jamais quand `VERCEL_ENV` vaut `production`, quelle que
 | Variable | Rôle |
 |---|---|
 | `PSC_CLIENT_ID`, `PSC_CLIENT_SECRET` | Identifiants remis par l'ANS. Vides, la vérification par carte n'est pas proposée et tout le reste fonctionne. |
-| `PSC_ISSUER` | Émetteur. Par défaut le bac à sable `https://wallet.bas.esw.esante.gouv.fr/auth/realms/esante-wallet`. En production : `https://wallet.esw.esante.gouv.fr/auth/realms/esante-wallet`. |
+| `PSC_ISSUER` | Émetteur. Par défaut le bac à sable `https://auth.bas.psc.esante.gouv.fr/auth/realms/esante-wallet`. En production : `https://auth.esw.esante.gouv.fr/auth/realms/esante-wallet`. L'hôte `wallet.` cité dans la documentation ANS ne porte que la page d'autorisation, la découverte se lit sur l'hôte `auth.`. |
 | `PSC_SIMULATEUR` | `1` active le simulateur local décrit ci-dessus. Prend le pas sur les identifiants ANS. |
 | `PSC_REDIRECT_URI` | Facultatif. Par défaut `{BETTER_AUTH_URL}/api/psc/retour/`, barre finale comprise à cause de `trailingSlash`. Doit être déclarée à l'ANS au caractère près. |
 
@@ -45,8 +45,8 @@ Liens utiles :
 - Assistance éditeurs : prosanteconnect.editeurs@esante.gouv.fr
 
 
-1. Déposer une demande d'accès au bac à sable sur le portail industriels de l'ANS (rubrique Pro Santé Connect), en déclarant l'adresse de retour de développement, par exemple `http://localhost:3000/api/psc/retour/`.
-2. Recevoir le couple client et les identités de test. Une e-CPS de test s'active depuis l'espace de test de l'ANS ; le numéro RPPS de l'identité de test doit exister dans la base locale pour que la comparaison réussisse, ce qui se fait en posant ce numéro sur une fiche de développement.
+1. Déposer une demande d'accès au bac à sable sur le portail industriels de l'ANS (rubrique Pro Santé Connect). Fait : le ClientID `rinia-dentalmap-bas` a été délivré le 10 octobre 2026, en Code Flow, avec pour seule adresse de retour autorisée `https://localhost/*`. L'ANS n'accepte donc ni `http://` ni le port 3000 : `pnpm dev:psc` sert le site sur `https://localhost` (port 443, certificat autosigné de `next dev --experimental-https` dans `certificates/`, ignoré par git), avec `PSC_SIMULATEUR=0` et `BETTER_AUTH_URL=https://localhost`, d'où une adresse de retour `https://localhost/api/psc/retour/`. Un seul `next dev` à la fois par dossier : arrêter `pnpm dev` avant. Pour que le navigateur accepte le certificat, lancer une fois `mkcert -install` (le binaire téléchargé par Next est dans `~/Library/Caches/mkcert/`), ce qui demande le mot de passe de session.
+2. Recevoir le couple client et les identités de test. Le secret se pose dans `.env.local` (`PSC_CLIENT_SECRET`), jamais dans le dépôt ni dans une conversation. Une e-CPS de test s'active depuis l'espace de test de l'ANS ; le numéro RPPS de l'identité de test doit exister dans la base locale pour que la comparaison réussisse, ce qui se fait en posant ce numéro sur une fiche de développement.
 3. Dérouler le flux, puis demander le passage en production : l'ANS vérifie le bon fonctionnement et le respect de son référentiel avant de délivrer les identifiants de production.
 4. Poser les variables de production sur Vercel, `PSC_ISSUER` compris.
 

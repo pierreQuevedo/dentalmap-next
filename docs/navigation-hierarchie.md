@@ -111,7 +111,7 @@ Barre basse :
 | Plan du site | `/plan-du-site/` |
 | Gestion des cookies | ouvre le bandeau de consentement (bouton, pas un lien) |
 
-Aucun lien vers des réseaux sociaux tant que les comptes n'existent pas ; aucun logo institutionnel tant qu'aucun partenariat n'est signé.
+Aucun lien vers des réseaux sociaux tant que les comptes n'existent pas ; logos institutionnels autorisés depuis le 13 octobre 2026 (décision client).
 
 ## 5. Fil d'Ariane
 
