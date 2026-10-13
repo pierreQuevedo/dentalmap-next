@@ -147,7 +147,11 @@ export async function verifierMention(donnees: FormData): Promise<never> {
   if (v[nom]) delete v[nom]
   else v[nom] = SOURCES_VERIFICATION[nom]
   await db.execute(sql`UPDATE demandes_formation SET verifications = ${JSON.stringify(v)}::jsonb WHERE id = ${id}`)
-  if (rows[0]?.wp_slug) updateTag(`formation-privee:${rows[0].wp_slug}`)
+  if (rows[0]?.wp_slug) {
+    updateTag(`formation-privee:${rows[0].wp_slug}`)
+    // La liste publique montre aussi les mentions.
+    updateTag('formations-privees')
+  }
   redirect(chemin('/espace-pro/moderation/'))
 }
 

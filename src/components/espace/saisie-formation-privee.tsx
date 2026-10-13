@@ -9,7 +9,7 @@ import { THEMES_FORMATION } from '@/lib/formation/themes'
 /**
  * A : proposer une formation privée. Le formulaire tient tout dans son état
  * et l'envoie en JSON ; une erreur de l'action revient ici sans rien perdre.
- * Champs d'après la fiche maquettée (maquettes/formations-privees).
+ * Champs d’après la fiche publique (`src/components/formation/fiche-formation-privee.tsx`).
  */
 type Session = { dates: string; debut: string; region: string; ville: string; places: string }
 type Etape = { titre: string; detail: string; duree: string }

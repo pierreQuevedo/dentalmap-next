@@ -14,10 +14,11 @@ import { THEMES_FORMATION } from '@/lib/formation/themes'
 const puce = 'inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-line bg-bg px-3 text-xs font-medium text-fg has-[:checked]:border-fg has-[:checked]:bg-fg has-[:checked]:text-bg'
 const champ = 'squircle-full h-11 w-full border border-line bg-bg px-4 text-sm text-fg outline-none placeholder:text-fg-2 focus:border-line-strong'
 
-export function AlerteFormations() {
+export function AlerteFormations({ themesInitiaux = [], publicsInitiaux = [], regionInitiale = null }: { themesInitiaux?: string[]; publicsInitiaux?: string[]; regionInitiale?: string | null } = {}) {
   const [etat, envoyer, enCours] = useActionState<EtatAlerte, FormData>(inscrireAlerteFormation, null)
-  const [themes, setThemes] = useState<string[]>([])
-  const [publics, setPublics] = useState<string[]>([])
+  // Depuis la liste, l'alerte reprend les filtres en cours.
+  const [themes, setThemes] = useState<string[]>(themesInitiaux)
+  const [publics, setPublics] = useState<string[]>(publicsInitiaux)
 
   if (etat?.ok) {
     return (
@@ -55,7 +56,7 @@ export function AlerteFormations() {
         </fieldset>
         <div>
           <label htmlFor="alerte-region" className="mb-2 block text-xs font-medium text-fg">Région</label>
-          <select id="alerte-region" name="regions" defaultValue="" className={champ}>
+          <select id="alerte-region" name="regions" defaultValue={regionInitiale ?? ''} className={champ}>
             <option value="">Toute la France</option>
             {REGIONS_FORMATION.map((r) => (
               <option key={r.code} value={r.code}>{r.nom}</option>

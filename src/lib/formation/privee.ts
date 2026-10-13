@@ -52,7 +52,8 @@ const CODES_REGION = new Set<string>([EN_LIGNE, ...REGIONS_FORMATION.map((r) => 
 export const nomRegion = (code: string) => (code === EN_LIGNE ? 'En ligne' : (REGIONS_FORMATION.find((r) => r.code === code)?.nom ?? code))
 
 const texte = (min: number, max: number, message: string) => z.string().trim().min(min, message).max(max, message)
-const facultatif = (max: number) => z.string().trim().max(max).transform((v) => v || null)
+// `null` accepté en entrée : une proposition stockée (déjà transformée) se relit avec le même schéma.
+const facultatif = (max: number) => z.string().trim().max(max).nullable().transform((v) => v || null)
 
 export const SessionFormation = z.object({
   /** Dates telles que l'organisme les écrit : « 14 et 15 novembre 2026 ». */
@@ -76,8 +77,8 @@ export const Proposition = z.object({
   /** Contrôlé par Sirene, comme pour un laboratoire ; facultatif. */
   siren: z
     .string()
-    .trim()
-    .transform((v) => v.replace(/\s+/g, ''))
+    .nullable()
+    .transform((v) => (v ?? '').replace(/\s+/g, ''))
     .refine((v) => v === '' || /^\d{9}$/.test(v), 'Le SIREN compte 9 chiffres.')
     .transform((v) => v || null),
   intitule: texte(6, 160, 'L’intitulé compte 6 caractères au moins.'),
@@ -95,8 +96,8 @@ export const Proposition = z.object({
   lienInscription: z.string().trim().url('Le lien d’inscription doit commencer par https://').refine((u) => u.startsWith('https://'), 'Le lien d’inscription doit commencer par https://'),
   siteOrganisme: z
     .string()
-    .trim()
-    .transform((v) => v || null)
+    .nullable()
+    .transform((v) => v?.trim() || null)
     .refine((v) => v === null || /^https:\/\/\S+\.\S+/.test(v), 'Le site de l’organisme doit commencer par https://'),
 })
 export type Proposition = z.infer<typeof Proposition>

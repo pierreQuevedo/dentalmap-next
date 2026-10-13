@@ -5,7 +5,9 @@ import { FicheEcole } from '@/components/formation/fiche-etablissement'
 import { FicheFaculte } from '@/components/formation/fiche-faculte'
 import { FicheFormation } from '@/components/formation/fiche-formation'
 import { getDeclarationPublique } from '@/lib/espace-pro/etablissement-donnees'
-import { getFormationPrivee } from '@/lib/formation/privee-donnees'
+import { FicheFormationPrivee } from '@/components/formation/fiche-formation-privee'
+import { getFormationPrivee, getVuesFormationsPrivees } from '@/lib/formation/privee-donnees'
+import { autresFormationsPrivees } from '@/lib/formation/privee-liste'
 import type { PointFaculte } from '@/components/formation/carte-faculte'
 import { chemin } from '@/lib/navigation'
 import { enRegion as libelleRegion } from '@/lib/annuaire/libelles'
@@ -25,9 +27,10 @@ export async function generateMetadata(props: { params: Params }): Promise<Metad
   const f = await getFormation(slug)
   if (!f) return { title: 'Formation introuvable' }
   const etab = lireFaculte(f.contenu) ?? lireEcole(f.contenu)
+  const privee = f.type === 'privee' ? await getFormationPrivee(f.slug) : null
   return {
     title: f.seoTitre ?? f.titre,
-    description: f.seoDescription ?? etab?.presentation ?? f.extrait ?? FAMILLES[typeDe(f)].intro,
+    description: f.seoDescription ?? etab?.presentation ?? privee?.d.resume ?? f.extrait ?? FAMILLES[typeDe(f)].intro,
     alternates: { canonical: lienFormation(f) },
     robots: f.noindex ? { index: false, follow: true } : undefined,
     openGraph: f.image ? { images: [{ url: f.image.url, alt: f.image.alt }] } : undefined,
@@ -50,6 +53,21 @@ export default async function Page(props: { params: Params }) {
   const [f, toutes] = await Promise.all([getFormation(slug), getFormations()])
   if (!f) notFound()
   if (typeDe(f) !== type) permanentRedirect(chemin(lienFormation(f)))
+
+  // Une formation privée publiée (article WordPress et détail dans Neon) a sa page ;
+  // sans détail publié, elle garde la fiche générique.
+  if (f.type === 'privee') {
+    const vues = await getVuesFormationsPrivees()
+    const vue = vues.find((v) => v.slug === f.slug)
+    if (vue) {
+      return (
+        <>
+          <HeaderTransparent />
+          <FicheFormationPrivee f={vue} autres={autresFormationsPrivees(vues, vue)} />
+        </>
+      )
+    }
+  }
 
   const gerable = f.type === 'ecole_prothese' || f.type === 'faculte'
   const declaration = gerable ? await getDeclarationPublique(f.slug) : undefined

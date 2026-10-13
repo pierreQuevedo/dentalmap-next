@@ -2,6 +2,8 @@ import { cacheLife, cacheTag } from 'next/cache'
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { Proposition, type Verifications } from './privee'
+import { assembler, type FormationPriveeVue } from './privee-liste'
+import { getFormations } from '@/lib/wp/queries'
 
 /**
  * Les lectures des formations privées : les propositions d'un compte, la
@@ -58,4 +60,38 @@ export async function getFormationPrivee(wpSlug: string): Promise<FormationPubli
   const r = rows[0]
   const d = r ? lire(r.donnees) : null
   return r && d ? { d, verifications: r.verifications ?? {}, publieeLe: r.publiee_le } : null
+}
+
+/**
+ * Le détail de toutes les formations privées publiées, par adresse
+ * WordPress, pour la liste et les « autres formations » d'une fiche.
+ */
+export async function getFormationsPriveesPubliees(): Promise<(FormationPubliee & { wpSlug: string })[]> {
+  'use cache'
+  cacheLife('editorial')
+  cacheTag('wp:formation', 'formations-privees')
+  const { rows } = await db.execute<{ wp_slug: string; donnees: unknown; verifications: Verifications; publiee_le: string }>(sql`
+    SELECT wp_slug, donnees, verifications, publiee_le FROM demandes_formation
+    WHERE statut = 'publiee' AND wp_slug IS NOT NULL ORDER BY wp_slug
+  `)
+  return rows.flatMap((r) => {
+    const d = lire(r.donnees)
+    return d ? [{ wpSlug: r.wp_slug, d, verifications: r.verifications ?? {}, publieeLe: r.publiee_le }] : []
+  })
+}
+
+/**
+ * Les formations privées publiques : un article WordPress de type `privee`
+ * (filtré par `aUnType`) dont le détail est publié dans Neon.
+ */
+export async function getVuesFormationsPrivees(): Promise<FormationPriveeVue[]> {
+  'use cache'
+  // Mise en cache une heure : les sessions passées sortent dans l'heure qui suit minuit.
+  cacheLife('editorial')
+  cacheTag('wp:formation', 'formations-privees')
+  const [articles, details] = await Promise.all([getFormations(), getFormationsPriveesPubliees()])
+  return assembler(
+    articles.filter((a) => a.type === 'privee'),
+    new Map(details.map(({ wpSlug, ...det }) => [wpSlug, det])),
+  )
 }
