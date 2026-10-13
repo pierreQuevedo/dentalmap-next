@@ -1,10 +1,10 @@
 'use client'
 
 /**
- * MAQUETTE, copie de la carte des offres d'emploi (`../emploi/_carte-offres.tsx`)
- * pour les annonces de cession. Même fond de plan que l'annuaire. Une annonce
- * n'a jamais de point exact : la liste pose un repère au centre du secteur,
- * la page d'annonce ne trace qu'un cercle (`rayon`), sans marqueur.
+ * La carte des annonces de cession, sur le fond de plan de l'annuaire. Une
+ * annonce n'a jamais de point exact : la liste pose un repère au centre du
+ * secteur flou (celui de la commune, jamais l'adresse du cabinet), la page
+ * d'annonce ne trace qu'un cercle (`rayon`), sans marqueur.
  */
 import { useEffect, useRef } from 'react'
 import { Map as MapLibre, Marker, setWorkerUrl } from 'maplibre-gl'
@@ -14,7 +14,7 @@ import type { Emprise } from '@/lib/annuaire/emprise'
 
 setWorkerUrl('/maplibre/maplibre-gl-worker.mjs')
 
-export type PointAnnonce = { id: string; lon: number; lat: number; etiquette?: string; nombre?: number }
+export type PointAnnonce = { id: string; lon: number; lat: number; etiquette?: string; nombre?: number; /** Page de l'annonce : le repère devient un lien. */ href?: string; titre?: string }
 
 export function CarteSecteur({
   emprise,
@@ -28,7 +28,7 @@ export function CarteSecteur({
 }: {
   emprise: Emprise
   points: PointAnnonce[]
-  /** Offre active : marqueur agrandi avec son étiquette. */
+  /** Annonce active : marqueur agrandi avec son étiquette. */
   actif?: string
   className?: string
   /** Force le fond clair ou sombre ; par défaut, le thème du document. */
@@ -75,10 +75,14 @@ export function CarteSecteur({
       })
     }
 
-    // Sous 600 px de large, les étiquettes se chevauchent : seules restent celle de l'offre active et les grappes.
+    // Sous 600 px de large, les étiquettes se chevauchent : seules restent celle de l'annonce active et les grappes.
     const etroit = conteneur.current.clientWidth < 600
     const marqueurs = pts.map((brut) => {
-      const el = document.createElement('div')
+      const el = document.createElement(brut.href ? 'a' : 'div')
+      if (brut.href && el instanceof HTMLAnchorElement) {
+        el.href = brut.href
+        if (brut.titre) el.setAttribute('aria-label', brut.titre)
+      }
       const estActif = brut.id === a
       const p = etroit && !estActif ? { ...brut, etiquette: undefined } : brut
       if (p.nombre && p.nombre > 1) {
@@ -87,7 +91,9 @@ export function CarteSecteur({
         el.textContent = String(p.nombre)
       } else if (estActif && p.etiquette) {
         el.className = 'flex flex-col items-center'
-        el.innerHTML = `<span class="whitespace-nowrap rounded-full bg-[#0071e3] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_6px_20px_rgb(0_113_227/0.35)]">${p.etiquette}</span><span class="-mt-px size-0 border-x-[6px] border-t-[7px] border-x-transparent border-t-[#0071e3]"></span><span class="mt-1 size-3.5 rounded-full border-2 border-white bg-[#0071e3] shadow"></span>`
+        // Étiquette posée en texte, jamais en HTML : elle vient de la saisie.
+        el.innerHTML = `<span class="whitespace-nowrap rounded-full bg-[#0071e3] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_6px_20px_rgb(0_113_227/0.35)]"></span><span class="-mt-px size-0 border-x-[6px] border-t-[7px] border-x-transparent border-t-[#0071e3]"></span><span class="mt-1 size-3.5 rounded-full border-2 border-white bg-[#0071e3] shadow"></span>`
+        el.firstElementChild!.textContent = p.etiquette
       } else if (p.etiquette) {
         el.className =
           'whitespace-nowrap rounded-full border border-black/5 bg-white px-2.5 py-1 text-[11px] font-semibold text-[#16222b] shadow-[0_3px_12px_rgb(22_34_43/0.18)]'

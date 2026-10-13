@@ -1,24 +1,25 @@
 /**
- * MAQUETTE. Comment déposer une annonce de cession : trois étapes en images,
- * ce que l'annonce demande, durée de publication, renvoi vers l'espace pro.
- * Ce que les docs n'établissent pas est marqué « À valider » : qui peut
- * déposer, relecture avant publication, durée.
+ * Comment déposer une annonce de cession : trois étapes en images, ce que
+ * l'annonce demande, durée de publication, renvoi vers l'espace pro. Seul un
+ * praticien à la fiche vérifiée dépose ; l'équipe relit avant publication ;
+ * l'annonce reste en ligne 90 jours, renouvelable d'un clic.
  */
 import Image from 'next/image'
 import Link from 'next/link'
 import { chemin } from '@/lib/navigation'
 import { ArrowRight, Armchair, CalendarClock, Camera, Check, Euro, FileText, MapPin, Maximize2, Tag, TrendingUp, Wrench } from 'lucide-react'
-import { AValider } from './_blocs'
+import { DUREE_PUBLICATION_JOURS, RAPPEL_AVANT_JOURS } from '@/lib/cessions/format'
+import { LISTE_CESSIONS, ROUTE_DEPOT_CESSION } from '@/lib/cessions/routes'
 
 const ETAPES = [
-  { titre: 'Connectez-vous à votre espace pro', texte: 'Votre fiche de praticien vérifié est votre identité de cédant.', valider: true, image: '/images/demo/pexels-6627471.jpg' },
+  { titre: 'Connectez-vous à votre espace pro', texte: 'Votre fiche de praticien vérifié est votre identité de cédant.', image: '/images/demo/pexels-6627471.jpg' },
   { titre: 'Remplissez l’annonce', texte: 'Le secteur suffit : l’adresse n’est jamais publiée.', image: '/images/demo/pexels-6627320.jpg' },
-  { titre: 'Relecture par l’équipe', texte: 'L’annonce est relue avant d’être publiée.', valider: true, image: '/images/demo/pexels-8413334.jpg' },
+  { titre: 'Relecture par l’équipe', texte: 'L’annonce est relue avant d’être publiée ; vous êtes prévenu par email.', image: '/images/demo/pexels-8413334.jpg' },
 ]
 
 const CHAMPS = [
   { i: Tag, t: 'Type de cession', d: 'Cabinet, parts, patientèle, murs ou locaux' },
-  { i: MapPin, t: 'Secteur', d: 'Commune ou zone approximative' },
+  { i: MapPin, t: 'Secteur', d: 'Votre commune : le rayon affiché est calculé pour vous' },
   { i: Armchair, t: 'Fauteuils', d: 'Nombre de postes de soins' },
   { i: TrendingUp, t: 'Chiffre d’affaires', d: 'En fourchette, indicatif' },
   { i: Euro, t: 'Prix', d: 'Montant ou «\u00a0sur demande\u00a0»' },
@@ -44,10 +45,10 @@ export function Deposer() {
             </h1>
             <p className="mt-6 max-w-md text-lg text-white/70">Un secteur, jamais d’adresse, et des messages reçus sans afficher vos coordonnées.</p>
             <div className="mt-8 flex flex-wrap gap-2">
-              <Link href={chemin('/espace-pro/')} className="inline-flex h-11 items-center gap-2 rounded-full bg-brand px-6 text-sm font-semibold text-brand-foreground hover:bg-brand-hover">
+              <Link href={chemin(ROUTE_DEPOT_CESSION)} className="inline-flex h-11 items-center gap-2 rounded-full bg-brand px-6 text-sm font-semibold text-brand-foreground hover:bg-brand-hover">
                 Déposer depuis mon espace pro <ArrowRight className="size-4" aria-hidden />
               </Link>
-              <Link href={chemin('/maquettes/annonces/liste/')} className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 text-sm font-semibold text-white hover:bg-white/10">
+              <Link href={chemin(LISTE_CESSIONS)} className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 text-sm font-semibold text-white hover:bg-white/10">
                 Voir les annonces
               </Link>
             </div>
@@ -76,10 +77,7 @@ export function Deposer() {
               <div className="squircle-2xl relative mt-6 aspect-[16/10] overflow-hidden border border-line">
                 <Image src={e.image} alt="" fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover" />
               </div>
-              <p className="mt-5 text-xl font-semibold tracking-tight text-fg">
-                {e.titre}
-                {e.valider && <AValider />}
-              </p>
+              <p className="mt-5 text-xl font-semibold tracking-tight text-fg">{e.titre}</p>
               <p className="mt-1 text-fg-2">{e.texte}</p>
             </li>
           ))}
@@ -109,34 +107,30 @@ export function Deposer() {
           <div className="squircle-3xl dark flex flex-col justify-between bg-background p-6 text-fg md:col-span-1 md:p-8">
             <CalendarClock className="size-7 text-teal" strokeWidth={1.5} aria-hidden />
             <div className="mt-10">
-              <p className="text-4xl font-semibold tracking-tight text-white md:text-5xl">Une date de fin</p>
+              <p className="text-4xl font-semibold tracking-tight text-white md:text-5xl">{DUREE_PUBLICATION_JOURS} jours</p>
               <p className="mt-2 text-white/70">
-                affichée sur chaque annonce. Durée de publication
-                <AValider>À valider</AValider>
+                de publication, date de fin affichée sur l’annonce. Un rappel vous arrive {RAPPEL_AVANT_JOURS} jours avant : un clic la renouvelle.
               </p>
             </div>
           </div>
           <ul className="squircle-3xl space-y-4 border border-line bg-bg-soft p-6 md:col-span-2 md:p-8">
             {[
-              ['Seul un praticien à la fiche vérifiée publie', true],
-              ['L’adresse et vos coordonnées ne sont jamais publiées', false],
-              ['Les messages des repreneurs vous arrivent par l’espace pro', true],
-              ['L’annonce expire à sa date : plus de cession fantôme', false],
-            ].map(([t, v]) => (
-              <li key={t as string} className="flex gap-3 text-fg">
+              'Seul un praticien à la fiche vérifiée publie',
+              'L’adresse et vos coordonnées ne sont jamais publiées : un secteur de 2, 5 ou 10 km selon la taille de la commune',
+              'Les repreneurs vous écrivent avec un compte ; leurs messages arrivent dans votre espace pro, et vous êtes prévenu par email',
+              'L’annonce expire à sa date : plus de cession fantôme',
+            ].map((t) => (
+              <li key={t} className="flex gap-3 text-fg">
                 <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-teal/10 text-teal">
                   <Check className="size-4" aria-hidden />
                 </span>
-                <span>
-                  {t}
-                  {v && <AValider />}
-                </span>
+                <span>{t}</span>
               </li>
             ))}
           </ul>
         </div>
         <div className="mt-10 flex justify-center">
-          <Link href={chemin('/espace-pro/')} className="inline-flex h-12 items-center gap-2 rounded-full bg-action px-7 text-sm font-semibold text-action-foreground hover:bg-action-hover">
+          <Link href={chemin(ROUTE_DEPOT_CESSION)} className="inline-flex h-12 items-center gap-2 rounded-full bg-action px-7 text-sm font-semibold text-action-foreground hover:bg-action-hover">
             Déposer depuis mon espace pro <ArrowRight className="size-4" aria-hidden />
           </Link>
         </div>

@@ -1,7 +1,11 @@
-/** MAQUETTE, à supprimer après arbitrage. Briques des pages de cession, dans le dessin des maquettes Emploi validées. */
+/** Briques des pages de cession, dans le dessin des pages Emploi. */
 import Image from 'next/image'
+import Link from 'next/link'
 import { Armchair, BadgeCheck, Building2, KeyRound, MapPin, Users } from 'lucide-react'
-import { type Annonce, type TypeCession, ca, km, prix } from './_donnees'
+import { chemin } from '@/lib/navigation'
+import { chiffreAffaires, dateCourte, fauteuils, km, phraseDisponibilite, prixLong } from '@/lib/cessions/format'
+import { cheminAnnonceCession } from '@/lib/cessions/routes'
+import { LIBELLE_TYPE, type AnnonceResume, type TypeCession } from '@/lib/cessions/types'
 
 export function Etiquette({ children, ton = 'neutre' }: { children: React.ReactNode; ton?: 'neutre' | 'teal' | 'sombre' }) {
   const c = {
@@ -25,24 +29,19 @@ export function CedantVerifie({ sombre, court }: { sombre?: boolean; court?: boo
   )
 }
 
-/** Marque de maquette : ce point n'est pas établi dans les docs. */
-export function AValider({ children = 'À valider' }: { children?: React.ReactNode }) {
-  return <span className="ml-1 inline-flex rounded bg-amber-200/70 px-1.5 py-px align-[1px] text-[11px] font-semibold text-amber-950">{children}</span>
-}
-
 const ICONES: Record<TypeCession, typeof Building2> = {
-  'Cabinet individuel': Armchair,
-  'Parts de société': Users,
-  Patientèle: Users,
-  'Murs ou locaux': KeyRound,
+  cabinet: Armchair,
+  parts: Users,
+  patientele: Users,
+  murs: KeyRound,
 }
 
-/** Photo déposée par le cédant, sinon fond neutre : même règle que l'emploi. */
-export function Visuel({ a, className = '', petit }: { a: Annonce; className?: string; petit?: boolean }) {
+/** Photo déposée par le cédant, sinon fond neutre à l'icône du type de cession. */
+export function Visuel({ a, className = '', petit, priorite }: { a: Pick<AnnonceResume, 'photo' | 'type'>; className?: string; petit?: boolean; priorite?: boolean }) {
   if (a.photo) {
     return (
       <div className={`relative overflow-hidden ${className}`}>
-        <Image src={a.photo} alt="" fill sizes={petit ? '96px' : '(min-width: 1024px) 24rem, 90vw'} className="object-cover" />
+        <Image src={a.photo} alt="" fill priority={priorite} sizes={petit ? '112px' : '(min-width: 1024px) 24rem, 90vw'} className="object-cover" />
       </div>
     )
   }
@@ -54,7 +53,7 @@ export function Visuel({ a, className = '', petit }: { a: Annonce; className?: s
   )
 }
 
-function Secteur({ a }: { a: Annonce }) {
+function Secteur({ a }: { a: AnnonceResume }) {
   return (
     <span className="inline-flex items-center gap-1.5">
       <MapPin className="size-3.5 shrink-0 text-geo" aria-hidden /> Secteur {a.secteur}
@@ -63,11 +62,11 @@ function Secteur({ a }: { a: Annonce }) {
   )
 }
 
-function Montants({ a, grand }: { a: Annonce; grand?: boolean }) {
+function Montants({ a, grand }: { a: AnnonceResume; grand?: boolean }) {
   return (
     <p className={grand ? '' : 'ml-auto text-right'}>
-      <span className={`block font-semibold tabular-nums text-fg ${grand ? 'text-lg' : ''}`}>{prix(a)}</span>
-      <span className="block text-xs text-fg-2">CA {ca(a)}</span>
+      <span className={`block font-semibold tabular-nums text-fg ${grand ? 'text-lg' : ''}`}>{prixLong(a.prix)}</span>
+      <span className="block text-xs text-fg-2">CA {chiffreAffaires(a.caMin, a.caMax)}</span>
     </p>
   )
 }
@@ -78,21 +77,23 @@ function Montants({ a, grand }: { a: Annonce; grand?: boolean }) {
  * - `compacte` : sans vignette, à côté de la carte.
  * - `carte` : visuel en tête, pour les annonces proches.
  */
-export function CarteAnnonce({ a, forme = 'ligne', actif }: { a: Annonce; forme?: 'ligne' | 'compacte' | 'carte'; actif?: boolean }) {
+export function CarteAnnonce({ a, forme = 'ligne', actif }: { a: AnnonceResume; forme?: 'ligne' | 'compacte' | 'carte'; actif?: boolean }) {
+  const href = chemin(cheminAnnonceCession(a.departementSlug, a.slug))
+  const dispo = phraseDisponibilite(a.disponibilite)
   if (forme === 'carte') {
     return (
       <li className="squircle-2xl hover-lift group relative flex flex-col overflow-hidden border border-line bg-bg-soft [--lift:4px] hover:shadow-pop">
         <div className="relative">
           <Visuel a={a} className="aspect-[16/9]" />
-          <span className="absolute left-3 top-3 rounded-full bg-bg/90 px-2 py-0.5 text-xs font-medium text-fg backdrop-blur">{a.type}</span>
+          <span className="absolute left-3 top-3 rounded-full bg-bg/90 px-2 py-0.5 text-xs font-medium text-fg backdrop-blur">{LIBELLE_TYPE[a.type]}</span>
         </div>
         <div className="flex flex-1 flex-col p-4">
           <h3 className="text-base font-semibold leading-snug text-fg">
-            <a className="after:absolute after:inset-0">{a.titre}</a>
+            <Link href={href} className="after:absolute after:inset-0">
+              {a.titre}
+            </Link>
           </h3>
-          <p className="mt-1 text-sm text-fg-2">
-            {a.fauteuils} fauteuil{a.fauteuils > 1 ? 's' : ''} · Disponible {a.dispo.toLowerCase()}
-          </p>
+          <p className="mt-1 text-sm text-fg-2">{[a.fauteuils ? fauteuils(a.fauteuils) : null, dispo].filter(Boolean).join(' · ')}</p>
           <div className="mt-auto pt-4">
             <Montants a={a} grand />
           </div>
@@ -111,17 +112,17 @@ export function CarteAnnonce({ a, forme = 'ligne', actif }: { a: Annonce; forme?
       {!compacte && <Visuel a={a} petit className="squircle-xl hidden size-28 shrink-0 sm:grid" />}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
-          <Etiquette ton="teal">{a.type}</Etiquette>
-          <Etiquette>
-            {a.fauteuils} fauteuil{a.fauteuils > 1 ? 's' : ''}
-          </Etiquette>
-          <span className="text-xs text-fg-2">{a.depuis}</span>
+          <Etiquette ton="teal">{LIBELLE_TYPE[a.type]}</Etiquette>
+          {a.fauteuils ? <Etiquette>{fauteuils(a.fauteuils)}</Etiquette> : null}
+          <span className="text-xs text-fg-2">Publiée le {dateCourte(a.publieeLe)}</span>
         </div>
         <h3 className="mt-2 text-base font-semibold leading-snug text-fg">
-          <a className="after:absolute after:inset-0">{a.titre}</a>
+          <Link href={href} className="after:absolute after:inset-0">
+            {a.titre}
+          </Link>
         </h3>
         <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fg-2">
-          Disponible {a.dispo.toLowerCase()}
+          {dispo}
           {!compacte && <CedantVerifie court />}
         </p>
         <div className="mt-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
