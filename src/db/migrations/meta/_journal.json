@@ -127,6 +127,13 @@
       "when": 1791887019515,
       "tag": "0017_square_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791923986605,
+      "tag": "0018_wet_chameleon",
+      "breakpoints": true
     }
   ]
 }

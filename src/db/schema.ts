@@ -623,3 +623,215 @@ export const alertesFormation = pgTable('alertes_formation', {
   uniqueIndex('alertes_formation_email').on(t.email),
   uniqueIndex('alertes_formation_jeton').on(t.jetonHash),
 ])
+
+/* ------------------------------------------------------------------ */
+/* Emploi                                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Une offre d'emploi, publiée par un professionnel vérifié depuis son espace
+ * pro, pour l'un de ses lieux d'exercice. La rémunération est obligatoire :
+ * fourchette brute mensuelle pour un salaire ou une gratification,
+ * pourcentage pour une rétrocession ou une redevance.
+ *
+ * Datée : publiée pour 30 jours, le recruteur la confirme tous les 15 jours
+ * (`confirmeeLe`) ; sans confirmation, le job `offres-echeance` la retire.
+ * La position est recopiée du lieu au moment de la publication, pour trier
+ * par distance sans jointure. Aucune colonne de score : l'ordre est la
+ * distance, puis l'ordre alphabétique, ou la date pour « les plus récentes ».
+ */
+export const offres = pgTable('offres', {
+  id: text('id').primaryKey(),
+  auteurUserId: uuid('auteur_user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  praticienId: text('praticien_id').notNull().references(() => praticiens.id, { onDelete: 'cascade' }),
+  lieuId: text('lieu_id').references(() => lieuxExercice.id, { onDelete: 'set null' }),
+  slug: text('slug').notNull().unique(),
+  metier: text('metier', {
+    enum: ['assistant_dentaire', 'secretaire', 'prothesiste', 'aide_dentaire', 'chirurgien_dentiste', 'assistant_specialise'],
+  }).notNull(),
+  contrat: text('contrat', { enum: ['cdi', 'cdd', 'alternance', 'stage', 'remplacement', 'collaboration'] }).notNull(),
+  tempsPlein: boolean('temps_plein').notNull().default(true),
+  heuresHebdo: integer('heures_hebdo'),
+  debut: text('debut'),
+  fin: text('fin'),
+  modeRemuneration: text('mode_remuneration', { enum: ['salaire', 'retrocession', 'redevance', 'gratification'] }).notNull(),
+  remunerationMin: integer('remuneration_min').notNull(),
+  remunerationMax: integer('remuneration_max').notNull(),
+  titre: text('titre').notNull(),
+  description: text('description').notNull(),
+  profil: text('profil'),
+  avantages: text('avantages').array().notNull().default([]),
+  communeCode: text('commune_code').notNull().references(() => communes.codeInsee),
+  departementCode: text('departement_code').notNull().references(() => departements.code),
+  position: point4326('position'),
+  statut: text('statut', { enum: ['brouillon', 'en_ligne', 'pourvue', 'expiree', 'retiree'] }).notNull().default('brouillon'),
+  publieeLe: timestamp('publiee_le', { withTimezone: true }),
+  confirmeeLe: timestamp('confirmee_le', { withTimezone: true }),
+  expireLe: timestamp('expire_le', { withTimezone: true }),
+  clotureeLe: timestamp('cloturee_le', { withTimezone: true }),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  majLe: timestamp('maj_le', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [
+  index('offres_statut_metier').on(t.statut, t.metier),
+  index('offres_departement').on(t.departementCode),
+  index('offres_commune').on(t.communeCode),
+  index('offres_praticien').on(t.praticienId),
+  index('offres_position_gist').using('gist', t.position),
+])
+
+/** Profil d'un salarié ou d'un étudiant qui cherche un poste. */
+export const candidats = pgTable('candidats', {
+  userId: uuid('user_id').primaryKey().references(() => user.id, { onDelete: 'cascade' }),
+  situation: text('situation', { enum: ['assistant', 'secretaire', 'prothesiste', 'aide', 'etudiant'] }).notNull(),
+  /** Contrats, temps, commune, rayon, disponibilité. */
+  criteres: jsonb('criteres').notNull().default(sql`'{}'::jsonb`),
+  qualification: text('qualification'),
+  /** Vérification automatique du titre ; le document n'est jamais conservé. */
+  titreVerifie: boolean('titre_verifie').notNull().default(false),
+  formation: jsonb('formation'),
+  scolariteVerifiee: boolean('scolarite_verifiee').notNull().default(false),
+  visibilite: text('visibilite', { enum: ['visible', 'discret'] }).notNull().default('visible'),
+  structuresMasquees: text('structures_masquees').array().notNull().default([]),
+  /** CV facultatif, chemin dans le stockage privé, jamais une URL publique. */
+  cvChemin: text('cv_chemin'),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  majLe: timestamp('maj_le', { withTimezone: true }).defaultNow().notNull(),
+})
+
+/**
+ * Candidature d'un compte connecté (pas de candidature anonyme). Les
+ * coordonnées du candidat ne passent au recruteur qu'une fois l'échange
+ * accepté. Purgée six mois après la clôture de l'offre.
+ */
+export const candidatures = pgTable('candidatures', {
+  id: text('id').primaryKey(),
+  offreId: text('offre_id').notNull().references(() => offres.id, { onDelete: 'cascade' }),
+  candidatUserId: uuid('candidat_user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  message: text('message'),
+  statut: text('statut', { enum: ['nouvelle', 'vue', 'echange_propose', 'echange_accepte', 'retenue', 'non_retenue'] }).notNull().default('nouvelle'),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  majLe: timestamp('maj_le', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('candidatures_offre_candidat').on(t.offreId, t.candidatUserId),
+  index('candidatures_candidat').on(t.candidatUserId),
+])
+
+/**
+ * Alerte emploi : avec un compte (critères du profil) ou sans, par une adresse
+ * confirmée par lien, sur le modèle des alertes formation. Un email par
+ * semaine au plus, seulement s'il y a du nouveau.
+ */
+export const alertesEmploi = pgTable('alertes_emploi', {
+  id: text('id').primaryKey(),
+  userId: uuid('user_id').references(() => user.id, { onDelete: 'cascade' }),
+  email: text('email'),
+  /** Métiers, contrats, département ou commune et rayon. */
+  criteres: jsonb('criteres').notNull(),
+  jetonHash: text('jeton_hash'),
+  confirmeeLe: timestamp('confirmee_le', { withTimezone: true }),
+  active: boolean('active').notNull().default(true),
+  dernierEnvoiLe: timestamp('dernier_envoi_le', { withTimezone: true }),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [
+  index('alertes_emploi_compte').on(t.userId),
+  uniqueIndex('alertes_emploi_jeton').on(t.jetonHash),
+])
+
+/* ------------------------------------------------------------------ */
+/* Annonces de cession                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Annonce de cession de cabinet, déposée par un praticien à la fiche vérifiée
+ * depuis son espace pro, relue par l'équipe avant publication, en ligne
+ * 90 jours puis renouvelable d'un clic (rappel à J-7).
+ *
+ * Confidentialité : jamais d'adresse ni de point exact. `centre` et `rayonM`
+ * décrivent un secteur flou, calculé à partir de la commune : 2 km en ville,
+ * 5 km en périurbain, 10 km en zone rurale (`rayonSecteur`). Le cédant
+ * n'apparaît que comme « praticien vérifié », et on le contacte avec un
+ * compte, par la messagerie de l'espace pro.
+ *
+ * Montants en milliers d'euros ; `prix` nul : « sur demande ».
+ */
+export const annoncesCession = pgTable('annonces_cession', {
+  id: text('id').primaryKey(),
+  auteurUserId: uuid('auteur_user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  praticienId: text('praticien_id').notNull().references(() => praticiens.id, { onDelete: 'cascade' }),
+  slug: text('slug').notNull().unique(),
+  statut: text('statut', { enum: ['brouillon', 'en_relecture', 'publiee', 'refusee', 'retiree', 'expiree'] }).notNull().default('brouillon'),
+  motifRefus: text('motif_refus'),
+  profession: text('profession', { enum: ['dentiste', 'prothesiste'] }).notNull().default('dentiste'),
+  type: text('type', { enum: ['cabinet', 'parts', 'patientele', 'murs'] }).notNull(),
+  titre: text('titre').notNull(),
+  description: text('description').notNull(),
+  communeCode: text('commune_code').notNull().references(() => communes.codeInsee),
+  departementCode: text('departement_code').notNull().references(() => departements.code),
+  /** Libellé du secteur affiché, par exemple « Bordeaux rive droite ». */
+  secteur: text('secteur'),
+  centre: point4326('centre'),
+  rayonM: integer('rayon_m').notNull(),
+  fauteuils: integer('fauteuils'),
+  caMin: integer('ca_min'),
+  caMax: integer('ca_max'),
+  prix: integer('prix'),
+  surface: integer('surface'),
+  disponibilite: text('disponibilite'),
+  equipements: text('equipements').array().notNull().default([]),
+  conditions: text('conditions'),
+  locaux: text('locaux'),
+  /** Chemins des photos dans le stockage, dans l'ordre d'affichage. */
+  photos: text('photos').array().notNull().default([]),
+  soumiseLe: timestamp('soumise_le', { withTimezone: true }),
+  publieeLe: timestamp('publiee_le', { withTimezone: true }),
+  expireLe: timestamp('expire_le', { withTimezone: true }),
+  rappelEnvoyeLe: timestamp('rappel_envoye_le', { withTimezone: true }),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  majLe: timestamp('maj_le', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [
+  index('annonces_cession_statut').on(t.statut),
+  index('annonces_cession_departement').on(t.departementCode),
+  index('annonces_cession_centre_gist').using('gist', t.centre),
+])
+
+/**
+ * Messagerie entre comptes, ouverte depuis une annonce de cession : un fil par
+ * annonce et par acheteur. Les adresses ne sont jamais affichées ; chaque
+ * nouveau message prévient l'autre partie par email.
+ */
+export const conversations = pgTable('conversations', {
+  id: text('id').primaryKey(),
+  objet: text('objet', { enum: ['cession'] }).notNull().default('cession'),
+  annonceCessionId: text('annonce_cession_id').references(() => annoncesCession.id, { onDelete: 'cascade' }),
+  interlocuteurUserId: uuid('interlocuteur_user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  destinataireUserId: uuid('destinataire_user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  dernierMessageLe: timestamp('dernier_message_le', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('conversations_annonce_interlocuteur').on(t.annonceCessionId, t.interlocuteurUserId),
+  index('conversations_destinataire').on(t.destinataireUserId),
+])
+
+export const messages = pgTable('messages', {
+  id: text('id').primaryKey(),
+  conversationId: text('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+  auteurUserId: uuid('auteur_user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  corps: text('corps').notNull(),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  luLe: timestamp('lu_le', { withTimezone: true }),
+}, (t) => [index('messages_conversation').on(t.conversationId, t.creeLe)])
+
+/** Alerte cessions, sans compte : adresse confirmée par lien, un email par semaine au plus. */
+export const alertesCession = pgTable('alertes_cession', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull(),
+  departements: text('departements').array().notNull().default([]),
+  types: text('types').array().notNull().default([]),
+  jetonHash: text('jeton_hash').notNull(),
+  confirmeeLe: timestamp('confirmee_le', { withTimezone: true }),
+  dernierEnvoiLe: timestamp('dernier_envoi_le', { withTimezone: true }),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('alertes_cession_email').on(t.email),
+  uniqueIndex('alertes_cession_jeton').on(t.jetonHash),
+])
