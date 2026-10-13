@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound, permanentRedirect } from 'next/navigation'
+import { HeaderTransparent } from '@/components/home/HeaderTransparent'
+import { FicheEcole } from '@/components/formation/fiche-etablissement'
+import { FicheFaculte } from '@/components/formation/fiche-faculte'
 import { FicheFormation } from '@/components/formation/fiche-formation'
 import { getDeclarationPublique } from '@/lib/espace-pro/etablissement-donnees'
 import { getFormationPrivee } from '@/lib/formation/privee-donnees'
@@ -35,9 +38,11 @@ export async function generateMetadata(props: { params: Params }): Promise<Metad
  * Fiche d'une formation. Une formation n'a qu'une adresse, celle de sa
  * famille : appelée sous une autre, elle y renvoie.
  *
- * Pour une faculté, le contenu balisé est lu en modules, les lieux sont
- * géocodés pour la carte, et les autres facultés de la même région sont
- * proposées avant les autres.
+ * Une école de prothèse ou une faculté dont le contenu balisé se lit a sa
+ * page d'établissement : héros sur carte, blocs relevés et déclarés. Les
+ * lieux sont géocodés pour les cartes, et les autres établissements de la
+ * même région sont proposés avant les autres. Les formations privées, et un
+ * établissement dont le contenu ne se lit pas, gardent la fiche générique.
  */
 export default async function Page(props: { params: Params }) {
   const { type, slug } = await props.params
@@ -77,6 +82,33 @@ export default async function Page(props: { params: Params }) {
   const enRegion = memeFamille.filter((x) => x.departement && codesRegion.has(x.departement))
   const ailleurs = memeFamille.filter((x) => !enRegion.includes(x))
   const autres = [...enRegion, ...ailleurs].slice(0, 3)
+
+  const position = points.find((p) => p.role === 'etablissement') ?? null
+  const ici = position ? { lon: position.lon, lat: position.lat } : null
+
+  if (ecole) {
+    return (
+      <>
+        <HeaderTransparent />
+        <FicheEcole
+          f={f}
+          ecole={ecole}
+          declaration={declaration ?? null}
+          position={ici}
+          autres={autres}
+          departement={departement ? { slug: departement.slug, nom: departement.nom } : null}
+        />
+      </>
+    )
+  }
+  if (fac) {
+    return (
+      <>
+        <HeaderTransparent />
+        <FicheFaculte f={f} fac={fac} declaration={declaration ?? null} position={ici} points={points} autres={autres} />
+      </>
+    )
+  }
 
   return (
     <FicheFormation
