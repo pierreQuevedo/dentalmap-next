@@ -1,6 +1,5 @@
 /**
- * MAQUETTE, à supprimer après arbitrage. Contenu et briques de « Devenir
- * partenaire » (variante B retenue).
+ * Contenu et briques de la page « Devenir partenaire ».
  *
  * Établi dans le dépôt :
  * - formulaire public sans compte, six champs, réponse sous sept jours,
@@ -11,18 +10,18 @@
  *   `/espace-pro/organisme/` (écran O1 puis O2a).
  *
  * Les avantages des cinq profils ont été retenus par le client le
- * 13 octobre 2026 ; ils restent à construire. `proposition` reste disponible
- * pour marquer une idée non encore validée.
+ * 13 octobre 2026 ; ils restent à construire.
  */
 import Image from 'next/image'
+import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { chemin } from '@/lib/navigation'
 
 export const ANCRE_FORMULAIRE = '#formulaire'
 export const ROUTE_ETABLISSEMENT = '/espace-pro/organisme/'
 
-export type Benefice = { texte: string; proposition?: boolean }
-export type Offre = { cle: string; titre: string; pour: string; image: string; benefices: Benefice[]; lien?: { texte: string; href: string } }
+export type Offre = { cle: string; titre: string; pour: string; image: string; benefices: string[]; lien?: { texte: string; href: string } }
 
 export const OFFRES: Offre[] = [
   {
@@ -31,11 +30,11 @@ export const OFFRES: Offre[] = [
     pour: 'Ordres départementaux, syndicats, associations',
     image: '/images/demo/pexels-6627447.jpg',
     benefices: [
-      { texte: 'Un tableau de bord de votre département : praticiens, fiches revendiquées, communes sans chirurgien-dentiste' },
-      { texte: 'Un lien de revendication à votre nom, avec le compte des fiches revendiquées grâce à vous' },
-      { texte: 'Vos signalements d’erreur traités sous 48\u00a0h' },
-      { texte: 'Les offres d’emploi et de remplacement du département, en bloc à intégrer à votre lettre ou votre site' },
-      { texte: 'Vos formations, soirées et assemblées publiées dans DentalMap, source citée' },
+      'Un tableau de bord de votre département : praticiens, fiches revendiquées, communes sans chirurgien-dentiste',
+      'Un lien de revendication à votre nom, avec le compte des fiches revendiquées grâce à vous',
+      'Vos signalements d’erreur traités sous 48\u00a0h',
+      'Les offres d’emploi et de remplacement du département, en bloc à intégrer à votre lettre ou votre site',
+      'Vos formations, soirées et assemblées publiées dans DentalMap, source citée',
     ],
   },
   {
@@ -44,11 +43,11 @@ export const OFFRES: Offre[] = [
     pour: 'Logiciels de gestion de cabinet',
     image: '/images/demo/pexels-8413334.jpg',
     benefices: [
-      { texte: 'Le badge « Fiche vérifiée » intégrable dans votre logiciel et sur le site du cabinet' },
-      { texte: 'La revendication en un clic depuis votre logiciel, vérification ProConnect comprise' },
-      { texte: 'Horaires et lien de rendez-vous synchronisés par API, avec l’accord du praticien' },
-      { texte: 'Les offres d’emploi du cabinet publiées depuis votre logiciel' },
-      { texte: 'Votre page dans la rubrique « Outils du cabinet », comme DentalBridge' },
+      'Le badge « Fiche vérifiée » intégrable dans votre logiciel et sur le site du cabinet',
+      'La revendication en un clic depuis votre logiciel, vérification ProConnect comprise',
+      'Horaires et lien de rendez-vous synchronisés par API, avec l’accord du praticien',
+      'Les offres d’emploi du cabinet publiées depuis votre logiciel',
+      'Votre page dans la rubrique « Outils du cabinet », comme DentalBridge',
     ],
   },
   {
@@ -57,11 +56,11 @@ export const OFFRES: Offre[] = [
     pour: 'Écoles de prothèse, facultés d’odontologie',
     image: '/images/demo/pexels-19879741.jpg',
     benefices: [
-      { texte: 'Une page d’établissement vérifiée : formations, admission, galerie, événements' },
-      { texte: 'Une alerte alternance et stages propre à votre école, pour vos étudiants' },
-      { texte: 'La carte des cabinets et laboratoires qui accueillent des alternants autour de vous' },
-      { texte: 'Vos formations reliées aux fiches métier, et l’inverse' },
-      { texte: 'Vos journées portes ouvertes sur votre page et sur les fiches métier' },
+      'Une page d’établissement vérifiée : formations, admission, galerie, événements',
+      'Une alerte alternance et stages propre à votre école, pour vos étudiants',
+      'La carte des cabinets et laboratoires qui accueillent des alternants autour de vous',
+      'Vos formations reliées aux fiches métier, et l’inverse',
+      'Vos journées portes ouvertes sur votre page et sur les fiches métier',
     ],
     lien: { texte: 'Revendiquer mon établissement', href: ROUTE_ETABLISSEMENT },
   },
@@ -71,9 +70,9 @@ export const OFFRES: Offre[] = [
     pour: 'Formation continue des praticiens et des équipes',
     image: '/images/demo/pexels-3881296.jpg',
     benefices: [
-      { texte: 'Vos formations publiées après vérification, avec sessions et inscription' },
-      { texte: 'DPC, FIF PL et Qualiopi marqués « vérifié » quand la source le confirme' },
-      { texte: 'Les praticiens abonnés prévenus par email à chaque nouvelle formation de leur thème' },
+      'Vos formations publiées après vérification, avec sessions et inscription',
+      'DPC, FIF PL et Qualiopi marqués « vérifié » quand la source le confirme',
+      'Les praticiens abonnés prévenus par email à chaque nouvelle formation de leur thème',
     ],
   },
   {
@@ -82,9 +81,9 @@ export const OFFRES: Offre[] = [
     pour: 'Communes, intercommunalités, agences régionales de santé',
     image: '/images/demo/pexels-7800669.jpg',
     benefices: [
-      { texte: 'La carte des communes peu dotées de votre territoire, tirée des registres' },
-      { texte: 'Les cessions de cabinet et les offres d’installation sur vos communes' },
-      { texte: 'Vos dispositifs d’aide à l’installation présentés aux praticiens qui cherchent' },
+      'La carte des communes peu dotées de votre territoire, tirée des registres',
+      'Les cessions de cabinet et les offres d’installation sur vos communes',
+      'Vos dispositifs d’aide à l’installation présentés aux praticiens qui cherchent',
     ],
   },
 ]
@@ -104,7 +103,7 @@ export const FAQ = [
   { q: 'Un partenariat change-t-il le classement des fiches ?', r: 'Non. Les résultats restent classés par distance, puis par ordre alphabétique.' },
 ]
 
-/** Monogrammes fictifs de la maquette : aucun organisme réel. */
+/** « Ils nous font confiance » : monogrammes fictifs, aucun organisme réel. */
 export const MONOGRAMMES = ['OD', 'SY', 'ED', 'EP', 'FO', 'AS']
 
 export function Photo({ src, className = '', sizes = '(min-width: 1024px) 33vw, 100vw' }: { src: string; className?: string; sizes?: string }) {
@@ -115,21 +114,37 @@ export function Photo({ src, className = '', sizes = '(min-width: 1024px) 33vw, 
   )
 }
 
+/** Lien interne : `Link` vers une route, simple ancre vers une section de la page. */
+function Lien({ href, className, children }: { href: string; className: string; children: React.ReactNode }) {
+  if (href.startsWith('#')) {
+    return (
+      <a href={href} className={className}>
+        {children}
+      </a>
+    )
+  }
+  return (
+    <Link href={chemin(href)} className={className}>
+      {children}
+    </Link>
+  )
+}
+
 export function LienFleche({ href, children, sombre, petit }: { href: string; children: React.ReactNode; sombre?: boolean; petit?: boolean }) {
   return (
-    <a href={href} className={`group inline-flex items-center font-medium transition-colors hover:text-teal ${petit ? 'text-sm' : 'text-base'} ${sombre ? 'text-white' : 'text-fg'}`}>
+    <Lien href={href} className={`group inline-flex items-center font-medium transition-colors hover:text-teal ${petit ? 'text-sm' : 'text-base'} ${sombre ? 'text-white' : 'text-fg'}`}>
       <span className={`border-b-2 pb-0.5 ${sombre ? 'border-white/25' : 'border-line'}`}>{children}</span>
       <ArrowUpRight className="ml-1 size-4 shrink-0" aria-hidden />
-    </a>
+    </Lien>
   )
 }
 
 export function Bouton({ href, children, ton = 'action' }: { href: string; children: React.ReactNode; ton?: 'action' | 'secondaire' }) {
   const c = ton === 'action' ? 'bg-action text-action-foreground hover:bg-action-hover' : 'border border-line bg-bg text-fg hover:bg-bg-soft'
   return (
-    <a href={href} className={`inline-flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold ${c}`}>
+    <Lien href={href} className={`inline-flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold ${c}`}>
       {children}
-    </a>
+    </Lien>
   )
 }
 
@@ -139,11 +154,6 @@ export function Surtitre({ children }: { children: React.ReactNode }) {
       <span className="size-1.5 rounded-full bg-teal" /> {children}
     </p>
   )
-}
-
-/** Étiquette de maquette : ce bénéfice n'existe pas encore dans le code. */
-export function EtiquetteProposition() {
-  return <span className="ml-1.5 inline-flex rounded bg-amber-200/70 px-1.5 py-px align-[1px] text-[11px] font-semibold text-amber-950">Proposition</span>
 }
 
 export function FaqCourte() {

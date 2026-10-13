@@ -271,14 +271,14 @@ export async function envoyerDemandePartenariat(d: {
   fonction: string
   message: string
   /** D'où vient la demande : le formulaire de l'accueil, ou le parcours O2b de l'espace pro. */
-  origine?: 'accueil' | 'espace-pro'
+  origine?: 'accueil' | 'espace-pro' | 'partenaires'
 }) {
   const nom = [d.prenom, d.nom].map((s) => s.trim()).filter(Boolean).join(' ')
   await envoyer(
     CONTACT,
     `Partenariat : ${nom}`,
     {
-      titre: d.origine === 'espace-pro' ? 'Demande de partenariat depuis l’espace pro' : 'Demande de partenariat depuis l’accueil',
+      titre: d.origine === 'espace-pro' ? 'Demande de partenariat depuis l’espace pro' : d.origine === 'partenaires' ? 'Demande de partenariat depuis la page Devenir partenaire' : 'Demande de partenariat depuis l’accueil',
       salutation: null,
       interne: true,
       blocs: [

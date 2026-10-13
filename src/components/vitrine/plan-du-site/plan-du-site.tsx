@@ -1,23 +1,19 @@
 /**
- * MAQUETTE, à supprimer une fois `/plan-du-site` codé. Plan du site HTML,
- * dans la lignée de la FAQ textuelle et des pages légales : héros court,
- * blocs par rubrique en trois colonnes (une sur mobile), départements par
- * région. Jamais indexée.
+ * Plan du site HTML, dans la lignée de la FAQ et des pages légales : héros
+ * court, blocs par rubrique en trois colonnes (une sur mobile), départements
+ * par région. Indexé.
  *
  * Lu sur la base, comme le pied de page et les pages « par département » :
- * - départements : `getDepartementsAvecPraticiens(p)` pour chaque profession, en onglets, groupés par
- *   région (seuls ceux qui ont au moins un chirurgien-dentiste) ;
+ * - départements : `getDepartementsAvecPraticiens(p)` pour chaque profession,
+ *   en onglets, groupés par région (seuls ceux qui comptent au moins un
+ *   praticien de la profession) ;
  * - grandes villes : `getAccesRapide(18)`, la liste du pied de page.
  *
- * Écrit en dur, avec des routes qui existent dans `src/app` : annuaire
- * (`[base]`, `par-departement`, `pres-de-chez-vous`, `/recherche`), formation,
- * ressources, professionnels, DentalMap, légal. Sauf, marqués « maquette »
- * ci-dessous et à l'écran, ce qui n'existe encore qu'en maquette validée :
- * Emploi, Annonces de cession et la rubrique Métiers des Ressources. `/espace-pro` (groupe `(pro)`) renvoie vers
- * la connexion hors session. Les pages d'erreur sont exclues.
+ * Le reste est écrit en dur, avec des routes qui existent dans `src/app`.
+ * `/espace-pro` (groupe `(pro)`) renvoie vers la connexion hors session. Les
+ * pages d'erreur sont exclues.
  */
 import { Suspense } from 'react'
-import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Briefcase, BookOpen, Building2, GraduationCap, Info, MapPin, Scale, Search, Stethoscope, Tag, UserCheck } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
@@ -26,9 +22,13 @@ import { LIBELLE } from '@/lib/annuaire/libelles'
 import { getDepartementsAvecPraticiens } from '@/lib/annuaire/queries'
 import { getAccesRapide } from '@/lib/annuaire/acces-rapide'
 
-export const metadata: Metadata = { title: 'Maquette Plan du site', robots: { index: false, follow: false } }
-
-type Lien = { libelle: string; href: string; maquette?: boolean }
+/**
+ * `aVenir` : la page est conçue mais sa route n'existe pas encore (Emploi,
+ * Annonces de cession, rubrique Métiers des Ressources). Le lien reste dans la
+ * donnée et s'affichera dès que la route existera : il suffira de retirer le
+ * drapeau. En attendant, il est filtré à l'affichage pour ne mener à aucune 404.
+ */
+type Lien = { libelle: string; href: string; aVenir?: boolean }
 type Rubrique = { titre: string; icone: typeof MapPin; liens: Lien[] }
 
 const majuscule = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
@@ -64,28 +64,28 @@ const RUBRIQUES: Rubrique[] = [
       { libelle: 'Pour les patients', href: '/conseils/patients/' },
       { libelle: 'Pour les praticiens', href: '/conseils/praticiens/' },
       { libelle: 'Pour les prothésistes', href: '/conseils/prothesistes/' },
-      { libelle: 'Les métiers du dentaire', href: '/conseils/metiers/', maquette: true },
+      { libelle: 'Les métiers du dentaire', href: '/conseils/metiers/' },
     ],
   },
   {
-    // Maquette : `src/app/(public)/maquettes/emploi/`, routes réelles à créer.
+    // Rubrique conçue, routes à créer.
     titre: 'Emploi',
     icone: Briefcase,
     liens: [
-      { libelle: 'Toutes les offres', href: '/emploi/', maquette: true },
-      { libelle: 'Assistant(e) dentaire', href: '/emploi/assistant-dentaire/', maquette: true },
-      { libelle: 'Alternance et stages', href: '/emploi/alternance/', maquette: true },
-      { libelle: 'Remplacements et collaborations', href: '/emploi/remplacements/', maquette: true },
-      { libelle: 'Recruter', href: '/emploi/recruter/', maquette: true },
+      { libelle: 'Toutes les offres', href: '/emploi/', aVenir: true },
+      { libelle: 'Assistant(e) dentaire', href: '/emploi/assistant-dentaire/', aVenir: true },
+      { libelle: 'Alternance et stages', href: '/emploi/alternance/', aVenir: true },
+      { libelle: 'Remplacements et collaborations', href: '/emploi/remplacements/', aVenir: true },
+      { libelle: 'Recruter', href: '/emploi/recruter/', aVenir: true },
     ],
   },
   {
-    // Maquette : `src/app/(public)/maquettes/annonces/`, contenu WordPress.
+    // Rubrique conçue, contenu WordPress, routes à créer.
     titre: 'Annonces',
     icone: Tag,
     liens: [
-      { libelle: 'Cessions de cabinet', href: '/annonces/cession/', maquette: true },
-      { libelle: 'Déposer une annonce', href: '/annonces/', maquette: true },
+      { libelle: 'Cessions de cabinet', href: '/annonces/cession/', aVenir: true },
+      { libelle: 'Déposer une annonce', href: '/annonces/', aVenir: true },
     ],
   },
   {
@@ -123,9 +123,8 @@ const RUBRIQUES: Rubrique[] = [
   },
 ]
 
-function Etiquette() {
-  return <span className="ml-1.5 rounded bg-amber-200/70 px-1.5 py-px align-[1px] text-[11px] font-semibold text-amber-950">Maquette</span>
-}
+/** Liens affichables : ceux dont la route existe déjà. */
+const visibles = (liens: Lien[]) => liens.filter((l) => !l.aVenir)
 
 function Bloc({ titre, icone: I, children, id }: { titre: string; icone: typeof MapPin; children: React.ReactNode; id?: string }) {
   return (
@@ -141,12 +140,11 @@ function Bloc({ titre, icone: I, children, id }: { titre: string; icone: typeof 
 function Liens({ liens }: { liens: Lien[] }) {
   return (
     <ul className="space-y-2.5">
-      {liens.map((l) => (
+      {visibles(liens).map((l) => (
         <li key={l.href + l.libelle}>
           <Link href={chemin(l.href)} className="text-fg underline decoration-line underline-offset-4 hover:text-teal hover:decoration-teal">
             {l.libelle}
           </Link>
-          {l.maquette && <Etiquette />}
         </li>
       ))}
     </ul>
@@ -252,7 +250,7 @@ async function Departements() {
   )
 }
 
-export default function Page() {
+export function PlanDuSite() {
   return (
     <main>
       <section className="border-b border-line">
@@ -284,11 +282,14 @@ export default function Page() {
           <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-muted" aria-hidden />}>
             <Villes />
           </Suspense>
-          {RUBRIQUES.slice(1).map((r) => (
-            <Bloc key={r.titre} titre={r.titre} icone={r.icone}>
-              <Liens liens={r.liens} />
-            </Bloc>
-          ))}
+          {/* Une rubrique dont aucun lien n'a encore de route (Emploi, Annonces) n'est pas affichée. */}
+          {RUBRIQUES.slice(1)
+            .filter((r) => visibles(r.liens).length > 0)
+            .map((r) => (
+              <Bloc key={r.titre} titre={r.titre} icone={r.icone}>
+                <Liens liens={r.liens} />
+              </Bloc>
+            ))}
         </div>
         <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-muted" aria-hidden />}>
           <Departements />

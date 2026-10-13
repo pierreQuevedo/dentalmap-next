@@ -1,12 +1,12 @@
 'use client'
 
 /**
- * MAQUETTE. Le formulaire public de partenariat de l'accueil, extrait de
- * `src/components/book-a-demo2.tsx` (non exporté là-bas) sans les avis ni les
- * logos, branché sur la vraie action `envoyerDemandePartenariat` : sans
- * compte, six champs. Mêmes noms de champs, mêmes listes, mêmes exemples.
+ * Formulaire public de partenariat, repris de celui de l'accueil
+ * (`src/components/book-a-demo2.tsx`, non exporté là-bas) sans les avis ni les
+ * logos. Branché sur l'action `envoyerDemandePartenariat` : sans compte, six
+ * champs, mêmes noms, mêmes listes et mêmes exemples que l'accueil.
  */
-import { useActionState } from 'react'
+import { startTransition, useActionState, useEffect, useRef } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,17 +33,36 @@ const FONCTIONS = [
   ['autre', 'Autre'],
 ] as const
 
+// `items` des listes : sans lui, le déclencheur afficherait la valeur brute et non le libellé.
+const LIBELLES_ORGANISMES = Object.fromEntries(ORGANISMES)
+const LIBELLES_FONCTIONS = Object.fromEntries(FONCTIONS)
+
 function Groupe({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return <div className={`flex flex-col gap-2 ${className}`}>{children}</div>
 }
 
 export function FormulairePartenariat() {
   const [etat, soumettre, enCours] = useActionState<EtatDemande, FormData>(envoyerDemandePartenariat, null)
+  const formulaire = useRef<HTMLFormElement>(null)
+  // Soumission par `onSubmit` plutôt que par `action` : React viderait le
+  // formulaire à chaque retour, y compris sur une erreur de validation. On ne
+  // le vide qu'une fois la demande envoyée.
+  useEffect(() => {
+    if (etat?.ok) formulaire.current?.reset()
+  }, [etat])
   return (
     <div id="formulaire" className="squircle-3xl scroll-mt-28 border border-line bg-bg p-6 shadow-pop md:p-8">
       <p className="text-xl font-semibold tracking-tight text-fg">Proposer un partenariat</p>
       <p className="mt-1 text-sm text-fg-2">Sans compte. Une personne de l’équipe vous répond.</p>
-      <form action={soumettre} className="mt-6 grid grid-cols-2 gap-x-3 gap-y-5">
+      <form
+        ref={formulaire}
+        onSubmit={(e) => {
+          e.preventDefault()
+          const donnees = new FormData(e.currentTarget)
+          startTransition(() => soumettre(donnees))
+        }}
+        className="mt-6 grid grid-cols-2 gap-x-3 gap-y-5">
+        <input type="hidden" name="origine" value="partenaires" />
         <Groupe className="col-span-2 sm:col-span-1">
           <Label htmlFor="partenaire-prenom">Prénom</Label>
           <Input id="partenaire-prenom" name="prenom" type="text" autoComplete="given-name" required />
@@ -58,7 +77,7 @@ export function FormulairePartenariat() {
         </Groupe>
         <Groupe className="col-span-2 sm:col-span-1">
           <Label htmlFor="partenaire-organisme">Type d’organisme</Label>
-          <Select name="organisme" required>
+          <Select name="organisme" items={LIBELLES_ORGANISMES} required>
             <SelectTrigger id="partenaire-organisme" aria-label="Type d’organisme" className="w-full">
               <SelectValue placeholder="Choisir" />
             </SelectTrigger>
@@ -73,7 +92,7 @@ export function FormulairePartenariat() {
         </Groupe>
         <Groupe className="col-span-2 sm:col-span-1">
           <Label htmlFor="partenaire-fonction">Votre fonction</Label>
-          <Select name="fonction" required>
+          <Select name="fonction" items={LIBELLES_FONCTIONS} required>
             <SelectTrigger id="partenaire-fonction" aria-label="Votre fonction" className="w-full">
               <SelectValue placeholder="Choisir" />
             </SelectTrigger>

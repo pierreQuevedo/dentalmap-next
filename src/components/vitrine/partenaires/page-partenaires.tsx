@@ -1,13 +1,13 @@
 /**
- * MAQUETTE B, retenue : héros clair avec le vrai formulaire public de
+ * Page « Devenir partenaire » : héros clair avec le formulaire public de
  * partenariat (six champs, sans compte), engagements en bento, ce que
- * DentalMap propose par type de partenaire, étapes, logos fictifs et FAQ,
- * appel final qui ramène au formulaire.
+ * DentalMap propose par type de partenaire, étapes, « Ils nous font
+ * confiance » et FAQ courte, appel final qui ramène au formulaire.
  */
 import Image from 'next/image'
 import { ArrowDown, ArrowRight, Check, Clock, FileSignature, GraduationCap, MailCheck, UserX, X } from 'lucide-react'
-import { ANCRE_FORMULAIRE, Bouton, ETAPES, EtiquetteProposition, FaqCourte, JAMAIS, LienFleche, MONOGRAMMES, OFFRES, Photo, ROUTE_ETABLISSEMENT, Surtitre } from './_commun'
-import { FormulairePartenariat } from './_formulaire'
+import { ANCRE_FORMULAIRE, Bouton, ETAPES, FaqCourte, JAMAIS, LienFleche, MONOGRAMMES, OFFRES, Photo, ROUTE_ETABLISSEMENT, Surtitre } from './commun'
+import { FormulairePartenariat } from './formulaire'
 
 function Hero() {
   return (
@@ -95,14 +95,11 @@ function Offres() {
               </div>
               <ul className="flex-1 space-y-3 p-5 md:p-6">
                 {o.benefices.map((b) => (
-                  <li key={b.texte} className="flex gap-3 text-[15px] leading-snug text-fg">
+                  <li key={b} className="flex gap-3 text-[15px] leading-snug text-fg">
                     <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-teal/10 text-teal">
                       <Check className="size-3.5" aria-hidden />
                     </span>
-                    <span>
-                      {b.texte}
-                      {b.proposition && <EtiquetteProposition />}
-                    </span>
+                    <span>{b}</span>
                   </li>
                 ))}
               </ul>
@@ -165,7 +162,7 @@ function Faq() {
             <LienFleche href="/faq/">Toutes les questions</LienFleche>
           </div>
           <p className="mt-10 text-sm font-medium text-fg-2">Ils nous font confiance</p>
-          {/* Monogrammes fictifs de maquette, à remplacer par les logos des partenaires. */}
+          {/* Monogrammes fictifs, sans aucun organisme réel : à remplacer par les logos des partenaires une fois les conventions signées. */}
           <ul className="mt-3 grid grid-cols-3 gap-3">
             {MONOGRAMMES.map((m) => (
               <li key={m} className="squircle-2xl grid h-20 place-items-center border border-line bg-bg">
@@ -199,7 +196,7 @@ function Fin() {
   )
 }
 
-export function VarianteB() {
+export function PagePartenaires() {
   return (
     <main>
       <Hero />

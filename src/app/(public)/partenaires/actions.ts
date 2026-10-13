@@ -18,7 +18,8 @@ const Demande = z.object({
 })
 
 /**
- * Demande de partenariat déposée depuis l'accueil.
+ * Demande de partenariat déposée depuis l'accueil ou depuis `/partenaires`
+ * (champ caché `origine`).
  *
  * Rien n'est stocké : la demande part par courriel à l'équipe, et la personne
  * reçoit un accusé à l'écran et par email. Un partenariat se conclut par une convention
@@ -29,7 +30,7 @@ export async function envoyerDemandePartenariat(_etat: EtatDemande, donnees: For
   if (!r.success) return { ok: false, message: r.error.issues[0]?.message ?? 'Formulaire incomplet.' }
 
   try {
-    await envoyerCourriel({ ...r.data, organisme: ORGANISMES[r.data.organisme], fonction: FONCTIONS[r.data.fonction], origine: 'accueil' })
+    await envoyerCourriel({ ...r.data, organisme: ORGANISMES[r.data.organisme], fonction: FONCTIONS[r.data.fonction], origine: donnees.get('origine') === 'partenaires' ? 'partenaires' : 'accueil' })
     await envoyerAccusePartenariat(r.data.email)
   } catch (e) {
     console.error('[partenariat] envoi impossible', e)
