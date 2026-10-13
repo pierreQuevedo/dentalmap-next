@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Logo } from '@/components/site/logo'
 import { Suspense } from 'react'
 import { getAccesRapide } from '@/lib/annuaire/acces-rapide'
 import { getConseils } from '@/lib/wp/queries'
@@ -32,9 +33,8 @@ export async function Header() {
   return (
     <header id="site-header" className="sticky top-0 z-50 h-20 bg-bg">
       <div className="grid h-20 grid-cols-[auto_1fr_auto] items-center px-5 md:grid-cols-[1fr_auto_1fr] md:px-10 xl:px-20">
-        <Link href="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-brand">
-          <span aria-hidden className="size-[30px] rounded-md bg-brand" />
-          DentalMap
+        <Link href="/" className="inline-flex items-center" aria-label="DentalMap, accueil">
+          <Logo priorite />
         </Link>
 
         <MainNav conseils={conseils.slice(0, 2)} />

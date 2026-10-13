@@ -78,7 +78,7 @@ export function HomePartenaire() {
         heading: 'Devenir partenaire',
         description: {
           text:
-            'Ordres départementaux, écoles, syndicats, éditeurs : DentalMap n’affiche aucun logo institutionnel sans convention signée, et ne se réclame d’aucun soutien qu’il n’a pas. Lire notre engagement.',
+            'Ordres départementaux, écoles, syndicats, éditeurs : construisons ensemble un annuaire fiable. DentalMap ne se réclame d’aucun soutien qu’il n’a pas. Lire notre engagement.',
           hyperlink: 'Lire notre engagement',
           url: '/a-propos/',
         },

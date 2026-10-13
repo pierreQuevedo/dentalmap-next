@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { chemin, mainNav, mainNavIcons, type NavLink } from '@/lib/navigation'
 import { NavIconSvg, SearchIcon } from './nav-icon'
+import { Logo } from '@/components/site/logo'
 
 /**
  * Tiroir plein écran, en dessous de 950 px.
@@ -66,7 +67,7 @@ export function MobileNav() {
       {ouvert && (
         <div className="fixed inset-0 z-[60] flex flex-col bg-bg md:hidden">
           <div className="flex items-center justify-between border-b border-line px-5 py-4">
-            <span className="text-lg font-bold tracking-tight text-brand">DentalMap</span>
+            <Logo hauteur={26} />
             <button
               type="button"
               aria-label="Fermer le menu"

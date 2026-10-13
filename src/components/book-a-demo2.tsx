@@ -126,6 +126,8 @@ const ORGANISMES = [
   ["ecole", "École ou université"],
   ["syndicat", "Syndicat ou association"],
   ["editeur", "Éditeur de logiciel"],
+  ["formation", "Organisme de formation"],
+  ["collectivite", "Collectivité ou ARS"],
   ["autre", "Autre"],
 ] as const;
 

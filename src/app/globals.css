@@ -187,8 +187,8 @@
   --card-foreground: #f2f5f7;
   --popover: #161c21;
   --popover-foreground: #f2f5f7;
-  --primary: #2fd1d1;
-  --primary-foreground: #0e1317;
+  --primary: #0b8484;
+  --primary-foreground: #ffffff;
   --secondary: #1c242a;
   --secondary-foreground: #f2f5f7;
   --muted: #161c21;
@@ -198,8 +198,8 @@
   --destructive: #ff8a80;
   --border: #232b31;
   --input: #2b343b;
-  --ring: #2fd1d1;
-  --chart-1: #2fd1d1;
+  --ring: #0b8484;
+  --chart-1: #0b8484;
   --chart-2: #2997ff;
   --chart-3: #a5b4fc;
   --chart-4: #c4b5fd;
@@ -226,9 +226,10 @@
    * Le fond doux prend la teinte des cartes et non celle de `--muted`, trop
    * claire en sombre pour un pied de page pleine largeur.
    *
-   * L'accent s'inverse : en sombre c'est le teal clair qui porte le texte et
-   * les fonds de bouton, avec un texte sombre par dessus. Le teal sombre de
-   * `--primary` resterait illisible en logo sur un fond presque noir.
+   * L'accent garde le même teal qu'en clair (#0b8484, décision du
+   * 12 octobre 2026) : fonds de bouton avec un libellé blanc, comme en clair.
+   * Un texte courant écrit en teal sur fond presque noir reste sous AA
+   * (environ 4:1) : réserver le teal aux fonds, icônes et gros titres.
    */
   /*
    * Les alias du site sont redits ici, et pas seulement à la racine : une
@@ -250,8 +251,8 @@
   --brand-foreground: #0e1317;
 
   --action: var(--primary);
-  --action-hover: #5ee0e0;
-  --action-foreground: #0e1317;
+  --action-hover: #097070;
+  --action-foreground: #ffffff;
 
   --geo: #2997ff;
   --geo-foreground: #0e1317;
@@ -626,6 +627,13 @@ html[data-hero='transparent'] #site-header {
   --brand-foreground: #101315;
   --bg-soft: rgb(255 255 255 / 0.12);
   --line: rgb(255 255 255 / 0.28);
+}
+/* Le logo est une image : on bascule sur sa version blanche, quel que soit le thème. */
+html[data-hero='transparent'] #site-header [data-logo='encre'] {
+  display: none;
+}
+html[data-hero='transparent'] #site-header [data-logo='blanc'] {
+  display: block;
 }
 /* Le bouton de thème vient d'un registre et parle en jetons shadcn : on le force. */
 html[data-hero='transparent'] #site-header button[aria-label='Changer de thème'] {

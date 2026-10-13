@@ -24,6 +24,7 @@ import { EXERCICES, ORIENTATIONS, SPECIALITES, type Filtres } from './filtres'
 import type { BaseUrl, Praticien, PraticienResume, Profession } from './types'
 import { BASE_URL, PROFESSION_PAR_BASE } from './types'
 import type { FicheCompletee } from '@/lib/espace-pro/fiche-completee'
+import { COLONNES_FICHE, ficheDepuisLigne, type LigneFiche } from '@/lib/espace-pro/fiche-lecture'
 
 /**
  * Clé de tri alphabétique.
@@ -1162,41 +1163,16 @@ export async function getFicheCompletee(slug: string): Promise<FicheCompletee | 
   cacheLife('praticien')
   cacheTag('annuaire', `praticien:${slug}`)
 
-  const { rows } = await db.execute<{
-    horaires: FicheCompletee['horaires']
-    langues: string[]
-    accessibilite: string[]
-    accessibilite_commentaire: string | null
-    paiements: string[]
-    tiers_payant: FicheCompletee['tiersPayant']
-    orientations: string[]
-    etape: number
-    termine_le: string | null
-    updated_at: string
-  }>(sql`
-    SELECT f.horaires, f.langues, f.accessibilite, f.accessibilite_commentaire, f.paiements, f.tiers_payant, f.orientations,
-           f.etape, f.termine_le, f.updated_at
+  const { rows } = await db.execute<LigneFiche>(sql`
+    SELECT ${COLONNES_FICHE}
     FROM fiches_completees f
     JOIN praticiens p ON p.id = f.praticien_id
     WHERE p.slug = ${slug} AND p.deleted_at IS NULL
       -- Saisie possible dès la demande, publication seulement une fois la fiche attribuée.
-      AND EXISTS (SELECT 1 FROM revendications r WHERE r.praticien_id = p.id AND r.statut = 'acceptee')
+      AND EXISTS (SELECT 1 FROM revendications r WHERE r.praticien_id = p.id AND r.statut = 'acceptee' AND r.objet = 'revendication')
     LIMIT 1
   `)
-  const r = rows[0]
-  if (!r) return null
-  return {
-    horaires: r.horaires,
-    langues: r.langues ?? [],
-    accessibilite: r.accessibilite ?? [],
-    accessibiliteCommentaire: r.accessibilite_commentaire,
-    paiements: r.paiements ?? [],
-    tiersPayant: r.tiers_payant,
-    orientations: r.orientations ?? [],
-    etape: r.etape,
-    termineLe: r.termine_le,
-    majLe: r.updated_at,
-  }
+  return rows[0] ? ficheDepuisLigne(rows[0]) : null
 }
 
 export type ChiffresCles = {

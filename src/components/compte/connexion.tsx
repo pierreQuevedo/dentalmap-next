@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
-import { ArrowRight, Building2, CreditCard, Eye, EyeOff, Lock, Mail, UserRound } from 'lucide-react'
+import { ArrowRight, BriefcaseBusiness, Building2, CreditCard, Eye, EyeOff, Hourglass, Lock, Mail, RefreshCw, UserRound } from 'lucide-react'
 import { emailOtp, signIn, signUp } from '@/lib/auth-client'
 import { chemin } from '@/lib/navigation'
 import type { Role } from '@/lib/tunnel/etapes'
-import { ETATS, type Etat } from './etats'
+import { suggererAdresse } from './suggestion'
+import { CarteOption, Encart, Marque, Pictogramme, lien, pastille, pastilleInvalide, principal, saisie, secondaire, titre } from './ui'
 
 /**
  * Connexion et inscription, à la classique.
@@ -23,8 +24,13 @@ import { ETATS, type Etat } from './etats'
  * Un nouveau compte part avec son nom et son rôle, enregistrés avec le
  * compte : la page de profil n'a rien à redemander.
  *
- * `apercu` affiche des onglets pour passer d'un état à l'autre sans rien
- * envoyer : pour vérifier chaque rendu.
+ * Les erreurs ont leur écran : identifiants refusés avec suggestion de
+ * correction de l'adresse (CX1-E), code faux avec les essais restants
+ * (CX2-E), code expiré ou épuisé avec l'adresse gardée (CX5). Sans accès à
+ * son adresse, on choisit sa voie selon son profil (CX6).
+ *
+ * `?mode=inscription` ouvre directement l'inscription, `&profil=` y
+ * présélectionne le profil : les boutons « Créer un compte » du site.
  */
 const PROFILS: { role: Role; titre: string; detail: string }[] = [
   { role: 'patient', titre: 'Patient', detail: 'Je cherche un professionnel.' },
@@ -34,35 +40,62 @@ const PROFILS: { role: Role; titre: string; detail: string }[] = [
 ]
 
 const LONGUEUR_MOT_DE_PASSE = 12
+/** Essais par code, comme `allowedAttempts` dans `src/lib/auth.ts`. */
+const ESSAIS_PAR_CODE = 5
 
-// Fond opaque, pas de flou : le préremplissage du navigateur peint le champ
-// seul, il doit se fondre dans la pastille (voir `.champ-compte` dans globals.css).
-const pastille =
-  'champ-compte squircle-full flex items-center gap-2.5 border border-line bg-bg px-4 shadow-pill transition-colors focus-within:border-line-strong'
-const saisie = 'min-w-0 flex-1 bg-transparent py-2.5 text-sm text-fg outline-none placeholder:text-fg-2'
-const principal =
-  'hover-lift squircle-full inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 bg-action px-5 text-sm font-semibold text-action-foreground shadow-pill hover:bg-action-hover disabled:cursor-default disabled:opacity-60'
-const lien = 'cursor-pointer font-medium text-fg underline underline-offset-4 hover:no-underline'
+type TypeCode = 'email-verification' | 'forget-password'
+type Voie = 'sante' | 'structure' | 'patient'
 
-export function Connexion({ retour, etatInitial = 'connexion', apercu = false }: { retour: string; etatInitial?: Etat; apercu?: boolean }) {
-  const [etat, setEtat] = useState<Etat>(etatInitial)
+/** Le code est mort : expiré, ou trop d'essais. Il faut en demander un autre. */
+const codeMort = (code?: string) => code === 'OTP_EXPIRED' || code === 'TOO_MANY_ATTEMPTS'
+
+type Etat = 'connexion' | 'inscription' | 'oubli' | 'verifier' | 'expire' | 'recuperation'
+
+export function Connexion({ retour, inscription = false, profil }: { retour: string; inscription?: boolean; profil?: Role }) {
+  const [etat, setEtat] = useState<Etat>(inscription ? 'inscription' : 'connexion')
   const [email, setEmail] = useState('')
   const [motDePasse, setMotDePasse] = useState('')
   const [codeSaisi, setCodeSaisi] = useState('')
   const [codeEnvoye, setCodeEnvoye] = useState(false)
-  const [role, setRole] = useState<Role>('patient')
+  // Le profil demandé par le lien, sinon soignant quand on vient de l'espace pro.
+  const [role, setRole] = useState<Role>(
+    profil && PROFILS.some((p) => p.role === profil) ? profil : retour.startsWith('/espace-pro') ? 'dentiste' : 'patient',
+  )
   const [nom, setNom] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
+  /** Identifiants refusés : l'écran passe en CX1-E. */
+  const [refuse, setRefuse] = useState(false)
+  /** Échecs sur le code en cours : au-delà de cinq, il est annulé. */
+  const [echecs, setEchecs] = useState(0)
+  const [typeCode, setTypeCode] = useState<TypeCode>('email-verification')
+  const [adresseVue, setAdresseVue] = useState(false)
+  const [voie, setVoie] = useState<Voie>('structure')
   const [enCours, demarrer] = useTransition()
 
   const aller = (e: Etat) => {
     setErreur(null)
     setInfo(null)
+    setRefuse(false)
+    setEchecs(0)
     setCodeSaisi('')
     setCodeEnvoye(false)
     setMotDePasse('')
     setEtat(e)
+  }
+
+  const suggestion = adresseVue || refuse ? suggererAdresse(email) : null
+  const essaisRestants = ESSAIS_PAR_CODE - echecs
+
+  /** Un code refusé : faux, on compte ; mort, on passe à l'écran d'expiration. */
+  const codeRefuse = (code?: string) => {
+    if (codeMort(code) || echecs + 1 >= ESSAIS_PAR_CODE) {
+      const e = email
+      aller('expire')
+      setEmail(e)
+      return
+    }
+    setEchecs((n) => n + 1)
   }
 
   /** Mène là où l'on voulait aller : la page de profil relit le compte et décide de la suite. */
@@ -78,10 +111,12 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
         // Adresse jamais confirmée : on envoie un code et on passe à la confirmation.
         await emailOtp.sendVerificationOtp({ email, type: 'email-verification' })
         aller('verifier')
+        setTypeCode('email-verification')
         setInfo(`Votre adresse n’a pas encore été confirmée. Un code vient de partir à ${email}.`)
         return
       }
-      setErreur('Adresse ou mot de passe incorrect.')
+      // Le message ne dit jamais lequel des deux est faux.
+      setRefuse(true)
     })
   }
 
@@ -102,6 +137,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
       }
       // Le code de confirmation part avec l'inscription.
       aller('verifier')
+      setTypeCode('email-verification')
       setInfo(`Un code à six chiffres vient de partir à ${email}.`)
     })
   }
@@ -111,7 +147,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
     setErreur(null)
     demarrer(async () => {
       const { error } = await emailOtp.verifyEmail({ email, otp: codeSaisi })
-      if (error) setErreur('Ce code ne correspond pas, ou il a expiré.')
+      if (error) codeRefuse(error.code)
       else continuer()
     })
   }
@@ -121,8 +157,39 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
     demarrer(async () => {
       const { error } = await emailOtp.sendVerificationOtp({ email, type: 'email-verification' })
       if (error) setErreur('Le code n’a pas pu être renvoyé.')
-      else setInfo(`Un nouveau code vient de partir à ${email}.`)
+      else {
+        setEchecs(0)
+        setCodeSaisi('')
+        setInfo(`Un nouveau code vient de partir à ${email}.`)
+      }
     })
+  }
+
+  /** CX5 : un nouveau code pour la même adresse, et retour à l'écran qui l'attend. */
+  const redemanderCode = (e: React.FormEvent) => {
+    e.preventDefault()
+    setErreur(null)
+    demarrer(async () => {
+      const { error } = await emailOtp.sendVerificationOtp({ email, type: typeCode })
+      if (error) {
+        setErreur('Le code n’a pas pu être envoyé. Vérifiez l’adresse.')
+        return
+      }
+      if (typeCode === 'forget-password') {
+        aller('oubli')
+        setCodeEnvoye(true)
+      } else aller('verifier')
+      setInfo(`Un nouveau code vient de partir à ${email}.`)
+    })
+  }
+
+  /** CX6 : chaque profil sa voie. */
+  const choisirVoie = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (voie === 'structure') return window.location.assign(chemin('/contact/'))
+    setRole('patient')
+    setEmail('')
+    aller('inscription')
   }
 
   const demanderCodeOubli = (e: React.FormEvent) => {
@@ -135,6 +202,8 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
         return
       }
       setCodeEnvoye(true)
+      setTypeCode('forget-password')
+      setEchecs(0)
       setInfo(`Un code à six chiffres vient de partir à ${email}.`)
     })
   }
@@ -145,7 +214,8 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
     demarrer(async () => {
       const { error } = await emailOtp.resetPassword({ email, otp: codeSaisi, password: motDePasse })
       if (error) {
-        setErreur('Ce code ne correspond pas, ou il a expiré.')
+        if (error.code === 'INVALID_OTP' || codeMort(error.code)) codeRefuse(error.code)
+        else setErreur('Le mot de passe n’a pas pu être enregistré. Douze caractères au moins.')
         return
       }
       const connexion = await signIn.email({ email, password: motDePasse })
@@ -156,35 +226,28 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
 
   return (
     <div>
-      {apercu && (
-        <nav aria-label="Aperçu des états" className="mb-8 flex flex-wrap gap-1.5 rounded-2xl border border-dashed border-line p-1.5">
-          {ETATS.map((e) => (
-            <button
-              key={e.cle}
-              type="button"
-              aria-pressed={etat === e.cle}
-              onClick={() => aller(e.cle)}
-              className={`cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium ${etat === e.cle ? 'bg-fg text-bg' : 'text-fg-2 hover:bg-bg-soft hover:text-fg'}`}
-            >
-              {e.libelle}
-            </button>
-          ))}
-        </nav>
-      )}
-
-      <div className="mb-8 flex items-center gap-3 lg:hidden">
-        <span aria-hidden className="size-[30px] rounded-md bg-brand" />
-        <span className="text-xl font-bold tracking-tight text-brand">DentalMap</span>
-      </div>
+      <Marque />
 
       {/* La clé remonte le bloc à chaque état : il rejoue son entrée. */}
       <div key={etat} className="animate-fiche-entree">
         {etat === 'connexion' && (
           <form onSubmit={soumettreConnexion}>
-            <h1 className="text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Connexion</h1>
+            <h1 className={titre}>Connexion</h1>
             <p className="mt-2 text-sm text-fg-2">Votre adresse et votre mot de passe.</p>
             <div className="mt-6 grid gap-4">
-              <Champ id="connexion-email" icone={Mail} libelle="Adresse électronique">
+              <Champ
+                id="connexion-email"
+                icone={Mail}
+                libelle="Adresse électronique"
+                invalide={!!suggestion}
+                aide={
+                  suggestion && (
+                    <button type="button" onClick={() => setEmail(suggestion)} className="cursor-pointer text-left hover:underline">
+                      Vouliez-vous dire {suggestion} ?
+                    </button>
+                  )
+                }
+              >
                 <input
                   id="connexion-email"
                   type="email"
@@ -194,24 +257,38 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                   autoFocus
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setAdresseVue(true)}
                   placeholder="prenom.nom@exemple.fr"
                   className={saisie}
                 />
               </Champ>
               <ChampMotDePasse id="connexion-mdp" libelle="Mot de passe" placeholder="••••••••••••" autoComplete="current-password" valeur={motDePasse} onChange={setMotDePasse} />
             </div>
-            <div className="mt-2.5 text-right text-xs">
-              <button type="button" onClick={() => aller('oubli')} className="cursor-pointer text-fg-2 underline-offset-4 hover:text-fg hover:underline">
-                Mot de passe oublié ?
-              </button>
-            </div>
-            {erreur && <Erreur>{erreur}</Erreur>}
+            {refuse ? (
+              <Encart ton="erreur" className="mt-4">
+                Adresse ou mot de passe incorrect. Vérifiez la saisie, ou passez par « Mot de passe oublié ».
+              </Encart>
+            ) : (
+              <div className="mt-2.5 text-right text-xs">
+                <button type="button" onClick={() => aller('oubli')} className="cursor-pointer text-fg-2 underline-offset-4 hover:text-fg hover:underline">
+                  Mot de passe oublié ?
+                </button>
+              </div>
+            )}
             <button type="submit" disabled={enCours} className={`${principal} mt-5`}>
               {enCours ? <Point /> : 'Se connecter'}
               {!enCours && <ArrowRight className="size-4" aria-hidden />}
             </button>
-            <ProSanteConnect />
-            <p className="mt-5 text-sm text-fg-2">
+            {refuse ? (
+              <p className="mt-4 text-sm">
+                <button type="button" onClick={() => aller('oubli')} className={lien}>
+                  Mot de passe oublié ?
+                </button>
+              </p>
+            ) : (
+              <>
+                <ProSanteConnect />
+                <p className="mt-5 text-sm text-fg-2">
               Vous n’avez pas encore de compte ?{' '}
               <button
                 type="button"
@@ -221,15 +298,17 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                 }}
                 className={lien}
               >
-                Inscrivez-vous
-              </button>
-            </p>
+                    Inscrivez-vous
+                  </button>
+                </p>
+              </>
+            )}
           </form>
         )}
 
         {etat === 'inscription' && (
           <form onSubmit={soumettreInscription}>
-            <h1 className="text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Créer un compte</h1>
+            <h1 className={titre}>Créer un compte</h1>
             <p className="mt-2 text-sm text-fg-2">
               Déjà inscrit ?{' '}
               <button type="button" onClick={() => aller('connexion')} className={lien}>
@@ -325,7 +404,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
 
         {etat === 'oubli' && (
           <form onSubmit={codeEnvoye ? soumettreOubli : demanderCodeOubli}>
-            <h1 className="text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Un nouveau mot de passe</h1>
+            <h1 className={titre}>Un nouveau mot de passe</h1>
             <p className="mt-2 text-sm text-fg-2">
               {codeEnvoye ? 'Saisissez le code reçu et choisissez votre nouveau mot de passe.' : 'Indiquez votre adresse, nous vous envoyons un code à six chiffres.'}
             </p>
@@ -347,7 +426,7 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
               </Champ>
               {codeEnvoye && (
                 <>
-                  <ChampCode valeur={codeSaisi} onChange={setCodeSaisi} />
+                  <ChampCode valeur={codeSaisi} onChange={setCodeSaisi} invalide={echecs > 0} />
                   <ChampMotDePasse
                     id="oubli-mdp"
                     libelle="Nouveau mot de passe"
@@ -360,7 +439,8 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
                 </>
               )}
             </div>
-            {info && !erreur && <Info>{info}</Info>}
+            {echecs > 0 && <CodeFaux restants={essaisRestants} />}
+            {info && !erreur && echecs === 0 && <Info>{info}</Info>}
             {erreur && <Erreur>{erreur}</Erreur>}
             <button type="submit" disabled={enCours || (codeEnvoye && codeSaisi.length < 6)} className={`${principal} mt-6`}>
               {enCours ? <Point /> : codeEnvoye ? 'Enregistrer et me connecter' : 'Recevoir un code'}
@@ -375,31 +455,129 @@ export function Connexion({ retour, etatInitial = 'connexion', apercu = false }:
               <button type="button" onClick={() => aller('connexion')} className={lien}>
                 Retour à la connexion
               </button>
+              {!codeEnvoye && (
+                <button type="button" onClick={() => aller('recuperation')} className="cursor-pointer text-fg-2 underline-offset-4 hover:text-fg hover:underline">
+                  Plus accès à votre adresse ?
+                </button>
+              )}
             </div>
           </form>
         )}
 
         {etat === 'verifier' && (
           <form onSubmit={soumettreVerification}>
-            <h1 className="text-balance text-2xl font-semibold tracking-tight text-fg md:text-3xl">Confirmez votre adresse</h1>
+            <h1 className={titre}>Confirmez votre adresse</h1>
             <p className="mt-2 text-sm text-fg-2">
               Un code à six chiffres vient de partir à <span className="font-medium text-fg">{email || 'votre adresse'}</span>. Il vaut dix minutes.
             </p>
             <div className="mt-8">
-              <ChampCode valeur={codeSaisi} onChange={setCodeSaisi} />
+              <ChampCode valeur={codeSaisi} onChange={setCodeSaisi} invalide={echecs > 0} />
             </div>
+            {echecs > 0 && <CodeFaux restants={essaisRestants} />}
             {erreur && <Erreur>{erreur}</Erreur>}
-            {info && !erreur && <Info>{info}</Info>}
-            <button type="submit" disabled={enCours || codeSaisi.length < 6} className={`${principal} mt-6`}>
+            {info && !erreur && echecs === 0 && <Info>{info}</Info>}
+            <button type="submit" disabled={enCours || codeSaisi.length < 6} className={`${principal} ${echecs > 0 ? 'mt-4' : 'mt-6'}`}>
               {enCours ? <Point /> : 'Confirmer'}
               {!enCours && <ArrowRight className="size-4" aria-hidden />}
             </button>
-            <p className="mt-6 text-sm text-fg-2">
-              L’expéditeur est DentalMap. Rien après une minute ? Regardez vos indésirables, ou{' '}
-              <button type="button" onClick={renvoyerVerification} disabled={enCours} className={lien}>
-                renvoyez un code
+            {echecs > 0 ? (
+              <button type="button" onClick={renvoyerVerification} disabled={enCours} className={`${secondaire} mt-3`}>
+                <RefreshCw className="size-4" aria-hidden />
+                Recevoir un nouveau code
               </button>
-              .
+            ) : (
+              <p className="mt-6 text-sm text-fg-2">
+                L’expéditeur est DentalMap. Rien après une minute ? Regardez vos indésirables, ou{' '}
+                <button type="button" onClick={renvoyerVerification} disabled={enCours} className={lien}>
+                  renvoyez un code
+                </button>
+                .
+              </p>
+            )}
+          </form>
+        )}
+
+        {etat === 'expire' && (
+          <form onSubmit={redemanderCode}>
+            <Pictogramme icone={Hourglass} ton="attention" />
+            <h1 className={titre}>Ce code a expiré</h1>
+            <p className="mt-2 text-sm text-fg-2">Il valait dix minutes, ou il a déjà servi. Votre adresse est gardée : un clic suffit pour en recevoir un autre.</p>
+            <div className="mt-6">
+              <Champ id="expire-email" icone={Mail} libelle="Adresse électronique">
+                <input
+                  id="expire-email"
+                  type="email"
+                  name="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="prenom.nom@exemple.fr"
+                  className={saisie}
+                />
+              </Champ>
+            </div>
+            {erreur && <Erreur>{erreur}</Erreur>}
+            <button type="submit" disabled={enCours} className={`${principal} mt-4`}>
+              {enCours ? <Point /> : 'Recevoir un nouveau code'}
+              {!enCours && <ArrowRight className="size-4" aria-hidden />}
+            </button>
+            <p className="mt-6 text-sm">
+              <button type="button" onClick={() => aller('connexion')} className={lien}>
+                Retour à la connexion
+              </button>
+            </p>
+          </form>
+        )}
+
+        {etat === 'recuperation' && (
+          <form onSubmit={choisirVoie}>
+            <h1 className={titre}>Plus accès à votre adresse ?</h1>
+            <p className="mt-2 text-sm text-fg-2">Selon votre profil, nous vous proposons la voie la plus rapide.</p>
+            <fieldset className="mt-6">
+              <legend className="sr-only">Votre profil</legend>
+              <div className="grid gap-2.5">
+                {/* Pro Santé Connect n'ouvre pas encore de session : annoncé, comme sur l'écran de connexion. */}
+                <CarteOption
+                  name="voie"
+                  value="sante"
+                  titre="Professionnel de santé"
+                  detail="Identifiez-vous avec votre carte CPS ou e-CPS."
+                  icone={CreditCard}
+                  badge="Bientôt"
+                  disabled
+                  checked={voie === 'sante'}
+                  onChange={() => setVoie('sante')}
+                />
+                <CarteOption
+                  name="voie"
+                  value="structure"
+                  titre="Laboratoire ou établissement"
+                  detail="Nous vérifions votre lien avec la structure, puis changeons l’adresse."
+                  icone={BriefcaseBusiness}
+                  badge="48 h"
+                  checked={voie === 'structure'}
+                  onChange={() => setVoie('structure')}
+                />
+                <CarteOption
+                  name="voie"
+                  value="patient"
+                  titre="Patient"
+                  detail="Créez un compte avec votre nouvelle adresse."
+                  icone={UserRound}
+                  checked={voie === 'patient'}
+                  onChange={() => setVoie('patient')}
+                />
+              </div>
+            </fieldset>
+            <button type="submit" className={`${principal} mt-4`}>
+              Continuer
+              <ArrowRight className="size-4" aria-hidden />
+            </button>
+            <p className="mt-6 text-sm">
+              <button type="button" onClick={() => aller('connexion')} className={lien}>
+                Retour à la connexion
+              </button>
             </p>
           </form>
         )}
@@ -454,18 +632,46 @@ function ChampMotDePasse({
   )
 }
 
-/** Un champ en pastille : l'icône à gauche, l'étiquette pour les lecteurs d'écran, la saisie. */
-function Champ({ id, icone: Icone, libelle, children }: { id: string; icone: typeof Mail; libelle: string; children: React.ReactNode }) {
+/** Un champ en pastille : l'icône à gauche, l'étiquette, la saisie. En erreur, contour rouge et aide dessous. */
+function Champ({
+  id,
+  icone: Icone,
+  libelle,
+  invalide = false,
+  aide,
+  children,
+}: {
+  id: string
+  icone: typeof Mail
+  libelle: string
+  invalide?: boolean
+  aide?: React.ReactNode
+  children: React.ReactNode
+}) {
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-fg">
         {libelle}
       </label>
-      <div className={pastille}>
+      <div className={invalide ? pastilleInvalide : pastille}>
         <Icone className="size-4 shrink-0 text-fg-2" aria-hidden />
         {children}
       </div>
+      {aide && (
+        <p className="mt-1.5 text-xs text-destructive" aria-live="polite">
+          {aide}
+        </p>
+      )}
     </div>
+  )
+}
+
+/** CX2-E : le code refusé, et ce qu'il reste d'essais avant qu'il soit annulé. */
+function CodeFaux({ restants }: { restants: number }) {
+  return (
+    <Encart ton="erreur" titre="Ce code ne correspond pas" className="mt-4">
+      Il vous reste {restants} essai{restants > 1 ? 's' : ''}. Au-delà, ce code sera annulé.
+    </Encart>
   )
 }
 
@@ -496,7 +702,7 @@ function ProSanteConnect() {
  * que le navigateur propose le code reçu. Le formulaire voit une seule
  * valeur, par le champ caché.
  */
-function ChampCode({ valeur, onChange }: { valeur: string; onChange: (v: string) => void }) {
+function ChampCode({ valeur, onChange, invalide = false }: { valeur: string; onChange: (v: string) => void; invalide?: boolean }) {
   const cases = Array.from({ length: 6 }, (_, i) => valeur[i] ?? '')
   const focaliser = (i: number) => document.getElementById(`connexion-code-${Math.max(0, Math.min(5, i))}`)?.focus()
   const poser = (i: number, chiffres: string) => {
@@ -542,7 +748,8 @@ function ChampCode({ valeur, onChange }: { valeur: string; onChange: (v: string)
               poser(0, e.clipboardData.getData('text'))
             }}
             onFocus={(e) => e.target.select()}
-            className="champ-compte squircle-lg h-12 w-full border border-line bg-bg text-center font-mono text-xl text-fg shadow-pill outline-none focus:border-fg"
+            aria-invalid={invalide || undefined}
+            className={`champ-compte squircle-lg h-12 w-full border bg-bg text-center font-mono text-xl text-fg shadow-pill outline-none ${invalide ? 'border-destructive' : 'border-line focus:border-fg'}`}
           />
         ))}
       </div>
