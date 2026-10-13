@@ -15,6 +15,7 @@ import {
   envoyerRevendicationAcceptee,
   envoyerRevendicationRefusee,
 } from '@/lib/email'
+import { appliquerRetrait } from '@/lib/espace-pro/revendication'
 import { enregistrerProfil, estModerateur, getCompte } from './compte'
 import { estRole, prochaineEtape, retourSur, type Role } from './etapes'
 
@@ -47,20 +48,29 @@ export async function etatCompte(email: string): Promise<{ existe: boolean; role
 /* Étape 2b et 3 : qui êtes-vous ?                                      */
 /* ------------------------------------------------------------------ */
 
+/*
+ * Le nom est facultatif : le compte l'a reçu à l'inscription, « Qui êtes-vous ? »
+ * ne demande que le profil. « Je préfère ne pas répondre » arrive sans rôle et
+ * mène au parcours patient : la question n'est posée qu'une fois.
+ */
 const schemaProfil = z.object({
-  role: z.enum(['patient', 'dentiste', 'prothesiste', 'medecin']),
-  nom: z.string().trim().min(2, 'Indiquez votre nom').max(120),
+  role: z.enum(['patient', 'dentiste', 'prothesiste', 'medecin', 'organisme']).default('patient'),
+  nom: z.string().trim().min(2, 'Indiquez votre nom').max(120).optional(),
   retour: z.string().optional(),
 })
 
-/** Enregistre le rôle et le nom, puis conduit à l'étape suivante. */
+/** Enregistre le rôle, et le nom s'il est donné, puis conduit à l'étape suivante. */
 export async function choisirProfil(donnees: FormData): Promise<never> {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) redirect(chemin('/connexion/?retour=%2Finscription%2Fprofil%2F'))
-  const r = schemaProfil.safeParse({ role: donnees.get('role'), nom: donnees.get('nom'), retour: donnees.get('retour') ?? undefined })
+  const r = schemaProfil.safeParse({
+    role: donnees.get('role') || undefined,
+    nom: donnees.get('nom') || undefined,
+    retour: donnees.get('retour') || undefined,
+  })
   if (!r.success) redirect(chemin(`/inscription/profil/?erreur=${encodeURIComponent(r.error.issues[0]?.message ?? 'Formulaire incomplet')}`))
 
-  await enregistrerProfil(r.data.role, r.data.nom)
+  await enregistrerProfil(r.data.role, r.data.nom ?? session.user.name)
   const compte = await getCompte()
   redirect(chemin(prochaineEtape(compte!.etat, retourSur(r.data.retour, r.data.role === 'patient' ? '/' : '/espace-pro/'))))
 }
@@ -140,6 +150,7 @@ async function moderateurOuRien(): Promise<Resultat & { ok: true } | { ok: false
 
 type Demande = {
   id: string
+  objet: 'revendication' | 'retrait'
   praticien_id: string
   user_id: string
   statut: string
@@ -155,7 +166,7 @@ type Demande = {
 
 async function lireDemande(id: string): Promise<Demande | null> {
   const { rows } = await db.execute<Demande>(sql`
-    SELECT r.id, r.praticien_id, r.user_id, r.statut, u.email, p.slug, p.profession, p.nom, p.prenom, p.raison_sociale,
+    SELECT r.id, r.objet, r.praticien_id, r.user_id, r.statut, u.email, p.slug, p.profession, p.nom, p.prenom, p.raison_sociale,
            c.slug AS commune_slug, d.slug AS departement_slug
     FROM revendications r
     JOIN "user" u ON u.id = r.user_id
@@ -177,8 +188,18 @@ export async function accepterRevendication(donnees: FormData): Promise<never> {
   const garde = await moderateurOuRien()
   if (!garde.ok) redirect(chemin('/espace-pro/'))
   const d = await lireDemande(String(donnees.get('id') ?? ''))
-  if (d && d.statut === 'en_attente') {
+  if (d && d.statut === 'en_attente' && d.objet === 'retrait') {
+    // Retrait : le justificatif prouve l'identité, la fiche est retirée.
+    await appliquerRetrait({ praticienId: d.praticien_id, userId: d.user_id, methode: 'justificatif' })
+    revalidateTag('annuaire', 'max')
+    revalidateTag('praticien', 'max')
+  } else if (d && d.statut === 'en_attente') {
     await db.execute(sql`UPDATE revendications SET statut = 'acceptee', traite_le = now() WHERE id = ${d.id}`)
+    // Contestation tranchée : la fiche change de main, l'ancien compte la perd.
+    await db.execute(sql`
+      UPDATE revendications SET statut = 'refusee', motif_refus = 'Fiche transférée', traite_le = now()
+      WHERE praticien_id = ${d.praticien_id} AND id <> ${d.id} AND statut = 'acceptee' AND objet = 'revendication'
+    `)
     revalidateTag('annuaire', 'max')
     revalidateTag('praticien', 'max')
     await envoyerRevendicationAcceptee(d.email, nomAffiche({ profession: d.profession, nom: d.nom, prenom: d.prenom, raisonSociale: d.raison_sociale }), cheminDe(d))
@@ -191,10 +212,15 @@ export async function refuserRevendication(donnees: FormData): Promise<never> {
   const garde = await moderateurOuRien()
   if (!garde.ok) redirect(chemin('/espace-pro/'))
   const d = await lireDemande(String(donnees.get('id') ?? ''))
-  const motif = String(donnees.get('motif') ?? '').trim().slice(0, 1000) || null
+  const motif = String(donnees.get('motif') ?? '').trim().slice(0, 200) || null
+  const commentaire = String(donnees.get('commentaire') ?? '').trim().slice(0, 1000) || null
   if (d && d.statut === 'en_attente') {
-    await db.execute(sql`UPDATE revendications SET statut = 'refusee', traite_le = now() WHERE id = ${d.id}`)
-    await envoyerRevendicationRefusee(d.email, nomAffiche({ profession: d.profession, nom: d.nom, prenom: d.prenom, raisonSociale: d.raison_sociale }), motif)
+    await db.execute(sql`UPDATE revendications SET statut = 'refusee', motif_refus = ${motif}, commentaire_refus = ${commentaire}, traite_le = now() WHERE id = ${d.id}`)
+    await envoyerRevendicationRefusee(
+      d.email,
+      nomAffiche({ profession: d.profession, nom: d.nom, prenom: d.prenom, raisonSociale: d.raison_sociale }),
+      [motif, commentaire].filter(Boolean).join('. ') || null,
+    )
   }
   redirect(chemin('/espace-pro/moderation/'))
 }

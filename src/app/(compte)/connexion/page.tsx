@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Coquille } from '@/components/compte/coquille'
 import { Connexion } from '@/components/compte/connexion'
-import { ETATS, type Etat } from '@/components/compte/etats'
+import { estRole, retourSur } from '@/lib/tunnel/etapes'
 
 export const metadata: Metadata = {
   title: 'Connexion',
@@ -12,29 +12,22 @@ export const metadata: Metadata = {
 export const instant = false
 
 /**
- * Seuls les chemins internes sont acceptés comme retour.
+ * Connexion et inscription.
  *
- * Un paramètre de redirection non filtré est un tremplin classique vers un
- * autre site : on n'accepte qu'un chemin commençant par une seule barre.
+ * Seuls les chemins internes sont acceptés comme retour (pas de tremplin vers
+ * un autre site). `?mode=inscription` ouvre l'inscription, `&profil=` y
+ * présélectionne le profil : `prothesiste` pour « Créer un compte laboratoire »,
+ * par exemple.
  */
-function retourSur(valeur: string | undefined): string {
-  if (!valeur || !valeur.startsWith('/') || valeur.startsWith('//')) return '/'
-  return valeur
-}
-
-/**
- * Hors production, des onglets passent d'un état à l'autre pour vérifier
- * chaque rendu, `etat=` en ouvre un et `apercu=0` les cache.
- */
-export default async function ConnexionPage(props: { searchParams: Promise<{ retour?: string; apercu?: string; etat?: string }> }) {
+export default async function ConnexionPage(props: { searchParams: Promise<{ retour?: string; mode?: string; profil?: string }> }) {
   const sp = await props.searchParams
   const retour = retourSur(sp.retour)
-  const apercu = process.env.NODE_ENV !== 'production' && sp.apercu !== '0'
-  const etatInitial: Etat = apercu && ETATS.some((e) => e.cle === sp.etat) ? (sp.etat as Etat) : 'connexion'
+  // « Retour au site » ne doit pas renvoyer vers une page qui exige une session : elle ramènerait ici.
+  const sortie = /^\/(espace-pro|inscription|favoris)/.test(retour) ? '/' : retour
 
   return (
-    <Coquille retour={retour === '/' ? '/' : retour}>
-      <Connexion retour={retour} etatInitial={etatInitial} apercu={apercu} />
+    <Coquille retour={sortie}>
+      <Connexion retour={retour} inscription={sp.mode === 'inscription'} profil={estRole(sp.profil) ? sp.profil : undefined} />
     </Coquille>
   )
 }

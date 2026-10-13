@@ -1,26 +1,28 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { configPsc } from '@/lib/psc/config'
 import { echangerCode, lireUserinfo, verifierIdToken } from '@/lib/psc/client'
-import { COOKIE_PSC, desceller } from '@/lib/psc/etat'
+import { COOKIE_IDENTITE, COOKIE_PSC, DUREE_ETAT_SECONDES, desceller, scellerIdentite } from '@/lib/psc/etat'
 import { estChirurgienDentiste, lireIdentitePsc } from '@/lib/psc/identite'
-import { accorderParPsc, getFicheParSlug } from '@/lib/espace-pro/revendication'
+import { appliquerRetrait, getFicheParRpps, getFicheParSlug } from '@/lib/espace-pro/revendication'
+import { REVENDIQUER, cheminFiche } from '@/lib/espace-pro/chemins'
 import { estPersonne } from '@/lib/annuaire/types'
 
 /**
  * Retour de Pro Santé Connect.
  *
- * C'est ici que la revendication se décide, sans intervention humaine :
- *
  * 1. l'état du cookie doit être authentique, non expiré, et correspondre au
  *    `state` renvoyé ainsi qu'au compte connecté ;
  * 2. le code est échangé, le jeton d'identité vérifié, le UserInfo lu ;
- * 3. l'identité doit être celle d'un chirurgien-dentiste dont le numéro RPPS
- *    est exactement celui de la fiche visée.
+ * 3. l'identité doit être celle d'un chirurgien-dentiste ou d'un médecin du
+ *    RPPS. La fiche est celle qui était visée, dont le RPPS doit être
+ *    exactement le sien, ou, sans fiche visée, celle qui porte ce RPPS.
  *
- * Si tout concorde, la revendication est acceptée et le praticien est conduit
- * au parcours d'accueil. Sinon, il revient sur la page de revendication avec
- * la raison, où la vérification manuelle reste possible.
+ * Pour une revendication, rien n'est encore écrit : l'identité certifiée est
+ * scellée dans un cookie et le praticien confirme sur PSC2. Pour un retrait,
+ * l'identité vérifiée suffit : la fiche est retirée (R2). Sans fiche pour ce
+ * RPPS : PSC-0. Toute erreur mène à PSC-E, qui propose une autre voie.
  */
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams
@@ -31,21 +33,20 @@ export async function GET(request: NextRequest) {
     reponse.cookies.set(COOKIE_PSC, '', { path: '/api/psc/', maxAge: 0 })
     return reponse
   }
-  const versRevendication = (code: string) =>
-    repondre(`/espace-pro/revendiquer/?${etat ? `fiche=${encodeURIComponent(etat.fiche)}&` : ''}psc=${code}`)
+  const versErreur = (code: string) => repondre(`${REVENDIQUER}/psc/erreur/?code=${code}${etat?.fiche ? `&fiche=${encodeURIComponent(etat.fiche)}` : ''}`)
 
   const config = configPsc()
-  if (!config) return versRevendication('indisponible')
-  if (!etat || params.get('state') !== etat.state) return versRevendication('etat')
+  if (!config) return versErreur('indisponible')
+  if (!etat || params.get('state') !== etat.state) return versErreur('etat')
 
   // L'utilisateur a renoncé sur l'écran de Pro Santé Connect, ou celui-ci a
   // refusé la demande : rien à échanger.
-  if (params.get('error')) return versRevendication(params.get('error') === 'access_denied' ? 'annule' : 'technique')
+  if (params.get('error')) return versErreur(params.get('error') === 'access_denied' ? 'annule' : 'technique')
   const code = params.get('code')
-  if (!code) return versRevendication('technique')
+  if (!code) return versErreur('technique')
 
   const session = await auth.api.getSession({ headers: request.headers })
-  if (!session || session.user.id !== etat.userId) return versRevendication('session')
+  if (!session || session.user.id !== etat.userId) return versErreur('session')
 
   let userinfo: unknown
   try {
@@ -54,23 +55,39 @@ export async function GET(request: NextRequest) {
     userinfo = await lireUserinfo(config, jetons.access_token)
   } catch (e) {
     console.error('[psc] échec du flux OpenID Connect', e)
-    return versRevendication('technique')
+    return versErreur('technique')
   }
 
   const identite = lireIdentitePsc(userinfo)
-  if (!identite || !identite.rpps) return versRevendication('technique')
-  if (!estChirurgienDentiste(identite)) return versRevendication('profession')
+  if (!identite || !identite.rpps) return versErreur('technique')
+  if (!estChirurgienDentiste(identite)) return versErreur('profession')
 
-  const fiche = await getFicheParSlug(etat.fiche)
-  if (!fiche || !estPersonne(fiche.profession)) return versRevendication('fiche')
-  if (fiche.rpps !== identite.rpps) return versRevendication('rpps')
+  const fiche = etat.fiche ? await getFicheParSlug(etat.fiche) : await getFicheParRpps(identite.rpps)
+  if (!fiche) {
+    if (etat.fiche) return versErreur('fiche')
+    return repondre(`${REVENDIQUER}/psc/sans-fiche/?rpps=${identite.rpps}`)
+  }
+  if (!estPersonne(fiche.profession)) return versErreur('fiche')
+  if (fiche.rpps !== identite.rpps) return versErreur('rpps')
 
-  await accorderParPsc({
-    praticienId: fiche.id,
-    userId: session.user.id,
-    identifiantNational: identite.identifiantNational,
-    rpps: identite.rpps,
-  })
+  if (etat.objet === 'retrait') {
+    await appliquerRetrait({ praticienId: fiche.id, userId: session.user.id, methode: 'pro_sante_connect', rpps: identite.rpps, identifiantNational: identite.identifiantNational })
+    revalidateTag('annuaire', 'max')
+    return repondre(cheminFiche(fiche.slug, 'retrait/confirme'))
+  }
 
-  return repondre(`/espace-pro/onboarding/?fiche=${encodeURIComponent(fiche.slug)}&bienvenue=1`)
+  const reponse = repondre(`${REVENDIQUER}/psc/confirmer/`)
+  reponse.cookies.set(
+    COOKIE_IDENTITE,
+    scellerIdentite({
+      userId: session.user.id,
+      rpps: identite.rpps,
+      identifiantNational: identite.identifiantNational,
+      prenom: identite.prenom,
+      nom: identite.nom,
+      fiche: fiche.slug,
+    }),
+    { httpOnly: true, sameSite: 'lax', secure: request.nextUrl.protocol === 'https:', path: `${REVENDIQUER}/`, maxAge: DUREE_ETAT_SECONDES },
+  )
+  return reponse
 }

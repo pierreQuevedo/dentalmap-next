@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   aDuContenu,
+  FICHE_VIDE,
   schemaAccessibilite,
   schemaHoraires,
   schemaLangues,
@@ -53,18 +54,7 @@ describe('listes de codes', () => {
 })
 
 describe('aDuContenu', () => {
-  const vide = {
-    horaires: null,
-    langues: [],
-    accessibilite: [],
-    accessibiliteCommentaire: null,
-    paiements: [],
-    tiersPayant: null,
-    orientations: [],
-    etape: 0,
-    termineLe: null,
-    majLe: '2026-09-18',
-  }
+  const vide = FICHE_VIDE
   it('est faux pour une fiche vide ou absente', () => {
     expect(aDuContenu(null)).toBe(false)
     expect(aDuContenu(vide)).toBe(false)

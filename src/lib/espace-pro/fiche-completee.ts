@@ -198,6 +198,69 @@ export type DonneesLangues = z.infer<typeof schemaLangues>
 export type DonneesAccessibilite = z.infer<typeof schemaAccessibilite>
 export type DonneesPaiement = z.infer<typeof schemaPaiement>
 
+export const SECTEURS = [
+  { code: 'secteur_1', libelle: 'Secteur 1', detail: 'Tarifs de la Sécurité sociale.' },
+  { code: 'secteur_2', libelle: 'Secteur 2', detail: 'Dépassements d’honoraires possibles.' },
+  { code: 'non_conventionne', libelle: 'Non conventionné', detail: 'Remboursement limité.' },
+] as const
+export type CodeSecteur = (typeof SECTEURS)[number]['code']
+
+/**
+ * Le tiers payant, en trois réponses courtes à l'écran (oui, partiel, non),
+ * rangées sous les codes historiques de `TIERS_PAYANT`.
+ */
+export const TIERS_PAYANT_COURT = [
+  { code: 'securite_sociale_et_mutuelle', libelle: 'Oui' },
+  { code: 'securite_sociale', libelle: 'Partiel' },
+  { code: 'aucun', libelle: 'Non' },
+] as const
+
+export const ACCES_PMR = [
+  { code: 'oui', libelle: 'Oui' },
+  { code: 'partiel', libelle: 'Partiel' },
+  { code: 'non', libelle: 'Non' },
+] as const
+export type CodeAccesPmr = (typeof ACCES_PMR)[number]['code']
+
+/** Âges minimum proposés ; 0 vaut « tous âges ». */
+export const AGES_MINIMUM = [0, 3, 6, 12, 16, 18] as const
+export function libelleAge(age: number | null): string {
+  if (age === null) return 'Non renseigné'
+  return age === 0 ? 'Tous âges' : `Dès ${age} ans`
+}
+
+/** Présentation : bornes du barème. */
+export const PRESENTATION_MIN = 200
+export const PRESENTATION_MAX = 800
+
+/**
+ * Termes refusés dans la présentation : la déontologie interdit la publicité
+ * comparative et les promesses. Le texte est publié, mais la mission ne
+ * rapporte rien tant qu'un terme est présent. Contrôle en direct, aucune
+ * réécriture automatique.
+ */
+export const TERMES_REFUSES = ['meilleur', 'meilleure', 'meilleurs', 'meilleures', 'n°1', 'numéro 1', 'numero 1', 'garanti', 'garantie', 'sans douleur', 'prix', 'tarif', 'tarifs', '€', 'promo', 'promotion', 'offert', 'offerte', 'gratuit', 'gratuite', 'le plus', 'la plus', 'leader'] as const
+
+/** Les termes refusés présents dans un texte, sans doublon, dans l'ordre de la liste. */
+export function termesRefuses(texte: string): string[] {
+  const t = ` ${texte.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} `
+  return TERMES_REFUSES.filter((m) => {
+    const terme = m.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    if (/^[\p{L}\s]+$/u.test(terme)) return new RegExp(`[^\\p{L}]${terme}[^\\p{L}]`, 'u').test(t)
+    return t.includes(terme)
+  })
+}
+
+/** Une adresse web acceptable pour un lien du cabinet : https, ou http faute de mieux. */
+export function lienValide(url: string): boolean {
+  try {
+    const u = new URL(url)
+    return (u.protocol === 'https:' || u.protocol === 'http:') && u.hostname.includes('.')
+  } catch {
+    return false
+  }
+}
+
 /** Tout ce qu'un praticien a complété, tel que lu en base et affiché. */
 export type FicheCompletee = {
   horaires: Horaires | null
@@ -208,16 +271,115 @@ export type FicheCompletee = {
   tiersPayant: CodeTiersPayant | null
   /** Codes d'orientation, voir `ORIENTATIONS`. */
   orientations: string[]
+  secteur: CodeSecteur | null
+  accesPmr: CodeAccesPmr | null
+  ageMinimum: number | null
+  presentation: string | null
+  photoUrl: string | null
+  siteWeb: string | null
+  rdvEnLigne: string | null
+  horairesConfirmesLe: string | null
+  conventionnementConfirmeLe: string | null
+  accueilConfirmeLe: string | null
+  presentationConfirmeeLe: string | null
+  photoConfirmeeLe: string | null
+  publieeLe: string | null
+  /* Laboratoire */
+  techniques: string[]
+  materiaux: string[]
+  usinage: boolean
+  empreintesStl: boolean
+  impression3d: boolean
+  delais: Record<string, number> | null
+  rayonKm: number | null
+  ramassage: boolean | null
+  joursRamassage: string[]
+  transporteur: boolean | null
+  realisations: { url: string; legende: string }[]
+  creditPhotos: string | null
+  ansmNumero: string | null
+  ansmDeclareLe: string | null
+  savoirFaireConfirmeLe: string | null
+  delaisConfirmesLe: string | null
+  zoneConfirmeeLe: string | null
+  realisationsConfirmeesLe: string | null
+  praticienLieId: string | null
   etape: number
   termineLe: string | null
   majLe: string
+}
+
+/** Une fiche sans rien : point de départ des tests et de l'onboarding. */
+export const FICHE_VIDE: FicheCompletee = {
+  horaires: null,
+  langues: [],
+  accessibilite: [],
+  accessibiliteCommentaire: null,
+  paiements: [],
+  tiersPayant: null,
+  orientations: [],
+  secteur: null,
+  accesPmr: null,
+  ageMinimum: null,
+  presentation: null,
+  photoUrl: null,
+  siteWeb: null,
+  rdvEnLigne: null,
+  horairesConfirmesLe: null,
+  conventionnementConfirmeLe: null,
+  accueilConfirmeLe: null,
+  presentationConfirmeeLe: null,
+  photoConfirmeeLe: null,
+  publieeLe: null,
+  techniques: [],
+  materiaux: [],
+  usinage: false,
+  empreintesStl: false,
+  impression3d: false,
+  delais: null,
+  rayonKm: null,
+  ramassage: null,
+  joursRamassage: [],
+  transporteur: null,
+  realisations: [],
+  creditPhotos: null,
+  ansmNumero: null,
+  ansmDeclareLe: null,
+  savoirFaireConfirmeLe: null,
+  delaisConfirmesLe: null,
+  zoneConfirmeeLe: null,
+  realisationsConfirmeesLe: null,
+  praticienLieId: null,
+  etape: 0,
+  termineLe: null,
+  majLe: new Date(0).toISOString(),
 }
 
 /** Vrai si au moins une information a été renseignée, quel que soit l'avancement du parcours. */
 export function aDuContenu(f: FicheCompletee | null): f is FicheCompletee {
   if (!f) return false
   const horaires = f.horaires ? Object.values(f.horaires).some((p) => p && p.length > 0) : false
-  return horaires || f.langues.length > 0 || f.accessibilite.length > 0 || f.paiements.length > 0 || f.tiersPayant !== null || f.orientations.length > 0
+  return (
+    horaires ||
+    f.langues.length > 0 ||
+    f.accessibilite.length > 0 ||
+    f.paiements.length > 0 ||
+    f.tiersPayant !== null ||
+    f.orientations.length > 0 ||
+    f.secteur !== null ||
+    f.accesPmr !== null ||
+    f.ageMinimum !== null ||
+    !!f.presentation ||
+    !!f.photoUrl ||
+    !!f.siteWeb ||
+    !!f.rdvEnLigne ||
+    f.techniques.length > 0 ||
+    f.materiaux.length > 0 ||
+    !!f.delais ||
+    f.rayonKm !== null ||
+    f.realisations.length > 0 ||
+    !!f.ansmNumero
+  )
 }
 
 export function libelle<T extends string>(liste: readonly { code: T; libelle: string }[], code: string): string {

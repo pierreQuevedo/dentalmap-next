@@ -15,9 +15,9 @@ import type { Profession } from '@/lib/annuaire/types'
  * Une revendication en attente ne bloque pas : le parcours d'accueil est
  * ouvert tout de suite, la publication attend l'acceptation.
  */
-export type Role = 'patient' | 'dentiste' | 'prothesiste' | 'medecin'
+export type Role = 'patient' | 'dentiste' | 'prothesiste' | 'medecin' | 'organisme'
 
-export const ROLES: readonly Role[] = ['patient', 'dentiste', 'prothesiste', 'medecin'] as const
+export const ROLES: readonly Role[] = ['patient', 'dentiste', 'prothesiste', 'medecin', 'organisme'] as const
 
 /** Les professions de l'annuaire qu'un rôle peut revendiquer. */
 export const PROFESSIONS_DU_ROLE: Record<Role, readonly Profession[]> = {
@@ -25,6 +25,7 @@ export const PROFESSIONS_DU_ROLE: Record<Role, readonly Profession[]> = {
   dentiste: ['dentiste'],
   prothesiste: ['prothesiste'],
   medecin: ['maxillo_facial', 'stomatologue', 'orl'],
+  organisme: [],
 }
 
 export function estRole(v: unknown): v is Role {
@@ -34,11 +35,11 @@ export function estRole(v: unknown): v is Role {
 export const ETAPES_TUNNEL = ['profil', 'fiche', 'verification', 'onboarding', 'tableau-de-bord'] as const
 export type EtapeTunnel = (typeof ETAPES_TUNNEL)[number]
 
-/** Chemin de chaque étape ; l'étape « vérification » vit sur la page de revendication existante. */
+/** Chemin de chaque étape du tunnel. */
 export const CHEMIN_ETAPE: Record<EtapeTunnel, string> = {
   profil: '/inscription/profil/',
-  fiche: '/espace-pro/fiche/choisir/',
-  verification: '/espace-pro/revendiquer/',
+  fiche: '/espace-pro/revendiquer/',
+  verification: '/espace-pro/revendiquer/suivi/',
   onboarding: '/espace-pro/onboarding/',
   'tableau-de-bord': '/espace-pro/',
 }
@@ -64,7 +65,7 @@ export function retourSur(valeur: string | null | undefined, defaut = '/'): stri
 /** Où en est ce compte, et donc où l'envoyer. */
 export function etapeDe(etat: EtatCompte): EtapeTunnel {
   if (!etat.role) return 'profil'
-  if (etat.role === 'patient') return 'tableau-de-bord'
+  if (etat.role === 'patient' || etat.role === 'organisme') return 'tableau-de-bord'
   const vivantes = etat.revendications.filter((r) => r.statut !== 'refusee')
   if (vivantes.length === 0) return etat.demandeCreationEnAttente ? 'tableau-de-bord' : 'fiche'
   if (vivantes.some((r) => !r.onboardingTermine)) return 'onboarding'
@@ -78,10 +79,25 @@ export function etapeDe(etat: EtatCompte): EtapeTunnel {
  * conduit à sa prochaine étape ; s'il a fini, `retour` l'emporte, sinon la
  * fiche passe avant tout.
  */
+/** Le chemin d'une étape pour ce rôle : un laboratoire a son propre parcours. */
+export function cheminEtape(etape: EtapeTunnel, role: Role | null): string {
+  if (role === 'prothesiste' && etape === 'fiche') return '/espace-pro/laboratoire/revendiquer/'
+  if (role === 'prothesiste' && etape === 'onboarding') return '/espace-pro/laboratoire/onboarding/'
+  return CHEMIN_ETAPE[etape]
+}
+
 export function prochaineEtape(etat: EtatCompte, retour?: string | null): string {
   const etape = etapeDe(etat)
   if (etape === 'tableau-de-bord') return retourSur(retour, etat.role === 'patient' ? '/' : CHEMIN_ETAPE['tableau-de-bord'])
-  return CHEMIN_ETAPE[etape]
+  // Un retour qui pointe déjà dans l'étape est gardé : arrivé par « Revendiquer
+  // cette fiche », on revient sur la revendication de cette fiche, pas sur une
+  // revendication vierge.
+  const sur = retourSur(retour, '')
+  const cible = cheminEtape(etape, etat.role)
+  // Une invitation à rejoindre une fiche passe avant la revendication.
+  if (sur.startsWith('/espace-pro/invitation/')) return sur
+  if (sur && (sur.startsWith(cible) || sur.startsWith(CHEMIN_ETAPE[etape]))) return sur
+  return cible
 }
 
 /**
@@ -102,5 +118,5 @@ export function etapeAutorisee(etat: EtatCompte, etape: EtapeTunnel): boolean {
 
 /** Un patient et un professionnel n'ont pas le même tableau de bord : le libellé le dit. */
 export function libelleRole(role: Role | null): string {
-  return role === 'dentiste' ? 'Chirurgien-dentiste' : role === 'prothesiste' ? 'Prothésiste dentaire' : role === 'medecin' ? 'Médecin : chirurgien maxillo-facial, stomatologue ou ORL' : role === 'patient' ? 'Patient' : 'Non renseigné'
+  return role === 'dentiste' ? 'Chirurgien-dentiste' : role === 'prothesiste' ? 'Prothésiste dentaire' : role === 'medecin' ? 'Médecin : chirurgien maxillo-facial, stomatologue ou ORL' : role === 'patient' ? 'Patient' : role === 'organisme' ? 'École ou organisme' : 'Non renseigné'
 }

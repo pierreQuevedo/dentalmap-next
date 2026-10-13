@@ -21,8 +21,10 @@ export type EtatPsc = {
   state: string
   nonce: string
   verifier: string
-  /** Slug de la fiche à revendiquer. */
+  /** Slug de la fiche visée ; vide quand la fiche sera retrouvée par le RPPS au retour. */
   fiche: string
+  /** Revendiquer la fiche, ou prouver son identité pour la retirer. */
+  objet: 'revendication' | 'retrait'
   /** Compte connecté au départ ; le retour doit venir du même. */
   userId: string
   /** Expiration, en secondes depuis l'époque. */
@@ -39,8 +41,9 @@ function signer(donnees: string): string {
   return createHmac('sha256', secret()).update(donnees).digest('base64url')
 }
 
-export function nouvelEtat(fiche: string, userId: string): EtatPsc {
+export function nouvelEtat(fiche: string, userId: string, objet: EtatPsc['objet'] = 'revendication'): EtatPsc {
   return {
+    objet,
     state: randomBytes(24).toString('base64url'),
     nonce: randomBytes(24).toString('base64url'),
     verifier: randomBytes(48).toString('base64url'),
@@ -55,13 +58,13 @@ export function defiPkce(verifier: string): string {
   return createHash('sha256').update(verifier).digest('base64url')
 }
 
-export function sceller(etat: EtatPsc): string {
-  const corps = Buffer.from(JSON.stringify(etat)).toString('base64url')
+function scellerObjet(valeur: { exp: number }): string {
+  const corps = Buffer.from(JSON.stringify(valeur)).toString('base64url')
   return `${corps}.${signer(corps)}`
 }
 
-/** Rend l'état s'il est authentique et non expiré, `null` sinon. */
-export function desceller(valeur: string | undefined): EtatPsc | null {
+/** Rend l'objet s'il est authentique et non expiré, `null` sinon. */
+function descellerObjet<T extends { exp: number }>(valeur: string | undefined): T | null {
   if (!valeur) return null
   const [corps, signature] = valeur.split('.')
   if (!corps || !signature) return null
@@ -71,11 +74,52 @@ export function desceller(valeur: string | undefined): EtatPsc | null {
   if (attendue.length !== recue.length || !timingSafeEqual(attendue, recue)) return null
 
   try {
-    const etat = JSON.parse(Buffer.from(corps, 'base64url').toString()) as EtatPsc
-    if (typeof etat.exp !== 'number' || etat.exp < Math.floor(Date.now() / 1000)) return null
-    if (!etat.state || !etat.nonce || !etat.verifier || !etat.fiche || !etat.userId) return null
-    return etat
+    const objet = JSON.parse(Buffer.from(corps, 'base64url').toString()) as T
+    if (typeof objet.exp !== 'number' || objet.exp < Math.floor(Date.now() / 1000)) return null
+    return objet
   } catch {
     return null
   }
+}
+
+export function sceller(etat: EtatPsc): string {
+  return scellerObjet(etat)
+}
+
+/** Rend l'état s'il est authentique et non expiré, `null` sinon. */
+export function desceller(valeur: string | undefined): EtatPsc | null {
+  const etat = descellerObjet<EtatPsc>(valeur)
+  if (!etat || !etat.state || !etat.nonce || !etat.verifier || typeof etat.fiche !== 'string' || !etat.userId) return null
+  return { ...etat, objet: etat.objet === 'retrait' ? 'retrait' : 'revendication' }
+}
+
+/**
+ * L'identité certifiée par Pro Santé Connect, entre le retour et la
+ * confirmation (PSC2).
+ *
+ * Le retour ne décide plus seul : il montre la fiche qui porte le RPPS et
+ * attend « Revendiquer et continuer ». Ce qui a été certifié est gardé dans
+ * un cookie signé, au nom du compte, dix minutes : personne ne peut le
+ * fabriquer, et il ne sert qu'à ce compte.
+ */
+export const COOKIE_IDENTITE = 'dm_psc_identite'
+
+export type IdentiteScellee = {
+  userId: string
+  rpps: string
+  identifiantNational: string
+  prenom: string | null
+  nom: string | null
+  /** Fiche portant ce RPPS. */
+  fiche: string
+  exp: number
+}
+
+export function scellerIdentite(identite: Omit<IdentiteScellee, 'exp'>): string {
+  return scellerObjet({ ...identite, exp: Math.floor(Date.now() / 1000) + DUREE_ETAT_SECONDES })
+}
+
+export function descellerIdentite(valeur: string | undefined, userId: string): IdentiteScellee | null {
+  const identite = descellerObjet<IdentiteScellee>(valeur)
+  return identite && identite.userId === userId && identite.rpps && identite.fiche ? identite : null
 }

@@ -36,7 +36,8 @@ describe('prochaineEtape', () => {
     expect(prochaineEtape(patient)).toBe('/')
   })
   it('fait passer la fiche avant le retour pour un professionnel', () => {
-    expect(prochaineEtape(dentiste, '/annonces/')).toBe('/espace-pro/fiche/choisir/')
+    expect(prochaineEtape(dentiste, '/annonces/')).toBe('/espace-pro/revendiquer/')
+    expect(prochaineEtape(dentiste, '/espace-pro/revendiquer/?fiche=dr-x')).toBe('/espace-pro/revendiquer/?fiche=dr-x')
   })
   it('refuse un retour vers un autre site', () => {
     expect(retourSur('https://evil.example')).toBe('/')
