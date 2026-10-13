@@ -6,12 +6,13 @@ export const LIBELLE_CATEGORIE: Record<ConseilCategorie, string> = {
   patients: 'Patients',
   praticiens: 'Praticiens',
   prothesistes: 'Prothésistes',
+  metiers: 'Métiers',
 }
 
 /**
  * Pastille de rubrique.
  *
- * Les trois teintes éditoriales n'apparaissent qu'ici, en point de huit
+ * Les trois teintes éditoriales, plus le teal des Métiers, n'apparaissent qu'ici, en point de huit
  * pixels : la charte les réserve à la distinction des rubriques, jamais à un
  * aplat ni à un bouton.
  */
@@ -19,6 +20,7 @@ const POINT: Record<string, string> = {
   patients: 'bg-editorial-1',
   praticiens: 'bg-editorial-2',
   prothesistes: 'bg-editorial-3',
+  metiers: 'bg-teal',
 }
 
 export function Rubrique({ categorie }: { categorie: string | null }) {

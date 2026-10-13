@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import { FilAriane } from '@/components/annuaire/primitives'
 import { CarteConseil, LIBELLE_CATEGORIE } from '@/components/conseils/primitives'
 import { CONSEIL_CATEGORIES, type ConseilCategorie } from '@/lib/navigation'
+import { HubMetiers } from '@/components/conseils/metier'
+import { getMetiers } from '@/lib/conseils/metier'
 import { getConseils } from '@/lib/wp/queries'
 
 export const instant = false
@@ -10,6 +12,7 @@ const INTRO: Record<ConseilCategorie, string> = {
   patients: 'Choisir un praticien, comprendre un devis, savoir ce qui est remboursé.',
   praticiens: 'Installation, conventionnement, obligations d’affichage et de publicité.',
   prothesistes: 'Traçabilité, marquage CE, sous-traitance et relations avec les cabinets.',
+  metiers: 'Missions, formation et salaire moyen, métier par métier.',
 }
 
 /**
@@ -26,6 +29,7 @@ type Params = Promise<{ categorie: string }>
 export async function generateMetadata(props: { params: Params }) {
   const { categorie } = await props.params
   if (!estCategorie(categorie)) return {}
+  if (categorie === 'metiers') return { title: 'Les métiers du dentaire', description: INTRO.metiers, alternates: { canonical: '/conseils/metiers/' } }
   return {
     title: `Ressources pour les ${LIBELLE_CATEGORIE[categorie].toLowerCase()}`,
     description: INTRO[categorie],
@@ -35,6 +39,12 @@ export async function generateMetadata(props: { params: Params }) {
 export default async function RubriqueConseils(props: { params: Params }) {
   const { categorie } = await props.params
   if (!estCategorie(categorie)) notFound()
+
+  // La rubrique Métiers a son propre hub, en cartes photo.
+  if (categorie === 'metiers') {
+    const [metiers, conseils] = await Promise.all([getMetiers(), getConseils()])
+    return <HubMetiers metiers={metiers} articles={conseils.filter((c) => c.categorie !== 'metiers')} />
+  }
 
   const conseils = await getConseils(categorie)
 

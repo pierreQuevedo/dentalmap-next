@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation'
 import { FilAriane } from '@/components/annuaire/primitives'
 import { formaterDate, LIBELLE_CATEGORIE, Rubrique } from '@/components/conseils/primitives'
 import { CONSEIL_CATEGORIES, type ConseilCategorie } from '@/lib/navigation'
+import { FicheMetierPage } from '@/components/conseils/metier'
+import { HeaderTransparent } from '@/components/home/HeaderTransparent'
+import { getFicheMetier, getMetiers } from '@/lib/conseils/metier'
 import { getConseil } from '@/lib/wp/queries'
 
 export const instant = false
@@ -35,6 +38,20 @@ export default async function ArticleConseil(props: { params: Params }) {
   // duplication. Un article sans rubrique vit sous « patients », voir
   // `lienConseil`.
   if (!conseil || (conseil.categorie ?? 'patients') !== categorie) notFound()
+
+  // Une fiche métier dont le groupe ACF est rempli prend sa mise en page
+  // propre ; sinon elle s'affiche comme un article.
+  if (categorie === 'metiers') {
+    const [fiche, metiers] = await Promise.all([getFicheMetier(slug), getMetiers()])
+    if (fiche) {
+      return (
+        <>
+          <HeaderTransparent />
+          <FicheMetierPage conseil={conseil} fiche={fiche} autres={metiers.filter((m) => m.slug !== slug)} />
+        </>
+      )
+    }
+  }
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-10 md:px-10">

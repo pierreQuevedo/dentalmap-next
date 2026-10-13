@@ -36,6 +36,7 @@ const ConseilsDocument = graphql(`
         title
         excerpt
         date
+        featuredImage { node { sourceUrl altText } }
         conseilFields { categorie tempsLecture }
       }
     }
@@ -52,6 +53,7 @@ const ConseilDocument = graphql(`
       excerpt
       date
       modified
+      featuredImage { node { sourceUrl altText } }
       conseilFields { categorie tempsLecture }
       seoFields { metaTitle metaDescription noindex }
     }
@@ -65,6 +67,12 @@ export type ConseilResume = {
   date: string | null
   categorie: string | null
   tempsLecture: number | null
+  image: { url: string; alt: string } | null
+}
+
+type ImageWp = { node?: { sourceUrl?: string | null; altText?: string | null } | null } | null | undefined
+function image(i: ImageWp): { url: string; alt: string } | null {
+  return i?.node?.sourceUrl ? { url: i.node.sourceUrl, alt: i.node.altText ?? '' } : null
 }
 
 /** Enlève les balises que WordPress met autour de l'extrait. */
@@ -96,6 +104,7 @@ export async function getConseils(categorie?: string): Promise<ConseilResume[]> 
       date: n.date ?? null,
       categorie: n.conseilFields?.categorie?.[0] ?? null,
       tempsLecture: n.conseilFields?.tempsLecture ?? null,
+      image: image(n.featuredImage),
     }))
     .filter((c) => c.slug && (!categorie || c.categorie === categorie))
 }
@@ -124,6 +133,7 @@ export async function getConseil(slug: string): Promise<ConseilComplet | null> {
     modifie: n.modified ?? null,
     categorie: n.conseilFields?.categorie?.[0] ?? null,
     tempsLecture: n.conseilFields?.tempsLecture ?? null,
+    image: image(n.featuredImage),
     seoTitre: n.seoFields?.metaTitle ?? null,
     seoDescription: n.seoFields?.metaDescription ?? null,
     noindex: n.seoFields?.noindex ?? false,

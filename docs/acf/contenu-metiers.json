@@ -1,0 +1,140 @@
+[
+  {
+    "slug": "assistant-dentaire",
+    "titre": "Assistant(e) dentaire",
+    "extrait": "Profession de santé depuis 2016, l’assistant(e) dentaire accompagne le praticien au fauteuil et fait tourner le cabinet.",
+    "categorie": "metiers",
+    "tempsLecture": 6,
+    "image": "/images/demo/pexels-6627320.jpg",
+    "acf": {
+      "metier_accroche": "Au fauteuil, aux côtés du praticien.",
+      "metier_formation_courte": "18 mois en alternance",
+      "metier_salaire_repere": 2050,
+      "metier_chiffres": "18 mois | de formation en alternance\nNiveau 4 | titre reconnu, équivalent bac\n2 050 € | brut mensuel moyen en cabinet\n1 284 | offres publiées en France",
+      "metier_missions": "fauteuil | Assister au fauteuil | Préparer le plateau, aspirer, tendre les instruments.\nhygiene | Hygiène et stérilisation | Décontaminer, stériliser, tracer chaque cycle.\naccueil | Accueillir les patients | Rassurer, expliquer un devis, planifier les rendez-vous.\ngestion | Gérer le cabinet | Stocks, commandes, télétransmission.",
+      "metier_qualites": "Rigueur\nSens du contact\nDextérité\nDiscrétion\nTravail en équipe",
+      "metier_formation": "Uniquement en alternance.",
+      "metier_etapes": "Trouver un cabinet employeur | Le contrat d’apprentissage ou de professionnalisation ouvre l’entrée en formation.\nSe former en alternance | Environ 18 mois, avec des cours en institut et la pratique au cabinet.\nObtenir le titre | Examen final, puis inscription comme professionnel de santé.",
+      "metier_salaires": "Cabinet libéral | 2050\nCentre de santé | 2150\nLaboratoire de prothèse | \nHôpital ou centre universitaire | 2250",
+      "metier_source_salaires": "Étude salariale à citer, année",
+      "metier_evolutions": "Assistant(e) spécialisé(e) | Orthodontie, chirurgie, implantologie.\nResponsable de cabinet | Coordination d’équipe et gestion.\nFormateur ou formatrice | Transmettre en institut de formation.",
+      "metier_sources": "Code de la santé publique, article L4393-8\nRéférentiel du titre d’assistant(e) dentaire\nÉtude salariale à citer, année",
+      "metier_emploi": "assistant-dentaire"
+    }
+  },
+  {
+    "slug": "chirurgien-dentiste",
+    "titre": "Chirurgien-dentiste",
+    "extrait": "Le chirurgien-dentiste diagnostique et soigne les dents, les gencives et la bouche, en libéral, en centre de santé ou à l’hôpital.",
+    "categorie": "metiers",
+    "tempsLecture": 7,
+    "image": "/images/demo/pexels-19879741.jpg",
+    "acf": {
+      "metier_accroche": "Diagnostiquer, soigner, prévenir.",
+      "metier_formation_courte": "6 ans au minimum",
+      "metier_salaire_repere": "",
+      "metier_chiffres": "6 ans | d’études au minimum après le bac\nDiplôme d’État | de docteur en chirurgie dentaire\n5 800 € | brut mensuel moyen en centre de santé\n630 | remplacements et collaborations",
+      "metier_missions": "diagnostic | Diagnostiquer | Examen clinique, radiographies, plan de traitement.\nfauteuil | Soigner | Caries, extractions, prothèses, parodontie.\naccueil | Prévenir | Hygiène bucco-dentaire, dépistage, suivi.\ngestion | Diriger le cabinet | Équipe, matériel, obligations réglementaires.",
+      "metier_qualites": "Précision\nÉcoute\nEndurance\nSens des responsabilités\nGoût du geste",
+      "metier_formation": "Accès par le PASS ou une L.AS.",
+      "metier_etapes": "Réussir la première année | PASS ou L.AS, puis admission en filière odontologie.\nCinq ans en faculté | Enseignements, stages cliniques, premiers remplacements en fin de cursus.\nThèse et inscription à l’Ordre | Le diplôme d’État ouvre l’exercice, après inscription au tableau.",
+      "metier_salaires": "Cabinet libéral | \nCentre de santé | 5800\nLaboratoire de prothèse | \nHôpital ou centre universitaire | 5200",
+      "metier_source_salaires": "Étude salariale à citer, année",
+      "metier_evolutions": "Internat qualifiant | Orthodontie, chirurgie orale, médecine bucco-dentaire.\nInstallation en libéral | Création, reprise ou association.\nEnseignement et recherche | Faculté et centre hospitalier universitaire.",
+      "metier_sources": "Code de la santé publique, articles L4141-1 et suivants\nArrêté relatif aux études en vue du diplôme d’État de docteur en chirurgie dentaire\nÉtude salariale à citer, année",
+      "metier_emploi": ""
+    }
+  },
+  {
+    "slug": "prothesiste-dentaire",
+    "titre": "Prothésiste dentaire",
+    "extrait": "Au laboratoire, le prothésiste conçoit et fabrique les prothèses sur mesure prescrites par le chirurgien-dentiste.",
+    "categorie": "metiers",
+    "tempsLecture": 6,
+    "image": "/images/demo/pexels-6627325.jpg",
+    "acf": {
+      "metier_accroche": "Concevoir les prothèses au laboratoire.",
+      "metier_formation_courte": "CAP, BTMS puis BTS",
+      "metier_salaire_repere": 2250,
+      "metier_chiffres": "2 à 6 ans | de formation selon le diplôme\nCAP au BTS | trois niveaux de diplôme\n2 250 € | brut mensuel moyen en laboratoire\n287 | offres publiées en France",
+      "metier_missions": "diagnostic | Lire la prescription | Empreinte, teinte, matériau demandé par le praticien.\nplanning | Modéliser | Conception assistée par ordinateur, fichiers numériques.\natelier | Fabriquer | Céramique, résine, métal, usinage.\ncontrole | Contrôler et tracer | Déclaration de conformité, traçabilité du dispositif.",
+      "metier_qualites": "Minutie\nPatience\nSens esthétique\nAisance numérique\nRigueur",
+      "metier_formation": "En lycée professionnel ou en alternance.",
+      "metier_etapes": "CAP prothésiste dentaire | Deux ans pour apprendre les techniques de base.\nBTMS ou brevet professionnel | Deux ans de plus pour gagner en autonomie.\nBTS prothésiste dentaire | Encadrer, concevoir et gérer la production.",
+      "metier_salaires": "Cabinet libéral | \nCentre de santé | 2300\nLaboratoire de prothèse | 2250\nHôpital ou centre universitaire | 2450",
+      "metier_source_salaires": "Étude salariale à citer, année",
+      "metier_evolutions": "Céramiste spécialisé(e) | Esthétique et pièces complexes.\nChef de laboratoire | Production, équipe et qualité.\nCréer son laboratoire | Installation ou reprise.",
+      "metier_sources": "Règlement (UE) 2017/745 relatif aux dispositifs médicaux\nRéférentiels du CAP, du BTMS et du BTS prothésiste dentaire\nÉtude salariale à citer, année",
+      "metier_emploi": "prothesiste-dentaire"
+    }
+  },
+  {
+    "slug": "secretaire-assistant-gestion",
+    "titre": "Secrétaire ou assistant(e) de gestion",
+    "extrait": "Premier contact du patient, la secrétaire ou l’assistant(e) de gestion tient le planning, la facturation et les dossiers du cabinet.",
+    "categorie": "metiers",
+    "tempsLecture": 5,
+    "image": "/images/demo/pexels-6627471.jpg",
+    "acf": {
+      "metier_accroche": "L’accueil, le planning et la facturation.",
+      "metier_formation_courte": "Secrétariat médical",
+      "metier_salaire_repere": 1900,
+      "metier_chiffres": "1 an | de formation au secrétariat médical\nNiveau 4 | titre de secrétaire médical(e)\n1 900 € | brut mensuel moyen en cabinet\n342 | offres publiées en France",
+      "metier_missions": "accueil | Accueillir | Au comptoir et au téléphone, avec discrétion.\nplanning | Tenir le planning | Rendez-vous, urgences, rappels.\ngestion | Facturer | Devis, télétransmission, tiers payant.\ncontrole | Suivre les dossiers | Dossiers patients, courriers, archives.",
+      "metier_qualites": "Organisation\nAmabilité\nDiscrétion\nCalme\nAisance informatique",
+      "metier_formation": "En formation courte ou en alternance.",
+      "metier_etapes": "Se former au secrétariat médical | Titre professionnel ou formation équivalente.\nStage ou alternance en cabinet | Logiciel métier, nomenclature, télétransmission.\nPrendre son poste | En cabinet, en centre de santé ou à l’hôpital.",
+      "metier_salaires": "Cabinet libéral | 1900\nCentre de santé | 2000\nLaboratoire de prothèse | 1950\nHôpital ou centre universitaire | 2100",
+      "metier_source_salaires": "Étude salariale à citer, année",
+      "metier_evolutions": "Assistant(e) de gestion | Comptabilité et relations avec les organismes.\nResponsable administratif | Dans un centre de santé.\nCoordination | Organisation d’un cabinet de groupe.",
+      "metier_sources": "Référentiel du titre de secrétaire assistant(e) médico-social(e)\nÉtude salariale à citer, année",
+      "metier_emploi": "secretaire-assistant-gestion"
+    }
+  },
+  {
+    "slug": "aide-dentaire",
+    "titre": "Aide dentaire",
+    "extrait": "L’aide dentaire assure l’hygiène et la stérilisation du cabinet et prépare le matériel, sans intervenir au fauteuil.",
+    "categorie": "metiers",
+    "tempsLecture": 4,
+    "image": "/images/demo/pexels-3881296.jpg",
+    "acf": {
+      "metier_accroche": "L’hygiène et la stérilisation du cabinet.",
+      "metier_formation_courte": "Sans diplôme obligatoire",
+      "metier_salaire_repere": 1800,
+      "metier_chiffres": "Sans diplôme | obligatoire pour commencer\nAu cabinet | formation aux protocoles\n1 800 € | brut mensuel moyen en cabinet\n196 | offres publiées en France",
+      "metier_missions": "hygiene | Stériliser | Nettoyer, conditionner, stériliser les instruments.\ncontrole | Tracer | Enregistrer chaque cycle de stérilisation.\natelier | Préparer le matériel | Plateaux, consommables, salles de soins.\naccueil | Accueillir | En appui du secrétariat.",
+      "metier_qualites": "Rigueur\nMéthode\nDiscrétion\nRéactivité\nTravail en équipe",
+      "metier_formation": "Une porte d’entrée vers le titre d’assistant(e).",
+      "metier_etapes": "Entrer en cabinet | Sans diplôme exigé, sur motivation.\nApprendre les protocoles | Hygiène, stérilisation, traçabilité.\nPréparer le titre d’assistant(e) | En alternance, avec le même employeur.",
+      "metier_salaires": "Cabinet libéral | 1800\nCentre de santé | 1850\nLaboratoire de prothèse | \nHôpital ou centre universitaire | 1900",
+      "metier_source_salaires": "Étude salariale à citer, année",
+      "metier_evolutions": "Assistant(e) dentaire | Par l’alternance.\nResponsable stérilisation | Dans un centre de santé.\nSecrétariat | Accueil et planning.",
+      "metier_sources": "Convention collective nationale des cabinets dentaires\nÉtude salariale à citer, année",
+      "metier_emploi": "aide-dentaire"
+    }
+  },
+  {
+    "slug": "assistant-specialise",
+    "titre": "Assistant(e) spécialisé(e)",
+    "extrait": "Après le titre d’assistant(e) dentaire, une spécialisation en orthodontie, chirurgie ou implantologie.",
+    "categorie": "metiers",
+    "tempsLecture": 5,
+    "image": "/images/demo/pexels-8413334.jpg",
+    "acf": {
+      "metier_accroche": "Orthodontie, chirurgie ou implantologie.",
+      "metier_formation_courte": "Après le titre d’assistant(e)",
+      "metier_salaire_repere": 2250,
+      "metier_chiffres": "Titre requis | d’assistant(e) dentaire\nFormation | complémentaire courte\n2 250 € | brut mensuel moyen en cabinet\n118 | offres publiées en France",
+      "metier_missions": "fauteuil | Orthodontie | Empreintes numériques, suivi des appareils.\nhygiene | Chirurgie et implantologie | Assistance en conditions stériles.\nplanning | Coordonner les traitements | Plans de traitement longs, rendez-vous.\naccueil | Accompagner le patient | Consignes avant et après l’intervention.",
+      "metier_qualites": "Sang-froid\nPrécision\nAnticipation\nPédagogie\nRigueur",
+      "metier_formation": "Après le titre d’assistant(e) dentaire.",
+      "metier_etapes": "Obtenir le titre d’assistant(e) | 18 mois en alternance.\nSe spécialiser | Formation complémentaire dans une spécialité.\nExercer en cabinet spécialisé | Orthodontie, chirurgie, implantologie.",
+      "metier_salaires": "Cabinet libéral | 2250\nCentre de santé | 2300\nLaboratoire de prothèse | \nHôpital ou centre universitaire | 2350",
+      "metier_source_salaires": "Étude salariale à citer, année",
+      "metier_evolutions": "Responsable de bloc | Organisation des interventions.\nFormateur ou formatrice | En institut ou chez un fabricant.\nCoordination de cabinet | Équipe et parcours patient.",
+      "metier_sources": "Référentiel du titre d’assistant(e) dentaire\nÉtude salariale à citer, année",
+      "metier_emploi": ""
+    }
+  }
+]

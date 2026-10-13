@@ -1,0 +1,172 @@
+[
+  {
+    "key": "group_dm_fiche_metier",
+    "title": "Fiche métier",
+    "fields": [
+      {
+        "key": "field_dm_metier_accroche",
+        "label": "Accroche (carte du hub)",
+        "name": "metier_accroche",
+        "type": "text",
+        "instructions": "Une phrase courte affichée sur la carte du métier, par exemple « Au fauteuil, aux côtés du praticien. »",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "accroche"
+      },
+      {
+        "key": "field_dm_metier_formation_courte",
+        "label": "Formation en quelques mots (carte du hub)",
+        "name": "metier_formation_courte",
+        "type": "text",
+        "instructions": "Par exemple « 18 mois en alternance ».",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "formation_courte"
+      },
+      {
+        "key": "field_dm_metier_salaire_repere",
+        "label": "Salaire brut mensuel repère (carte du hub)",
+        "name": "metier_salaire_repere",
+        "type": "number",
+        "instructions": "Moyenne issue d’une étude, en euros, sans espace. Laisser vide si le métier n’est pas salarié.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "salaire_repere"
+      },
+      {
+        "key": "field_dm_metier_chiffres",
+        "label": "Chiffres clés",
+        "name": "metier_chiffres",
+        "type": "textarea",
+        "instructions": "Quatre lignes « valeur | libellé », par exemple « 18 mois | de formation en alternance ».",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "chiffres",
+        "rows": 4,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_metier_missions",
+        "label": "Missions",
+        "name": "metier_missions",
+        "type": "textarea",
+        "instructions": "Quatre lignes « icône | titre | détail ». Icônes : fauteuil, hygiene, accueil, gestion, diagnostic, atelier, controle, planning.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "missions",
+        "rows": 4,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_metier_qualites",
+        "label": "Qualités attendues",
+        "name": "metier_qualites",
+        "type": "textarea",
+        "instructions": "Une qualité par ligne.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "qualites",
+        "rows": 5,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_metier_formation",
+        "label": "Phrase sous « Se former »",
+        "name": "metier_formation",
+        "type": "text",
+        "instructions": "Par exemple « Uniquement en alternance. »",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "formation"
+      },
+      {
+        "key": "field_dm_metier_etapes",
+        "label": "Étapes de formation",
+        "name": "metier_etapes",
+        "type": "textarea",
+        "instructions": "Trois lignes « titre | détail ».",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "etapes",
+        "rows": 3,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_metier_salaires",
+        "label": "Salaire moyen par secteur",
+        "name": "metier_salaires",
+        "type": "textarea",
+        "instructions": "Une ligne par secteur « secteur | montant », secteurs : Cabinet libéral, Centre de santé, Laboratoire de prothèse, Hôpital ou centre universitaire. Montant vide : « Peu de postes ».",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "salaires",
+        "rows": 4,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_metier_source_salaires",
+        "label": "Source des salaires",
+        "name": "metier_source_salaires",
+        "type": "text",
+        "instructions": "Nom de l’étude et année, affichés sous les salaires.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "source_salaires"
+      },
+      {
+        "key": "field_dm_metier_evolutions",
+        "label": "Évolutions",
+        "name": "metier_evolutions",
+        "type": "textarea",
+        "instructions": "Trois lignes « titre | détail ».",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "evolutions",
+        "rows": 3,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_metier_sources",
+        "label": "Sources de la fiche",
+        "name": "metier_sources",
+        "type": "textarea",
+        "instructions": "Une source par ligne.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "sources",
+        "rows": 3,
+        "new_lines": ""
+      },
+      {
+        "key": "field_dm_metier_emploi",
+        "label": "Métier dans les pages Emploi",
+        "name": "metier_emploi",
+        "type": "text",
+        "instructions": "Slug du métier dans /emploi/, par exemple « assistant-dentaire ». Laisser vide s’il n’y a pas d’offres pour ce métier.",
+        "required": 0,
+        "show_in_graphql": 1,
+        "graphql_field_name": "emploi"
+      }
+    ],
+    "location": [
+      [
+        {
+          "param": "post_type",
+          "operator": "==",
+          "value": "conseil"
+        }
+      ]
+    ],
+    "menu_order": 10,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "active": true,
+    "description": "Champs des fiches de la rubrique Métiers des Ressources. Ne remplir que pour un conseil de catégorie « Métiers ».",
+    "show_in_rest": 1,
+    "show_in_graphql": 1,
+    "graphql_field_name": "metierFields",
+    "map_graphql_types_from_location_rules": 0
+  }
+]

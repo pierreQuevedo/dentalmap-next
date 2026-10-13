@@ -47,7 +47,7 @@ export type NavEntry = {
   links?: NavLink[]
 }
 
-export const CONSEIL_CATEGORIES = ['patients', 'praticiens', 'prothesistes'] as const
+export const CONSEIL_CATEGORIES = ['patients', 'praticiens', 'prothesistes', 'metiers'] as const
 export const ANNONCE_TYPES = ['cession', 'collaboration', 'remplacement', 'emploi'] as const
 export const FORMATION_TYPES = ['ecoles-de-prothese', 'facultes-odontologie', 'formations-privees'] as const
 
