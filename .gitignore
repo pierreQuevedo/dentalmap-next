@@ -51,3 +51,9 @@ next-env.d.ts
 # Worker MapLibre, copié depuis node_modules par scripts/copie-worker-maplibre.mjs.
 # Les styles de carte dentalmap-*.json, eux, sont versionnés.
 /public/maplibre/maplibre-gl-*.mjs
+
+# Certificat autosigné de `next dev --experimental-https`
+certificates/
+
+# Photos déposées en développement (sans Vercel Blob)
+/public/uploads/

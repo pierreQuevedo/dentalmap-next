@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
     ],
   },
   typedRoutes: true,
+  /*
+   * Hors Vercel Blob (développement sans jeton), le justificatif passe par
+   * l'action serveur : 10 Mo et la marge du multipart. En production il part
+   * directement du navigateur vers le stockage, voir `/api/espace-pro/justificatif/televerser/`.
+   */
+  experimental: { serverActions: { bodySizeLimit: '11mb' } },
   /**
    * Les URL de DentalMap se terminent par un slash, comme celles de l'ancien
    * site : `/dentistes/gironde/bordeaux/dr-martin-dupont/`. Sans ce réglage,
