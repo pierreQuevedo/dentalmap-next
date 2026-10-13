@@ -144,7 +144,7 @@ export function Adresse({
  * par zéro sont regroupés : tout autre format est rendu tel quel plutôt que
  * découpé au hasard.
  */
-function grouper(numero: string): string {
+export function grouper(numero: string): string {
   const chiffres = numero.replace(/\D/g, '')
   if (chiffres.length !== 10 || !chiffres.startsWith('0')) return numero
   return chiffres.replace(/(\d{2})(?=\d)/g, '$1 ').trim()
