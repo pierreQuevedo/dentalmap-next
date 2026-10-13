@@ -48,17 +48,23 @@ export type NavEntry = {
 }
 
 export const CONSEIL_CATEGORIES = ['patients', 'praticiens', 'prothesistes', 'metiers'] as const
-export const ANNONCE_TYPES = ['cession', 'collaboration', 'remplacement', 'emploi'] as const
+/**
+ * Les annonces ne portent plus que les cessions de cabinet. Collaborations,
+ * remplacements et emploi sont passés dans la rubrique Emploi : leurs
+ * anciennes adresses sont redirigées dans `next.config.ts`.
+ */
+export const ANNONCE_TYPES = ['cession'] as const
 export const FORMATION_TYPES = ['ecoles-de-prothese', 'facultes-odontologie', 'formations-privees'] as const
 
 export type ConseilCategorie = (typeof CONSEIL_CATEGORIES)[number]
 export type AnnonceType = (typeof ANNONCE_TYPES)[number]
 export type FormationType = (typeof FORMATION_TYPES)[number]
 
-export type NavIcon = 'map' | 'article' | 'mail' | 'school' | 'info'
+export type NavIcon = 'map' | 'briefcase' | 'article' | 'mail' | 'school' | 'info'
 
 export const mainNavIcons: Record<string, NavIcon> = {
   Annuaire: 'map',
+  Emploi: 'briefcase',
   Ressources: 'article',
   Annonces: 'mail',
   Formation: 'school',
@@ -117,17 +123,27 @@ export const mainNav: NavEntry[] = [
       { label: 'Pour les patients', href: '/conseils/patients' },
       { label: 'Pour les praticiens', href: '/conseils/praticiens' },
       { label: 'Pour les prothésistes', href: '/conseils/prothesistes' },
+      { label: 'Les métiers du dentaire', href: '/conseils/metiers' },
     ],
   },
   {
-    label: 'Annonces',
-    href: '/annonces',
+    label: 'Emploi',
+    href: '/emploi',
     links: [
-      { label: 'Toutes les annonces', href: '/annonces' },
+      { label: 'Toutes les offres', href: '/emploi' },
+      { label: 'Assistant(e) dentaire', href: '/emploi/assistant-dentaire' },
+      { label: 'Alternance et stages', href: '/emploi/alternance' },
+      { label: 'Remplacements et collaborations', href: '/emploi/remplacements' },
+      { label: 'Recruter', href: '/emploi/recruter' },
+    ],
+  },
+  {
+    // Les annonces ne portent plus que les cessions : l'onglet y mène directement.
+    label: 'Annonces',
+    href: '/annonces/cession',
+    links: [
       { label: 'Cessions de cabinet', href: '/annonces/cession' },
-      { label: 'Collaborations', href: '/annonces/collaboration' },
-      { label: 'Remplacements', href: '/annonces/remplacement' },
-      { label: 'Emploi', href: '/annonces/emploi' },
+      { label: 'Déposer une annonce', href: '/annonces/cession/deposer' },
     ],
   },
   {
@@ -174,7 +190,8 @@ export const footerCols: NavColumn[] = [
       { label: 'Revendiquer ma fiche', href: '/espace-pro/revendiquer' },
       { label: 'Espace pro', href: '/espace-pro' },
       { label: 'Créer un compte', href: '/connexion?mode=inscription' },
-      { label: 'Déposer une annonce', href: '/annonces' },
+      { label: 'Publier une offre d’emploi', href: '/emploi/recruter' },
+      { label: 'Déposer une annonce de cession', href: '/annonces/cession/deposer' },
       {
         label: 'DentalBridge, logiciel de gestion de cabinet',
         href: 'https://dentalbridge.fr',
@@ -190,6 +207,8 @@ export const footerCols: NavColumn[] = [
       { label: 'Notre méthode de vérification', href: '/a-propos#methode' },
       { label: 'Devenir partenaire', href: '/partenaires' },
       { label: 'Ressources', href: '/conseils' },
+      { label: 'Emploi', href: '/emploi' },
+      { label: 'Cessions de cabinet', href: '/annonces/cession' },
       { label: 'Formation', href: '/formation' },
     ],
   },
@@ -212,8 +231,10 @@ export const exploreStatic: ExplorePanel = {
     { title: 'Pour les patients', sub: 'Choisir, comprendre, préparer', href: '/conseils/patients' },
     { title: 'Pour les praticiens', sub: 'Installation, réglementation', href: '/conseils/praticiens' },
     { title: 'Pour les prothésistes', sub: 'Laboratoire, normes, matériaux', href: '/conseils/prothesistes' },
+    { title: 'Les métiers du dentaire', sub: 'Missions, formation, salaire', href: '/conseils/metiers' },
     { title: 'Questions fréquentes', sub: 'Vérification, données, fiches', href: '/faq' },
-    { title: 'Annonces', sub: 'Cessions, remplacements, emploi', href: '/annonces' },
+    { title: 'Emploi', sub: 'Offres, alternance, remplacements', href: '/emploi' },
+    { title: 'Cessions de cabinet', sub: 'Reprendre ou céder un cabinet', href: '/annonces/cession' },
     { title: 'Devenir partenaire', sub: 'Institutions, écoles, éditeurs', href: '/partenaires' },
   ],
 }

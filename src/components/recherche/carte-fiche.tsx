@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Adresse, BadgeGeree, Verification } from '@/components/annuaire/primitives'
+import { Adresse, BadgeGeree, BadgeRecrute, Verification } from '@/components/annuaire/primitives'
 import { Skeleton } from '@/components/ui/skeleton'
 import { chemin } from '@/lib/navigation'
 import { clePosition } from '@/lib/annuaire/emprise'
@@ -148,7 +148,17 @@ function CarteDentiste({ praticien: p, base, profession, photo, actif, onSurvol,
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-bg-soft from-30% via-bg-soft/88 via-56% to-transparent transition-[height] duration-slow ease-lift group-hover:h-[30%] group-data-[actif=true]:h-[30%] motion-reduce:transition-none dark:from-25% dark:via-bg-soft/45 dark:via-62%" />
       </div>
 
-      {p.revendiquee && <BadgeGeree profession={profession} className="absolute left-3 top-3 z-10" />}
+      {/*
+        Pastilles en haut à gauche : « Gérée » puis « Recrute ». Seul un
+        professionnel qui gère sa fiche peut publier une offre, la seconde ne
+        vient donc jamais seule en pratique.
+      */}
+      {(p.revendiquee || p.recrute) && (
+        <div className="absolute left-3 right-3 top-3 z-10 flex flex-wrap gap-1.5">
+          {p.revendiquee && <BadgeGeree profession={profession} />}
+          {p.recrute && <BadgeRecrute profession={profession} />}
+        </div>
+      )}
 
       {/*
         Ce bloc reste dans le flux, sans `relative` : les couches d'image
@@ -220,7 +230,12 @@ function CarteLaboratoire({ praticien: p, base, profession, photo, actif, onSurv
           sizes="(min-width: 1280px) 24rem, 90vw"
           className="object-cover transition-transform duration-slow ease-lift group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100 dark:brightness-[0.42]"
         />
-        {p.revendiquee && <BadgeGeree profession={profession} className="absolute left-3 top-3" />}
+        {(p.revendiquee || p.recrute) && (
+          <div className="absolute left-3 right-3 top-3 flex flex-wrap gap-1.5">
+            {p.revendiquee && <BadgeGeree profession={profession} />}
+            {p.recrute && <BadgeRecrute profession={profession} />}
+          </div>
+        )}
       </div>
 
       <div className="p-4">

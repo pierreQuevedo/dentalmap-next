@@ -6,7 +6,6 @@ import { FilAriane } from '@/components/annuaire/primitives'
 import { LABO as L } from './_donnees'
 import { BarreMobile, Photo, Registre, Titre2 } from './_blocs'
 import { SectionDelais } from './_delais'
-import { BadgeRecrute, SectionRecrute, type OffreResume } from './_recrute'
 
 const ARIANE = [
   { libelle: 'Accueil', href: '/' },
@@ -91,13 +90,7 @@ function SectionLabo() {
   )
 }
 
-/**
- * `recrute` : offres en ligne du laboratoire. Absente ou vide, la fiche est
- * celle validée en B2. La pastille est informative : elle ne touche ni au tri
- * des résultats ni à la mise en avant de la fiche.
- */
-export function FicheLabo({ recrute }: { recrute?: OffreResume[] } = {}) {
-  const recrutement = recrute && recrute.length > 0
+export function FicheLabo() {
   return (
     <>
       <section className="dark relative -mt-20 overflow-hidden bg-background pt-20 text-fg">
@@ -120,7 +113,6 @@ export function FicheLabo({ recrute }: { recrute?: OffreResume[] } = {}) {
               <span className="squircle-full bg-white/10 px-3 py-1 text-sm text-white ring-1 ring-inset ring-white/15">{L.profession}</span>
               <Ansm sombre />
               <Gere sombre />
-              {recrutement && <BadgeRecrute sombre />}
             </div>
             <h1 className="mt-5 text-5xl font-normal tracking-tight text-white md:text-6xl">{L.nom}</h1>
             <p className="mt-3 text-lg text-white/75">
@@ -156,15 +148,6 @@ export function FicheLabo({ recrute }: { recrute?: OffreResume[] } = {}) {
           <Registre lignes={L.registre} />
         </div>
       </section>
-
-      {recrutement && (
-        <SectionRecrute
-          titre="Ce laboratoire recrute"
-          sous="Offres publiées par le laboratoire, dont l’identité a été vérifiée auprès des registres officiels."
-          offres={recrute}
-          lien={{ href: '/emploi/prothesiste-dentaire/gironde/merignac/', libelle: 'Voir les offres de prothésiste à Mérignac' }}
-        />
-      )}
     </>
   )
 }

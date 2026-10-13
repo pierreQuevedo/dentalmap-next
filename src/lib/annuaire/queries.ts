@@ -25,6 +25,7 @@ import type { BaseUrl, Praticien, PraticienResume, Profession } from './types'
 import { BASE_URL, PROFESSION_PAR_BASE } from './types'
 import type { FicheCompletee } from '@/lib/espace-pro/fiche-completee'
 import { COLONNES_FICHE, ficheDepuisLigne, type LigneFiche } from '@/lib/espace-pro/fiche-lecture'
+import { marquerRecruteurs } from './recrutement'
 
 /**
  * Clé de tri alphabétique.
@@ -1123,12 +1124,14 @@ export async function getPraticiensDansEmprise(
   `)
 
   const total = rows[0]?.total ?? 0
+  // La pastille « Recrute » est posée après le tri et la pagination : elle ne
+  // change ni l'ordre ni le contenu de la page.
   return {
     total,
     page: Math.max(1, page),
     pages: Math.max(1, Math.ceil(total / parPage)),
     plafonne: total >= PLAFOND,
-    resultats: rows.map((r) => ({
+    resultats: await marquerRecruteurs(rows.map((r) => ({
       slug: r.slug,
       civilite: r.civilite,
       nom: r.nom,
@@ -1147,7 +1150,7 @@ export async function getPraticiensDansEmprise(
       lon: r.lon,
       lat: r.lat,
       metres: r.metres,
-    })),
+    }))),
   }
 }
 

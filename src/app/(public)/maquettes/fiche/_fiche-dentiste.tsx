@@ -12,7 +12,6 @@ import { empriseAutour, clePosition } from '@/lib/annuaire/emprise'
 import { FilAriane } from '@/components/annuaire/primitives'
 import { DENTISTE as D } from './_donnees'
 import { Actions, BarreMobile, Declare, Etiquette, HorairesListe, LienSite, Photo, Registre, Semaine, Statut, Titre2 } from './_blocs'
-import { BadgeRecrute, SectionRecrute, type OffreResume } from './_recrute'
 
 const ARIANE = [
   { libelle: 'Accueil', href: '/' },
@@ -75,13 +74,7 @@ function SectionCabinet() {
   )
 }
 
-/**
- * `recrute` : offres en ligne du cabinet. Absente ou vide, la fiche est celle
- * validée en B1, sans pastille ni section. La pastille est informative : elle
- * ne touche ni au tri des résultats ni à la mise en avant de la fiche.
- */
-export function FicheDentiste({ recrute }: { recrute?: OffreResume[] } = {}) {
-  const recrutement = recrute && recrute.length > 0
+export function FicheDentiste() {
   return (
     <>
       <section className="dark relative -mt-20 overflow-hidden bg-background pt-20 text-fg">
@@ -109,7 +102,6 @@ export function FicheDentiste({ recrute }: { recrute?: OffreResume[] } = {}) {
               <span className="squircle-full inline-flex items-center gap-1.5 bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white ring-1 ring-inset ring-white/15">
                 <BadgeCheck className="size-3.5 text-teal" aria-hidden /> Fiche gérée par le praticien
               </span>
-              {recrutement && <BadgeRecrute sombre />}
             </div>
             <div className="mt-8">
               <Actions sombre />
@@ -178,15 +170,6 @@ export function FicheDentiste({ recrute }: { recrute?: OffreResume[] } = {}) {
           </div>
         </div>
       </section>
-
-      {recrutement && (
-        <SectionRecrute
-          titre="Ce cabinet recrute"
-          sous="Offres publiées par le cabinet, dont l’identité a été vérifiée auprès des registres officiels."
-          offres={recrute}
-          lien={{ href: '/emploi/assistant-dentaire/gironde/bordeaux/', libelle: 'Voir les offres d’assistant(e) dentaire à Bordeaux' }}
-        />
-      )}
     </>
   )
 }

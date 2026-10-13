@@ -7,6 +7,7 @@ import {
   type EntreeSitemap,
 } from '@/lib/annuaire/queries'
 import { url } from '@/lib/seo/site'
+import { CONSEIL_CATEGORIES } from '@/lib/navigation'
 
 /**
  * Tranches de sitemap.
@@ -15,7 +16,27 @@ import { url } from '@/lib/seo/site'
  * nommage de Next produit `/sitemap/0.xml`, qui n'apprend rien à qui lit le
  * fichier. `/sitemap/dentistes-0.xml` se comprend seul dans la Search Console.
  */
-const PAGES_FIXES = ['/', ...PROFESSIONS.map((p) => `/${BASE_URL[p]}/`)]
+const PAGES_FIXES = [
+  '/',
+  ...PROFESSIONS.map((p) => `/${BASE_URL[p]}/`),
+  // Vitrine. Seules les pages indexables : les pages d'attente portent
+  // `noindex` et restent hors sitemap jusqu'à leur ouverture.
+  '/a-propos/',
+  '/faq/',
+  '/partenaires/',
+  '/contact/',
+  '/plan-du-site/',
+  '/mentions-legales/',
+  '/cgu/',
+  '/confidentialite/',
+  // Ressources et leurs rubriques, dont Métiers.
+  '/conseils/',
+  ...CONSEIL_CATEGORIES.map((c) => `/conseils/${c}/`),
+  // Formation : l'accueil et les deux rubriques ouvertes.
+  '/formation/',
+  '/formation/ecoles-de-prothese/',
+  '/formation/facultes-odontologie/',
+]
 
 function xml(entrees: EntreeSitemap[]): string {
   const corps = entrees

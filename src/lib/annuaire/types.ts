@@ -129,6 +129,12 @@ export type PraticienResume = {
   precisionPosition: PrecisionPosition | null
   lon: number | null
   lat: number | null
+  /**
+   * Au moins une offre d'emploi en ligne. Information seulement : posée après
+   * le tri, elle n'entre jamais dans le classement. Absente quand la liste ne
+   * la calcule pas.
+   */
+  recrute?: boolean
 }
 
 /**

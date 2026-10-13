@@ -23,10 +23,10 @@ import { getDepartementsAvecPraticiens } from '@/lib/annuaire/queries'
 import { getAccesRapide } from '@/lib/annuaire/acces-rapide'
 
 /**
- * `aVenir` : la page est conçue mais sa route n'existe pas encore (Emploi,
- * Annonces de cession, rubrique Métiers des Ressources). Le lien reste dans la
- * donnée et s'affichera dès que la route existera : il suffira de retirer le
- * drapeau. En attendant, il est filtré à l'affichage pour ne mener à aucune 404.
+ * `aVenir` : la page est conçue mais sa route n'existe pas encore. Le lien
+ * reste dans la donnée et s'affichera dès que la route existera : il suffira
+ * de retirer le drapeau. En attendant, il est filtré à l'affichage pour ne
+ * mener à aucune 404.
  */
 type Lien = { libelle: string; href: string; aVenir?: boolean }
 type Rubrique = { titre: string; icone: typeof MapPin; liens: Lien[] }
@@ -68,24 +68,22 @@ const RUBRIQUES: Rubrique[] = [
     ],
   },
   {
-    // Rubrique conçue, routes à créer.
     titre: 'Emploi',
     icone: Briefcase,
     liens: [
-      { libelle: 'Toutes les offres', href: '/emploi/', aVenir: true },
-      { libelle: 'Assistant(e) dentaire', href: '/emploi/assistant-dentaire/', aVenir: true },
-      { libelle: 'Alternance et stages', href: '/emploi/alternance/', aVenir: true },
-      { libelle: 'Remplacements et collaborations', href: '/emploi/remplacements/', aVenir: true },
-      { libelle: 'Recruter', href: '/emploi/recruter/', aVenir: true },
+      { libelle: 'Toutes les offres', href: '/emploi/' },
+      { libelle: 'Assistant(e) dentaire', href: '/emploi/assistant-dentaire/' },
+      { libelle: 'Alternance et stages', href: '/emploi/alternance/' },
+      { libelle: 'Remplacements et collaborations', href: '/emploi/remplacements/' },
+      { libelle: 'Recruter', href: '/emploi/recruter/' },
     ],
   },
   {
-    // Rubrique conçue, contenu WordPress, routes à créer.
     titre: 'Annonces',
     icone: Tag,
     liens: [
-      { libelle: 'Cessions de cabinet', href: '/annonces/cession/', aVenir: true },
-      { libelle: 'Déposer une annonce', href: '/annonces/', aVenir: true },
+      { libelle: 'Cessions de cabinet', href: '/annonces/cession/' },
+      { libelle: 'Déposer une annonce', href: '/annonces/cession/deposer/' },
     ],
   },
   {
@@ -282,7 +280,7 @@ export function PlanDuSite() {
           <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-muted" aria-hidden />}>
             <Villes />
           </Suspense>
-          {/* Une rubrique dont aucun lien n'a encore de route (Emploi, Annonces) n'est pas affichée. */}
+          {/* Une rubrique dont aucun lien n'a encore de route n'est pas affichée. */}
           {RUBRIQUES.slice(1)
             .filter((r) => visibles(r.liens).length > 0)
             .map((r) => (

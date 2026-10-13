@@ -11,6 +11,7 @@ import {
 } from '@/lib/annuaire/queries'
 import { LIBELLE, compte, majuscule } from '@/lib/annuaire/libelles'
 import { BASE_URL, type Profession } from '@/lib/annuaire/types'
+import { marquerRecruteurs } from '@/lib/annuaire/recrutement'
 import { MiseEnPageRecherche } from '@/components/recherche/mise-en-page'
 import { chemin, FilAriane } from './primitives'
 import { Balisage, filAriane } from '@/lib/seo/jsonld'
@@ -92,6 +93,8 @@ export async function PageCommune({
   ])
   const pages = Math.max(1, Math.ceil(total / PAR_PAGE))
   if (page > pages) notFound()
+  // Pastille « Recrute » posée sur la page déjà triée : l'ordre ne bouge pas.
+  const resultats = await marquerRecruteurs(liste)
 
   const pluriel = majuscule(l.pluriel)
   const segments = [
@@ -108,7 +111,7 @@ export async function PageCommune({
         cle={`${base}:${c.codeInsee}:${page}`}
         base={base}
         emprise={emprise}
-        initial={{ total, page, pages, plafonne: false, resultats: liste }}
+        initial={{ total, page, pages, plafonne: false, resultats }}
         mode="territoire"
         territoire={{ libelle: `à ${c.nom}`, classement: 'alphabetique' }}
         valeurLieu={c.nom}

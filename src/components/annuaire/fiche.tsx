@@ -45,6 +45,8 @@ import { basculerFavori } from '@/lib/tunnel/actions'
 import { estFavori, getCompte } from '@/lib/tunnel/compte'
 import { Adresse, BadgeGeree, chemin, FilAriane, Verification } from './primitives'
 import { TelephoneProtege } from './telephone-protege'
+import { BadgeRecruteFiche, SectionRecrute } from './recrutement'
+import { getOffresEnLigne } from '@/lib/annuaire/recrutement'
 import { Balisage, fichePraticien, filAriane } from '@/lib/seo/jsonld'
 
 type Params = { departement: string; commune: string; slug: string }
@@ -125,10 +127,12 @@ export async function PageFiche({ profession, params }: { profession: Profession
   const situe = principal?.lon != null && principal.lat != null && !principal.approximative
   const personne = estPersonne(profession)
 
-  const [completee, compte, voisins] = await Promise.all([
+  const [completee, compte, voisins, offres] = await Promise.all([
     getFicheCompletee(slug),
     getCompte(),
     situe ? getPraticiensProches(profession, principal.lon!, principal.lat!, RAYON_VOISINS, 4) : Promise.resolve([]),
+    // Offres d'emploi en ligne : pastille « Recrute » et section en fin de fiche.
+    getOffresEnLigne(p.id, slug),
   ])
   const geree = completee !== null
   const favori = compte ? await estFavori(compte.id, slug) : false
@@ -184,6 +188,7 @@ export async function PageFiche({ profession, params }: { profession: Profession
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <Verification statut={p.statutVerification} />
                 {geree && <BadgeGeree profession={profession} className="ring-1 ring-inset ring-line" />}
+                {offres.length > 0 && <BadgeRecruteFiche />}
                 {p.modeExercice && <Etiquette>{MODE_EXERCICE[p.modeExercice] ?? p.modeExercice}</Etiquette>}
                 {etudiant && <Etiquette accent>Inscrit comme étudiant au registre</Etiquette>}
                 {radie && <Etiquette accent>Ne figure plus au registre</Etiquette>}
@@ -408,6 +413,9 @@ export async function PageFiche({ profession, params }: { profession: Profession
             <Voisins praticiens={proches} base={base} profession={profession} />
           </section>
         )}
+
+        {/* Après tout ce qui sert le patient : les offres de la structure, s'il y en a. */}
+        <SectionRecrute offres={offres} recruteur={nom} labo={!personne} />
       </div>
     </>
   )

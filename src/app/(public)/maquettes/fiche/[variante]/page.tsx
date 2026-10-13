@@ -9,18 +9,14 @@ import { FicheDentiste } from '../_fiche-dentiste'
 import { FicheLabo } from '../_fiche-labo'
 import { FicheEtablissement } from '../_fiche-etablissement'
 import { FicheFaculte } from '../_fiche-faculte'
-import { OFFRES_DENTISTE, OFFRES_LABO } from '../_recrute'
 
 export const metadata: Metadata = { title: 'Maquette', robots: { index: false, follow: false } }
 
-/** `*-recrute` : la même fiche, avec la pastille « Recrute » et la section d'offres. */
 const VARIANTES: Record<string, () => React.ReactNode> = {
-  dentiste: () => <FicheDentiste />,
-  labo: () => <FicheLabo />,
+  dentiste: FicheDentiste,
+  labo: FicheLabo,
   etablissement: FicheEtablissement,
   faculte: FicheFaculte,
-  'dentiste-recrute': () => <FicheDentiste recrute={OFFRES_DENTISTE} />,
-  'labo-recrute': () => <FicheLabo recrute={OFFRES_LABO} />,
 }
 
 export function generateStaticParams() {

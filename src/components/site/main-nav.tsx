@@ -20,6 +20,8 @@ const DELAI_FERMETURE = 180
 
 function estActif(entry: NavEntry, pathname: string) {
   if (entry.label === 'Annuaire') return PREFIXES_ANNUAIRE.some((p) => pathname.startsWith(p))
+  // L'onglet Annonces mène aux cessions, mais reste souligné sur toute la rubrique.
+  if (entry.label === 'Annonces') return pathname === '/annonces' || pathname.startsWith('/annonces/')
   return pathname === entry.href || pathname.startsWith(`${entry.href}/`)
 }
 

@@ -33,6 +33,24 @@ const nextConfig: NextConfig = {
    * inclure le slash final.
    */
   trailingSlash: true,
+  /**
+   * Anciennes rubriques d'annonces, passées dans Emploi. Les annonces ne
+   * portent plus que les cessions de cabinet (`ANNONCE_TYPES`).
+   *
+   * `:reste*` couvre la page de rubrique comme ses annonces : les anciennes
+   * annonces n'ont pas d'équivalent une à une, elles mènent à la liste la plus
+   * proche. Les collaborations rejoignent les remplacements, page
+   * « Remplacements et collaborations » de la rubrique Emploi. Avec
+   * `trailingSlash`, Next ajoute le slash final avant d'appliquer la règle :
+   * la destination l'écrit pour éviter une seconde redirection.
+   */
+  async redirects() {
+    return [
+      { source: '/annonces/collaboration/:reste*', destination: '/emploi/remplacements/', permanent: true },
+      { source: '/annonces/remplacement/:reste*', destination: '/emploi/remplacements/', permanent: true },
+      { source: '/annonces/emploi/:reste*', destination: '/emploi/', permanent: true },
+    ]
+  },
 }
 
 export default nextConfig
