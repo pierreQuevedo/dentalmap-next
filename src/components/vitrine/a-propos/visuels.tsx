@@ -1,14 +1,18 @@
 /**
- * MAQUETTE, à supprimer après arbitrage. Sections visuelles partagées par les
- * variantes d et e : bento des chiffres, visuels des étapes, schéma du tri,
- * données, FAQ centrée et appel final en image. Les chiffres sont ceux de
- * l'accueil, lus sur la base ; les fiches sont les cartes d'exemple du héros.
+ * Sections visuelles de la page « Le projet DentalMap » : bento des chiffres,
+ * visuels des étapes de la méthode, schéma du tri, données, FAQ centrée et
+ * appel final en image. Les chiffres et la date de synchronisation sont ceux
+ * de l'accueil, lus sur la base ; les fiches sont les cartes d'exemple du héros
+ * de l'accueil.
  */
+import { Suspense } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { ArrowRight, BadgeCheck, Flag, Landmark, Lock, Mail, PenLine, RefreshCw, ShieldCheck, Users } from 'lucide-react'
 import { FicheDentisteExemple } from '@/components/home/fiches-exemple'
-import { Bouton, FaqListe, LienFleche, lireChiffres } from './_blocs'
-import { LIENS, type Etape } from './_contenu'
+import { chemin } from '@/lib/navigation'
+import { Bouton, FaqListe, LienFleche, lireChiffres, lireDerniereSynchro } from './blocs'
+import { LIENS, type Etape } from './contenu'
 
 export function Photo({ src, className = '', sizes = '(min-width: 1024px) 50vw, 100vw', voile }: { src: string; className?: string; sizes?: string; voile?: boolean }) {
   return (
@@ -95,6 +99,13 @@ export async function BentoChiffres() {
   )
 }
 
+/** Date réelle du dernier passage de synchronisation ; rien tant qu'aucun passage n'est terminé. */
+async function DerniereVerification() {
+  const date = await lireDerniereSynchro()
+  if (!date) return null
+  return <p className="text-xs text-[#0e1317]/60">Dernière vérification le {date}</p>
+}
+
 /** Le visuel de chaque étape de la méthode. */
 export function VisuelEtape({ visuel, className = '' }: { visuel: Etape['visuel']; className?: string }) {
   switch (visuel) {
@@ -110,7 +121,7 @@ export function VisuelEtape({ visuel, className = '' }: { visuel: Etape['visuel'
           <FicheReduite className="absolute right-4 top-1/2 origin-right -translate-y-1/2 md:right-10" echelle="scale-[0.42] md:scale-[0.58]" />
         </div>
       )
-    case 'semaine':
+    case 'synchro':
       return (
         <div className={`relative overflow-hidden ${className}`}>
           <Photo src="/images/demo/pexels-6627447.jpg" className="absolute inset-0" />
@@ -123,7 +134,9 @@ export function VisuelEtape({ visuel, className = '' }: { visuel: Etape['visuel'
                 </span>
                 <div>
                   <p className="text-sm font-semibold">Vérifié auprès des registres officiels</p>
-                  <p className="text-xs text-[#0e1317]/60">Dernière vérification le 13 octobre 2026</p>
+                  <Suspense fallback={null}>
+                    <DerniereVerification />
+                  </Suspense>
                 </div>
               </div>
             </div>
@@ -177,7 +190,7 @@ export function VisuelEtape({ visuel, className = '' }: { visuel: Etape['visuel'
             <p className="text-xs font-semibold uppercase tracking-wide text-[#0e1317]/60">Horaires</p>
             <p className="mt-1 text-sm">Renseigné par le praticien</p>
             <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-teal">
-              <PenLine className="size-3.5" aria-hidden /> Confirmé le 2 octobre 2026
+              <PenLine className="size-3.5" aria-hidden /> Date de confirmation affichée
             </p>
           </div>
         </div>
@@ -311,7 +324,7 @@ export function Fin() {
           { titre: 'Nous contacter', texte: 'Une personne vous répond.', href: LIENS.contact, icone: Mail },
           { titre: 'Devenir partenaire', texte: 'Institutions, écoles, éditeurs.', href: LIENS.partenaires, icone: Users },
         ].map((c) => (
-          <a key={c.titre} href={c.href} className="squircle-2xl group flex items-center gap-4 border border-line bg-bg-soft p-5 hover:bg-bg">
+          <Link key={c.titre} href={chemin(c.href)} className="squircle-2xl group flex items-center gap-4 border border-line bg-bg-soft p-5 hover:bg-bg">
             <span className="squircle-lg grid size-11 shrink-0 place-items-center bg-teal/10 text-teal">
               <c.icone className="size-5" aria-hidden />
             </span>
@@ -320,7 +333,7 @@ export function Fin() {
               <span className="block text-sm text-fg-2">{c.texte}</span>
             </span>
             <ArrowRight className="size-5 text-fg-2 transition-transform group-hover:translate-x-0.5" aria-hidden />
-          </a>
+          </Link>
         ))}
       </div>
     </section>

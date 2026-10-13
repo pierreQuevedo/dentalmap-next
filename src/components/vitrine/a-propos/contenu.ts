@@ -1,18 +1,18 @@
 /**
- * MAQUETTE, à supprimer après arbitrage. Textes courts des variantes d et e
- * de la page « Le projet DentalMap ». Chaque phrase reprend une règle écrite
+ * Textes courts de la page « Le projet DentalMap ». Chaque phrase reprend une règle écrite
  * dans `docs/handoff/00-contexte-et-decisions.md`, `03-gamification.md`,
  * `06-annexe-informations-et-poids.md`, `docs/pro-sante-connect.md` ou la
  * copie de l'accueil (`HomeStats`, `HomeProcess`). Aucun chiffre en dur.
  */
 
+/** Liens internes de la page, sans slash final comme dans `@/lib/navigation`. */
 export const LIENS = {
-  faq: '/faq/',
-  contact: '/contact/',
-  partenaires: '/partenaires/',
-  erreur: '/contact/?objet=erreur-fiche',
-  revendiquer: '/espace-pro/revendiquer/',
-  donnees: '/confidentialite/',
+  faq: '/faq',
+  contact: '/contact',
+  partenaires: '/partenaires',
+  erreur: '/contact?objet=erreur-fiche',
+  revendiquer: '/espace-pro/revendiquer',
+  donnees: '/confidentialite',
 }
 
 /** Bande défilante : registres et métiers. */
@@ -31,7 +31,7 @@ export const DEFILE = [
   'Facultés d’odontologie',
 ]
 
-export type Etape = { titre: string; texte: string; visuel: 'registre' | 'semaine' | 'separe' | 'identite' | 'date' }
+export type Etape = { titre: string; texte: string; visuel: 'registre' | 'synchro' | 'separe' | 'identite' | 'date' }
 
 /** Les cinq étapes de la méthode, une phrase chacune. */
 export const ETAPES: Etape[] = [
@@ -43,7 +43,7 @@ export const ETAPES: Etape[] = [
   {
     titre: 'Rapprochée chaque jour',
     texte: 'Les registres sont resynchronisés chaque jour, et la date du dernier passage est affichée telle quelle.',
-    visuel: 'semaine',
+    visuel: 'synchro',
   },
   {
     titre: 'Le registre ne se modifie pas',

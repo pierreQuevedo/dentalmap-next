@@ -1,10 +1,10 @@
 'use client'
 
-/** MAQUETTE. Revendication par profil : onglets, l'image et les méthodes changent avec le profil. */
+/** Revendication par profil : onglets, l'image et les méthodes changent avec le profil. */
 import { useState } from 'react'
 import Image from 'next/image'
 import { Check } from 'lucide-react'
-import { PROFILS } from './_contenu'
+import { PROFILS } from './contenu'
 
 export function OngletsProfils() {
   const [actif, setActif] = useState(PROFILS[0]!.cle)

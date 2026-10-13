@@ -1,12 +1,27 @@
 /**
- * MAQUETTE. Héros retenu pour la page À propos (12 octobre 2026) : titre
- * géant en deux tons à gauche, mosaïque de photos décalées à droite. Sombre,
- * il passe sous l'en-tête transparent (`-mt-20 pt-20`, comme l'accueil).
+ * Héros de la page « Le projet DentalMap » : titre géant en deux tons à
+ * gauche, mosaïque de photos décalées à droite. Sombre, il passe sous
+ * l'en-tête transparent (`-mt-20 pt-20`, comme l'accueil).
  */
 import Image from 'next/image'
-import { Surtitre } from './_blocs'
-import { BoutonsHero } from './_variante-e'
-import { Pastille } from './_visuels'
+import { ArrowRight } from 'lucide-react'
+import { Bouton, Surtitre } from './blocs'
+import { LIENS } from './contenu'
+import { Pastille } from './visuels'
+
+/** Les deux boutons du héros : la méthode, plus bas sur la page, et la revendication. */
+function BoutonsHero() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Bouton href="#methode" ton="brand">
+        Notre méthode de vérification <ArrowRight className="size-4" aria-hidden />
+      </Bouton>
+      <Bouton href={LIENS.revendiquer} ton="secondaire" sombre>
+        Revendiquer ma fiche
+      </Bouton>
+    </div>
+  )
+}
 
 function Tuile({ src, className = '', sizes = '25vw', children }: { src: string; className?: string; sizes?: string; children?: React.ReactNode }) {
   return (

@@ -1,7 +1,12 @@
-import { PageEnAttente, metadonneesEnAttente } from '@/components/site/page-en-attente'
+import type { Metadata } from 'next'
+import { PageFaq } from '@/components/vitrine/faq/page-faq'
 
-export const metadata = metadonneesEnAttente('Questions fréquentes', 'Vérification des fiches, données, revendication.')
+export const metadata: Metadata = {
+  title: 'Questions fréquentes',
+  description: 'Origine des fiches, vérification par les registres officiels, classement, revendication, emploi et données personnelles : les réponses courtes.',
+  alternates: { canonical: '/faq/' },
+}
 
 export default function Page() {
-  return <PageEnAttente titre="Questions fréquentes" resume="Vérification des fiches, données, revendication." />
+  return <PageFaq />
 }

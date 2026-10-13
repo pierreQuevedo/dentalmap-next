@@ -1,12 +1,13 @@
 /**
- * MAQUETTE, à supprimer une fois la page FAQ codée. Questions d'exemple,
- * dans la forme du type de contenu `faq` de WordPress (question, réponse,
- * ordre), avec une catégorie en plus, à créer côté WordPress.
+ * Questions de la page `/faq/`, rangées par catégorie. Elles ont la forme du
+ * type de contenu `faq` de WordPress (question, réponse, ordre) plus une
+ * catégorie, que WordPress ne porte pas encore : tant que ce champ n'existe
+ * pas, la liste vit ici plutôt que dans `getFaq()`.
  *
  * Chaque réponse reprend une règle déjà écrite : `docs/handoff/00-contexte-et-decisions.md`,
  * `03-gamification.md`, `06-annexe-informations-et-poids.md`,
  * `docs/pro-sante-connect.md`, la copie de l'accueil (`HomeStats`,
- * `HomeProcess`), la page Favoris et la maquette Emploi. Aucun chiffre en dur.
+ * `HomeProcess`), la page Favoris et les annonces d'emploi. Aucun chiffre en dur.
  */
 import { faqPage } from '@/lib/seo/jsonld'
 
@@ -22,7 +23,6 @@ export type Categorie = {
   slug: string
   titre: string
   pour: string
-  image: string
   questions: Question[]
 }
 
@@ -31,7 +31,6 @@ export const CATEGORIES: Categorie[] = [
     slug: 'trouver',
     titre: 'Trouver un professionnel',
     pour: 'Pour les patients',
-    image: '/images/demo/pexels-3881296.jpg',
     questions: [
       {
         ordre: 1,
@@ -73,7 +72,6 @@ export const CATEGORIES: Categorie[] = [
     slug: 'fiches',
     titre: 'Les fiches et leur vérification',
     pour: 'Pour tous',
-    image: '/images/demo/pexels-6627447.jpg',
     questions: [
       {
         ordre: 1,
@@ -85,7 +83,7 @@ export const CATEGORIES: Categorie[] = [
         question: 'Une information est fausse : que faire ?',
         reponse:
           'Signalez-la depuis la fiche ou le formulaire de contact, sans créer de compte. Quand la correction dépend d’un registre officiel, nous l’indiquons publiquement.',
-        lien: { texte: 'Signaler une erreur sur une fiche', href: '/contact/?objet=erreur-fiche' },
+        lien: { texte: 'Signaler une erreur sur une fiche', href: '/contact?objet=erreur-fiche' },
       },
       {
         ordre: 3,
@@ -110,14 +108,13 @@ export const CATEGORIES: Categorie[] = [
     slug: 'professionnels',
     titre: 'Professionnels',
     pour: 'Praticiens, laboratoires, établissements',
-    image: '/images/demo/pexels-6627471.jpg',
     questions: [
       {
         ordre: 1,
         question: 'Comment revendiquer ma fiche ?',
         reponse:
           'Avec Pro Santé Connect (carte CPS ou e-CPS), en une minute. Sans carte, l’équipe vérifie votre identité avec vous. Bientôt, la carte d’identité par l’application France Identité. Aucun document ne vous est demandé.',
-        lien: { texte: 'Revendiquer ma fiche', href: '/espace-pro/revendiquer/' },
+        lien: { texte: 'Revendiquer ma fiche', href: '/espace-pro/revendiquer' },
       },
       {
         ordre: 2,
@@ -153,7 +150,6 @@ export const CATEGORIES: Categorie[] = [
     slug: 'emploi',
     titre: 'Emploi',
     pour: 'Candidats et recruteurs',
-    image: '/images/demo/pexels-19879741.jpg',
     questions: [
       {
         ordre: 1,
@@ -186,7 +182,6 @@ export const CATEGORIES: Categorie[] = [
     slug: 'donnees',
     titre: 'Données personnelles',
     pour: 'Pour tous',
-    image: '/images/demo/pexels-6627325.jpg',
     questions: [
       {
         ordre: 1,
@@ -202,7 +197,7 @@ export const CATEGORIES: Categorie[] = [
         ordre: 3,
         question: 'Comment accéder à mes données ou les faire supprimer ?',
         reponse: 'Les démarches sont décrites dans notre politique de confidentialité. Vous pouvez aussi nous écrire depuis le formulaire de contact.',
-        lien: { texte: 'Vos données personnelles', href: '/confidentialite/' },
+        lien: { texte: 'Vos données personnelles', href: '/confidentialite' },
       },
     ],
   },

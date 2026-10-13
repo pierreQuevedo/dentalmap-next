@@ -1,17 +1,17 @@
 /**
- * MAQUETTE E, contrastée, retenue : héros titre et mosaïque (voir `_heros-e`),
- * bande défilante, bento clair, méthode en
- * tuiles sur fond sombre, revendication en onglets par profil sur fond clair,
- * neutralité sombre, données, FAQ et appel final en image.
+ * Page « Le projet DentalMap », contrastée : héros titre et mosaïque (voir
+ * `heros`), bande défilante, bento clair des chiffres, méthode en tuiles sur
+ * fond sombre (ancre `#methode`), revendication en onglets par profil sur
+ * fond clair, neutralité sombre, données, FAQ et appel final en image.
  */
 import { Suspense } from 'react'
-import { ArrowRight } from 'lucide-react'
 import { HeaderTransparent } from '@/components/home/HeaderTransparent'
-import { Bouton, Surtitre } from './_blocs'
-import { ETAPES, LIENS } from './_contenu'
-import { Defile } from './_defile'
-import { OngletsProfils } from './_onglets'
-import { BentoChiffres, Donnees, FaqCentree, Fin, Neutralite, VisuelEtape } from './_visuels'
+import { Surtitre } from './blocs'
+import { ETAPES } from './contenu'
+import { Defile } from './defile'
+import { HeroMosaique } from './heros'
+import { OngletsProfils } from './onglets'
+import { BentoChiffres, Donnees, FaqCentree, Fin, Neutralite, VisuelEtape } from './visuels'
 
 /** Disposition des cinq tuiles de la méthode : deux larges, trois étroites. */
 const TUILES = ['lg:col-span-2', '', '', 'lg:col-span-2', 'lg:col-span-3']
@@ -64,10 +64,12 @@ function Methode() {
   )
 }
 
-/** Tout ce qui suit le héros : commun à e et à ses variantes de héros e1 à e4. */
-export function CorpsE() {
+/** Le héros est sombre : en-tête transparent tant que la page est en haut. */
+export function PageAPropos() {
   return (
-    <>
+    <main>
+      <HeaderTransparent />
+      <HeroMosaique />
       <Defile />
       <section className="container py-20 md:py-24">
         <h2 className="mb-10 text-4xl font-semibold tracking-tight text-fg md:text-5xl">
@@ -83,32 +85,6 @@ export function CorpsE() {
       <Donnees />
       <FaqCentree />
       <Fin />
-    </>
-  )
-}
-
-/** Les deux boutons de tous les héros E. */
-export function BoutonsHero({ centre }: { centre?: boolean }) {
-  return (
-    <div className={`flex flex-wrap gap-2 ${centre ? 'justify-center' : ''}`}>
-      <Bouton href="#methode" ton="brand">
-        Notre méthode de vérification <ArrowRight className="size-4" aria-hidden />
-      </Bouton>
-      <Bouton href={LIENS.revendiquer} ton="secondaire" sombre>
-        Revendiquer ma fiche
-      </Bouton>
-    </div>
-  )
-}
-
-/** Page E avec son héros. Le héros est sombre : en-tête transparent. */
-export function PageE({ hero }: { hero: React.ReactNode }) {
-  return (
-    <main>
-      <HeaderTransparent />
-      {hero}
-      <CorpsE />
     </main>
   )
 }
-

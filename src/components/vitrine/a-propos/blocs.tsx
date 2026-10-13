@@ -1,30 +1,10 @@
-/** MAQUETTE, à supprimer après arbitrage. Briques communes aux variantes d et e de la page « Le projet DentalMap ». */
+/** Briques communes de la page « Le projet DentalMap » : surtitre, liens, boutons, FAQ courte, chiffres. */
+import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { getChiffresCles } from '@/lib/annuaire/queries'
-import { FAQ } from './_contenu'
-
-/** Titre éditorial en deux tons, celui de « Le bon poste, près de chez vous. ». */
-export function TitreDeuxTons({
-  children,
-  sous,
-  as: Tag = 'h2',
-  grand,
-  className = '',
-}: {
-  children: React.ReactNode
-  sous?: React.ReactNode
-  as?: 'h1' | 'h2'
-  grand?: boolean
-  className?: string
-}) {
-  return (
-    <Tag className={`font-semibold tracking-tight text-fg ${grand ? 'text-5xl leading-[1.02] md:text-7xl lg:text-8xl' : 'text-3xl leading-tight md:text-5xl'} ${className}`}>
-      {children}
-      {sous && <span className="block text-fg-2">{sous}</span>}
-    </Tag>
-  )
-}
+import { chemin } from '@/lib/navigation'
+import { FAQ } from './contenu'
 
 /** Surtitre à pastille, celui du héros Emploi. */
 export function Surtitre({ children, sombre }: { children: React.ReactNode; sombre?: boolean }) {
@@ -38,10 +18,13 @@ export function Surtitre({ children, sombre }: { children: React.ReactNode; somb
 /** Lien souligné à flèche, celui de « Comment ça marche » et de la FAQ. */
 export function LienFleche({ href, children, sombre, petit }: { href: string; children: React.ReactNode; sombre?: boolean; petit?: boolean }) {
   return (
-    <a href={href} className={`group inline-flex items-center font-medium transition-colors hover:text-teal ${petit ? 'text-sm' : 'text-base'} ${sombre ? 'text-white' : 'text-fg'}`}>
+    <Link
+      href={chemin(href)}
+      className={`group inline-flex items-center font-medium transition-colors hover:text-teal ${petit ? 'text-sm' : 'text-base'} ${sombre ? 'text-white' : 'text-fg'}`}
+    >
       <span className={`border-b-2 pb-0.5 ${sombre ? 'border-white/25' : 'border-line'}`}>{children}</span>
       <ArrowUpRight className="ml-1 size-4 shrink-0" aria-hidden />
-    </a>
+    </Link>
   )
 }
 
@@ -62,19 +45,19 @@ export function Bouton({
     secondaire: sombre ? 'border border-white/20 bg-white/5 text-white hover:bg-white/10' : 'border border-line bg-bg text-fg hover:bg-bg-soft',
   }[ton]
   return (
-    <a href={href} className={`inline-flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold ${c}`}>
+    <Link href={chemin(href)} className={`inline-flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold ${c}`}>
       {children}
-    </a>
+    </Link>
   )
 }
 
 /** Accordéon de questions, le gabarit de la FAQ Emploi. */
-export function FaqListe({ sombre }: { sombre?: boolean }) {
+export function FaqListe() {
   return (
     <Accordion defaultValue={['q-0']}>
       {FAQ.map((f, i) => (
         <AccordionItem key={f.q} value={`q-${i}`} className="border-b border-line last:border-b-0">
-          <AccordionTrigger className={`py-5 text-base font-semibold hover:no-underline md:text-lg ${sombre ? 'text-white' : 'text-fg'}`}>
+          <AccordionTrigger className="py-5 text-base font-semibold text-fg hover:no-underline md:text-lg">
             <span className="pr-4">{f.q}</span>
           </AccordionTrigger>
           <AccordionContent className="pb-5 pr-8 leading-relaxed text-fg-2">{f.r}</AccordionContent>
@@ -94,4 +77,10 @@ export async function lireChiffres() {
     { value: nombre(c.prothesistes), label: 'laboratoires de prothèse' },
     { value: nombre(c.communes), label: 'communes couvertes' },
   ]
+}
+
+/** Date du dernier passage de synchronisation des registres, telle qu'elle est en base, ou `null`. */
+export async function lireDerniereSynchro() {
+  const { synchroniseLe } = await getChiffresCles()
+  return synchroniseLe ? new Date(synchroniseLe).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null
 }

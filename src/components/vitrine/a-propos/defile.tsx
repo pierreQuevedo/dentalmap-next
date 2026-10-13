@@ -1,12 +1,12 @@
 'use client'
 
-/** MAQUETTE. Bande défilante des registres et des métiers, avec le Marquee de kibo-ui déjà installé (héros de l'accueil). */
+/** Bande défilante des registres et des métiers, avec le Marquee de kibo-ui (héros de l'accueil). */
 import { Marquee, MarqueeContent, MarqueeFade, MarqueeItem } from '@/components/kibo-ui/marquee'
-import { DEFILE } from './_contenu'
+import { DEFILE } from './contenu'
 
-export function Defile({ sombre }: { sombre?: boolean }) {
+export function Defile() {
   return (
-    <div className={`${sombre ? 'dark bg-background' : 'bg-bg'} border-y border-line py-6 md:py-8`}>
+    <div className="border-y border-line bg-bg py-6 md:py-8">
       <Marquee>
         <MarqueeFade side="left" className="from-bg" />
         <MarqueeFade side="right" className="from-bg" />
