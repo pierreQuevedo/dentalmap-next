@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * MAQUETTE, à supprimer après arbitrage. Carte des offres d'emploi.
+ * Carte des offres d'emploi.
  *
  * Même librairie et même fond de plan que la carte de l'annuaire (MapLibre,
  * style DentalMap clair ou sombre servi depuis `public/maplibre/`), mais sans
@@ -9,6 +9,10 @@
  * offres. Chaque offre est un marqueur HTML posé à sa position exacte, en bleu
  * « où ? » comme les points de l'annuaire ; l'offre active (survolée ou ouverte) porte une
  * étiquette. Carte inerte par défaut, comme le décor du hero de l'accueil.
+ *
+ * Les étiquettes sont posées en `textContent` : elles viennent des offres
+ * (rémunération, nom du recruteur) et ne doivent jamais être lues comme du
+ * HTML.
  */
 import { useEffect, useRef } from 'react'
 import { Map as MapLibre, Marker, setWorkerUrl } from 'maplibre-gl'
@@ -91,7 +95,8 @@ export function CarteOffres({
         el.textContent = String(p.nombre)
       } else if (estActif && p.etiquette) {
         el.className = 'flex flex-col items-center'
-        el.innerHTML = `<span class="whitespace-nowrap rounded-full bg-[#0071e3] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_6px_20px_rgb(0_113_227/0.35)]">${p.etiquette}</span><span class="-mt-px size-0 border-x-[6px] border-t-[7px] border-x-transparent border-t-[#0071e3]"></span><span class="mt-1 size-3.5 rounded-full border-2 border-white bg-[#0071e3] shadow"></span>`
+        el.innerHTML = `<span class="whitespace-nowrap rounded-full bg-[#0071e3] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_6px_20px_rgb(0_113_227/0.35)]"></span><span class="-mt-px size-0 border-x-[6px] border-t-[7px] border-x-transparent border-t-[#0071e3]"></span><span class="mt-1 size-3.5 rounded-full border-2 border-white bg-[#0071e3] shadow"></span>`
+        el.firstElementChild!.textContent = p.etiquette
       } else if (p.etiquette) {
         el.className =
           'whitespace-nowrap rounded-full border border-black/5 bg-white px-2.5 py-1 text-[11px] font-semibold text-[#16222b] shadow-[0_3px_12px_rgb(22_34_43/0.18)]'

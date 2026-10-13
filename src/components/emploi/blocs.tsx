@@ -1,10 +1,10 @@
-/** MAQUETTE, à supprimer après arbitrage. Briques communes aux pages Emploi. */
+/** Briques communes aux pages Emploi. */
 import Image from 'next/image'
+import Link from 'next/link'
 import {
   ArrowRight,
   ArrowUpRight,
   BadgeEuro,
-  Bell,
   BookOpen,
   Briefcase,
   Building2,
@@ -17,45 +17,12 @@ import {
   Stethoscope,
 } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { FAQ, SALAIRES, SECTEURS, SOURCE_SALAIRES, type Offre } from './_donnees'
-
-/** « 2 100 », espace fine insécable comme le reste du site. */
-export const euros = (n: number) => n.toLocaleString('fr-FR')
-export const km = (n: number) => `${n.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} km`
-
-export function fourchette(o: Pick<Offre, 'min' | 'max'>) {
-  return `${euros(o.min)} à ${euros(o.max)} €`
-}
-
-export function contratTexte(o: Offre) {
-  return o.duree ? `${o.contrat} ${o.duree}` : o.contrat
-}
-
-/**
- * La rémunération d'une offre en deux lignes : le principal et sa précision.
- * Salaire brut mensuel pour les contrats salariés et l'alternance ;
- * pourcentage pour un remplacement ou une collaboration libérale, avec une
- * estimation mensuelle toujours libellée comme telle.
- */
-export function remuneration(o: Offre): { principal: string; detail: string; estimation?: string } {
-  switch (o.mode) {
-    case 'retrocession':
-      return { principal: `Rétrocession de ${o.taux}\u202f%`, detail: 'des honoraires', estimation: `Estimation : ${fourchette(o)} par mois, avant charges` }
-    case 'redevance':
-      return { principal: `Redevance de ${o.taux}\u202f%`, detail: 'des honoraires, versée au cabinet', estimation: `Estimation : ${fourchette(o)} par mois, avant charges` }
-    case 'gratification':
-      return { principal: 'Gratification légale', detail: 'au-delà de deux mois de stage' }
-    default:
-      return { principal: fourchette(o), detail: 'brut par mois' }
-  }
-}
-
-/** Étiquette courte d'une offre sur la carte. */
-export function etiquetteCarte(o: Offre) {
-  if (o.mode === 'retrocession' || o.mode === 'redevance') return `${o.taux}\u202f%`
-  if (o.mode === 'gratification') return 'Stage'
-  return fourchette(o)
-}
+import { chemin } from '@/lib/navigation'
+import { RECHERCHE_EMPLOI, cheminFicheMetier, cheminOffre } from '@/lib/emploi/chemins'
+import { contratTexte, dateCourte, euros, km, monogramme, remuneration, tempsTexte } from '@/lib/emploi/format'
+import { CODES_CONTRAT, LIBELLE_CONTRAT, METIERS, type CodeMetier, type Metier } from '@/lib/emploi/metiers'
+import { SALAIRES, SECTEURS, SOURCE_SALAIRES } from '@/lib/emploi/salaires'
+import type { OffreResume } from '@/lib/emploi/types'
 
 export function Etiquette({ children, ton = 'neutre' }: { children: React.ReactNode; ton?: 'neutre' | 'teal' | 'sombre' }) {
   const c = {
@@ -66,7 +33,7 @@ export function Etiquette({ children, ton = 'neutre' }: { children: React.ReactN
   return <span className={`squircle-full inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${c}`}>{children}</span>
 }
 
-/** Pastille de confiance : le recruteur a une fiche vérifiée auprès des registres. */
+/** Pastille de confiance : seul un recruteur à la fiche vérifiée auprès des registres peut publier. */
 export function FicheVerifiee({ sombre, taille = 'sm' }: { sombre?: boolean; taille?: 'sm' | 'xs' }) {
   return (
     <span
@@ -79,7 +46,7 @@ export function FicheVerifiee({ sombre, taille = 'sm' }: { sombre?: boolean; tai
   )
 }
 
-export function Remuneration({ o, sombre, grand }: { o: Offre; sombre?: boolean; grand?: boolean }) {
+export function Remuneration({ o, sombre, grand }: { o: Pick<OffreResume, 'mode' | 'min' | 'max'>; sombre?: boolean; grand?: boolean }) {
   const r = remuneration(o)
   const t2 = sombre ? 'text-white/65' : 'text-fg-2'
   return (
@@ -90,32 +57,21 @@ export function Remuneration({ o, sombre, grand }: { o: Offre; sombre?: boolean;
         </span>
         <span className={`${grand ? 'mt-1 block text-sm' : 'ml-1 text-xs'} ${t2}`}>{r.detail}</span>
       </p>
-      {r.estimation && <p className={`${grand ? 'mt-1 text-sm' : 'mt-0.5 text-xs'} ${t2}`}>{r.estimation}</p>}
     </div>
   )
 }
 
-/** Initiales du recruteur, pour le fond neutre d'une offre sans photo. */
-function monogramme(nom: string) {
-  const mots = nom
-    .replace(/^(Cabinet|Centre de santé dentaire|Laboratoire|Cabinet d’orthodontie)\s+/i, '')
-    .replace(/^(Drs?|et)\s+/g, '')
-    .split(/\s+/)
-    .filter((m) => /^[A-ZÉ]/.test(m) && !/^(Drs?|Dr)$/.test(m))
-  return (mots[0]?.[0] ?? '') + (mots[1]?.[0] ?? '')
-}
-
-function IconeType({ o, className }: { o: Offre; className: string }) {
+function IconeType({ o, className }: { o: Pick<OffreResume, 'type'>; className: string }) {
   const I = o.type === 'laboratoire' ? FlaskConical : o.type === 'centre' ? Building2 : Stethoscope
   return <I className={className} aria-hidden />
 }
 
 /**
- * Visuel d'une offre : la photo déposée par le recruteur, ou un fond neutre
- * (monogramme et icône du type de structure). Jamais une photo d'illustration :
- * elle laisserait croire qu'elle montre ce cabinet.
+ * Visuel d'une offre : la photo déposée par le recruteur sur sa fiche, ou un
+ * fond neutre (monogramme et icône du type de structure). Jamais une photo
+ * d'illustration : elle laisserait croire qu'elle montre ce cabinet.
  */
-export function Visuel({ o, className = '', petit }: { o: Offre; className?: string; petit?: boolean }) {
+export function Visuel({ o, className = '', petit }: { o: Pick<OffreResume, 'photo' | 'recruteur' | 'type'>; className?: string; petit?: boolean }) {
   if (o.photo) {
     return (
       <div className={`relative overflow-hidden ${className}`}>
@@ -131,6 +87,10 @@ export function Visuel({ o, className = '', petit }: { o: Offre; className?: str
   )
 }
 
+function Publiee({ o }: { o: Pick<OffreResume, 'publieeLe'> }) {
+  return o.publieeLe ? <span className="text-xs text-fg-2">Publiée le {dateCourte(o.publieeLe)}</span> : null
+}
+
 /**
  * Une offre dans une liste.
  * - `carte` : visuel en tête, pour les grilles.
@@ -142,16 +102,26 @@ export function CarteOffre({
   forme = 'carte',
   actif,
   className = '',
+  sansLien,
 }: {
-  o: Offre
+  o: OffreResume
   forme?: 'carte' | 'ligne' | 'compacte'
   actif?: boolean
   className?: string
+  /** Aperçu (page Recruter) : la carte ne mène nulle part. */
+  sansLien?: boolean
 }) {
+  const titre = sansLien ? (
+    <span>{o.titre}</span>
+  ) : (
+    <Link href={chemin(cheminOffre(o.slug))} className="after:absolute after:inset-0">
+      {o.titre}
+    </Link>
+  )
   const lieu = (
     <span className="inline-flex items-center gap-1.5">
       <MapPin className="size-3.5 shrink-0 text-geo" aria-hidden /> {o.commune}
-      {o.km !== undefined ? ` · ${km(o.km)}` : ''}
+      {o.metres != null ? ` · ${km(o.metres)}` : ''}
     </span>
   )
   if (forme === 'ligne' || forme === 'compacte') {
@@ -166,12 +136,10 @@ export function CarteOffre({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <Etiquette ton="teal">{contratTexte(o)}</Etiquette>
-            {!compacte && <Etiquette>{o.temps}</Etiquette>}
-            <span className="text-xs text-fg-2">{o.depuis}</span>
+            {!compacte && <Etiquette>{tempsTexte(o)}</Etiquette>}
+            <Publiee o={o} />
           </div>
-          <h3 className="mt-2 text-base font-semibold leading-snug text-fg">
-            <a className="after:absolute after:inset-0">{o.titre}</a>
-          </h3>
+          <h3 className="mt-2 text-base font-semibold leading-snug text-fg">{titre}</h3>
           <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fg-2">
             <span className="text-fg">{o.recruteur}</span>
             {!compacte && <FicheVerifiee taille="xs" />}
@@ -191,12 +159,10 @@ export function CarteOffre({
         <span className="absolute left-3 top-3 rounded-full bg-bg/90 px-2 py-0.5 text-xs font-medium text-fg backdrop-blur">{contratTexte(o)}</span>
       </div>
       <div className="flex flex-1 flex-col p-4">
-        <p className="text-xs text-fg-2">{o.metier}</p>
-        <h3 className="mt-1 text-base font-semibold leading-snug text-fg">
-          <a className="after:absolute after:inset-0">{o.titre}</a>
-        </h3>
+        <p className="text-xs text-fg-2">{METIERS.find((m) => m.code === o.metier)?.nom}</p>
+        <h3 className="mt-1 text-base font-semibold leading-snug text-fg">{titre}</h3>
         <p className="mt-1 text-sm text-fg-2">
-          {o.recruteur} · {o.temps}
+          {o.recruteur} · {tempsTexte(o)}
         </p>
         <div className="mt-3">
           <FicheVerifiee taille="xs" />
@@ -207,50 +173,62 @@ export function CarteOffre({
       </div>
       <p className="flex items-center justify-between gap-3 border-t border-line px-4 py-3 text-sm text-fg-2">
         {lieu}
-        <span className="text-xs">{o.depuis}</span>
+        <Publiee o={o} />
       </p>
     </li>
   )
 }
 
-/** Un champ de recherche dessiné, sans comportement : la maquette ne cherche rien. */
-function Champ({ icone: I, label, valeur, className = '' }: { icone: typeof Search; label: string; valeur: string; className?: string }) {
+/** Un champ de la recherche : libellé en surtitre, contrôle natif en dessous. */
+function Champ({ icone: I, label, className = '', children }: { icone: typeof Search; label: string; className?: string; children: React.ReactNode }) {
   return (
-    <div className={`flex min-w-0 items-center gap-3 px-4 py-2.5 ${className}`}>
+    <label className={`flex min-w-0 items-center gap-3 px-4 py-2.5 ${className}`}>
       <I className="size-4 shrink-0 text-fg-2" aria-hidden />
-      <div className="min-w-0">
-        <p className="text-[11px] font-medium uppercase tracking-wide text-fg-2">{label}</p>
-        <p className="truncate text-sm text-fg">{valeur}</p>
-      </div>
-    </div>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[11px] font-medium uppercase tracking-wide text-fg-2">{label}</span>
+        {children}
+      </span>
+    </label>
   )
 }
 
+const controle = 'w-full min-w-0 truncate bg-transparent text-sm text-fg outline-none placeholder:text-fg-2'
+
 /**
- * Recherche : métier, ville, contrat. En ligne à partir de `md`, empilée en
- * dessous, avec le bouton en pleine largeur pour le pouce.
+ * Recherche : métier, ville, contrat. Formulaire GET vers `/emploi/recherche/`,
+ * qui résout la ville et redirige vers la page de la commune. En ligne à
+ * partir de `md`, empilée en dessous, le bouton en pleine largeur pour le pouce.
  */
-export function Recherche({
-  metier = 'Tous les métiers',
-  ville = 'Ville ou code postal',
-  contrat = 'Tous les contrats',
-  grande,
-}: {
-  metier?: string
-  ville?: string
-  contrat?: string
-  grande?: boolean
-}) {
+export function Recherche({ metier = METIERS[0]!.slug, ville, grande }: { metier?: string; ville?: string; grande?: boolean }) {
   return (
-    <form role="search" className="w-full rounded-3xl border border-line bg-bg p-1.5 text-left shadow-pill md:rounded-full">
+    <form role="search" action={RECHERCHE_EMPLOI} method="get" className="w-full rounded-3xl border border-line bg-bg p-1.5 text-left shadow-pill md:rounded-full">
       <div className="flex flex-col divide-y divide-line md:flex-row md:items-center md:divide-x md:divide-y-0">
-        <Champ icone={Briefcase} label="Métier" valeur={metier} className="md:flex-[1.3]" />
-        <Champ icone={MapPin} label="Ville" valeur={ville} className="md:flex-1" />
-        <Champ icone={Clock} label="Contrat" valeur={contrat} className="md:flex-1" />
+        <Champ icone={Briefcase} label="Métier" className="md:flex-[1.3]">
+          <select name="metier" defaultValue={metier} className={controle}>
+            {METIERS.map((m) => (
+              <option key={m.slug} value={m.slug}>
+                {m.nom}
+              </option>
+            ))}
+          </select>
+        </Champ>
+        <Champ icone={MapPin} label="Ville" className="md:flex-1">
+          <input name="ville" type="text" defaultValue={ville} placeholder="Ville ou code postal" autoComplete="address-level2" className={controle} />
+        </Champ>
+        <Champ icone={Clock} label="Contrat" className="md:flex-1">
+          <select name="contrat" defaultValue="" className={controle}>
+            <option value="">Tous les contrats</option>
+            {CODES_CONTRAT.map((c) => (
+              <option key={c} value={c}>
+                {LIBELLE_CONTRAT[c]}
+              </option>
+            ))}
+          </select>
+        </Champ>
         <div className="p-1.5 md:p-0 md:pl-1.5">
           <button
-            type="button"
-            className={`inline-flex w-full items-center justify-center gap-2 rounded-full bg-action text-sm font-semibold text-action-foreground ${grande ? 'h-12 px-7' : 'h-11 px-6'}`}
+            type="submit"
+            className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-action text-sm font-semibold text-action-foreground hover:bg-action-hover ${grande ? 'h-12 px-7' : 'h-11 px-6'}`}
           >
             <Search className="size-4" aria-hidden /> Rechercher
           </button>
@@ -260,47 +238,7 @@ export function Recherche({
   )
 }
 
-/** Alerte email sans compte. */
-export function AlerteEmail({
-  titre = 'Recevez les nouvelles offres par email',
-  detail = 'Un email par semaine au plus, et un lien de désinscription dans chaque envoi.',
-  compacte,
-}: {
-  titre?: string
-  detail?: string
-  compacte?: boolean
-}) {
-  return (
-    <div>
-      {!compacte && (
-        <>
-          <p className="inline-flex items-center gap-2 text-sm font-medium text-teal">
-            <Bell className="size-4" aria-hidden /> Alerte email, sans compte
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-fg md:text-3xl">{titre}</h2>
-          <p className="mt-2 max-w-xl text-fg-2">{detail}</p>
-        </>
-      )}
-      <div className={`${compacte ? '' : 'mt-6'} flex flex-col gap-2 sm:flex-row`}>
-        <label className="sr-only" htmlFor="alerte-email">
-          Votre adresse email
-        </label>
-        <input
-          id="alerte-email"
-          type="email"
-          placeholder="vous@exemple.fr"
-          className="h-11 w-full min-w-0 rounded-full border border-line bg-bg px-5 text-sm text-fg outline-none placeholder:text-fg-2 sm:flex-1"
-        />
-        <button type="button" className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-brand px-6 text-sm font-semibold text-brand-foreground">
-          <Bell className="size-4" aria-hidden /> Créer l’alerte
-        </button>
-      </div>
-      <p className="mt-3 text-xs text-fg-2">Votre adresse ne sert qu’à cette alerte. Elle n’est jamais transmise aux recruteurs.</p>
-    </div>
-  )
-}
-
-/** Libellé de la source des salaires moyens, à renseigner. */
+/** Libellé de la source des salaires moyens. */
 export function SourceSalaires({ className = '', objet = 'Salaire brut mensuel moyen pour un temps plein, issu d’études salariales' }: { className?: string; objet?: string }) {
   return (
     <p className={`text-xs text-fg-2 ${className}`}>
@@ -310,15 +248,18 @@ export function SourceSalaires({ className = '', objet = 'Salaire brut mensuel m
 }
 
 /**
- * Salaires moyens par métier et par secteur. Tableau à partir de `md`,
- * une carte par métier en dessous, avec une ligne par secteur.
+ * Salaires moyens par métier et par secteur, issus d'études. Tableau à partir
+ * de `md`, une carte par métier en dessous. Un seul métier : une case par
+ * secteur. Rien si aucun des métiers demandés n'a de repère.
  */
-export function SalairesSecteurs({ metiers }: { metiers?: string[] }) {
-  const lignes = metiers ? SALAIRES.filter((s) => metiers.includes(s.metier)) : SALAIRES
+export function SalairesSecteurs({ metiers }: { metiers?: CodeMetier[] }) {
+  const lignes = (Object.entries(SALAIRES) as [CodeMetier, { libelle: string; valeurs: (number | null)[] }][])
+    .filter(([code]) => !metiers || metiers.includes(code))
+    .map(([, l]) => l)
+  if (!lignes.length) return null
   const cellule = (v: number | null) =>
     v === null ? <span className="text-sm text-fg-2">Peu de postes</span> : <span className="font-semibold tabular-nums text-fg">{euros(v)} €</span>
   if (lignes.length === 1) {
-    /* Un seul métier : une case par secteur, lisible dans une demi-colonne. */
     const l = lignes[0]!
     return (
       <div>
@@ -359,8 +300,8 @@ export function SalairesSecteurs({ metiers }: { metiers?: string[] }) {
           </thead>
           <tbody className="divide-y divide-line">
             {lignes.map((l) => (
-              <tr key={l.metier}>
-                <th className="px-5 py-4 font-medium text-fg">{l.metier}</th>
+              <tr key={l.libelle}>
+                <th className="px-5 py-4 font-medium text-fg">{l.libelle}</th>
                 {l.valeurs.map((v, i) => (
                   <td key={SECTEURS[i]} className="px-5 py-4">
                     {cellule(v)}
@@ -373,8 +314,8 @@ export function SalairesSecteurs({ metiers }: { metiers?: string[] }) {
       </div>
       <ul className="space-y-3 md:hidden">
         {lignes.map((l) => (
-          <li key={l.metier} className="squircle-2xl border border-line p-4">
-            <p className="font-semibold text-fg">{l.metier}</p>
+          <li key={l.libelle} className="squircle-2xl border border-line p-4">
+            <p className="font-semibold text-fg">{l.libelle}</p>
             <dl className="mt-2 divide-y divide-line text-sm">
               {l.valeurs.map((v, i) => (
                 <div key={SECTEURS[i]} className="flex items-baseline justify-between gap-4 py-2">
@@ -409,6 +350,29 @@ export const PILIERS = [
   },
 ]
 
+export const FAQ = [
+  {
+    q: 'Qui peut publier une offre ?',
+    r: 'Seuls les cabinets dentaires, centres de santé et laboratoires dont l’identité a été vérifiée auprès des registres officiels, l’Annuaire Santé pour les praticiens et la base Sirene pour les entreprises. Chaque offre renvoie à la fiche du recruteur.',
+  },
+  {
+    q: 'Faut-il un compte pour postuler ?',
+    r: 'Oui. Une candidature passe par votre compte DentalMap, ce qui permet au recruteur de vous répondre et à vous de suivre vos démarches. Pour recevoir les nouvelles offres par email, en revanche, aucun compte n’est nécessaire.',
+  },
+  {
+    q: 'Quand mes coordonnées sont-elles transmises ?',
+    r: 'Le recruteur voit votre profil et votre message. Votre téléphone et votre adresse email ne lui sont transmis que si vous acceptez sa proposition d’échange.',
+  },
+  {
+    q: 'Pourquoi la rémunération est-elle toujours indiquée ?',
+    r: 'Une offre ne peut pas être publiée sans sa rémunération : fourchette brute mensuelle pour un contrat salarié ou une alternance, taux de rétrocession ou de redevance pour un remplacement ou une collaboration.',
+  },
+  {
+    q: 'Dans quel ordre les offres sont-elles affichées ?',
+    r: 'Par distance depuis le lieu de votre recherche, la plus proche d’abord, puis par ordre alphabétique.',
+  },
+]
+
 export function FaqEmploi({ items = FAQ }: { items?: { q: string; r: string }[] }) {
   return (
     <Accordion defaultValue={['q-0']}>
@@ -425,45 +389,49 @@ export function FaqEmploi({ items = FAQ }: { items?: { q: string; r: string }[] 
 }
 
 /** Lien souligné à flèche, celui de « Comment ça marche » et de la FAQ. */
-export function LienFleche({ children, sombre, petit }: { children: React.ReactNode; sombre?: boolean; petit?: boolean }) {
+export function LienFleche({ href, children, sombre, petit }: { href: string; children: React.ReactNode; sombre?: boolean; petit?: boolean }) {
   return (
-    <a className={`group inline-flex items-center font-medium transition-colors hover:text-teal ${petit ? 'text-sm' : 'text-base'} ${sombre ? 'text-white' : 'text-fg'}`}>
+    <Link href={chemin(href)} className={`group inline-flex items-center font-medium transition-colors hover:text-teal ${petit ? 'text-sm' : 'text-base'} ${sombre ? 'text-white' : 'text-fg'}`}>
       <span className={`border-b-2 pb-0.5 ${sombre ? 'border-white/25' : 'border-line'}`}>{children}</span>
       <ArrowUpRight className="ml-1 size-4 shrink-0" aria-hidden />
-    </a>
+    </Link>
   )
 }
 
-export function BoutonSecondaire({ children, sombre }: { children: React.ReactNode; sombre?: boolean }) {
+export function BoutonSecondaire({ href, children, sombre }: { href: string; children: React.ReactNode; sombre?: boolean }) {
   return (
-    <a
+    <Link
+      href={chemin(href)}
       className={`inline-flex h-11 items-center justify-center gap-2 rounded-full border px-5 text-sm font-medium ${
-        sombre ? 'border-white/20 bg-white/5 text-white' : 'border-line bg-bg text-fg hover:bg-bg-soft'
+        sombre ? 'border-white/20 bg-white/5 text-white hover:bg-white/10' : 'border-line bg-bg text-fg hover:bg-bg-soft'
       }`}
     >
       {children}
-    </a>
+    </Link>
   )
 }
 
 /** Lien vers la fiche métier des Ressources (`/conseils/metiers/assistant-dentaire/`). */
-export function LienFicheMetier() {
+export function LienFicheMetier({ metier }: { metier: Metier }) {
   return (
-    <a className="inline-flex items-center gap-2 text-sm text-fg-2 hover:text-fg">
-      <BookOpen className="size-4" aria-hidden /> Le métier d’assistant(e) dentaire <ArrowRight className="size-3.5" aria-hidden />
-    </a>
+    <Link href={chemin(cheminFicheMetier(metier.slug))} className="inline-flex items-center gap-2 text-sm text-fg-2 hover:text-fg">
+      <BookOpen className="size-4" aria-hidden /> Le métier {metier.de} <ArrowRight className="size-3.5" aria-hidden />
+    </Link>
   )
 }
 
-/** Liste de liens vers d'autres territoires ou métiers, forme des pages commune de l'annuaire. */
-export function ListeLiens({ titre, liens, colonnes = 2 }: { titre: string; liens: { nom: string; n: number; detail?: string }[]; colonnes?: 2 | 3 }) {
+/** Liste de liens vers d'autres territoires ou métiers, forme des pages commune de l'annuaire. Rien sans lien. */
+export function ListeLiens({ titre, liens, colonnes = 2 }: { titre: string; liens: { nom: string; href: string; n: number; detail?: string }[]; colonnes?: 2 | 3 }) {
+  if (!liens.length) return null
   return (
     <section>
       <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-2">{titre}</h2>
       <ul className={`mt-3 grid gap-x-8 sm:grid-cols-2 ${colonnes === 3 ? 'lg:grid-cols-3' : ''}`}>
         {liens.map((l) => (
-          <li key={l.nom} className="flex items-baseline justify-between gap-4 border-b border-line py-2.5">
-            <a className="min-w-0 text-fg hover:underline">{l.nom}</a>
+          <li key={l.href} className="flex items-baseline justify-between gap-4 border-b border-line py-2.5">
+            <Link href={chemin(l.href)} className="min-w-0 text-fg hover:underline">
+              {l.nom}
+            </Link>
             <span className="shrink-0 text-sm tabular-nums text-fg-2">
               {euros(l.n)} {l.n > 1 ? 'offres' : 'offre'}
               {l.detail ? ` · ${l.detail}` : ''}
@@ -491,4 +459,10 @@ export function TitreDeuxTons({ children, sous, as: Tag = 'h2', grand }: { child
       {sous && <span className="block text-fg-2">{sous}</span>}
     </Tag>
   )
+}
+
+/** « 3 offres », « 1 offre », « Aucune offre ». */
+export function nombreOffres(n: number): string {
+  if (n === 0) return 'Aucune offre'
+  return `${euros(n)} ${n > 1 ? 'offres' : 'offre'}`
 }

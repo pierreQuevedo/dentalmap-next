@@ -1,6 +1,11 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 
-/** Les jetons de l'alerte formations : confirmation (aléatoire, gardé en condensat) et désinscription (signée). */
+/**
+ * Les jetons des alertes sans compte (formations, emploi) : confirmation
+ * (aléatoire, gardé en condensat) et désinscription (signée). La portée
+ * distingue les alertes : un lien de désinscription de l'une ne vaut rien
+ * pour l'autre.
+ */
 export const condensat = (jeton: string) => createHash('sha256').update(jeton).digest('hex')
 export const nouveauJeton = () => randomBytes(24).toString('base64url')
 
@@ -9,12 +14,13 @@ export const nouveauJeton = () => randomBytes(24).toString('base64url')
  * valable dans chaque email envoyé, sans jeton à garder en base.
  */
 const SECRET = process.env.BETTER_AUTH_SECRET ?? 'dentalmap-dev'
-const signature = (id: string) => createHmac('sha256', SECRET).update(`alerte-formation:${id}`).digest('base64url').slice(0, 32)
-export const jetonDesinscription = (id: string) => `${id}~${signature(id)}`
-export function alerteDesinscription(jeton: string): string | null {
+export type PorteeAlerte = 'alerte-formation' | 'alerte-emploi'
+const signature = (id: string, portee: PorteeAlerte) => createHmac('sha256', SECRET).update(`${portee}:${id}`).digest('base64url').slice(0, 32)
+export const jetonDesinscription = (id: string, portee: PorteeAlerte = 'alerte-formation') => `${id}~${signature(id, portee)}`
+export function alerteDesinscription(jeton: string, portee: PorteeAlerte = 'alerte-formation'): string | null {
   const [id, sig] = decodeURIComponent(jeton).split('~')
   if (!id || !sig) return null
-  const attendu = Buffer.from(signature(id)), recu = Buffer.from(sig)
+  const attendu = Buffer.from(signature(id, portee)), recu = Buffer.from(sig)
   return attendu.length === recu.length && timingSafeEqual(attendu, recu) ? id : null
 }
 
