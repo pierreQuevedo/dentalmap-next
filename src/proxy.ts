@@ -1,0 +1,46 @@
+import { NextResponse, type NextRequest } from 'next/server'
+import { DELAI_ANNULATION_RETRAIT_JOURS } from '@/lib/espace-pro/chemins'
+
+/**
+ * Fiche retirée à la demande du professionnel : statut HTTP 410.
+ *
+ * Une page de l'App Router ne choisit pas son statut : `notFound()`,
+ * `forbidden()` et `unauthorized()` ne couvrent que 404, 403 et 401. Le proxy,
+ * lui, peut réécrire une requête avec le statut de son choix. Pour l'URL d'une
+ * fiche retirée depuis moins de trente jours, il sert donc la page
+ * `/fiche-retiree/…` avec un 410, sans changer l'adresse affichée.
+ *
+ * Passé le délai, la requête suit son cours normal vers la fiche, qui décide
+ * seule de ce qu'elle répond.
+ *
+ * Le matcher limite le proxy aux URL de fiche, quatre segments sous une base
+ * de l'annuaire. La date de retrait vient de `/api/annuaire/retrait/`, qui lit
+ * une requête en `use cache` (interdite dans le proxy lui-même). Une erreur ou
+ * une lenteur de cette lecture laisse passer la requête vers la fiche plutôt
+ * que de la bloquer.
+ */
+export async function proxy(request: NextRequest) {
+  const [base, departement, commune, slug] = request.nextUrl.pathname.split('/').filter(Boolean)
+  if (!slug) return NextResponse.next()
+
+  let retireLe: string | null = null
+  try {
+    const api = new URL('/api/annuaire/retrait/', request.url)
+    api.search = new URLSearchParams({ base, departement, commune, slug }).toString()
+    const reponse = await fetch(api, { signal: AbortSignal.timeout(2_000) })
+    if (reponse.ok) retireLe = ((await reponse.json()) as { retireLe: string | null }).retireLe
+  } catch (e) {
+    console.error('proxy : lecture du retrait impossible', e)
+  }
+  if (!retireLe) return NextResponse.next()
+  const fin = new Date(retireLe).getTime() + DELAI_ANNULATION_RETRAIT_JOURS * 86_400_000
+  if (fin <= Date.now()) return NextResponse.next()
+
+  const cible = request.nextUrl.clone()
+  cible.pathname = `/fiche-retiree/${base}/${departement}/${commune}/${slug}/`
+  return NextResponse.rewrite(cible, { status: 410 })
+}
+
+export const config = {
+  matcher: '/:base(dentistes|prothesistes|maxillo-faciaux|stomatologues|orl)/:departement/:commune/:slug',
+}

@@ -1,15 +1,19 @@
 /**
- * MAQUETTE. Gabarit unique des pages légales, dans la lignée de la FAQ
- * textuelle : héros court, encadré « En bref », sommaire collant à gauche
- * (pastilles défilantes sur mobile), articles numérotés, liens croisés et
- * contact discret. Les champs entre crochets sont surlignés pour Figma.
+ * Gabarit unique des pages légales, dans la lignée de la FAQ : héros court,
+ * encadré « En bref », sommaire collant à gauche (pastilles défilantes sur
+ * mobile), articles numérotés, liens vers les deux autres pages et contact
+ * discret. Composant serveur, sans donnée : le texte est dans `contenu.ts`.
  */
-import { ArrowUpRight, FileWarning } from 'lucide-react'
+import type { Metadata } from 'next'
+import { ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 import { chemin } from '@/lib/navigation'
-import { PAGES, type Bloc, type PageLegale } from './_contenu'
+import { PAGES, type Bloc, type PageLegale } from './contenu'
 
-/** Surligne « [À compléter : …] », « [À valider …] » et « [À confirmer …] ». */
+/**
+ * Surligne « [À compléter : …] », « [À valider …] » et « [À confirmer …] » :
+ * un champ encore ouvert se voit à l'écran tant que la relecture n'est pas faite.
+ */
 function Texte({ children }: { children: string }) {
   const morceaux = children.split(/(\[À (?:compléter|valider|confirmer)[^\]]*\])/g)
   return (
@@ -100,13 +104,6 @@ export function PageLegaleVue({ page }: { page: PageLegale }) {
   const autres = PAGES.filter((p) => p.slug !== page.slug)
   return (
     <main>
-      {/* Bandeau de maquette, pas un élément d'interface. */}
-      <div className="bg-amber-100 text-amber-950">
-        <p className="container flex items-center gap-2 py-2.5 text-sm font-medium">
-          <FileWarning className="size-4 shrink-0" aria-hidden /> Brouillon à faire relire par un juriste
-        </p>
-      </div>
-
       <section className="border-b border-line">
         <div className="container pb-12 pt-12 md:pb-16 md:pt-20">
           <h1 className="text-4xl font-semibold tracking-tight text-fg md:text-6xl">{page.titre}</h1>
@@ -158,13 +155,13 @@ export function PageLegaleVue({ page }: { page: PageLegale }) {
               <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                 {autres.map((p) => (
                   <li key={p.slug}>
-                    <a href={`/${p.slug}/`} className="squircle-xl group flex items-center justify-between gap-3 border border-line p-4 hover:bg-bg-soft">
+                    <Link href={chemin(`/${p.slug}/`)} className="squircle-xl group flex items-center justify-between gap-3 border border-line p-4 hover:bg-bg-soft">
                       <span>
                         <span className="block font-semibold text-fg">{p.titre}</span>
                         <span className="block text-sm text-fg-2">{p.chapo}</span>
                       </span>
                       <ArrowUpRight className="size-4 shrink-0 text-fg-2" aria-hidden />
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -181,4 +178,13 @@ export function PageLegaleVue({ page }: { page: PageLegale }) {
       </div>
     </main>
   )
+}
+
+/** Titre, description et adresse canonique d'une page légale, tirés de son contenu. */
+export function metadonneesLegales(page: PageLegale): Metadata {
+  return {
+    title: page.titre,
+    description: page.chapo,
+    alternates: { canonical: `/${page.slug}/` },
+  }
 }

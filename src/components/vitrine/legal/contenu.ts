@@ -1,8 +1,10 @@
 /**
- * MAQUETTE, brouillon à faire relire par un juriste. Textes des trois pages
- * légales. Rien n'est inventé : ce qui n'est pas établi dans le dépôt est un
- * champ entre crochets, « [À compléter : …] », « [À valider : …] » ou
- * « [À confirmer : …] », surligné à l'affichage.
+ * Textes des trois pages légales : mentions légales, conditions d'utilisation
+ * et politique de confidentialité. Relecture par un juriste à prévoir avant la
+ * mise en ligne. Rien n'est inventé : ce qui n'est pas établi dans le dépôt est
+ * un champ entre crochets, « [À compléter : …] », « [À valider : …] » ou
+ * « [À confirmer : …] », surligné à l'affichage pour qu'aucun ne passe
+ * inaperçu.
  *
  * Sources : `AGENTS.md`, `docs/architecture-v2-nextjs-headless.md` (Vercel,
  * Neon Francfort, WordPress sur OVH, BAN), `docs/handoff/00`, `03`, `04`
@@ -28,7 +30,7 @@ export type PageLegale = {
   articles: Article[]
 }
 
-const VERSION = 'Version 0.1, brouillon'
+const VERSION = 'Version 0.1'
 const MAJ = '12 octobre 2026'
 
 export const PAGES: PageLegale[] = [
@@ -378,6 +380,7 @@ export const PAGES: PageLegale[] = [
   },
 ]
 
-export function trouverPage(slug: string) {
-  return PAGES.find((p) => p.slug === slug)
+/** Une page par son slug, qui est aussi son chemin : `/cgu/`, `/confidentialite/`… */
+export function pageLegale(slug: PageLegale['slug']): PageLegale {
+  return PAGES.find((p) => p.slug === slug)!
 }

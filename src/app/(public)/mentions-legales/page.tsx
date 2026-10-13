@@ -1,7 +1,10 @@
-import { PageEnAttente, metadonneesEnAttente } from '@/components/site/page-en-attente'
+import { PageLegaleVue, metadonneesLegales } from '@/components/vitrine/legal/page-legale'
+import { pageLegale } from '@/components/vitrine/legal/contenu'
 
-export const metadata = metadonneesEnAttente('Mentions légales', 'Éditeur, hébergeur et responsabilités.')
+const page = pageLegale('mentions-legales')
+
+export const metadata = metadonneesLegales(page)
 
 export default function Page() {
-  return <PageEnAttente titre="Mentions légales" resume="Éditeur, hébergeur et responsabilités." />
+  return <PageLegaleVue page={page} />
 }
