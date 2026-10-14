@@ -68,8 +68,8 @@ foreach ($rubriques as $slug => $categorie) {
 $fiches = json_decode(file_get_contents("$dossier/contenu-metiers.json"), true);
 $medias = [];
 foreach ($fiches as $f) {
-  $existe = get_posts(['post_type' => 'conseil', 'name' => $f['slug'], 'post_status' => 'any', 'numberposts' => 1]);
-  if ($existe) { WP_CLI::log("Fiche déjà présente : {$f['slug']} (id {$existe[0]->ID})"); continue; }
+  $existe = get_page_by_path($f['slug'], OBJECT, 'conseil');
+  if ($existe) { WP_CLI::log("Fiche déjà présente : {$f['slug']} (id {$existe->ID})"); continue; }
 
   $id = wp_insert_post([
     'post_type' => 'conseil',
