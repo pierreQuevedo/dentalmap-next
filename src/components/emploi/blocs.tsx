@@ -21,7 +21,7 @@ import { chemin } from '@/lib/navigation'
 import { RECHERCHE_EMPLOI, cheminFicheMetier, cheminOffre } from '@/lib/emploi/chemins'
 import { contratTexte, dateCourte, euros, km, monogramme, remuneration, tempsTexte } from '@/lib/emploi/format'
 import { CODES_CONTRAT, LIBELLE_CONTRAT, METIERS, type CodeMetier, type Metier } from '@/lib/emploi/metiers'
-import { SALAIRES, SECTEURS, SOURCE_SALAIRES } from '@/lib/emploi/salaires'
+import { OBJET_SALAIRES, SALAIRES, SANS_GRILLE, SECTEURS, montantTexte, sourcesDe, type CaseSalaire, type LigneSalaires, type Source } from '@/lib/emploi/salaires'
 import type { OffreResume } from '@/lib/emploi/types'
 
 export function Etiquette({ children, ton = 'neutre' }: { children: React.ReactNode; ton?: 'neutre' | 'teal' | 'sombre' }) {
@@ -238,49 +238,68 @@ export function Recherche({ metier = METIERS[0]!.slug, ville, grande }: { metier
   )
 }
 
-/** Libellé de la source des salaires moyens. */
-export function SourceSalaires({ className = '', objet = 'Salaire brut mensuel moyen pour un temps plein, issu d’études salariales' }: { className?: string; objet?: string }) {
+/** Ce que sont les montants, puis leurs sources, avec un lien vers chaque texte. */
+export function SourceSalaires({ className = '', objet = OBJET_SALAIRES, sources }: { className?: string; objet?: string; sources: Source[] }) {
   return (
     <p className={`text-xs text-fg-2 ${className}`}>
-      {objet}, et non calculé sur les offres publiées. {SOURCE_SALAIRES}.
+      {objet}
+      {/[.!?]$/.test(objet) ? '' : '.'}
+      {sources.length > 0 && (
+        <>
+          {' '}
+          {sources.length > 1 ? 'Sources' : 'Source'}&nbsp;:{' '}
+          {sources.map((src, k) => (
+            <span key={src.url}>
+              {k > 0 && ' ; '}
+              <a href={src.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-fg">
+                {src.libelle}
+              </a>
+            </span>
+          ))}
+          .
+        </>
+      )}
     </p>
   )
 }
 
+/** Une case : le minimum (ou la fourchette), un texte tel quel, ou « Pas de grille de référence ». */
+export function CaseSalaireVue({ c, grande }: { c: CaseSalaire; grande?: boolean }) {
+  if (!c) return <span className={`text-fg-2 ${grande ? 'text-lg' : 'text-sm'}`}>{SANS_GRILLE}</span>
+  const valeur = 'montant' in c ? montantTexte(c) : c.texte
+  return (
+    <span className="block">
+      <span className={`font-semibold tabular-nums text-fg ${grande ? 'text-2xl tracking-tight md:text-3xl' : ''}`}>{valeur}</span>
+      {'montant' in c && grande && <span className="block text-sm text-fg-2">brut par mois</span>}
+      {c.precision && <span className="mt-0.5 block text-xs text-fg-2">{c.precision}</span>}
+    </span>
+  )
+}
+
 /**
- * Salaires moyens par métier et par secteur, issus d'études. Tableau à partir
- * de `md`, une carte par métier en dessous. Un seul métier : une case par
- * secteur. Rien si aucun des métiers demandés n'a de repère.
+ * Salaires minimums par métier et par secteur, avec leurs sources. Tableau à
+ * partir de `md`, une carte par métier en dessous. Un seul métier : une case
+ * par secteur. Rien si aucun des métiers demandés n'a de repère.
  */
 export function SalairesSecteurs({ metiers }: { metiers?: CodeMetier[] }) {
-  const lignes = (Object.entries(SALAIRES) as [CodeMetier, { libelle: string; valeurs: (number | null)[] }][])
-    .filter(([code]) => !metiers || metiers.includes(code))
-    .map(([, l]) => l)
+  const lignes = (Object.entries(SALAIRES) as [CodeMetier, LigneSalaires][]).filter(([code]) => !metiers || metiers.includes(code)).map(([, l]) => l)
   if (!lignes.length) return null
-  const cellule = (v: number | null) =>
-    v === null ? <span className="text-sm text-fg-2">Peu de postes</span> : <span className="font-semibold tabular-nums text-fg">{euros(v)} €</span>
+  const sources = sourcesDe(lignes)
   if (lignes.length === 1) {
     const l = lignes[0]!
     return (
       <div>
         <dl className="grid grid-cols-2 gap-3">
-          {l.valeurs.map((v, i) => (
+          {l.valeurs.map((c, i) => (
             <div key={SECTEURS[i]} className="squircle-2xl border border-line bg-bg p-4">
               <dt className="text-sm text-fg-2">{SECTEURS[i]}</dt>
               <dd className="mt-2">
-                {v === null ? (
-                  <span className="text-fg-2">Peu de postes</span>
-                ) : (
-                  <>
-                    <span className="text-2xl font-semibold tabular-nums tracking-tight text-fg">{euros(v)} €</span>
-                    <span className="block text-xs text-fg-2">brut par mois</span>
-                  </>
-                )}
+                <CaseSalaireVue c={c} grande />
               </dd>
             </div>
           ))}
         </dl>
-        <SourceSalaires className="mt-4" />
+        <SourceSalaires className="mt-4" sources={sources} />
       </div>
     )
   }
@@ -301,10 +320,10 @@ export function SalairesSecteurs({ metiers }: { metiers?: CodeMetier[] }) {
           <tbody className="divide-y divide-line">
             {lignes.map((l) => (
               <tr key={l.libelle}>
-                <th className="px-5 py-4 font-medium text-fg">{l.libelle}</th>
-                {l.valeurs.map((v, i) => (
-                  <td key={SECTEURS[i]} className="px-5 py-4">
-                    {cellule(v)}
+                <th className="px-5 py-4 align-top font-medium text-fg">{l.libelle}</th>
+                {l.valeurs.map((c, i) => (
+                  <td key={SECTEURS[i]} className="px-5 py-4 align-top">
+                    <CaseSalaireVue c={c} />
                   </td>
                 ))}
               </tr>
@@ -317,17 +336,19 @@ export function SalairesSecteurs({ metiers }: { metiers?: CodeMetier[] }) {
           <li key={l.libelle} className="squircle-2xl border border-line p-4">
             <p className="font-semibold text-fg">{l.libelle}</p>
             <dl className="mt-2 divide-y divide-line text-sm">
-              {l.valeurs.map((v, i) => (
+              {l.valeurs.map((c, i) => (
                 <div key={SECTEURS[i]} className="flex items-baseline justify-between gap-4 py-2">
-                  <dt className="text-fg-2">{SECTEURS[i]}</dt>
-                  <dd className="shrink-0">{cellule(v)}</dd>
+                  <dt className="min-w-0 text-fg-2">{SECTEURS[i]}</dt>
+                  <dd className="max-w-[55%] text-right">
+                    <CaseSalaireVue c={c} />
+                  </dd>
                 </div>
               ))}
             </dl>
           </li>
         ))}
       </ul>
-      <SourceSalaires className="mt-4" />
+      <SourceSalaires className="mt-4" sources={sources} />
     </div>
   )
 }

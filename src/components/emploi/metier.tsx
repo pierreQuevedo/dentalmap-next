@@ -1,6 +1,6 @@
 /**
  * Page métier nationale : `/emploi/assistant-dentaire/`.
- * Titre et compteur, salaire moyen par secteur (études), offres récentes,
+ * Titre et compteur, salaire minimum conventionnel par secteur, offres récentes,
  * départements qui recrutent le plus, alternance ou remplacements selon le
  * métier, alerte et lien vers la fiche métier des Ressources.
  */
@@ -10,13 +10,12 @@ import { ArrowUpRight, BookOpen, GraduationCap, Repeat2 } from 'lucide-react'
 import { FilAriane } from '@/components/annuaire/primitives'
 import { chemin } from '@/lib/navigation'
 import { ALTERNANCE, EMPLOI, REMPLACEMENTS, cheminDepartement, cheminFicheMetier } from '@/lib/emploi/chemins'
-import { euros } from '@/lib/emploi/format'
 import type { Metier } from '@/lib/emploi/metiers'
 import { getComptes, getDepartementsQuiRecrutent, getOffresRecentes } from '@/lib/emploi/queries'
-import { SALAIRES, SECTEURS } from '@/lib/emploi/salaires'
+import { SALAIRES, SECTEURS, sourcesDe } from '@/lib/emploi/salaires'
 import { AucuneOffre, ListeEditoriale } from './accueil'
 import { AlerteEmail } from './alerte-email'
-import { LienFleche, Recherche, SourceSalaires, TitreDeuxTons, nombreOffres } from './blocs'
+import { CaseSalaireVue, LienFleche, Recherche, SourceSalaires, TitreDeuxTons, nombreOffres } from './blocs'
 
 export async function PageMetier({ metier: m }: { metier: Metier }) {
   const [comptes, recentes, departements] = await Promise.all([
@@ -49,26 +48,18 @@ export async function PageMetier({ metier: m }: { metier: Metier }) {
       {salaires && (
         <section className="border-y border-line bg-bg-soft">
           <div className="container py-16 md:py-20">
-            <h2 className="text-2xl font-semibold tracking-tight text-fg md:text-3xl">Salaire moyen par secteur</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-fg md:text-3xl">Salaire minimum conventionnel par secteur</h2>
             <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {SECTEURS.map((s, i) => {
-                const v = salaires.valeurs[i]
-                return (
-                  <li key={s} className="squircle-2xl border border-line bg-bg p-5">
-                    <p className="text-sm text-fg-2">{s}</p>
-                    {v == null ? (
-                      <p className="mt-3 text-lg text-fg-2">Peu de postes</p>
-                    ) : (
-                      <p className="mt-3">
-                        <span className="text-4xl font-semibold tabular-nums tracking-tight text-fg">{euros(v)} €</span>
-                        <span className="block text-sm text-fg-2">brut par mois</span>
-                      </p>
-                    )}
-                  </li>
-                )
-              })}
+              {SECTEURS.map((s, i) => (
+                <li key={s} className="squircle-2xl border border-line bg-bg p-5">
+                  <p className="text-sm text-fg-2">{s}</p>
+                  <p className="mt-3">
+                    <CaseSalaireVue c={salaires.valeurs[i] ?? null} grande />
+                  </p>
+                </li>
+              ))}
             </ul>
-            <SourceSalaires className="mt-4" />
+            <SourceSalaires className="mt-4" sources={sourcesDe([salaires])} />
           </div>
         </section>
       )}
@@ -161,7 +152,7 @@ export async function PageMetier({ metier: m }: { metier: Metier }) {
                 <BookOpen className="size-4" aria-hidden /> Fiche métier
               </p>
               <p className="mt-2 text-2xl font-semibold tracking-tight">Le métier {m.de}</p>
-              <p className="mt-1 text-white/70">Missions, formation, salaire moyen et évolutions.</p>
+              <p className="mt-1 text-white/70">Missions, formation, salaire minimum et évolutions.</p>
             </div>
             <ArrowUpRight className="absolute right-5 top-5 size-5 text-white/80" aria-hidden />
           </Link>

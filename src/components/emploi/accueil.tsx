@@ -1,7 +1,7 @@
 /**
  * Accueil Emploi (`/emploi/`) : héros éditorial et recherche, métiers en
  * bento (compteurs nationaux), offres récentes, méthode sur fond doux,
- * salaires moyens par métier et secteur, « Vous recrutez ? » et FAQ.
+ * salaires minimums conventionnels par métier et secteur, « Vous recrutez ? » et FAQ.
  *
  * Tous les chiffres sont calculés sur les offres en ligne. À zéro offre, les
  * compteurs laissent place à une mention neutre et les blocs de chiffres
@@ -292,10 +292,10 @@ export async function Accueil() {
         />
       </div>
       <section className="container py-20 md:py-24">
-        <TitreDeuxTons sous="par métier et par secteur.">Salaires moyens</TitreDeuxTons>
+        <TitreDeuxTons sous="par métier et par secteur.">Salaires minimums</TitreDeuxTons>
         <p className="mt-4 max-w-2xl text-fg-2">
-          Pour situer une offre avant de postuler : le salaire moyen de chaque métier ouvert sur DentalMap, selon que l’on travaille en cabinet libéral, en centre de
-          santé, en laboratoire ou à l’hôpital.
+          Pour situer une offre avant de postuler : le salaire minimum fixé par la convention collective ou la grille publique, pour chaque métier ouvert sur
+          DentalMap, selon que l’on travaille en cabinet libéral, en centre de santé, en laboratoire ou à l’hôpital. Un salaire réel peut être plus élevé.
         </p>
         <div className="mt-10">
           <SalairesSecteurs />

@@ -42,8 +42,8 @@ export const METIERS: readonly Metier[] = [
   {
     code: 'secretaire',
     slug: 'secretaire-assistant-gestion',
-    nom: 'Secrétaire ou assistant(e) de gestion',
-    de: 'de secrétaire ou d’assistant(e) de gestion',
+    nom: 'Secrétaire de cabinet dentaire',
+    de: 'de secrétaire de cabinet dentaire',
     detail: 'Accueil, planning, facturation',
     photo: '/images/demo/pexels-6627471.jpg',
   },

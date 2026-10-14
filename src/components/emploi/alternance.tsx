@@ -1,8 +1,8 @@
 /**
  * `/emploi/alternance/` : alternance et stages. Les offres les plus récentes,
  * deux onglets (`?contrat=stage` pour les stages), des exemples de rythme
- * école et entreprise, les écoles de la rubrique Formation et le salaire
- * moyen d'un alternant issu d'études.
+ * école et entreprise, les écoles de la rubrique Formation et la
+ * rémunération minimale d'un alternant, en pourcentage du SMIC (Code du travail).
  */
 import Link from 'next/link'
 import { ArrowRight, GraduationCap } from 'lucide-react'
@@ -11,7 +11,7 @@ import { chemin } from '@/lib/navigation'
 import { ALTERNANCE, EMPLOI } from '@/lib/emploi/chemins'
 import { euros } from '@/lib/emploi/format'
 import { getComptes, getOffresRecentes } from '@/lib/emploi/queries'
-import { SALAIRES_ALTERNANCE, SOURCE_SALAIRES } from '@/lib/emploi/salaires'
+import { APPRENTISSAGE, PROFESSIONNALISATION, SMIC, SOURCES_ALTERNANCE } from '@/lib/emploi/salaires'
 import { AucuneOffre } from './accueil'
 import { AlerteEmail } from './alerte-email'
 import { CarteOffre, TitreDeuxTons } from './blocs'
@@ -143,18 +143,78 @@ export async function PageAlternance({ stages }: { stages: boolean }) {
       <section className="border-t border-line">
         <div className="container grid gap-14 py-16 md:py-20 lg:grid-cols-2 lg:gap-20">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-fg md:text-3xl">Salaire moyen d’un alternant</h2>
-            <p className="mt-2 text-fg-2">Il dépend de l’âge et de l’année de contrat. Chaque offre affiche sa fourchette brute mensuelle.</p>
-            <dl className="mt-8 grid grid-cols-3 gap-3">
-              {SALAIRES_ALTERNANCE.map((s) => (
-                <div key={s.annee} className="squircle-2xl border border-line p-4">
-                  <dt className="text-xs text-fg-2 sm:text-sm">{s.annee}</dt>
-                  <dd className="mt-2 whitespace-nowrap text-xl font-semibold tabular-nums tracking-tight text-fg sm:text-3xl">{euros(s.moyenne)} €</dd>
-                  <dd className="text-xs text-fg-2">brut par mois</dd>
+            <h2 className="text-2xl font-semibold tracking-tight text-fg md:text-3xl">Rémunération minimale d’un alternant</h2>
+            <p className="mt-2 text-fg-2">
+              Un pourcentage du SMIC fixé par le Code du travail, selon l’âge et l’année de contrat. Chaque offre affiche sa rémunération brute mensuelle.
+            </p>
+
+            <h3 className="mt-8 font-semibold text-fg">Contrat d’apprentissage</h3>
+            <div className="mt-3 overflow-hidden rounded-2xl border border-line">
+              <table className="w-full text-left text-sm">
+                <caption className="sr-only">Pourcentage du SMIC selon l’âge et l’année de contrat</caption>
+                <thead className="bg-bg-soft text-xs text-fg-2">
+                  <tr>
+                    <th scope="col" className="px-3 py-2.5 font-medium sm:px-4">Âge</th>
+                    {['1re année', '2e année', '3e année'].map((a) => (
+                      <th key={a} scope="col" className="px-2 py-2.5 text-right font-medium sm:px-4">
+                        {a}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {APPRENTISSAGE.map((l) => (
+                    <tr key={l.age}>
+                      <th scope="row" className="px-3 py-2.5 font-normal text-fg-2 sm:px-4">
+                        {l.age}
+                      </th>
+                      {l.taux.map((t, k) => (
+                        <td key={k} className="whitespace-nowrap px-2 py-2.5 text-right font-semibold tabular-nums text-fg sm:px-4">
+                          {t}&nbsp;%
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-2 text-xs text-fg-2">À partir de 21 ans, le salaire minimum conventionnel de l’emploi s’applique s’il est plus élevé.</p>
+
+            <h3 className="mt-8 font-semibold text-fg">Contrat de professionnalisation</h3>
+            <dl className="mt-3 divide-y divide-line rounded-2xl border border-line text-sm">
+              {PROFESSIONNALISATION.map((l) => (
+                <div key={l.age} className="flex items-baseline justify-between gap-4 px-3 py-2.5 sm:px-4">
+                  <dt className="text-fg-2">{l.age}</dt>
+                  <dd className="text-right">
+                    <span className="font-semibold tabular-nums text-fg">{l.taux}&nbsp;% du SMIC</span>
+                    <span className="block text-xs text-fg-2">{l.avecBac}&nbsp;% avec un bac pro ou plus</span>
+                  </dd>
                 </div>
               ))}
+              <div className="flex items-baseline justify-between gap-4 px-3 py-2.5 sm:px-4">
+                <dt className="text-fg-2">26 ans et plus</dt>
+                <dd className="text-right font-semibold text-fg">85&nbsp;% du minimum de la branche</dd>
+              </div>
             </dl>
-            <p className="mt-4 text-xs text-fg-2">Moyennes issues d’études salariales, et non calculées sur les offres. {SOURCE_SALAIRES}.</p>
+            <p className="mt-2 text-xs text-fg-2">
+              Assistant(e) dentaire en cabinet : l’accord de branche fixe 90&nbsp;% du SMIC avant 26 ans et 100&nbsp;% à partir de 26 ans.
+            </p>
+
+            <p className="mt-6 text-sm text-fg-2">
+              SMIC au {SMIC.date} : {SMIC.mensuel.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} € brut par mois pour 35 heures par semaine.
+            </p>
+            <div className="mt-3 text-xs text-fg-2">
+              <p>Sources :</p>
+              <ul className="mt-1 space-y-1">
+                {SOURCES_ALTERNANCE.map((src) => (
+                  <li key={src.url}>
+                    <a href={src.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-fg">
+                      {src.libelle}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
             <p className="mt-6 text-sm text-fg-2">
               Stages : au-delà de deux mois, le stage donne droit à une gratification légale, indiquée sur l’offre.
             </p>

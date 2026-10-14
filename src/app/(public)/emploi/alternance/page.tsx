@@ -12,7 +12,7 @@ export async function generateMetadata(props: { searchParams: Promise<Recherche>
   return {
     title: stages ? 'Stages dans les cabinets dentaires et les laboratoires' : 'Alternance et stages en cabinet dentaire et en laboratoire',
     description:
-      'Contrats d’alternance et stages publiés par des cabinets, centres de santé et laboratoires vérifiés, avec la rémunération affichée. Rythme école et entreprise, écoles, salaire moyen d’un alternant.',
+      'Contrats d’alternance et stages publiés par des cabinets, centres de santé et laboratoires vérifiés, avec la rémunération affichée. Rythme école et entreprise, écoles, rémunération minimale d’un alternant.',
     alternates: { canonical: ALTERNANCE },
     ...(stages ? { robots: { index: false, follow: true } } : {}),
   }

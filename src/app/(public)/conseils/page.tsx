@@ -21,7 +21,7 @@ const TEXTE: Record<ConseilCategorie, string> = {
   patients: 'Choisir un praticien, comprendre un devis, savoir ce qui est remboursé.',
   praticiens: 'Installation, conventionnement, obligations d’affichage.',
   prothesistes: 'Traçabilité, marquage CE, relations avec les cabinets.',
-  metiers: 'Missions, formation et salaire moyen, métier par métier.',
+  metiers: 'Missions, formation et salaire minimum, métier par métier.',
 }
 
 /**

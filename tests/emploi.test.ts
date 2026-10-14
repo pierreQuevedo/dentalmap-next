@@ -6,7 +6,7 @@ import { debutTexte, decouperDescription, etiquetteCarte, monogramme, referenceO
 import { offreJobPosting, typesEmploi, type DonneesJobPosting } from '@/lib/emploi/jsonld'
 import { resumeDepuisLigne, typeRecruteur, type LigneOffre } from '@/lib/emploi/ligne'
 import { CODES_METIER, METIERS, metierDepuisCode, metierDepuisSlug, robotsListe } from '@/lib/emploi/metiers'
-import { repereSalaire } from '@/lib/emploi/salaires'
+import { APPRENTISSAGE, PROFESSIONNALISATION, SALAIRES, SOURCES_SALAIRES, montantTexte, repereSalaire, sourcesDe } from '@/lib/emploi/salaires'
 import type { OffreResume } from '@/lib/emploi/types'
 
 describe('métiers : slugs et codes', () => {
@@ -74,16 +74,74 @@ describe('rémunération selon le mode', () => {
   })
 })
 
-describe('repère de salaire (études, jamais les offres)', () => {
-  it('salaire du métier dans le secteur du recruteur', () => {
-    expect(repereSalaire('assistant_dentaire', 'cdi', 'cabinet')?.texte).toBe('Salaire moyen d’assistant(e) dentaire en cabinet libéral : 2 050 € brut par mois.')
+/** Les montants sont formatés par `toLocaleString('fr-FR')`, avec des espaces fines insécables. */
+const esp = (t: string | undefined) => t?.replace(/[\u202f\u00a0]/g, ' ')
+
+describe('repère de salaire (minimums conventionnels, jamais les offres)', () => {
+  it('minimum du métier dans le secteur du recruteur, avec sa source', () => {
+    const r = repereSalaire('assistant_dentaire', 'cdi', 'cabinet')
+    expect(esp(r?.texte)).toBe('Salaire minimum conventionnel d’assistant(e) dentaire en cabinet libéral : 2 113 € brut par mois.')
+    expect(r?.objet).toBe('Minimum brut mensuel pour un temps plein, fixé par la convention collective')
+    expect(r?.sources).toEqual([SOURCES_SALAIRES.idcc1619])
   })
-  it('rien quand le secteur n’a pas de repère', () => {
+  it('fourchette et précision pour le prothésiste en laboratoire', () => {
+    const r = repereSalaire('prothesiste', 'cdi', 'laboratoire')
+    expect(esp(r?.texte)).toBe('Salaire minimum conventionnel de prothésiste dentaire en laboratoire de prothèse : 1 935 € à 2 293 € brut par mois, du bac pro au BTS.')
+    expect(r?.sources).toEqual([SOURCES_SALAIRES.idcc993])
+  })
+  it('rien quand le secteur n’a pas de grille ou que le montant est un texte', () => {
     expect(repereSalaire('assistant_dentaire', 'cdi', 'laboratoire')).toBeNull()
-    expect(repereSalaire('assistant_specialise', 'cdi', 'cabinet')).toBeNull()
+    expect(repereSalaire('assistant_dentaire', 'cdi', 'centre')).toBeNull()
+    expect(repereSalaire('assistant_specialise', 'cdi', 'centre')).toBeNull()
+    expect(repereSalaire('chirurgien_dentiste', 'cdi', 'cabinet')).toBeNull()
   })
-  it('taux moyen pour un remplacement', () => {
-    expect(repereSalaire('chirurgien_dentiste', 'remplacement', 'cabinet')?.texte).toContain('40 %')
+  it('aucun taux pour un remplacement ou une collaboration : renvoi aux contrats types de l’Ordre', () => {
+    const r = repereSalaire('chirurgien_dentiste', 'remplacement', 'cabinet')
+    expect(r?.texte).not.toMatch(/\d/)
+    expect(r?.sources[0]?.url).toContain('ordre-chirurgiens-dentistes.fr')
+    expect(repereSalaire('chirurgien_dentiste', 'collaboration', 'cabinet')?.texte).toContain('redevance')
+  })
+})
+
+describe('salaires minimums des pages Emploi', () => {
+  it('chaque montant cite une source', () => {
+    for (const l of Object.values(SALAIRES)) {
+      for (const c of l!.valeurs) if (c && 'montant' in c) expect(SOURCES_SALAIRES[c.source].url).toMatch(/^https:\/\/www\.legifrance\.gouv\.fr\//)
+    }
+  })
+  it('montants retenus', () => {
+    expect(SALAIRES.secretaire?.valeurs.map((c) => (c && 'montant' in c ? c.montant : null))).toEqual([2090, null, 1896, null])
+    expect(SALAIRES.aide_dentaire?.valeurs[0]).toMatchObject({ montant: 1905 })
+    expect(SALAIRES.prothesiste?.valeurs[0]).toMatchObject({ montant: 1963, haut: 3065, source: 'idcc1619' })
+    expect(SALAIRES.chirurgien_dentiste?.valeurs).toEqual([
+      { texte: 'Honoraires', precision: 'Exercice libéral' },
+      null,
+      null,
+      { montant: 4634, precision: 'Début de grille des praticiens hospitaliers', source: 'ph' },
+    ])
+  })
+  it('fourchette affichée « à »', () => {
+    expect(esp(montantTexte({ montant: 1935, haut: 2293 }))).toBe('1 935 € à 2 293 €')
+    expect(esp(montantTexte({ montant: 2113 }))).toBe('2 113 €')
+  })
+  it('assistant(e) spécialisé(e) : minimum avec la prime de mention', () => {
+    expect(repereSalaire('assistant_specialise', 'cdi', 'cabinet')?.texte).toContain('2 328')
+  })
+  it('sources sans doublon, dans l’ordre', () => {
+    expect(sourcesDe(Object.values(SALAIRES) as never)).toEqual([SOURCES_SALAIRES.idcc1619, SOURCES_SALAIRES.idcc993, SOURCES_SALAIRES.mentions1619, SOURCES_SALAIRES.ph])
+    expect(sourcesDe([SALAIRES.aide_dentaire!])).toEqual([SOURCES_SALAIRES.idcc1619])
+  })
+  it('alternance : pourcentages du SMIC du Code du travail', () => {
+    expect(APPRENTISSAGE.map((l) => l.taux)).toEqual([
+      [27, 39, 55],
+      [43, 51, 67],
+      [53, 61, 78],
+      [100, 100, 100],
+    ])
+    expect(PROFESSIONNALISATION.map((l) => [l.taux, l.avecBac])).toEqual([
+      [55, 65],
+      [70, 80],
+    ])
   })
 })
 

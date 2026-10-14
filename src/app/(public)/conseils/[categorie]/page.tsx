@@ -12,7 +12,7 @@ const INTRO: Record<ConseilCategorie, string> = {
   patients: 'Choisir un praticien, comprendre un devis, savoir ce qui est remboursé.',
   praticiens: 'Installation, conventionnement, obligations d’affichage et de publicité.',
   prothesistes: 'Traçabilité, marquage CE, sous-traitance et relations avec les cabinets.',
-  metiers: 'Missions, formation et salaire moyen, métier par métier.',
+  metiers: 'Missions, formation et salaire minimum, métier par métier.',
 }
 
 /**

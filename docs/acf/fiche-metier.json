@@ -25,10 +25,10 @@
       },
       {
         "key": "field_dm_metier_salaire_repere",
-        "label": "Salaire brut mensuel repère (carte du hub)",
+        "label": "Salaire minimum brut mensuel (carte du hub)",
         "name": "metier_salaire_repere",
         "type": "number",
-        "instructions": "Moyenne issue d’une étude, en euros, sans espace. Laisser vide si le métier n’est pas salarié.",
+        "instructions": "Minimum conventionnel brut mensuel, en euros, sans espace, affiché « X € brut minimum » sur la carte du hub. Laisser vide si le métier n’est pas salarié ou n’a pas de grille.",
         "required": 0,
         "show_in_graphql": 1,
         "graphql_field_name": "salaire_repere"
@@ -38,7 +38,7 @@
         "label": "Chiffres clés",
         "name": "metier_chiffres",
         "type": "textarea",
-        "instructions": "Quatre lignes « valeur | libellé », par exemple « 18 mois | de formation en alternance ».",
+        "instructions": "Trois ou quatre lignes « valeur | libellé », par exemple « 18 mois | de formation, soit 1 878 heures ». La grille du héros s’adapte au nombre de lignes.",
         "required": 0,
         "show_in_graphql": 1,
         "graphql_field_name": "chiffres",
@@ -93,10 +93,10 @@
       },
       {
         "key": "field_dm_metier_salaires",
-        "label": "Salaire moyen par secteur",
+        "label": "Salaire minimum conventionnel par secteur",
         "name": "metier_salaires",
         "type": "textarea",
-        "instructions": "Une ligne par secteur « secteur | montant », secteurs : Cabinet libéral, Centre de santé, Laboratoire de prothèse, Hôpital ou centre universitaire. Montant vide : « Peu de postes ».",
+        "instructions": "Une ligne par secteur « secteur | montant | montant haut | précision ». Secteurs : Cabinet libéral, Centre de santé, Laboratoire de prothèse, Hôpital ou centre universitaire. Montant : le minimum brut mensuel en euros (par exemple 1935), ou un texte affiché tel quel (par exemple Honoraires). Montant haut, facultatif : affiché « 1 935 € à 2 293 € ». Précision, facultative : affichée en petit sous le montant (par exemple bac pro à BTS). Ligne vide ou sans montant : « Pas de grille de référence ». Exemple : « Laboratoire de prothèse | 1935 | 2293 | bac pro à BTS ». L’ancien format « secteur | montant » reste lu.",
         "required": 0,
         "show_in_graphql": 1,
         "graphql_field_name": "salaires",
@@ -105,10 +105,10 @@
       },
       {
         "key": "field_dm_metier_source_salaires",
-        "label": "Source des salaires",
+        "label": "Source des salaires minimums",
         "name": "metier_source_salaires",
         "type": "text",
-        "instructions": "Nom de l’étude et année, affichés sous les salaires.",
+        "instructions": "Texte de la convention collective ou de la grille publique, avec sa date d’effet, affiché « Source : … » sous les barres. Par exemple « accord du 12 février 2026, convention collective des cabinets dentaires (IDCC 1619), montants au 1er janvier 2026 ».",
         "required": 0,
         "show_in_graphql": 1,
         "graphql_field_name": "source_salaires"

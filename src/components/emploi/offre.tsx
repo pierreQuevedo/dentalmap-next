@@ -288,7 +288,7 @@ function SectionPoste({ o, v }: { o: OffreDetail; v: Vue }) {
             {v.repere && (
               <>
                 <p className="mt-1 text-sm text-fg-2">{v.repere.texte}</p>
-                <SourceSalaires className="mt-2" objet={v.repere.objet} />
+                <SourceSalaires className="mt-2" objet={v.repere.objet} sources={v.repere.sources} />
               </>
             )}
           </div>

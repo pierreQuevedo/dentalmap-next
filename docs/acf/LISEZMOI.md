@@ -73,6 +73,34 @@ Le contenu des six premières fiches est prêt dans
 les crée en brouillon par l'API REST (mot de passe d'application
 `WP_APP_USER`, `WP_APP_PASSWORD`), à relire puis publier dans WordPress.
 
+### Salaires
+
+Les salaires affichés sont des minimums, jamais des moyennes : aucune source
+officielle ne publie de salaire moyen par métier et par secteur. On saisit
+le minimum de la convention collective (cabinets dentaires, IDCC 1619 ;
+prothésistes dentaires, IDCC 993) ou, à l'hôpital, le début de la grille
+publique, et on cite le texte dans « Source des salaires minimums ».
+
+- Salaire minimum par secteur (`metier_salaires`) : une ligne par secteur,
+  « Secteur | montant | montant haut | précision ». Le montant est un nombre
+  (le minimum brut mensuel pour un temps plein) ou un texte affiché tel quel,
+  par exemple `Honoraires`. Le montant haut est facultatif et donne une
+  fourchette (« 1 935 € à 2 293 € »). La précision est facultative et
+  s'affiche en petit sous le montant. Exemples :
+  `Laboratoire de prothèse | 1935 | 2293 | bac pro à BTS`,
+  `Cabinet libéral | Honoraires`, `Centre de santé |`.
+  Une ligne vide ou sans montant affiche « Pas de grille de référence ».
+  L'ancien format « Secteur | montant » reste lu.
+- Les barres sont proportionnelles au montant haut s'il existe, sinon au
+  montant ; un texte n'a pas de barre.
+- Sous les barres, le site affiche « Brut mensuel pour un temps plein. Ce sont
+  les minimums fixés par les conventions collectives ou les grilles
+  publiques : un salaire réel peut être plus élevé. », puis
+  « Source : » suivi du champ `metier_source_salaires`.
+- `metier_salaire_repere` : le minimum affiché sur la carte du hub
+  (« 2 113 € brut minimum »).
+- Chiffres clés : trois ou quatre lignes, la grille du héros s'adapte.
+
 ## Article modulaire
 
 `article-modules.json` : le groupe « Article modulaire », attaché au type

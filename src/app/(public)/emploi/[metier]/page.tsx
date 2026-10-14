@@ -19,7 +19,7 @@ export async function generateMetadata(props: { params: Promise<Params> }): Prom
   if (!m) return { title: 'Métier introuvable' }
   return {
     title: `Offres d’emploi ${m.de} en France`,
-    description: `Les offres d’emploi ${m.de} publiées par des recruteurs vérifiés auprès des registres officiels, avec la rémunération affichée. Salaire moyen par secteur et offres par département.`,
+    description: `Les offres d’emploi ${m.de} publiées par des recruteurs vérifiés auprès des registres officiels, avec la rémunération affichée. Salaire minimum conventionnel par secteur et offres par département.`,
     alternates: { canonical: cheminMetier(m.slug) },
   }
 }

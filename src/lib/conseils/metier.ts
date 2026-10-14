@@ -19,6 +19,17 @@ export const SECTEURS = ['Cabinet libéral', 'Centre de santé', 'Laboratoire de
 export const ICONES_MISSION = ['fauteuil', 'hygiene', 'accueil', 'gestion', 'diagnostic', 'atelier', 'controle', 'planning'] as const
 export type IconeMission = (typeof ICONES_MISSION)[number]
 
+/**
+ * Une ligne du tableau des salaires : un minimum brut mensuel (avec, le cas
+ * échéant, le haut de la fourchette), ou un texte affiché tel quel
+ * (« Honoraires »), avec une précision facultative. `null` : pas de grille
+ * de référence dans ce secteur.
+ */
+export type CaseSalaireFiche =
+  | { montant: number; haut: number | null; precision: string | null }
+  | { texte: string; precision: string | null }
+  | null
+
 export type FicheMetier = {
   accroche: string | null
   formationCourte: string | null
@@ -28,8 +39,8 @@ export type FicheMetier = {
   qualites: string[]
   formation: string | null
   etapes: { titre: string; detail: string }[]
-  /** Dans l'ordre de `SECTEURS` ; `null` : peu de postes dans ce secteur. */
-  salaires: (number | null)[]
+  /** Dans l'ordre de `SECTEURS` ; `null` : pas de grille de référence dans ce secteur. */
+  salaires: CaseSalaireFiche[]
   sourceSalaires: string | null
   evolutions: { titre: string; detail: string }[]
   sources: string[]
@@ -59,6 +70,27 @@ export function montant(v: unknown): number | null {
   return v.trim() && Number.isFinite(n) && n > 0 ? Math.round(n) : null
 }
 
+/** Un montant seul (« 2113 », « 2 113 € », « 2113,00 ») : les chiffres, espaces, séparateurs et l'euro, rien d'autre. */
+function estMontant(v: string): boolean {
+  return /^\d[\d\s\u00a0\u202f.,]*€?$/.test(v.trim())
+}
+
+/**
+ * Une ligne de `metier_salaires` : `Secteur | montant | montant haut | précision`.
+ * L'ancien format `Secteur | montant` reste lisible. Un montant non numérique
+ * est un texte affiché tel quel ; une ligne sans montant ne donne rien.
+ */
+export function caseSalaire(colonnes: string[]): CaseSalaireFiche {
+  const [, valeur = '', haut = '', precision = ''] = colonnes
+  if (!valeur) return null
+  const p = precision || null
+  if (!estMontant(valeur)) return { texte: valeur, precision: p }
+  const m = montant(valeur)
+  if (m === null) return null
+  const h = estMontant(haut) ? montant(haut) : null
+  return { montant: m, haut: h !== null && h > m ? h : null, precision: p }
+}
+
 /**
  * Lit les champs ACF bruts d'une fiche. Une ligne incomplète est ignorée
  * plutôt que d'afficher une case vide ; une icône inconnue devient
@@ -67,7 +99,7 @@ export function montant(v: unknown): number | null {
 export function lireFicheMetier(acf: Record<string, unknown> | null | undefined): FicheMetier | null {
   if (!acf || typeof acf !== 'object') return null
   const paire = (texte: unknown) => lignes(texte).filter((l) => l[0] && l[1]).map(([titre, detail]) => ({ titre: titre!, detail: detail! }))
-  const salairesParSecteur = new Map(lignes(acf.metier_salaires).map(([secteur, valeur]) => [secteur?.toLowerCase() ?? '', montant(valeur)]))
+  const salairesParSecteur = new Map(lignes(acf.metier_salaires).map((l) => [l[0]?.toLowerCase() ?? '', caseSalaire(l)]))
   const fiche: FicheMetier = {
     accroche: texteOuNull(acf.metier_accroche),
     formationCourte: texteOuNull(acf.metier_formation_courte),

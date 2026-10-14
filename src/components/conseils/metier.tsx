@@ -13,7 +13,7 @@ import { Armchair, ArrowRight, ArrowUpRight, CalendarDays, ClipboardList, FileCh
 import { FilAriane } from '@/components/annuaire/primitives'
 import { formaterDate, lienConseil } from '@/components/conseils/primitives'
 import { chemin } from '@/lib/navigation'
-import { SECTEURS, type CarteMetier, type FicheMetier, type IconeMission } from '@/lib/conseils/metier'
+import { SECTEURS, type CarteMetier, type CaseSalaireFiche, type FicheMetier, type IconeMission } from '@/lib/conseils/metier'
 import type { ConseilComplet, ConseilResume } from '@/lib/wp/queries'
 
 const ICONES: Record<IconeMission, typeof Armchair> = {
@@ -62,7 +62,7 @@ export function CarteMetierPhoto({ m, grande }: { m: CarteMetier; grande?: boole
                 {m.formation}
               </span>
             )}
-            {m.salaire !== null && <span className="rounded-full bg-white/15 px-2.5 py-1 backdrop-blur">{euros(m.salaire)} € brut moyen</span>}
+            {m.salaire !== null && <span className="rounded-full bg-white/15 px-2.5 py-1 backdrop-blur">{euros(m.salaire)} € brut minimum</span>}
           </div>
         )}
       </div>
@@ -86,7 +86,7 @@ export function HubMetiers({ metiers, articles }: { metiers: CarteMetier[]; arti
             Les métiers
             <span className="block text-fg-2">du dentaire.</span>
           </h1>
-          <p className="max-w-sm text-lg text-fg-2">Missions, formation et salaire moyen, métier par métier.</p>
+          <p className="max-w-sm text-lg text-fg-2">Missions, formation et salaire minimum, métier par métier.</p>
         </div>
       </section>
 
@@ -109,7 +109,7 @@ export function HubMetiers({ metiers, articles }: { metiers: CarteMetier[]; arti
         <section className="border-y border-line bg-bg-soft">
           <div className="container grid gap-10 py-16 md:py-20 lg:grid-cols-2 lg:gap-20">
             <h2 className="text-3xl font-semibold tracking-tight text-fg md:text-4xl">
-              Comparer les salaires
+              Comparer les salaires minimums
               <span className="block text-fg-2">d’un métier à l’autre.</span>
             </h2>
             <ul className="space-y-4">
@@ -122,7 +122,7 @@ export function HubMetiers({ metiers, articles }: { metiers: CarteMetier[]; arti
                   </span>
                 </li>
               ))}
-              <li className="pt-2 text-xs text-fg-2">Brut mensuel moyen, issu d’études salariales citées sur chaque fiche.</li>
+              <li className="pt-2 text-xs text-fg-2">Minimum conventionnel brut mensuel, cité sur chaque fiche.</li>
             </ul>
           </div>
         </section>
@@ -149,27 +149,46 @@ export function HubMetiers({ metiers, articles }: { metiers: CarteMetier[]; arti
 
 /* ---------- Fiche ---------- */
 
-function SalairesBarres({ valeurs, source }: { valeurs: (number | null)[]; source: string | null }) {
-  const max = Math.max(1, ...valeurs.filter((v): v is number => v !== null))
+/** Chiffres clés du héros : autant de colonnes que de chiffres, quatre au plus. */
+const COLONNES_CHIFFRES: Record<number, string> = { 1: 'md:grid-cols-1', 2: 'md:grid-cols-2', 3: 'md:grid-cols-3' }
+
+/** Les barres : proportionnelles au haut de la fourchette s'il existe, sinon au minimum ; pas de barre pour un texte. */
+function SalairesBarres({ valeurs, source }: { valeurs: CaseSalaireFiche[]; source: string | null }) {
+  const reference = (c: CaseSalaireFiche) => (c && 'montant' in c ? (c.haut ?? c.montant) : null)
+  const max = Math.max(1, ...valeurs.map(reference).filter((v): v is number => v !== null))
   return (
     <div>
       <ul className="space-y-4">
         {SECTEURS.map((s, i) => {
-          const v = valeurs[i] ?? null
+          const c = valeurs[i] ?? null
+          const ref = reference(c)
           return (
             <li key={s} className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-x-4 gap-y-2">
               <span className="text-sm text-fg-2">{s}</span>
-              <span className="text-right font-semibold tabular-nums text-fg">{v === null ? 'Peu de postes' : `${euros(v)} €`}</span>
+              <span className="text-right">
+                {c === null ? (
+                  <span className="text-sm text-fg-2">Pas de grille de référence</span>
+                ) : (
+                  <span className="font-semibold tabular-nums text-fg">{'montant' in c ? (c.haut ? `${euros(c.montant)} € à ${euros(c.haut)} €` : `${euros(c.montant)} €`) : c.texte}</span>
+                )}
+                {c?.precision && <span className="block text-xs text-fg-2">{c.precision}</span>}
+              </span>
               <span className="col-span-2 h-2.5 rounded-full bg-bg-soft">
-                {v !== null && <span className="block h-full rounded-full bg-teal" style={{ width: `${(v / max) * 100}%` }} />}
+                {ref !== null && <span className="block h-full rounded-full bg-teal" style={{ width: `${(ref / max) * 100}%` }} />}
               </span>
             </li>
           )
         })}
       </ul>
       <p className="mt-4 text-xs text-fg-2">
-        Brut mensuel moyen, temps plein, issu d’études salariales et non calculé sur les offres publiées.{source ? ` Source : ${source}.` : ''}
+        Brut mensuel pour un temps plein. Ce sont les minimums fixés par les conventions collectives ou les grilles publiques : un salaire réel peut être plus élevé.
       </p>
+      {source && (
+        <p className="mt-2 text-xs text-fg-2">
+          Source : {source}
+          {/[.!?]$/.test(source) ? '' : '.'}
+        </p>
+      )}
     </div>
   )
 }
@@ -177,6 +196,7 @@ function SalairesBarres({ valeurs, source }: { valeurs: (number | null)[]; sourc
 export function FicheMetierPage({ conseil, fiche, autres }: { conseil: ConseilComplet; fiche: FicheMetier; autres: CarteMetier[] }) {
   const maj = formaterDate(conseil.modifie ?? conseil.date)
   const aSalaires = fiche.salaires.some((v) => v !== null)
+  const colonnes = COLONNES_CHIFFRES[fiche.chiffres.length] ?? 'md:grid-cols-4'
   return (
     <main>
       <section className="dark relative -mt-20 overflow-hidden bg-background pt-20 text-fg">
@@ -200,7 +220,7 @@ export function FicheMetierPage({ conseil, fiche, autres }: { conseil: ConseilCo
             </p>
           </div>
           {fiche.chiffres.length > 0 && (
-            <dl className="mt-16 grid grid-cols-2 gap-6 border-t border-white/10 pt-8 md:grid-cols-4">
+            <dl className={`mt-16 grid grid-cols-2 gap-6 border-t border-white/10 pt-8 ${colonnes}`}>
               {fiche.chiffres.map((c) => (
                 <div key={c.libelle} className="flex flex-col-reverse">
                   <dt className="mt-1 text-sm text-white/60">{c.libelle}</dt>
@@ -278,7 +298,7 @@ export function FicheMetierPage({ conseil, fiche, autres }: { conseil: ConseilCo
         <section className="container grid gap-14 py-20 md:py-24 lg:grid-cols-2 lg:gap-20">
           {aSalaires && (
             <div>
-              <h2 className="text-3xl font-semibold tracking-tight text-fg md:text-4xl">Salaire moyen par secteur</h2>
+              <h2 className="text-3xl font-semibold tracking-tight text-fg md:text-4xl">Salaire minimum conventionnel par secteur</h2>
               <div className="mt-8">
                 <SalairesBarres valeurs={fiche.salaires} source={fiche.sourceSalaires} />
               </div>

@@ -1,22 +1,23 @@
 /**
  * `/emploi/remplacements/` et `/emploi/remplacements/[departement]/` :
  * remplacements et collaborations de chirurgiens-dentistes, en deux onglets
- * (`?contrat=collaboration`). Offres avec rétrocession ou redevance, repères
- * issus d'études, conditions d'exercice avec renvoi vers l'Ordre.
+ * (`?contrat=collaboration`). Offres avec rétrocession ou redevance, renvoi
+ * aux contrats types de l'Ordre (aucun taux de référence n'est publié), début
+ * de grille des praticiens hospitaliers, conditions d'exercice.
  *
  * En national, les offres les plus récentes et les départements qui en
  * comptent le plus ; dans un département, les offres par distance à sa
  * commune la plus peuplée, puis par ordre alphabétique.
  */
 import Link from 'next/link'
-import { ArrowRight, Check, Info } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Check, Info } from 'lucide-react'
 import { FilAriane } from '@/components/annuaire/primitives'
 import type { Departement } from '@/lib/annuaire/queries'
 import { chemin } from '@/lib/navigation'
 import { EMPLOI, REMPLACEMENTS, cheminRemplacementsDepartement } from '@/lib/emploi/chemins'
 import { euros } from '@/lib/emploi/format'
 import { PAR_PAGE_EMPLOI, getComptes, getDepartementsQuiRecrutent, getOffresDepartement, getOffresRecentes, getOrigineDepartement } from '@/lib/emploi/queries'
-import { RETROCESSION_MOYENNE, SALAIRES, SOURCE_SALAIRES } from '@/lib/emploi/salaires'
+import { CONTRATS_TYPES_ORDRE, SALAIRES, SOURCES_SALAIRES, montantTexte } from '@/lib/emploi/salaires'
 import { AucuneOffre } from './accueil'
 import { AlerteEmail } from './alerte-email'
 import { CarteOffre, ListeLiens, TitreDeuxTons, nombreOffres } from './blocs'
@@ -54,7 +55,7 @@ export async function PageRemplacements({ collaboration, departement: d, page = 
   const { offres, total } = liste
   const pages = Math.max(1, Math.ceil(total / PAR_PAGE_EMPLOI))
   const base = d ? cheminRemplacementsDepartement(d.slug) : REMPLACEMENTS
-  const salarie = SALAIRES.chirurgien_dentiste?.valeurs[1] ?? null
+  const hopital = SALAIRES.chirurgien_dentiste?.valeurs[3] ?? null
   const croise = (k: 'remplacement' | 'collaboration') =>
     comptes.croises.filter((x) => x.metier === 'chirurgien_dentiste' && x.contrat === k).reduce((n, x) => n + x.total, 0)
   const onglets = [
@@ -95,26 +96,36 @@ export async function PageRemplacements({ collaboration, departement: d, page = 
       </section>
 
       <section className="border-y border-line bg-bg-soft">
-        <dl className="container grid gap-6 py-10 sm:grid-cols-3">
+        <div className="container grid gap-8 py-10 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:gap-14">
           <div>
-            <dt className="text-sm text-fg-2">Rétrocession moyenne, remplacement</dt>
-            <dd className="mt-1 text-4xl font-semibold tabular-nums tracking-tight text-fg">{RETROCESSION_MOYENNE.remplacement}&nbsp;%</dd>
-            <dd className="text-sm text-fg-2">des honoraires, versée au remplaçant</dd>
+            <h2 className="text-lg font-semibold text-fg">Rétrocession et redevance</h2>
+            <p className="mt-2 text-fg-2">
+              Le taux de rétrocession d’un remplacement et celui de la redevance d’une collaboration libérale sont fixés par le contrat conclu entre les praticiens,
+              sur le modèle des contrats types de l’Ordre national des chirurgiens-dentistes. Aucun taux de référence n’est publié : chaque offre affiche le sien.
+            </p>
+            <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+              {[CONTRATS_TYPES_ORDRE.remplacement, CONTRATS_TYPES_ORDRE.collaboration].map((src, k) => (
+                <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-fg underline underline-offset-2">
+                  {k === 0 ? 'Contrats types de remplacement' : 'Contrats types de collaboration'} <ArrowUpRight className="size-3.5" aria-hidden />
+                </a>
+              ))}
+            </p>
           </div>
-          <div>
-            <dt className="text-sm text-fg-2">Redevance moyenne, collaboration</dt>
-            <dd className="mt-1 text-4xl font-semibold tabular-nums tracking-tight text-fg">{RETROCESSION_MOYENNE.collaboration}&nbsp;%</dd>
-            <dd className="text-sm text-fg-2">des honoraires, versée au titulaire</dd>
-          </div>
-          {salarie != null && (
-            <div>
-              <dt className="text-sm text-fg-2">Salaire moyen, chirurgien-dentiste salarié(e)</dt>
-              <dd className="mt-1 text-4xl font-semibold tabular-nums tracking-tight text-fg">{euros(salarie)} €</dd>
-              <dd className="text-sm text-fg-2">brut par mois, en centre de santé</dd>
-            </div>
+          {hopital && 'montant' in hopital && (
+            <dl>
+              <dt className="text-sm text-fg-2">Chirurgien-dentiste à l’hôpital</dt>
+              <dd className="mt-1 text-4xl font-semibold tabular-nums tracking-tight text-fg">{montantTexte(hopital)}</dd>
+              <dd className="text-sm text-fg-2">brut par mois. {hopital.precision}, temps plein, hors indemnités et gardes.</dd>
+              <dd className="mt-2 text-xs text-fg-2">
+                Source :{' '}
+                <a href={SOURCES_SALAIRES[hopital.source].url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-fg">
+                  {SOURCES_SALAIRES[hopital.source].libelle}
+                </a>
+                .
+              </dd>
+            </dl>
           )}
-          <p className="text-xs text-fg-2 sm:col-span-3">Moyennes issues d’études, et non calculées sur les offres publiées. {SOURCE_SALAIRES}.</p>
-        </dl>
+        </div>
       </section>
 
       <section className="container py-16">

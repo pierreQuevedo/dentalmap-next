@@ -327,7 +327,7 @@ function Gabarit({ g }: { g: Gabarit }) {
   )
 }
 
-/** Salaire moyen du métier (études) et alerte, côte à côte. Sans repère de salaire pour ce métier, l'alerte seule. */
+/** Salaire minimum conventionnel du métier et alerte, côte à côte. Sans repère de salaire pour ce métier, l'alerte seule. */
 function SalaireEtAlerte({ m, criteres, detail }: { m: Metier; criteres: Partial<CriteresAlerte>; detail: string }) {
   const avecSalaires = Boolean(SALAIRES[m.code])
   return (
@@ -335,7 +335,7 @@ function SalaireEtAlerte({ m, criteres, detail }: { m: Metier; criteres: Partial
       <div className={`container grid gap-14 py-16 md:py-20 lg:gap-16 ${avecSalaires ? 'lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]' : 'lg:max-w-3xl'}`}>
         {avecSalaires && (
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-fg md:text-3xl">Salaire moyen par secteur</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-fg md:text-3xl">Salaire minimum conventionnel par secteur</h2>
             <p className="mt-2 text-fg-2">{m.nom}, selon le secteur. Pour situer les offres ci-dessus.</p>
             <div className="mt-6">
               <SalairesSecteurs metiers={[m.code]} />
