@@ -241,7 +241,7 @@ function Infos({ f }: { f: FormationPriveeVue }) {
         <div>
           <p className="text-xl font-semibold tracking-tight text-fg">L’inscription se fait chez l’organisme.</p>
           <p className="mt-1 text-sm text-fg-2">DentalMap ne vend pas de formation et ne prend pas d’inscription.</p>
-          <Link href={chemin('/contact/?objet=annonce#formulaire')} className="mt-3 inline-flex items-center gap-1.5 text-xs text-fg-2 underline-offset-4 hover:underline">
+          <Link href={chemin(`/contact/?objet=annonce&page=${encodeURIComponent(lienPrivee(f.slug))}`)} className="mt-3 inline-flex items-center gap-1.5 text-xs text-fg-2 underline-offset-4 hover:underline">
             <Flag className="size-3.5" aria-hidden /> Signaler une erreur sur cette formation
           </Link>
         </div>

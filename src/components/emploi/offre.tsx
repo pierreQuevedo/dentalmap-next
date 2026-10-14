@@ -163,7 +163,7 @@ function Dates({ o }: { o: OffreDetail }) {
       </p>
       <p className="mt-2 text-xs text-fg-2">Le recruteur confirme son offre tous les 15 jours ; sans confirmation, elle est retirée.</p>
       <Link
-        href={chemin('/contact/?objet=annonce#formulaire')}
+        href={chemin(`/contact/?objet=annonce&page=${encodeURIComponent(`/emploi/offre/${o.slug}/`)}`)}
         className="mt-2 inline-flex items-center gap-1.5 text-xs text-fg-2 underline-offset-4 hover:underline"
       >
         <Flag className="size-3.5" aria-hidden /> Signaler cette offre

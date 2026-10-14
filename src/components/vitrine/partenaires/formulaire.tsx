@@ -41,7 +41,11 @@ function Groupe({ children, className = '' }: { children: React.ReactNode; class
   return <div className={`flex flex-col gap-2 ${className}`}>{children}</div>
 }
 
-export function FormulairePartenariat() {
+/**
+ * `nu` : sans la carte ni le titre, pour le panneau de la page contact, qui
+ * porte les siens ; l'origine de la demande suit (`contact`).
+ */
+export function FormulairePartenariat({ nu = false }: { nu?: boolean } = {}) {
   const [etat, soumettre, enCours] = useActionState<EtatDemande, FormData>(envoyerDemandePartenariat, null)
   const formulaire = useRef<HTMLFormElement>(null)
   // Soumission par `onSubmit` plutôt que par `action` : React viderait le
@@ -51,9 +55,13 @@ export function FormulairePartenariat() {
     if (etat?.ok) formulaire.current?.reset()
   }, [etat])
   return (
-    <div id="formulaire" className="squircle-3xl scroll-mt-28 border border-line bg-bg p-6 shadow-pop md:p-8">
-      <p className="text-xl font-semibold tracking-tight text-fg">Proposer un partenariat</p>
-      <p className="mt-1 text-sm text-fg-2">Sans compte. Une personne de l’équipe vous répond.</p>
+    <div id={nu ? undefined : 'formulaire'} className={nu ? '' : 'squircle-3xl scroll-mt-28 border border-line bg-bg p-6 shadow-pop md:p-8'}>
+      {!nu && (
+        <>
+          <p className="text-xl font-semibold tracking-tight text-fg">Proposer un partenariat</p>
+          <p className="mt-1 text-sm text-fg-2">Sans compte. Une personne de l’équipe vous répond.</p>
+        </>
+      )}
       <form
         ref={formulaire}
         onSubmit={(e) => {
@@ -61,8 +69,8 @@ export function FormulairePartenariat() {
           const donnees = new FormData(e.currentTarget)
           startTransition(() => soumettre(donnees))
         }}
-        className="mt-6 grid grid-cols-2 gap-x-3 gap-y-5">
-        <input type="hidden" name="origine" value="partenaires" />
+        className={`${nu ? '' : 'mt-6 '}grid grid-cols-2 gap-x-3 gap-y-5`}>
+        <input type="hidden" name="origine" value={nu ? 'contact' : 'partenaires'} />
         <Groupe className="col-span-2 sm:col-span-1">
           <Label htmlFor="partenaire-prenom">Prénom</Label>
           <Input id="partenaire-prenom" name="prenom" type="text" autoComplete="given-name" required />

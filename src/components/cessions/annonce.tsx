@@ -161,7 +161,7 @@ function Cabinet({ a }: { a: AnnonceDetail }) {
               </span>
               <span>Référence {referenceAnnonce(a.id, a.publieeLe)}</span>
             </p>
-            <Link href={chemin('/contact/?objet=annonce#formulaire')} className="mt-3 inline-flex items-center gap-1.5 text-xs text-fg-2 underline-offset-4 hover:underline">
+            <Link href={chemin(`/contact/?objet=annonce&page=${encodeURIComponent(cheminAnnonceCession(a.departementSlug, a.slug))}`)} className="mt-3 inline-flex items-center gap-1.5 text-xs text-fg-2 underline-offset-4 hover:underline">
               <Flag className="size-3.5" aria-hidden /> Signaler cette annonce
             </Link>
           </div>

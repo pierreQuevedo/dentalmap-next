@@ -30,7 +30,7 @@ export async function envoyerDemandePartenariat(_etat: EtatDemande, donnees: For
   if (!r.success) return { ok: false, message: r.error.issues[0]?.message ?? 'Formulaire incomplet.' }
 
   try {
-    await envoyerCourriel({ ...r.data, organisme: ORGANISMES[r.data.organisme], fonction: FONCTIONS[r.data.fonction], origine: donnees.get('origine') === 'partenaires' ? 'partenaires' : 'accueil' })
+    await envoyerCourriel({ ...r.data, organisme: ORGANISMES[r.data.organisme], fonction: FONCTIONS[r.data.fonction], origine: donnees.get('origine') === 'partenaires' ? 'partenaires' : donnees.get('origine') === 'contact' ? 'contact' : 'accueil' })
     await envoyerAccusePartenariat(r.data.email)
   } catch (e) {
     console.error('[partenariat] envoi impossible', e)

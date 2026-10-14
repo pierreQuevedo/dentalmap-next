@@ -5,23 +5,20 @@ import { FilAriane } from '@/components/annuaire/primitives'
 import { CarteContact } from '@/components/contact/carte-contact'
 import { CtaCompte } from '@/components/contact/cta-compte'
 import { EntreesContact } from '@/components/contact/entrees-contact'
-import { FormulaireContact } from '@/components/contact/formulaire-contact'
 import { estObjet } from '@/lib/contact/objets'
 import { Balisage, filAriane } from '@/lib/seo/jsonld'
 
 /**
  * Page contact, dans le style des pages de la vitrine : titre en deux tons,
- * les entrées par public d'abord (on choisit son cas avant d'écrire), puis le
- * formulaire à côté de ce qui se passe ensuite, et l'appel aux
- * professionnels pour finir.
+ * puis les entrées par demande, chacune ouvrant son formulaire dédié dans un
+ * panneau (même animation que la recherche de l'en-tête), ce qui se passe
+ * ensuite, et l'appel aux professionnels pour finir.
  *
- * L'objet du message, et pour une erreur la fiche concernée, peuvent arriver
- * par l'URL (`?objet=erreur-fiche&fiche=…` depuis une fiche). Lire l'URL est
- * une donnée de requête : seul le formulaire en dépend, derrière un
- * `Suspense` dont le repli est le même formulaire sans présélection, de sorte
- * que le reste de la page reste une coquille statique. Le formulaire est
- * remonté à chaque objet, ce qui remet ses champs à zéro plutôt que de mêler
- * deux demandes.
+ * Les liens « Signaler » du site arrivent avec `?objet=…` (et `fiche` ou
+ * `page` pour préremplir) : le panneau s'ouvre alors seul sur le bon
+ * formulaire. Lire l'URL est une donnée de requête : seule la grille en
+ * dépend, derrière un `Suspense` dont le repli est la même grille sans
+ * ouverture, de sorte que le reste de la page reste une coquille statique.
  */
 export const metadata: Metadata = {
   title: 'Contact',
@@ -29,18 +26,17 @@ export const metadata: Metadata = {
   alternates: { canonical: '/contact/' },
 }
 
-type Params = Promise<{ objet?: string; fiche?: string }>
+type Params = Promise<{ objet?: string; fiche?: string; page?: string }>
 
-/** Le slug d'une fiche passé par l'URL, gardé seulement s'il en a la forme. */
-function ficheDepuisUrl(v: string | undefined): string | undefined {
-  return v && /^[a-z0-9-]{1,120}$/.test(v) ? v : undefined
-}
+/** Un slug de fiche ou un chemin du site passé par l'URL, gardé seulement s'il en a la forme. */
+const slug = (v: string | undefined) => (v && /^[a-z0-9-]{1,120}$/.test(v) ? v : undefined)
+const cheminSite = (v: string | undefined) => (v && /^\/[a-z0-9/_-]{1,200}$/.test(v) ? v : undefined)
 
-async function FormulaireSelonUrl({ searchParams }: { searchParams: Params }) {
-  const { objet, fiche } = await searchParams
+async function EntreesSelonUrl({ searchParams }: { searchParams: Params }) {
+  const { objet, fiche, page } = await searchParams
   const objetInitial = estObjet(objet) ? objet : undefined
-  const ficheInitiale = ficheDepuisUrl(fiche)
-  return <FormulaireContact key={`${objetInitial ?? 'vide'}-${ficheInitiale ?? ''}`} objetInitial={objetInitial} ficheInitiale={ficheInitiale} />
+  const initiales = { fiche: slug(fiche), page: cheminSite(page) }
+  return <EntreesContact objetInitial={objetInitial} initiales={initiales} />
 }
 
 const REPERES = [
@@ -72,19 +68,12 @@ export default function Page(props: { searchParams: Params }) {
         </div>
       </section>
 
-      <EntreesContact />
+      <Suspense fallback={<EntreesContact />}>
+        <EntreesSelonUrl searchParams={props.searchParams} />
+      </Suspense>
 
       <section className="border-t border-line bg-bg-soft">
-        <div className="container grid gap-4 py-16 md:py-20 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-          <div id="formulaire" className="squircle-3xl scroll-mt-28 border border-line bg-bg p-6 shadow-pop md:p-8">
-            <h2 className="text-2xl font-semibold tracking-tight text-fg md:text-3xl">Votre message</h2>
-            <p className="mt-1 text-sm text-fg-2">Choisissez l’objet : il oriente votre message vers la bonne personne.</p>
-            <div className="mt-8">
-              <Suspense fallback={<FormulaireContact />}>
-                <FormulaireSelonUrl searchParams={props.searchParams} />
-              </Suspense>
-            </div>
-          </div>
+        <div className="container py-16 md:py-20">
           <CarteContact />
         </div>
       </section>
