@@ -16,12 +16,42 @@ les découpe.
 
 ## Logo des établissements
 
-Tant que le groupe n'est pas importé, le logo d'une formation est le média de
-la médiathèque dont le nom (slug) est `logo-<slug de la fiche>`, par exemple
-`logo-faculte-odontologie-lille` pour la fiche `faculte-odontologie-lille`.
-Le site le lit par ce nom (`PREFIXE_LOGO` dans `src/lib/wp/queries.ts`).
-Une fois le champ `logo` du groupe importé, remplir le champ et retirer la
-convention de nommage du code.
+Le logo d'une formation est le champ `logo` du groupe. Tant qu'il est vide,
+le site retombe sur l'ancienne convention : le média de la médiathèque dont
+le nom (slug) est `logo-<slug de la fiche>`, par exemple
+`logo-faculte-odontologie-lille` pour la fiche `faculte-odontologie-lille`
+(`PREFIXE_LOGO` dans `src/lib/wp/queries.ts`). La convention pourra être
+retirée du code quand tous les logos auront été reportés dans le champ.
+
+## Saisie du groupe pour les pages d'établissement
+
+Le site lit le groupe dans `src/lib/formation/details.ts` (`lireDetails`).
+Sur la page, l'ordre de priorité est, bloc par bloc : ce que l'établissement
+revendiqué déclare dans son espace (Neon), puis ces champs, puis le contenu
+relevé ; un bloc sans donnée reste masqué. Une ligne illisible est ignorée.
+
+- Voies d'accès : les étapes d'admission, une par ligne,
+  « Titre | explication | période », 8 au plus. Exemple :
+  `Vous candidatez | Sur Parcoursup pour le BTS. | Janvier à mars`.
+- Prérequis : « Ce que l'école attend », un point par ligne.
+- Rentrée : texte libre (« Septembre 2027 »), repris dans l'encart du héros
+  et sous le titre « Admission ».
+- Frais de scolarité : « Libellé | montant | détail », postes séparés par
+  « ; ». Exemple : `Équipement de l’élève | Environ 450 € | Trousse et tenue ; Aides | Bourses | Bourses de lycée`.
+  La forme « Libellé : 6 990 euros par an » reste comprise.
+- Journées portes ouvertes : « date | titre | détail », rendez-vous séparés
+  par « ; ». Date au format `JJ/MM/AAAA`. Titre vide : « Journée portes
+  ouvertes ». Le détail sert d'horaire. Les dates passées disparaissent.
+- Téléphone, courriel, adresse et code postal : contact et adresse quand le
+  contenu relevé n'en donne pas.
+- Latitude et longitude : position de la carte, prioritaire sur le géocodage.
+- Capacité d'accueil : places par promotion d'une école, quand le contenu
+  n'en donne pas. Sources : une URL par ligne, ajoutées aux pages consultées.
+
+Une saisie complète d'exemple est rendue sur
+`/maquettes/etablissement-demo/` (école) et
+`/maquettes/etablissement-demo/?fiche=faculte`, non indexées, à retirer dès
+qu'un établissement réel a ses champs remplis.
 
 ## Fiche métier
 

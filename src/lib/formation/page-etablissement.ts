@@ -148,13 +148,22 @@ export type LigneFrais = { libelle: string; montant: string; detail: string | nu
  * Les frais de scolarité relevés, une ligne par diplôme quand le texte les
  * sépare : « Bac pro : 6 990 euros par an (2026) ; BTS : 7 150 euros… ».
  * Le montant est mis en avant, le reste de la phrase le suit tel quel.
+ *
+ * Le champ ACF accepte aussi la forme en colonnes, une ligne par poste ou
+ * séparées par « ; » : « Équipement de l’élève | Environ 450 € | Trousse… ».
  */
 export function lignesFrais(frais: string | null): LigneFrais[] {
   if (!frais?.trim()) return []
   return frais
-    .split(/\s*;\s*/)
+    .split(/\s*;\s*|\r?\n/)
+    .map((m) => m.trim())
     .filter(Boolean)
-    .map((morceau) => {
+    .map((morceau): LigneFrais | null => {
+      if (morceau.includes('|')) {
+        // Forme en colonnes : une ligne sans libellé ou sans montant est ignorée.
+        const [libelle, montant, detail] = morceau.split(/\s*\|\s*/).map((c) => c.trim())
+        return libelle && montant ? { libelle: libelle.charAt(0).toUpperCase() + libelle.slice(1), montant, detail: detail || null } : null
+      }
       const etiquette = /^([^:]{2,40}?)\s*:\s*(.+)$/.exec(morceau)
       const libelle = etiquette ? etiquette[1]!.trim() : 'Frais de scolarité'
       const reste = etiquette ? etiquette[2]!.trim() : morceau.trim()
@@ -163,6 +172,7 @@ export function lignesFrais(frais: string | null): LigneFrais[] {
       const detail = reste.slice(montant[0].length).trim().replace(/^[,.]\s*/, '')
       return { libelle: libelle.charAt(0).toUpperCase() + libelle.slice(1), montant: montant[0].trim(), detail: detail || null }
     })
+    .filter((l): l is LigneFrais => !!l)
 }
 
 /** Durée de l'internat par spécialité, fixée par les textes du troisième cycle long. */

@@ -7,9 +7,11 @@ import {
   citationRelevee,
   dateLisible,
   dureeInternat,
+  lignesFrais,
   prochainesPortesOuvertes,
   rentree,
 } from '@/lib/formation/page-etablissement'
+import { evenementsAVenir, prochainePorteOuverteSaisie, type DetailsFormation } from '@/lib/formation/details'
 import { Balisage, etablissementFormation, filAriane } from '@/lib/seo/jsonld'
 import type { FormationComplete, FormationResume } from '@/lib/wp/queries'
 import type { DeclarationPublique } from '@/lib/espace-pro/etablissement-donnees'
@@ -20,6 +22,8 @@ import {
   BoutonHeros,
   Citation,
   Contacts,
+  Couts,
+  Etapes,
   Etiquette,
   Evenements,
   Galerie,
@@ -40,7 +44,9 @@ import {
  * internat, lieux de soins, sources) et ce que la faculté déclare depuis son
  * espace, dans Neon (accroche, présentation, photos, étapes d'accès, cycles,
  * centres de soins détaillés, portes ouvertes) sont présentés côte à côte,
- * chacun avec sa provenance. Un bloc sans donnée ne s'affiche pas.
+ * chacun avec sa provenance. Le groupe ACF « Formation, informations
+ * détaillées » complète le relevé : étapes d'accès, frais, rendez-vous,
+ * contact. Un bloc sans donnée ne s'affiche pas.
  */
 export type FicheFaculteProps = {
   f: FormationComplete
@@ -60,9 +66,16 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres }: 
   const famille = FAMILLES[TYPE]
   const cheminFiche = lienFormation(f)
   const d = declaration?.donnees ?? null
+  const x = f.details
   const siteWeb = f.siteWeb ?? fac.siteWeb
+  const universite = fac.universite ?? x.universite
+  const telephone = fac.telephone ?? x.telephone
+  const email = fac.email ?? x.email
   const presentation = d?.presentation ?? fac.presentation ?? f.extrait
   const po = prochainesPortesOuvertes(d)
+  // Rendez-vous saisis dans WordPress, quand la faculté ne déclare pas de portes ouvertes.
+  const poSaisie = po || d?.aucunePorteOuverte ? null : prochainePorteOuverteSaisie(x.evenements)
+  const evenementsSaisis = po || d?.aucunePorteOuverte ? [] : evenementsAVenir(x.evenements)
   const photo = d?.galerie[0] ? { url: d.galerie[0].url, alt: d.galerie[0].legende, credit: d.credit } : f.image ? { url: f.image.url, alt: f.image.alt, credit: f.creditImage } : null
   const internat = postesInternat(fac)
   const sites = sitesDe(fac.adresse, f.titre)
@@ -100,14 +113,20 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres }: 
     .slice(0, 4)
 
   const blocs: BlocCarteHeros[] = [
-    ...(po ? [{ icone: CalendarDays, titre: 'Prochaines portes ouvertes', valeur: dateLisible(po, true), grand: true }] : []),
+    ...(po
+      ? [{ icone: CalendarDays, titre: 'Prochaines portes ouvertes', valeur: dateLisible(po, true), grand: true }]
+      : poSaisie
+        ? [{ icone: CalendarDays, titre: 'Prochaines portes ouvertes', valeur: dateLisible(poSaisie.date, true), detail: poSaisie.detail, grand: true }]
+        : []),
     { icone: Clock, titre: 'Entrer en odontologie', valeur: 'PASS ou L.AS, puis admission en 2e année sur classement' },
   ]
-  const sourceReleve = fac.dateReleve
-    ? `Relevé le ${fac.dateReleve} sur les pages officielles de l’université et les arrêtés publiés au Journal officiel.`
+  const dateReleve = fac.dateReleve ?? (x.dateReleve ? dateLisible(x.dateReleve) : null)
+  const sourceReleve = dateReleve
+    ? `Relevé le ${dateReleve} sur les pages officielles de l’université et les arrêtés publiés au Journal officiel.`
     : 'Relevé sur les pages officielles de l’université et les arrêtés publiés au Journal officiel.'
   const citation = presentation ? (d?.accroche ? { avant: d.accroche, suite: null, texte: presentation } : citationRelevee(presentation)) : null
   const galerie = d?.galerie ?? []
+  const frais = lignesFrais(x.frais)
 
   return (
     <main>
@@ -119,10 +138,10 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres }: 
           universitaire: true,
           description: presentation,
           siteWeb,
-          adresse: fac.adresse,
+          adresse: fac.adresse ?? x.adresse,
           ville: f.ville,
-          telephone: fac.telephone,
-          email: fac.email,
+          telephone,
+          email,
           image: f.image?.url,
         })}
       />
@@ -138,7 +157,7 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres }: 
         gereePar="la faculté"
         logo={f.logo}
         titre={f.titre}
-        sousTitre={fac.universite}
+        sousTitre={universite}
         ligne={sites.map((s) => (sites.length > 1 ? `${s.nom}, ${s.adresse}` : s.adresse)).join(' · ') || f.ville}
         actions={
           <>
@@ -162,12 +181,12 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres }: 
         chiffres={chiffres}
       />
       <BarreMobile
-        titre={fac.universite ? `${f.titre}, ${fac.universite}` : f.titre}
-        detail={po ? `Portes ouvertes le ${dateLisible(po)}` : f.ville}
+        titre={universite ? `${f.titre}, ${universite}` : f.titre}
+        detail={po ? `Portes ouvertes le ${dateLisible(po)}` : poSaisie ? `Portes ouvertes le ${dateLisible(poSaisie.date)}` : f.ville}
         secondaire={centres.length > 0 ? { href: '#soins', libelle: 'Se faire soigner', icone: <HeartPulse className="size-5" aria-hidden /> } : null}
         principal={
-          fac.telephone
-            ? { href: `tel:${fac.telephone.replace(/[\s.]/g, '')}`, libelle: 'Appeler', icone: <Phone className="size-4" aria-hidden /> }
+          telephone
+            ? { href: `tel:${telephone.replace(/[\s.]/g, '')}`, libelle: 'Appeler', icone: <Phone className="size-4" aria-hidden /> }
             : siteWeb
               ? { href: siteWeb, libelle: 'Site', icone: <Globe className="size-4" aria-hidden />, externe: true }
               : null
@@ -190,10 +209,12 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres }: 
         </section>
       )}
 
-      <Acces fac={fac} declaration={declaration} sourceReleve={sourceReleve} />
+      <Acces fac={fac} details={x} declaration={declaration} sourceReleve={sourceReleve} />
       <Cursus fac={fac} declaration={declaration} />
       <Internat fac={fac} sourceReleve={sourceReleve} />
       {centres.length > 0 && <Soins centres={centres} soins={soins} chu={fac.chu} points={points} declaration={declaration} sourceReleve={sourceReleve} />}
+
+      <Couts lignes={frais} sous="Ce que coûtent les études, tel que l’université le publie." mention={sourceReleve} />
 
       {po && declaration && (
         <Evenements
@@ -202,10 +223,17 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres }: 
           mention={`Les dates passées disparaissent d’elles-mêmes. Déclarées par la faculté, confirmées le ${confirmeLe(declaration, 'portesOuvertes')}.`}
         />
       )}
+      {evenementsSaisis.length > 0 && (
+        <Evenements
+          sous="Rencontrer la faculté avant de s’inscrire en santé."
+          evenements={evenementsSaisis.map((e) => ({ date: dateLisible(e.date), titre: e.titre, detail: e.detail }))}
+          mention={`Les dates passées disparaissent d’elles-mêmes. ${sourceReleve}`}
+        />
+      )}
 
       <Contacts
         adresses={sites.length ? sites.map((s) => (sites.length > 1 ? `${s.nom}, ${s.adresse}` : s.adresse)) : f.ville ? [f.ville] : []}
-        contact={fac.telephone || fac.email ? { titre: 'Scolarité', telephone: fac.telephone, email: fac.email } : null}
+        contact={telephone || email ? { titre: 'Scolarité', telephone, email } : null}
         siteWeb={siteWeb}
         position={position}
         profession="dentistes"
@@ -215,13 +243,13 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres }: 
         sous="Ces informations viennent des référentiels, des arrêtés et des pages officielles, et ne sont pas modifiables par la faculté."
         lignes={[
           ...(f.uai ? [['Numéro UAI', f.uai] as [string, string]] : []),
-          ...(fac.universite ? [['Université', fac.universite] as [string, string]] : []),
+          ...(universite ? [['Université', universite] as [string, string]] : []),
           ...(fac.diplome ? [['Diplôme', fac.diplome] as [string, string]] : []),
           ...(fac.capacite.nombre !== null ? [['Places en 2e année', `${fac.capacite.nombre}${fac.capacite.annee ? `, ${fac.capacite.annee}` : ''}`] as [string, string]] : []),
           ...(fac.internats.length ? [['Postes d’internat', `${internat.total}${internat.annee ? `, ${internat.annee}` : ''}`] as [string, string]] : []),
-          ...(fac.dateReleve ? [['Dernière vérification', fac.dateReleve] as [string, string]] : []),
+          ...(dateReleve ? [['Dernière vérification', dateReleve] as [string, string]] : []),
         ]}
-        sources={fac.sources}
+        sources={[...new Set([...fac.sources, ...x.sources])]}
         autresTitre="Autres facultés d’odontologie"
         autres={autres.map((a) => ({ href: lienFormation(a), nom: a.titre, detail: a.ville }))}
         tousHref={`/formation/${TYPE}/`}
@@ -233,11 +261,14 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres }: 
 }
 
 /* Accès aux études, en étapes, avec les places en 2e année ---------------- */
-function Acces({ fac, declaration, sourceReleve }: { fac: Faculte; declaration: DeclarationPublique | null; sourceReleve: string }) {
+function Acces({ fac, details, declaration, sourceReleve }: { fac: Faculte; details: DetailsFormation; declaration: DeclarationPublique | null; sourceReleve: string }) {
   const declarees = declaration?.donnees.voiesAcces ?? []
+  // Le déclaratif, puis les étapes du champ ACF, puis les voies relevées dans le contenu.
   const etapes = declarees.length
     ? declarees.map((v) => ({ titre: v.titre, detail: v.detail || null, quand: v.quand || null }))
-    : // Le relevé sépare les voies par des points-virgules ; les virgules restent à l'intérieur d'une voie.
+    : details.etapes.length
+      ? details.etapes
+      : // Le relevé sépare les voies par des points-virgules ; les virgules restent à l'intérieur d'une voie.
       (fac.voiesAcces ?? '')
         .split(/\s*;\s*/)
         .map((t) => t.replace(/\.$/, '').trim())
@@ -277,18 +308,7 @@ function Acces({ fac, declaration, sourceReleve }: { fac: Faculte; declaration: 
         </div>
         {etapes.length > 0 && (
           <div>
-            <ol>
-              {etapes.map((e, k) => (
-                <li key={e.titre} className="border-b border-line py-10 first:pt-0">
-                  <div className="flex items-baseline justify-between gap-4">
-                    <p className="text-6xl font-light tabular-nums tracking-tight text-fg md:text-7xl">{String(k + 1).padStart(2, '0')}</p>
-                    {e.quand && <Pastille accent>{e.quand}</Pastille>}
-                  </div>
-                  <h3 className="mt-6 text-xl font-semibold tracking-tight text-fg">{e.titre}</h3>
-                  {e.detail && <p className="mt-3 max-w-xl text-fg-2">{e.detail}</p>}
-                </li>
-              ))}
-            </ol>
+            <Etapes etapes={etapes} />
             <div className="mt-4">
               <Mention>{declarees.length && declaration ? `Déclaré par la faculté, confirmé le ${confirmeLe(declaration, 'voiesAcces')}` : sourceReleve}</Mention>
             </div>

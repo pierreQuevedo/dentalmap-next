@@ -1,4 +1,4 @@
-import { Briefcase, CalendarDays, Globe, GraduationCap, Phone } from 'lucide-react'
+import { Briefcase, CalendarDays, CircleCheck, Globe, GraduationCap, Phone } from 'lucide-react'
 import Link from 'next/link'
 import { Carte } from '@/components/map/carte'
 import { empriseAutour, clePosition } from '@/lib/annuaire/emprise'
@@ -15,6 +15,7 @@ import {
   siglesDiplomes,
   type FormationAffichee,
 } from '@/lib/formation/page-etablissement'
+import { evenementsAVenir, prochainePorteOuverteSaisie } from '@/lib/formation/details'
 import { Balisage, etablissementFormation, filAriane } from '@/lib/seo/jsonld'
 import type { FormationComplete, FormationResume } from '@/lib/wp/queries'
 import type { DeclarationPublique } from '@/lib/espace-pro/etablissement-donnees'
@@ -24,6 +25,8 @@ import {
   BoutonHeros,
   Citation,
   Contacts,
+  Couts,
+  Etapes,
   Evenements,
   Galerie,
   Heros,
@@ -40,10 +43,12 @@ import {
  * Page d'une école de prothèse dentaire.
  *
  * Deux sources, jamais mêlées : le contenu relevé dans WordPress (identité,
- * diplômes, admission, sources) et ce que l'établissement déclare depuis son
- * espace, dans Neon (accroche, présentation, photos, formations détaillées,
- * portes ouvertes). Chaque bloc dit d'où il vient ; un bloc sans donnée ne
- * s'affiche pas.
+ * diplômes, admission, sources, et le groupe « Formation, informations
+ * détaillées » : étapes d'admission, prérequis, rentrée, frais, rendez-vous,
+ * contact) et ce que l'établissement déclare depuis son espace, dans Neon
+ * (accroche, présentation, photos, formations détaillées, étapes d'accès,
+ * portes ouvertes). Le déclaratif passe avant le relevé, bloc par bloc.
+ * Chaque bloc dit d'où il vient ; un bloc sans donnée ne s'affiche pas.
  */
 export type FicheEcoleProps = {
   f: FormationComplete
@@ -61,14 +66,23 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
   const famille = FAMILLES[TYPE]
   const cheminFiche = lienFormation(f)
   const d = declaration?.donnees ?? null
+  const x = f.details
   const siteWeb = f.siteWeb ?? ecole.siteWeb
+  const telephone = ecole.telephone ?? x.telephone
+  const email = ecole.email ?? x.email
+  const adresse = ecole.adresse ?? x.adresse
   const presentation = d?.presentation ?? ecole.presentation ?? f.extrait
   const { formations, declarees } = formationsAffichees(d, ecole.diplomes)
   const po = prochainesPortesOuvertes(d)
+  // Portes ouvertes saisies dans WordPress, quand l'établissement n'en déclare pas.
+  const poSaisie = po || d?.aucunePorteOuverte ? null : prochainePorteOuverteSaisie(x.evenements)
+  const evenementsSaisis = po || d?.aucunePorteOuverte ? [] : evenementsAVenir(x.evenements)
   const photo = d?.galerie[0] ? { url: d.galerie[0].url, alt: d.galerie[0].legende, credit: d.credit } : f.image ? { url: f.image.url, alt: f.image.alt, credit: f.creditImage } : null
   const statut = ecole.statut === 'public' ? 'Public' : ecole.statut === 'prive' ? 'Privé' : null
   // « Lycée public » dit déjà le statut : on ne le répète pas.
   const nature = ecole.type ? (statut && !/public|priv/i.test(ecole.type) ? `${ecole.type}, ${statut.toLowerCase()}` : ecole.type) : statut
+  const etapesDeclarees = d?.voiesAcces ?? []
+  const etapes = etapesDeclarees.length ? etapesDeclarees.map((v) => ({ titre: v.titre, detail: v.detail || null, quand: v.quand || null })) : x.etapes
   const segments = [
     { nom: 'Accueil', chemin: '/' },
     { nom: 'Formation', chemin: '/formation/' },
@@ -76,8 +90,8 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
     { nom: f.titre, chemin: cheminFiche },
   ]
 
-  const places = declarees && formations.some((x) => x.places) ? formations.reduce((s, x) => s + (x.places ?? 0), 0) : ecole.capacite
-  const enApprentissage = formations.filter((x) => x.apprentissage)
+  const places = declarees && formations.some((fo) => fo.places) ? formations.reduce((s, fo) => s + (fo.places ?? 0), 0) : (ecole.capacite ?? x.capacite)
+  const enApprentissage = formations.filter((fo) => fo.apprentissage)
   const max = niveauMax(formations)
   const chiffres = [
     formations.length > 0 && { v: String(formations.length), l: formations.length > 1 ? 'diplômes préparés' : 'diplôme préparé' },
@@ -86,10 +100,19 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
     max && { v: max, l: 'niveau le plus élevé' },
   ].filter((c): c is { v: string; l: string } => !!c)
 
-  const blocs: BlocCarteHeros[] = po ? [{ icone: CalendarDays, titre: 'Prochaines portes ouvertes', valeur: dateLisible(po, true), grand: true }] : []
-  const sourceReleve = ecole.dateReleve ? `Relevé le ${ecole.dateReleve} sur le site de l’établissement et les fiches de l’ONISEP.` : 'Relevé sur le site de l’établissement et les fiches de l’ONISEP.'
+  const blocs: BlocCarteHeros[] = [
+    ...(po
+      ? [{ icone: CalendarDays, titre: 'Prochaines portes ouvertes', valeur: dateLisible(po, true), grand: true }]
+      : poSaisie
+        ? [{ icone: CalendarDays, titre: 'Prochaines portes ouvertes', valeur: dateLisible(poSaisie.date, true), detail: poSaisie.detail, grand: true }]
+        : []),
+    ...(x.rentree ? [{ icone: GraduationCap, titre: 'Rentrée', valeur: x.rentree }] : []),
+  ]
+  const dateReleve = ecole.dateReleve ?? (x.dateReleve ? dateLisible(x.dateReleve) : null)
+  const sourceReleve = dateReleve ? `Relevé le ${dateReleve} sur le site de l’établissement et les fiches de l’ONISEP.` : 'Relevé sur le site de l’établissement et les fiches de l’ONISEP.'
   const citation = presentation ? (d?.accroche ? { avant: d.accroche, suite: null, texte: presentation } : citationRelevee(presentation)) : null
-  const frais = lignesFrais(ecole.frais)
+  const frais = lignesFrais(x.frais ?? ecole.frais)
+  const sources = [...new Set([...ecole.sources, ...x.sources])]
 
   return (
     <main>
@@ -101,10 +124,10 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
           universitaire: false,
           description: presentation,
           siteWeb,
-          adresse: ecole.adresse,
+          adresse,
           ville: f.ville,
-          telephone: ecole.telephone,
-          email: ecole.email,
+          telephone,
+          email,
           image: f.image?.url,
         })}
       />
@@ -120,7 +143,7 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
         gereePar="l’établissement"
         logo={f.logo}
         titre={f.titre}
-        ligne={[nature, ecole.adresse ?? f.ville].filter(Boolean).join(' · ') || null}
+        ligne={[nature, adresse ?? f.ville].filter(Boolean).join(' · ') || null}
         actions={
           <>
             {formations.length > 0 && (
@@ -133,8 +156,8 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
                 Site
               </BoutonHeros>
             )}
-            {ecole.telephone && (
-              <BoutonHeros href={`tel:${ecole.telephone.replace(/[\s.]/g, '')}`} icone={Phone}>
+            {telephone && (
+              <BoutonHeros href={`tel:${telephone.replace(/[\s.]/g, '')}`} icone={Phone}>
                 Appeler
               </BoutonHeros>
             )}
@@ -146,11 +169,11 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
       />
       <BarreMobile
         titre={f.titre}
-        detail={po ? `Portes ouvertes le ${dateLisible(po)}` : f.ville}
-        secondaire={siteWeb && ecole.telephone ? { href: siteWeb, libelle: 'Site de l’établissement', icone: <Globe className="size-5" aria-hidden />, externe: true } : null}
+        detail={po ? `Portes ouvertes le ${dateLisible(po)}` : poSaisie ? `Portes ouvertes le ${dateLisible(poSaisie.date)}` : f.ville}
+        secondaire={siteWeb && telephone ? { href: siteWeb, libelle: 'Site de l’établissement', icone: <Globe className="size-5" aria-hidden />, externe: true } : null}
         principal={
-          ecole.telephone
-            ? { href: `tel:${ecole.telephone.replace(/[\s.]/g, '')}`, libelle: 'Appeler', icone: <Phone className="size-4" aria-hidden /> }
+          telephone
+            ? { href: `tel:${telephone.replace(/[\s.]/g, '')}`, libelle: 'Appeler', icone: <Phone className="size-4" aria-hidden /> }
             : siteWeb
               ? { href: siteWeb, libelle: 'Site', icone: <Globe className="size-4" aria-hidden />, externe: true }
               : null
@@ -176,9 +199,18 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
         <Formations formations={formations} mention={declarees && declaration ? `Déclaré par l’établissement, confirmé le ${confirmeLe(declaration, 'formations')}` : sourceReleve} />
       )}
 
+      {(etapes.length > 0 || x.prerequis.length > 0) && (
+        <Admission
+          etapes={etapes}
+          prerequis={x.prerequis}
+          rentree={x.rentree}
+          mention={etapesDeclarees.length && declaration ? `Déclaré par l’établissement, confirmé le ${confirmeLe(declaration, 'voiesAcces')}` : sourceReleve}
+        />
+      )}
+
       {enApprentissage.length > 0 && <Alternance formations={enApprentissage} position={position} departement={departement} />}
 
-      {frais.length > 0 && <Couts lignes={frais} mention={sourceReleve} />}
+      <Couts lignes={frais} sous="Ce que coûte la formation, tel que l’établissement le publie." mention={sourceReleve} />
 
       {po && declaration && (
         <Evenements
@@ -187,10 +219,17 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
           mention={`Les dates passées disparaissent d’elles-mêmes. Déclarées par l’établissement, confirmées le ${confirmeLe(declaration, 'portesOuvertes')}.`}
         />
       )}
+      {evenementsSaisis.length > 0 && (
+        <Evenements
+          sous="Venir voir les ateliers avant de candidater."
+          evenements={evenementsSaisis.map((e) => ({ date: dateLisible(e.date), titre: e.titre, detail: e.detail }))}
+          mention={`Les dates passées disparaissent d’elles-mêmes. ${sourceReleve}`}
+        />
+      )}
 
       <Contacts
-        adresses={ecole.adresse ? [ecole.adresse] : f.ville ? [f.ville] : []}
-        contact={ecole.telephone || ecole.email ? { titre: 'Accueil de l’établissement', telephone: ecole.telephone, email: ecole.email } : null}
+        adresses={adresse ? [adresse] : f.ville ? [f.ville] : []}
+        contact={telephone || email ? { titre: 'Accueil de l’établissement', telephone, email } : null}
         siteWeb={siteWeb}
         position={position}
         profession="prothesistes"
@@ -203,9 +242,9 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
           ...(ecole.type ? [['Type', ecole.type] as [string, string]] : []),
           ...(statut ? [['Statut', statut] as [string, string]] : []),
           ...(ecole.diplomes.length ? [['Diplômes relevés', siglesDiplomes(ecole.diplomes)] as [string, string]] : []),
-          ...(ecole.dateReleve ? [['Dernière vérification', ecole.dateReleve] as [string, string]] : []),
+          ...(dateReleve ? [['Dernière vérification', dateReleve] as [string, string]] : []),
         ]}
-        sources={ecole.sources}
+        sources={sources}
         autresTitre="Former au même métier"
         autres={autres.map((a) => ({ href: lienFormation(a), nom: a.titre, detail: [a.ville, a.diplomes.length ? siglesDiplomes(a.diplomes) : a.diplome].filter(Boolean).join(' · ') || null }))}
         tousHref={`/formation/${TYPE}/`}
@@ -260,6 +299,47 @@ function Formations({ formations, mention }: { formations: FormationAffichee[]; 
   )
 }
 
+/* Admission, en étapes, avec ce que l'école attend ----------------------- */
+function Admission({ etapes, prerequis, rentree, mention }: { etapes: { titre: string; detail: string | null; quand: string | null }[]; prerequis: string[]; rentree: string | null; mention: string }) {
+  return (
+    <section id="admission" className="container scroll-mt-20 py-20 md:py-24">
+      <div className={`grid gap-12 ${etapes.length ? 'lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]' : ''}`}>
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <h2 className="text-4xl font-semibold tracking-tight text-fg md:text-5xl">Admission</h2>
+          <p className="mt-5 leading-relaxed text-fg-2">
+            {rentree ? `Du dépôt de la candidature à l’inscription, le calendrier de la rentrée : ${rentree.charAt(0).toLowerCase()}${rentree.slice(1)}.` : 'Du dépôt de la candidature à l’inscription, étape par étape.'}
+          </p>
+          {prerequis.length > 0 && (
+            <div className="squircle-2xl mt-8 border border-line bg-bg-soft p-6">
+              <p className="text-sm font-semibold text-fg">Ce que l’école attend</p>
+              <ul className="mt-4 space-y-2.5">
+                {prerequis.map((p) => (
+                  <li key={p} className="flex items-start gap-2.5 text-sm text-fg-2">
+                    <CircleCheck className="mt-0.5 size-4 shrink-0 text-teal" aria-hidden /> {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {!etapes.length && (
+            <div className="mt-4">
+              <Mention>{mention}</Mention>
+            </div>
+          )}
+        </div>
+        {etapes.length > 0 && (
+          <div>
+            <Etapes etapes={etapes} />
+            <div className="mt-4">
+              <Mention>{mention}</Mention>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
 /* Alternance, bande sombre avec les laboratoires autour ------------------ */
 function Alternance({ formations, position, departement }: { formations: FormationAffichee[]; position: Position | null; departement: { slug: string; nom: string } | null }) {
   const n = formations.length
@@ -296,27 +376,6 @@ function Alternance({ formations, position, departement }: { formations: Formati
             <div className="absolute bottom-3 left-3 rounded-full bg-bg/90 px-3 py-1 text-xs font-medium text-fg ring-1 ring-line">Laboratoires de prothèse autour de l’école</div>
           </div>
         )}
-      </div>
-    </section>
-  )
-}
-
-/* Coûts ------------------------------------------------------------------ */
-function Couts({ lignes, mention }: { lignes: { libelle: string; montant: string; detail: string | null }[]; mention: string }) {
-  return (
-    <section className="container py-20 md:py-24">
-      <Titre2 sous="Ce que coûte la formation, tel que l’établissement le publie.">Coûts et aides</Titre2>
-      <dl className="mt-10 divide-y divide-line border-y border-line">
-        {lignes.map((c, i) => (
-          <div key={`${c.libelle}-${i}`} className="grid gap-2 py-6 md:grid-cols-[16rem_14rem_1fr] md:items-baseline md:gap-8">
-            <dt className="text-sm font-medium text-fg-2">{c.libelle}</dt>
-            <dd className={`text-2xl font-semibold tracking-tight text-fg ${c.detail ? '' : 'md:col-span-2'}`}>{c.montant}</dd>
-            {c.detail && <dd className="text-fg-2">{c.detail}</dd>}
-          </div>
-        ))}
-      </dl>
-      <div className="mt-3">
-        <Mention>{mention}</Mention>
       </div>
     </section>
   )

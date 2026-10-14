@@ -76,8 +76,10 @@ export default async function Page(props: { params: Params }) {
   const ecole = type === 'ecoles-de-prothese' ? lireEcole(f.contenu) : null
 
   const points: PointFaculte[] = []
-  if (ecole?.adresse) {
-    const [p] = await getPositionsFormation(f.slug, [ecole.adresse])
+  // Adresse relevée dans le contenu, sinon celle du groupe ACF détaillé.
+  const adresseEcole = ecole ? (ecole.adresse ?? f.details.adresse) : null
+  if (adresseEcole && !f.details.position) {
+    const [p] = await getPositionsFormation(f.slug, [adresseEcole])
     if (p) points.push({ cle: 'etablissement', nom: f.titre, lon: p.lon, lat: p.lat, role: 'etablissement' })
   }
   if (fac) {
@@ -91,6 +93,13 @@ export default async function Page(props: { params: Params }) {
       const p = positions[i]
       if (p) points.push({ cle: `${l.role}-${i}`, nom: l.nom, lon: p.lon, lat: p.lat, role: l.role })
     })
+  }
+
+  // La position saisie dans le groupe ACF détaillé passe avant le géocodage de l'adresse.
+  if ((ecole || fac) && f.details.position) {
+    const k = points.findIndex((p) => p.role === 'etablissement')
+    if (k >= 0) points[k] = { ...points[k]!, ...f.details.position }
+    else points.unshift({ cle: 'etablissement', nom: f.titre, ...f.details.position, role: 'etablissement' })
   }
 
   // Les autres formations de la famille : celles de la région d'abord.

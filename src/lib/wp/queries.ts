@@ -1,6 +1,7 @@
 import { cacheLife, cacheTag } from 'next/cache'
 import { decoderEntites, lireDiplomes, lireUai, type DiplomeEcole } from '@/lib/formation/faculte'
 import { aUnType } from '@/lib/formation/types'
+import { DETAILS_VIDES, lireDetails, type DetailsFormation } from '@/lib/formation/details'
 import { graphql } from './generated'
 import { wp } from './client'
 
@@ -393,6 +394,7 @@ const FormationsDocument = graphql(`
         content
         featuredImage { node { sourceUrl altText } }
         formationFields { typeFormation ville departement diplome duree }
+        formationDetails { logo { node { sourceUrl altText } } }
       }
     }
     logos: mediaItems(first: 300, where: { search: "logo", mimeType: IMAGE_PNG }) {
@@ -413,6 +415,24 @@ const FormationDocument = graphql(`
       modified
       featuredImage { node { sourceUrl altText caption } }
       formationFields { typeFormation ville departement diplome duree siteWeb }
+      formationDetails {
+        logo { node { sourceUrl altText } }
+        universite
+        adresse
+        codePostal
+        telephone
+        email
+        voiesAcces
+        capaciteAccueil
+        prerequis
+        frais
+        rentree
+        portesOuvertes
+        latitude
+        longitude
+        sources
+        dateReleve
+      }
       seoFields { metaTitle metaDescription noindex }
     }
     logo: mediaItem(id: $logo, idType: SLUG) { sourceUrl altText }
@@ -439,14 +459,15 @@ export type FormationResume = {
    */
   uai: string | null
   /**
-   * Logo de l'établissement. Le CMS n'a pas de champ pour lui : c'est le
-   * média nommé `logo-<slug de la formation>` dans la médiathèque, par
-   * convention, en attendant un champ ACF dédié (voir docs/acf).
+   * Logo de l'établissement : le champ `logo` du groupe « Formation,
+   * informations détaillées » d'abord ; à défaut, le média nommé
+   * `logo-<slug de la formation>` dans la médiathèque (`PREFIXE_LOGO`),
+   * convention gardée en repli pour les fiches dont le champ est vide.
    */
   logo: { url: string; alt: string } | null
 }
 
-/** Préfixe du nom de média qui porte le logo d'une formation. */
+/** Préfixe du nom de média qui porte le logo d'une formation, quand le champ `logo` est vide. */
 export const PREFIXE_LOGO = 'logo-'
 
 export type FormationComplete = FormationResume & {
@@ -459,7 +480,11 @@ export type FormationComplete = FormationResume & {
   seoTitre: string | null
   seoDescription: string | null
   noindex: boolean
+  /** Le groupe ACF « Formation, informations détaillées », lu par `lireDetails`. */
+  details: DetailsFormation
 }
+
+type LogoWp = { sourceUrl?: string | null; altText?: string | null } | null | undefined
 
 function resumeFormation(n: {
   slug?: string | null
@@ -474,7 +499,10 @@ function resumeFormation(n: {
     diplome?: string | null
     duree?: string | null
   } | null
-}, logo?: { sourceUrl?: string | null; altText?: string | null } | null): FormationResume {
+  formationDetails?: { logo?: { node?: LogoWp } | null } | null
+}, logoNomme?: LogoWp): FormationResume {
+  // Le champ d'abord, la convention de nommage en repli.
+  const logo = n.formationDetails?.logo?.node?.sourceUrl ? n.formationDetails.logo.node : logoNomme
   return {
     slug: n.slug ?? '',
     titre: n.title ?? '',
@@ -531,5 +559,6 @@ export async function getFormation(slug: string): Promise<FormationComplete | nu
     seoTitre: n.seoFields?.metaTitle ?? null,
     seoDescription: n.seoFields?.metaDescription ?? null,
     noindex: n.seoFields?.noindex ?? false,
+    details: n.formationDetails ? lireDetails(n.formationDetails, n.formationFields?.ville) : DETAILS_VIDES,
   }
 }

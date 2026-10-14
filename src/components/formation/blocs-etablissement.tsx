@@ -315,6 +315,49 @@ export function Galerie({ photos, credit, source }: { photos: { url: string; leg
 }
 
 /* ------------------------------------------------------------------ */
+/* Étapes d'admission et coûts                                          */
+/* ------------------------------------------------------------------ */
+
+/** Étapes numérotées 01, 02…, avec leur période en pastille. */
+export function Etapes({ etapes }: { etapes: { titre: string; detail: string | null; quand: string | null }[] }) {
+  return (
+    <ol>
+      {etapes.map((e, k) => (
+        <li key={e.titre} className="border-b border-line py-10 first:pt-0">
+          <div className="flex items-baseline justify-between gap-4">
+            <p className="text-6xl font-light tabular-nums tracking-tight text-fg md:text-7xl">{String(k + 1).padStart(2, '0')}</p>
+            {e.quand && <Pastille accent>{e.quand}</Pastille>}
+          </div>
+          <h3 className="mt-6 text-xl font-semibold tracking-tight text-fg">{e.titre}</h3>
+          {e.detail && <p className="mt-3 max-w-xl text-fg-2">{e.detail}</p>}
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+export function Couts({ lignes, sous, mention }: { lignes: { libelle: string; montant: string; detail: string | null }[]; sous: string; mention: string }) {
+  if (!lignes.length) return null
+  return (
+    <section id="couts" className="container scroll-mt-20 py-20 md:py-24">
+      <Titre2 sous={sous}>Coûts et aides</Titre2>
+      <dl className="mt-10 divide-y divide-line border-y border-line">
+        {lignes.map((c, i) => (
+          <div key={`${c.libelle}-${i}`} className="grid gap-2 py-6 md:grid-cols-[16rem_14rem_1fr] md:items-baseline md:gap-8">
+            <dt className="text-sm font-medium text-fg-2">{c.libelle}</dt>
+            <dd className={`text-2xl font-semibold tracking-tight text-fg ${c.detail ? '' : 'md:col-span-2'}`}>{c.montant}</dd>
+            {c.detail && <dd className="text-fg-2">{c.detail}</dd>}
+          </div>
+        ))}
+      </dl>
+      <div className="mt-3">
+        <Mention>{mention}</Mention>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /* Portes ouvertes et rendez-vous                                       */
 /* ------------------------------------------------------------------ */
 
