@@ -3,33 +3,33 @@ import { ArrowUpRight } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 
 /**
- * L'appel à créer son compte, à la place de l'essai gratuit du modèle. Deux
- * boutons pour deux métiers : le parcours d'inscription sait ensuite quelle
- * fiche chercher.
+ * L'appel aux professionnels, en bandeau sombre comme celui des fiches
+ * métier : leur fiche existe déjà, et la compléter vaut mieux qu'un message.
+ * Deux boutons pour deux métiers : le parcours d'inscription sait ensuite
+ * quelle fiche chercher.
  */
 export function CtaCompte() {
-  const bouton = 'inline-flex h-11 items-center justify-center gap-1.5 rounded-full px-6 text-sm font-semibold'
   return (
-    <section className="pb-20 md:pb-24">
-      <div className="container">
-        <div className="flex flex-col gap-6 rounded-3xl bg-muted p-8 md:p-12 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Créez votre compte professionnel</h2>
-            <p className="mt-2 text-muted-foreground md:text-lg">
-              Revendiquez votre fiche, ajoutez vos horaires, vos langues et l’accessibilité de votre cabinet.
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
-            <Link href={chemin('/connexion?mode=inscription&profil=dentiste')} className={`${bouton} bg-teal text-white`}>
-              Je suis dentiste
-              <ArrowUpRight className="size-4" />
+    <section className="container pb-20 md:pb-24">
+      <div className="squircle-3xl dark relative overflow-hidden bg-background p-8 text-fg md:p-12">
+        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-teal/30 blur-3xl" />
+        <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <h2 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">
+            Vous êtes professionnel ?
+            <span className="block text-white/55">Votre fiche existe déjà.</span>
+          </h2>
+          <div className="grid gap-2 sm:flex sm:flex-wrap">
+            <Link
+              href={chemin('/connexion?mode=inscription&profil=dentiste')}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-action px-6 text-sm font-semibold text-action-foreground"
+            >
+              Je suis dentiste <ArrowUpRight className="size-4" aria-hidden />
             </Link>
             <Link
               href={chemin('/connexion?mode=inscription&profil=prothesiste')}
-              className={`${bouton} border border-border bg-background text-foreground hover:bg-background/80`}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 text-sm font-medium text-white"
             >
-              Je suis prothésiste
-              <ArrowUpRight className="size-4" />
+              Je suis prothésiste <ArrowUpRight className="size-4" aria-hidden />
             </Link>
           </div>
         </div>

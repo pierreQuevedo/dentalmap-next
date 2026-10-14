@@ -9,6 +9,7 @@ export const OBJETS = [
   ['erreur-fiche', 'Une erreur sur une fiche'],
   ['praticien', 'Ma fiche ou mon espace pro'],
   ['laboratoire', 'Mon laboratoire'],
+  ['annonce', 'Une offre, une annonce ou une formation publiée'],
   ['partenariat', 'Un partenariat'],
   ['presse', 'Une demande presse'],
   ['donnees', 'Mes données personnelles'],

@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { startTransition, useActionState, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -16,18 +16,34 @@ import { OBJETS, type Objet } from '@/lib/contact/objets'
  *
  * Même mécanique que la demande de partenariat de l'accueil : une action
  * serveur, un état de retour affiché sous le bouton, aucune donnée stockée.
- * L'objet peut arriver présélectionné par l'URL, depuis le pied de page ou
+ * L'objet, et pour une erreur la fiche concernée, peuvent arriver par l'URL,
+ * depuis le pied de page, une fiche ou
  * l'une des cartes de la page ; quand il s'agit d'une erreur sur une fiche,
  * un champ demande le lien de la fiche, ce qui évite d'avoir à la retrouver.
  */
 const LIBELLES = Object.fromEntries(OBJETS) as Record<Objet, string>
 
-export function FormulaireContact({ objetInitial }: { objetInitial?: Objet }) {
+export function FormulaireContact({ objetInitial, ficheInitiale }: { objetInitial?: Objet; ficheInitiale?: string }) {
   const [etat, soumettre, enCours] = useActionState<EtatContact, FormData>(envoyerMessageContact, null)
   const [objet, setObjet] = useState<Objet | null>(objetInitial ?? null)
+  const formulaire = useRef<HTMLFormElement>(null)
+  // Soumission par `onSubmit` plutôt que par `action` : React viderait le
+  // formulaire à chaque retour, y compris sur une erreur de validation. On ne
+  // le vide qu'une fois le message parti, comme la demande de partenariat.
+  useEffect(() => {
+    if (etat?.ok) formulaire.current?.reset()
+  }, [etat])
 
   return (
-    <form action={soumettre} className="grid grid-cols-2 gap-x-4 gap-y-6">
+    <form
+      ref={formulaire}
+      onSubmit={(e) => {
+        e.preventDefault()
+        const donnees = new FormData(e.currentTarget)
+        startTransition(() => soumettre(donnees))
+      }}
+      className="grid grid-cols-2 gap-x-4 gap-y-6"
+    >
       <Groupe className="col-span-2 sm:col-span-1">
         <Label htmlFor="contact-prenom">Prénom</Label>
         <Input id="contact-prenom" name="prenom" type="text" autoComplete="given-name" required />
@@ -62,12 +78,12 @@ export function FormulaireContact({ objetInitial }: { objetInitial?: Objet }) {
           </SelectContent>
         </Select>
       </Groupe>
-      {objet === 'erreur-fiche' && (
+      {(objet === 'erreur-fiche' || objet === 'annonce') && (
         <Groupe className="col-span-2">
           <Label htmlFor="contact-fiche">
-            Lien de la fiche concernée <span className="font-normal text-muted-foreground">(facultatif)</span>
+            {objet === 'annonce' ? 'Page concernée' : 'Fiche concernée'} <span className="font-normal text-muted-foreground">(lien ou nom, facultatif)</span>
           </Label>
-          <Input id="contact-fiche" name="fiche" type="url" inputMode="url" placeholder="https://dentalmap.fr/dentistes/…" />
+          <Input id="contact-fiche" name="fiche" type="text" defaultValue={ficheInitiale} placeholder="https://dentalmap.fr/dentistes/…" />
         </Groupe>
       )}
       <Groupe className="col-span-2">
