@@ -12,7 +12,6 @@ export function CtaCompte() {
   return (
     <section className="container pb-20 md:pb-24">
       <div className="squircle-3xl dark relative overflow-hidden bg-background p-8 text-fg md:p-12">
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-teal/30 blur-3xl" />
         <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <h2 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">
             Vous êtes professionnel ?

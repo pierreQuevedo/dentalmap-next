@@ -74,7 +74,6 @@ export function EntreesContact() {
             href={chemin(premiere.href)}
             className="squircle-3xl dark group relative flex h-full min-h-64 flex-col justify-between overflow-hidden bg-background p-6 text-fg md:p-8"
           >
-            <span aria-hidden className="pointer-events-none absolute -right-20 -top-20 size-72 rounded-full bg-teal/30 blur-3xl" />
             <span className="relative grid size-12 place-items-center rounded-2xl bg-teal text-white">
               <premiere.icone className="size-6" aria-hidden />
             </span>
