@@ -125,7 +125,7 @@ describe('salaires minimums des pages Emploi', () => {
     expect(esp(montantTexte({ montant: 2113 }))).toBe('2 113 €')
   })
   it('assistant(e) spécialisé(e) : minimum avec la prime de mention', () => {
-    expect(repereSalaire('assistant_specialise', 'cdi', 'cabinet')?.texte).toContain('2 328')
+    expect(repereSalaire('assistant_specialise', 'cdi', 'cabinet')?.texte).toMatch(/2\s328 €/u)
   })
   it('sources sans doublon, dans l’ordre', () => {
     expect(sourcesDe(Object.values(SALAIRES) as never)).toEqual([SOURCES_SALAIRES.idcc1619, SOURCES_SALAIRES.idcc993, SOURCES_SALAIRES.mentions1619, SOURCES_SALAIRES.ph])
