@@ -9,6 +9,9 @@ export const metadata: Metadata = { title: 'Confirmer votre alerte emploi', robo
  * plutôt qu'une confirmation à l'ouverture : les antivirus des messageries
  * ouvrent les liens, ils ne doivent pas confirmer à la place de la personne.
  */
+/** Le jeton vient de l’adresse : page bloquante, jamais pré-rendue. */
+export const instant = false
+
 export default async function Page(props: { params: Promise<{ jeton: string }>; searchParams: Promise<{ fait?: string; invalide?: string }> }) {
   const { jeton } = await props.params
   const sp = await props.searchParams

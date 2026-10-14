@@ -5,6 +5,9 @@ import { CarteAlerte } from '../../_carte'
 export const metadata: Metadata = { title: 'Se désinscrire de l’alerte emploi', robots: { index: false, follow: false } }
 
 /** La désinscription, depuis le lien de chaque email d'alerte. L'alerte est supprimée. */
+/** Le jeton vient de l’adresse : page bloquante, jamais pré-rendue. */
+export const instant = false
+
 export default async function Page(props: { params: Promise<{ jeton: string }>; searchParams: Promise<{ fait?: string }> }) {
   const { jeton } = await props.params
   const sp = await props.searchParams
