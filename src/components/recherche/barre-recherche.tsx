@@ -13,6 +13,7 @@ import { LIBELLE } from '@/lib/annuaire/libelles'
 import { PROFESSION_PAR_BASE, estPersonne } from '@/lib/annuaire/types'
 import { Deroulant } from '@/components/site/deroulant'
 import { useRecherche, useRechercheOptionnelle } from './contexte'
+import { carteOuverteEnPetitEcran, listeEnPetitEcran, rouvrirCarteApresNavigation } from './colonne-carte'
 
 /**
  * La barre de recherche, fixée en bas de l'écran et centrée.
@@ -33,7 +34,8 @@ export function BarreRecherche({ base, valeurLieu, lieu }: { base: BaseUrl; vale
   // Sans fournisseur de recherche, page par département par exemple, la
   // barre garde le lieu et la cible mais n'a pas de filtres à proposer.
   const recherche = useRechercheOptionnelle()
-  const [cible, setCible] = useState<Cible>(base)
+  // La cible est celle de la page : en changer, c'est changer de page.
+  const cible: Cible = base
   const [texte, setTexte] = useState(valeurLieu)
   // Un seul panneau ouvert à la fois au-dessus de la barre : la cible ou les filtres.
   const [panneau, setPanneau] = useState<'cible' | 'filtres' | null>(null)
@@ -53,10 +55,24 @@ export function BarreRecherche({ base, valeurLieu, lieu }: { base: BaseUrl; vale
    */
   const changerCible = (c: Cible) => {
     const q = texte.trim()
+    if (c === base) return
+    /*
+     * Une autre profession sur la même carte : même emprise, même position
+     * dans la page, carte rouverte si elle l'était. Seule exception, la liste
+     * en petit écran, qui repart du haut pour montrer les nouveaux résultats.
+     */
+    if (recherche && CIBLES_ANNUAIRE.includes(c)) {
+      const { ouest, sud, est, nord } = recherche.emprise
+      const params = new URLSearchParams({ profession: c, bbox: [ouest, sud, est, nord].map((n) => n.toFixed(4)).join(',') })
+      if (q) params.set('q', q)
+      if (carteOuverteEnPetitEcran()) rouvrirCarteApresNavigation()
+      router.push(chemin(`/recherche/?${params}`), { scroll: listeEnPetitEcran() })
+      return
+    }
     // Le lieu de la page est connu : on va droit à sa page pour la nouvelle
     // cible, sans passer par la recherche ni sa redirection. Seulement si le
     // champ montre encore ce lieu : un autre nom tapé est une autre recherche.
-    if (lieu && q === valeurLieu.trim() && c !== base) {
+    if (lieu && q === valeurLieu.trim()) {
       router.push(chemin(destination(c, lieu)))
       return
     }
@@ -65,11 +81,7 @@ export function BarreRecherche({ base, valeurLieu, lieu }: { base: BaseUrl; vale
       router.push(chemin(q ? `${cheminBase}?lieu=${encodeURIComponent(q)}` : cheminBase))
       return
     }
-    if (c !== base) {
-      router.push(chemin(`/recherche/?profession=${c}${q ? `&q=${encodeURIComponent(q)}` : ''}`))
-      return
-    }
-    setCible(c)
+    router.push(chemin(`/recherche/?profession=${c}${q ? `&q=${encodeURIComponent(q)}` : ''}`))
   }
 
   return (
@@ -312,9 +324,8 @@ function PanneauFiltres({ fermer }: { fermer: () => void }) {
   const specialites = specialitesDe(profession)
   const orientations = orientationsDe(profession)
   const personne = estPersonne(profession)
-  const libelleCompte = compte
-    ? `Afficher ${compte.plafonne ? `${compte.total.toLocaleString('fr-FR')}+` : compte.total.toLocaleString('fr-FR')} ${compte.total > 1 ? l.pluriel : l.singulier}`
-    : 'Afficher les résultats'
+  // Le nombre prévu, en pastille sur le bouton ; le libellé, lui, ne bouge pas.
+  const nombrePrevu = compte ? `${compte.total.toLocaleString('fr-FR')}${compte.plafonne ? '+' : ''}` : null
 
   return (
     <div role="dialog" aria-label="Filtres" className="squircle-2xl w-[26rem] max-w-[calc(100vw-2rem)] border border-line bg-bg shadow-pop">
@@ -382,9 +393,18 @@ function PanneauFiltres({ fermer }: { fermer: () => void }) {
             setFiltres(brouillon)
             fermer()
           }}
-          className="inline-flex h-10 items-center rounded-full bg-teal px-5 text-sm font-semibold text-white"
+          aria-label={compte ? `Afficher les résultats, ${nombrePrevu} ${compte.total > 1 ? l.pluriel : l.singulier}` : undefined}
+          className="relative inline-flex h-10 items-center rounded-full bg-teal px-5 text-sm font-semibold text-white"
         >
-          {libelleCompte}
+          Afficher les résultats
+          {nombrePrevu && (
+            <span
+              aria-hidden
+              className="absolute -right-2 -top-2.5 min-w-6 rounded-full border-2 border-bg bg-fg px-1.5 py-0.5 text-center text-[11px] font-semibold leading-none tabular-nums text-bg"
+            >
+              {nombrePrevu}
+            </span>
+          )}
         </button>
       </div>
     </div>

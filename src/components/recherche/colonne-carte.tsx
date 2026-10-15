@@ -2,8 +2,29 @@
 
 import { useEffect, useState } from 'react'
 import { List, Map as IconeCarte } from 'lucide-react'
+import { verrouillerDefilement } from '@/lib/verrou-defilement'
 
 const LARGE = '(min-width: 1024px)'
+const CLE_REOUVRIR = 'dm-carte-ouverte'
+
+/** Vrai en petit écran avec la carte plein écran ouverte. */
+export function carteOuverteEnPetitEcran(): boolean {
+  return !window.matchMedia(LARGE).matches && document.getElementById('carte-resultats')?.dataset.ouverte === 'true'
+}
+
+/** Vrai en petit écran, la liste affichée et non la carte. */
+export function listeEnPetitEcran(): boolean {
+  return !window.matchMedia(LARGE).matches && !carteOuverteEnPetitEcran()
+}
+
+/** Demande à la prochaine page de recherche de rouvrir la carte, pour une navigation qui doit garder la vue. */
+export function rouvrirCarteApresNavigation() {
+  try {
+    sessionStorage.setItem(CLE_REOUVRIR, '1')
+  } catch {
+    // Stockage indisponible : la page suivante s'ouvrira sur la liste.
+  }
+}
 
 /**
  * La colonne de la carte.
@@ -27,28 +48,37 @@ export function ColonneCarte({ mobile = true, children }: { mobile?: boolean; ch
 
   useEffect(() => {
     const requete = window.matchMedia(LARGE)
+    // Une page quittée carte ouverte, par un changement de cible, se rouvre sur la carte.
+    let reouvrir = false
+    try {
+      reouvrir = sessionStorage.getItem(CLE_REOUVRIR) === '1'
+      sessionStorage.removeItem(CLE_REOUVRIR)
+    } catch {}
     const suivre = () => {
       if (requete.matches) {
         setMontee(true)
         setOuverte(false)
+      } else if (reouvrir && mobile) {
+        reouvrir = false
+        setMontee(true)
+        setOuverte(true)
       }
     }
     suivre()
     requete.addEventListener('change', suivre)
     return () => requete.removeEventListener('change', suivre)
-  }, [])
+  }, [mobile])
 
   // Carte ouverte : la page dessous ne défile plus, Échap la referme.
   useEffect(() => {
     if (!ouverte) return
-    const precedent = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const deverrouiller = verrouillerDefilement()
     const surTouche = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOuverte(false)
     }
     document.addEventListener('keydown', surTouche)
     return () => {
-      document.body.style.overflow = precedent
+      deverrouiller()
       document.removeEventListener('keydown', surTouche)
     }
   }, [ouverte])
@@ -62,6 +92,7 @@ export function ColonneCarte({ mobile = true, children }: { mobile?: boolean; ch
     <>
       <aside
         id="carte-resultats"
+        data-ouverte={ouverte}
         className={`lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:block lg:border-l lg:border-line ${
           ouverte ? 'max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:top-20 max-lg:z-30 max-lg:bg-bg' : 'max-lg:hidden'
         }`}

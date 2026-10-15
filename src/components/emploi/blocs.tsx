@@ -202,7 +202,7 @@ const controle = 'w-full min-w-0 truncate bg-transparent text-sm text-fg outline
 export function Recherche({ metier = METIERS[0]!.slug, ville, grande }: { metier?: string; ville?: string; grande?: boolean }) {
   return (
     <form role="search" action={RECHERCHE_EMPLOI} method="get" className="w-full rounded-3xl border border-line bg-bg p-1.5 text-left shadow-pill md:rounded-full">
-      <div className="flex flex-col divide-y divide-line md:flex-row md:items-center md:divide-x md:divide-y-0">
+      <div className="flex flex-col divide-y divide-line md:flex-row md:items-stretch md:divide-x md:divide-y-0">
         <Champ icone={Briefcase} label="Métier" className="md:flex-[1.3]">
           <select name="metier" defaultValue={metier} className={controle}>
             {METIERS.map((m) => (
@@ -225,10 +225,11 @@ export function Recherche({ metier = METIERS[0]!.slug, ville, grande }: { metier
             ))}
           </select>
         </Champ>
-        <div className="p-1.5 md:p-0 md:pl-1.5">
+        {/* En ligne, le bouton prend toute la hauteur : même retrait en haut, en bas et sur le côté. */}
+        <div className="flex p-1.5 md:p-0 md:pl-1.5">
           <button
             type="submit"
-            className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-action text-sm font-semibold text-action-foreground hover:bg-action-hover ${grande ? 'h-12 px-7' : 'h-11 px-6'}`}
+            className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-action text-sm font-semibold text-action-foreground hover:bg-action-hover md:h-auto ${grande ? 'h-12 px-7' : 'h-11 px-6'}`}
           >
             <Search className="size-4" aria-hidden /> Rechercher
           </button>

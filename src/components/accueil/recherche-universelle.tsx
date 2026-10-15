@@ -19,6 +19,7 @@ import { Deroulant } from '@/components/site/deroulant'
  * Même dessin que la recherche d'emploi : une capsule claire, deux champs
  * à libellé en surtitre, la cible puis le lieu, et le bouton « Rechercher ».
  * En ligne à partir de `md`, empilée en dessous, le bouton en pleine largeur.
+ * Toujours en thème clair (`clair`), y compris sur le hero sombre.
  *
  * Le formulaire part toujours vers `/recherche/`, en méthode GET, avec la
  * cible en paramètre. Sans JavaScript la page de recherche redirige elle-même
@@ -43,8 +44,8 @@ export function RechercheUniverselle() {
   }
 
   return (
-    <form method="get" action="/recherche/" role="search" className="relative w-full max-w-3xl text-left" onSubmit={() => setFerme(true)}>
-      <div className="flex flex-col divide-y divide-line rounded-3xl border border-line bg-bg p-1.5 shadow-pill md:flex-row md:items-center md:divide-x md:divide-y-0 md:rounded-full">
+    <form method="get" action="/recherche/" role="search" className="clair relative w-full max-w-3xl text-left" onSubmit={() => setFerme(true)}>
+      <div className="flex flex-col divide-y divide-line rounded-3xl border border-line bg-bg p-1.5 shadow-pill md:flex-row md:items-stretch md:divide-x md:divide-y-0 md:rounded-full">
         <Champ icone={LoupeIcon} label="Que cherchez-vous ?" className="md:flex-1">
           <select
             name="profession"
@@ -98,10 +99,11 @@ export function RechercheUniverselle() {
             className={controle}
           />
         </Champ>
-        <div className="p-1.5 md:p-0 md:pl-1.5">
+        {/* En ligne, le bouton prend toute la hauteur : même retrait en haut, en bas et sur le côté. */}
+        <div className="flex p-1.5 md:p-0 md:pl-1.5">
           <button
             type="submit"
-            className="inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-action px-7 text-sm font-semibold text-action-foreground hover:bg-action-hover"
+            className="inline-flex h-12 w-full md:h-auto cursor-pointer items-center justify-center gap-2 rounded-full bg-action px-7 text-sm font-semibold text-action-foreground hover:bg-action-hover"
           >
             <LoupeIcon className="size-4" /> Rechercher
           </button>

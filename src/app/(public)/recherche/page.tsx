@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { chercherCommune, chercherTerritoire, designeExactement, getCommuneParCode, getPraticiensDansEmprise } from '@/lib/annuaire/queries'
-import { EMPRISE_FRANCE, empriseAutour } from '@/lib/annuaire/emprise'
+import { EMPRISE_FRANCE, empriseAutour, type Emprise } from '@/lib/annuaire/emprise'
 import { estBaseUrl, PROFESSION_PAR_BASE, type BaseUrl } from '@/lib/annuaire/types'
 import { chemin } from '@/components/annuaire/primitives'
 import { MiseEnPageRecherche } from '@/components/recherche/mise-en-page'
@@ -26,7 +26,16 @@ export const instant = false
 
 const RAYON_METRES = 20_000
 
-type Params = { profession?: string; lieu?: string; q?: string; page?: string }
+type Params = { profession?: string; lieu?: string; q?: string; page?: string; bbox?: string }
+
+/** `ouest,sud,est,nord`, l'emprise de la carte quittée quand la cible change depuis la barre. */
+function lireEmprise(bbox: string | undefined): Emprise | null {
+  const n = (bbox ?? '').split(',').map(Number)
+  if (n.length !== 4 || n.some((x) => !Number.isFinite(x))) return null
+  const [ouest, sud, est, nord] = n as [number, number, number, number]
+  if (ouest >= est || sud >= nord || sud < -90 || nord > 90) return null
+  return { ouest, sud, est, nord }
+}
 
 /**
  * Cibles du champ unique de l'accueil qui ne sont pas des praticiens.
@@ -52,11 +61,18 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
   const base: BaseUrl = sp.profession && estBaseUrl(sp.profession) ? sp.profession : 'dentistes'
   const profession = PROFESSION_PAR_BASE[base]
 
+  /*
+   * Changement de cible depuis la barre : la carte reste exactement où elle
+   * était. Le lieu tapé n'est alors qu'affiché dans la barre, il n'est ni
+   * résolu ni suivi d'une redirection vers sa page.
+   */
+  const empriseGardee = lireEmprise(sp.bbox)
+
   // `lieu` porte un code INSEE choisi dans les suggestions ; `q` la saisie brute
   // quand le formulaire est envoyé sans JavaScript, ou quand la cible change
   // depuis une page de territoire.
-  let commune = sp.lieu ? await getCommuneParCode(sp.lieu) : null
-  if (!commune && sp.q) {
+  let commune = !empriseGardee && sp.lieu ? await getCommuneParCode(sp.lieu) : null
+  if (!empriseGardee && !commune && sp.q) {
     /*
      * Une région ou un département ont leur page, qui est une recherche déjà
      * faite dessus : on y va. Une région nommée exactement l'emporte toujours ;
@@ -77,9 +93,10 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
   // couverture nationale au lieu d'un demi-écran vide, et la mise en page ne
   // change pas de forme une fois la commune saisie.
   const emprise =
-    commune?.lon != null && commune.lat != null
+    empriseGardee ??
+    (commune?.lon != null && commune.lat != null
       ? empriseAutour(commune.lon, commune.lat, RAYON_METRES)
-      : EMPRISE_FRANCE
+      : EMPRISE_FRANCE)
 
   const page = Math.max(1, Math.trunc(Number(sp.page)) || 1)
   const initial = await getPraticiensDansEmprise(profession, emprise, page)
@@ -92,7 +109,7 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
    */
   return (
     <MiseEnPageRecherche
-      cle={`${base}:${commune?.codeInsee ?? 'france'}`}
+      cle={`${base}:${empriseGardee ? sp.bbox : (commune?.codeInsee ?? 'france')}`}
       base={base}
       emprise={emprise}
       initial={initial}

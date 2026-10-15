@@ -9,7 +9,9 @@
  */
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root {
+/* `.clair` : un îlot en thème clair dans une section sombre (la recherche du hero de l'accueil). */
+:root,
+.clair {
   /*
    * Ardoise profonde, et le bleu réservé à l'action.
    *
@@ -178,6 +180,10 @@
   --shadow-6: 0 0 0 1px var(--lm-ring-6), 0 1px 1px -0.5px var(--lm-drop), 0 3px 3px -1.5px var(--lm-drop), 0 6px 6px -3px var(--lm-drop), 0 12px 12px -6px var(--lm-drop), 0 24px 24px -12px var(--lm-drop);
   --shadow-7: 0 0 0 1px var(--lm-ring-7), 0 1px 1px -0.5px var(--lm-drop), 0 3px 3px -1.5px var(--lm-drop), 0 6px 6px -3px var(--lm-drop), 0 12px 12px -6px var(--lm-drop), 0 24px 24px -12px var(--lm-drop), 0 48px 48px -24px var(--lm-drop);
   --shadow-8: 0 0 0 1px var(--lm-ring-8), 0 1px 1px -0.5px var(--lm-drop), 0 3px 3px -1.5px var(--lm-drop), 0 6px 6px -3px var(--lm-drop), 0 12px 12px -6px var(--lm-drop), 0 24px 24px -12px var(--lm-drop), 0 48px 48px -24px var(--lm-drop), 0 96px 96px -48px var(--lm-drop);
+}
+
+.clair {
+  color-scheme: light;
 }
 
 .dark {
@@ -650,11 +656,11 @@ html[data-hero='transparent'] #site-header :is([role='menu'], .fixed) {
 }
 
 /*
- * Panneau de recherche ouvert : la barre redevient opaque, même au-dessus du
+ * Panneau de recherche ou menu mobile ouvert : la barre redevient opaque, même au-dessus du
  * hero transparent, pour ne faire qu'un avec le panneau déplié dessous. Placé
  * après les règles du hero, à spécificité égale, pour les surcharger.
  */
-html[data-recherche='ouverte'] #site-header {
+html:is([data-recherche='ouverte'], [data-menu='ouvert']) #site-header {
   background-color: var(--background);
   --bg: var(--background);
   --fg: var(--foreground);
@@ -664,7 +670,7 @@ html[data-recherche='ouverte'] #site-header {
   --bg-soft: var(--muted);
   --line: var(--border);
 }
-html[data-recherche='ouverte'] #site-header button[aria-label='Changer de thème'] {
+html:is([data-recherche='ouverte'], [data-menu='ouvert']) #site-header button[aria-label='Changer de thème'] {
   color: var(--foreground);
 }
 
