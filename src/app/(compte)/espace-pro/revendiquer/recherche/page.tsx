@@ -109,7 +109,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
         <Etapes etape={2} libelle="Identification" />
         <h1 className={titre}>{titreH1}</h1>
         <p className="mt-2 text-sm text-fg-2">
-          Triées par ordre alphabétique puis par ville. Choisissez la vôtre
+          Choisissez la vôtre
           {plafond ? ', ou précisez : prénom et nom, ou votre numéro RPPS.' : '.'}
         </p>
         <form action={ouvrirFiche} className="mt-6">

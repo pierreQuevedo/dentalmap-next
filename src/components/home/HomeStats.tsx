@@ -1,4 +1,4 @@
-import { Building2, RefreshCw, Scale, ShieldCheck } from 'lucide-react'
+import { Building2, RefreshCw, ShieldCheck, UserCheck } from 'lucide-react'
 import { Stats9 } from '@/components/stats9'
 import { getChiffresCles } from '@/lib/annuaire/queries'
 
@@ -42,10 +42,10 @@ export async function HomeStats() {
             'Chaque cabinet et chaque laboratoire est rapproché du répertoire Sirene : établissement ouvert, adresse déclarée, activité cohérente.',
         },
         {
-          icon: <Scale className="size-7" strokeWidth={1.5} />,
-          title: 'Classement transparent',
+          icon: <UserCheck className="size-7" strokeWidth={1.5} />,
+          title: 'Fiches complétées par les praticiens',
           description:
-            'Les résultats sont triés par distance, puis par ordre alphabétique. Aucune fiche n’est remontée, et la règle est publiée en clair.',
+            'Un professionnel vérifié complète sa fiche : horaires, accès, photos. Ces informations sont signalées comme renseignées par le praticien.',
         },
         {
           icon: <RefreshCw className="size-7" strokeWidth={1.5} />,

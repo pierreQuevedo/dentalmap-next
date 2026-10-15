@@ -19,7 +19,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const court = `${site}/p/${espace.fiche.slug}/`
   const badge = `<a href="${court}">Vérifié sur DentalMap</a>`
   return (
-    <CoqueEspace c={coque} actif="partager" titre="Partager et parrainer" sousTitre="Faire connaître la fiche hors de DentalMap. Le partage ne change pas votre place dans les résultats">
+    <CoqueEspace c={coque} actif="partager" titre="Partager et parrainer" sousTitre="Faire connaître la fiche hors de DentalMap.">
       <div className="grid gap-4 lg:grid-cols-2">
         <Tuile>
           <TitreTuile i={Link2} droite={<span className="squircle-full bg-teal/10 px-2 py-0.5 text-xs font-medium text-teal">Le plus efficace</span>}>

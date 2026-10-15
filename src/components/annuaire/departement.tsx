@@ -117,7 +117,7 @@ export async function PageDepartement({ profession, slug, page }: { profession: 
         emprise={emprise}
         initial={initial}
         mode="territoire"
-        territoire={{ libelle: 'dans la zone affichée', classement: 'distance' }}
+        territoire={{ libelle: 'dans la zone affichée' }}
         valeurLieu={d.nom}
         lieu={{ type: 'departement', code: d.code, slug: d.slug }}
         enTete={

@@ -35,8 +35,8 @@ const AVIS_DE_DEMONSTRATION = [
     companyLogo: `${L}/chambre-metiers-vallee.svg`,
     quote: {
       fullQuote:
-        'Nous relayons les annonces de reprise de laboratoire auprès de nos adhérents. Le classement par distance, sans favoritisme, est exactement ce que nous demandions à un annuaire.',
-      highlightedWords: ['annonces', 'favoritisme'],
+        'Nous relayons les annonces de reprise de laboratoire auprès de nos adhérents.',
+      highlightedWords: ['annonces'],
     },
     author: { name: 'Claire Bastide', designation: 'Chargée de mission, chambre des métiers de la Vallée', profilePicture: '/images/demo/pexels-6627325.jpg' },
   },

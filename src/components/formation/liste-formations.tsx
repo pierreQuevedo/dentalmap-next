@@ -117,7 +117,7 @@ export async function ListeFormations({ type, params }: { type: FormationType | 
             ? lieu
               ? `Aucune formation recensée ${lieu.dans}${famille ? ` parmi les ${famille.titre.toLowerCase()}` : ''}.`
               : 'Aucune formation publiée pour le moment.'
-            : `${formations.length} ${formations.length > 1 ? 'formations' : 'formation'}${lieu ? ` ${lieu.dans}` : ''}, par ordre alphabétique.`}
+            : `${formations.length} ${formations.length > 1 ? 'formations' : 'formation'}${lieu ? ` ${lieu.dans}` : ''}.`}
         </p>
       )}
 

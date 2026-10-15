@@ -127,7 +127,6 @@ function Offres() {
             ))}
           </ul>
         </div>
-        <p className="mt-6 text-sm text-fg-2">Le classement reste la distance, puis l’ordre alphabétique.</p>
       </div>
     </section>
   )

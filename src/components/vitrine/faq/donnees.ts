@@ -40,29 +40,24 @@ export const CATEGORIES: Categorie[] = [
       },
       {
         ordre: 2,
-        question: 'Comment les résultats sont-ils classés ?',
-        reponse: 'Par distance, puis par ordre alphabétique. Le classement ne dépend ni de la complétude d’une fiche ni d’un score.',
-      },
-      {
-        ordre: 3,
         question: 'Que veut dire « Vérifié auprès des registres officiels » ?',
         reponse:
           'La fiche a été rapprochée d’un registre public : numéro RPPS ou ADELI, profession et spécialité, ou établissement ouvert au répertoire Sirene. Ce rapprochement est refait chaque jour.',
       },
       {
-        ordre: 4,
+        ordre: 3,
         question: 'Que veut dire « Renseigné par le praticien » ?',
         reponse:
           'L’information a été ajoutée par le professionnel, après vérification de son identité. Elle est enregistrée à part du registre et porte sa date de confirmation.',
       },
       {
-        ordre: 5,
+        ordre: 4,
         question: 'Que me demande-t-on pour chercher ?',
         reponse:
           'Une ville, un code postal ou une adresse : la recherche fonctionne sans géolocalisation. Un compte patient ne demande que votre email, et aucune donnée de santé ne vous est demandée.',
       },
       {
-        ordre: 6,
+        ordre: 5,
         question: 'À quoi servent les favoris ?',
         reponse: 'À mettre des fiches de côté pour les retrouver sur tous vos appareils. Ils sont liés à votre compte.',
       },
@@ -123,23 +118,17 @@ export const CATEGORIES: Categorie[] = [
       },
       {
         ordre: 3,
-        question: 'Une fiche complète est-elle mieux classée ?',
-        reponse:
-          'Non. Votre place dans la liste reste la même : distance, puis ordre alphabétique. Une fiche complète apparaît en revanche dans plus de filtres, comme « Ouvert maintenant » ou « Tiers payant ».',
-      },
-      {
-        ordre: 4,
         question: 'Je gère un laboratoire de prothèse : comment faire ?',
         reponse:
           'La base Sirene ne publie pas d’email : la vérification passe par un Kbis ou par un courrier au siège. Si vous êtes salarié du laboratoire, un mandat signé vous est demandé.',
       },
       {
-        ordre: 5,
+        ordre: 4,
         question: 'Je représente une école ou une faculté : comment faire ?',
         reponse: 'Avec une adresse email sur le domaine de l’établissement, immédiatement, ou avec une attestation de fonction, sous 48 h.',
       },
       {
-        ordre: 6,
+        ordre: 5,
         question: 'Puis-je faire retirer ma fiche ?',
         reponse:
           'Oui, à tout moment, après la même vérification d’identité qu’une revendication. La page disparaît du site et n’est pas recréée par la synchronisation des registres.',

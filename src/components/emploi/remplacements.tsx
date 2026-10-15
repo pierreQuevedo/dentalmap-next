@@ -16,7 +16,7 @@ import type { Departement } from '@/lib/annuaire/queries'
 import { chemin } from '@/lib/navigation'
 import { EMPLOI, REMPLACEMENTS, cheminRemplacementsDepartement } from '@/lib/emploi/chemins'
 import { euros } from '@/lib/emploi/format'
-import { PAR_PAGE_EMPLOI, getComptes, getDepartementsQuiRecrutent, getOffresDepartement, getOffresRecentes, getOrigineDepartement } from '@/lib/emploi/queries'
+import { PAR_PAGE_EMPLOI, getComptes, getDepartementsQuiRecrutent, getOffresDepartement, getOffresRecentes } from '@/lib/emploi/queries'
 import { CONTRATS_TYPES_ORDRE, SALAIRES, SOURCES_SALAIRES, montantTexte } from '@/lib/emploi/salaires'
 import { AucuneOffre } from './accueil'
 import { AlerteEmail } from './alerte-email'
@@ -46,10 +46,9 @@ const CONDITIONS = [
 export async function PageRemplacements({ collaboration, departement: d, page = 1 }: { collaboration: boolean; departement?: Departement; page?: number }) {
   const contrat = collaboration ? 'collaboration' : 'remplacement'
   const filtre = { metier: 'chirurgien_dentiste' as const, contrats: [contrat] as ('remplacement' | 'collaboration')[] }
-  const [comptes, liste, origine, departements] = await Promise.all([
+  const [comptes, liste, departements] = await Promise.all([
     getComptes(d ? { departementCode: d.code } : {}),
     d ? getOffresDepartement(d.code, filtre, page) : getOffresRecentes({ ...filtre, limite: 12 }).then((offres) => ({ offres, total: offres.length })),
-    d ? getOrigineDepartement(d.code) : Promise.resolve(null),
     d ? Promise.resolve([]) : getDepartementsQuiRecrutent({ metier: 'chirurgien_dentiste', contrats: ['remplacement', 'collaboration'] }, 12),
   ])
   const { offres, total } = liste
@@ -133,9 +132,6 @@ export async function PageRemplacements({ collaboration, departement: d, page = 
           <h2 className="text-2xl font-semibold tracking-tight text-fg">
             {d ? `${nombreOffres(total)} en ${d.nom}` : collaboration ? 'Collaborations récentes' : 'Remplacements récents'}
           </h2>
-          {offres.length > 0 && (
-            <p className="text-sm text-fg-2">{d && origine ? `Les plus proches de ${origine.nom} d’abord.` : 'Les dernières publiées, partout en France.'}</p>
-          )}
         </div>
         <div className="mt-5">
           {offres.length > 0 ? (

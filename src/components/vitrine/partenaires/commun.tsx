@@ -100,7 +100,6 @@ export const ETAPES = [
 export const FAQ = [
   { q: 'Faut-il un compte pour proposer un partenariat ?', r: 'Non. Le formulaire de cette page suffit, et la demande ne crée aucun compte.' },
   { q: 'Quand aurai-je une réponse ?', r: 'Une personne de l’équipe lit votre demande sous sept jours et vous répond par email.' },
-  { q: 'Un partenariat change-t-il le classement des fiches ?', r: 'Non. Les résultats restent classés par distance, puis par ordre alphabétique.' },
 ]
 
 /** « Ils nous font confiance » : monogrammes fictifs, aucun organisme réel. */

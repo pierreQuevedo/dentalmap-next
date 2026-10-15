@@ -38,7 +38,7 @@ export default async function Page(props: { params: Params; searchParams: Recher
   if (!d) notFound()
   const p = await props.searchParams
   const filtres = lireFiltres(p)
-  const [{ origine, annonces: toutes }, departements, emprise] = await Promise.all([getAnnoncesDepartement(d.code), getDepartementsCession(), getEmpriseDepartement(d.code)])
+  const [{ annonces: toutes }, departements, emprise] = await Promise.all([getAnnoncesDepartement(d.code), getDepartementsCession(), getEmpriseDepartement(d.code)])
   const ariane = [{ libelle: 'Accueil', href: '/' }, { libelle: 'Cessions de cabinet', href: LISTE_CESSIONS }, { libelle: d.nom }]
   return (
     <>
@@ -58,7 +58,6 @@ export default async function Page(props: { params: Params; searchParams: Recher
         filtres={filtres}
         departements={departements}
         departement={{ code: d.code, nom: d.nom, slug: d.slug }}
-        origine={origine}
         emprise={emprise}
       />
     </>

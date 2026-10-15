@@ -126,7 +126,6 @@ export const PAGES: PageLegale[] = [
     version: VERSION,
     majLe: MAJ,
     enBref: [
-      'Les résultats sont classés par distance, puis par ordre alphabétique.',
       'Les données de registre ne sont pas modifiables ; ce qu’ajoute un professionnel est affiché à part.',
       'Pour compléter une fiche, il faut prouver son identité ; une fiche peut être retirée à tout moment.',
       'Une offre d’emploi vient d’un recruteur vérifié et affiche sa rémunération.',
@@ -153,14 +152,6 @@ export const PAGES: PageLegale[] = [
             ],
           },
           'Les conditions financières du service pour les professionnels : [À compléter : offre et tarifs, le cas échéant].',
-        ],
-      },
-      {
-        id: 'classement',
-        titre: 'Classement des résultats',
-        blocs: [
-          'Les résultats sont classés par distance, puis par ordre alphabétique. Cette règle est la seule appliquée.',
-          'Le classement ne dépend ni de la complétude d’une fiche, ni d’un score. Une information renseignée permet seulement d’apparaître dans le filtre correspondant (par exemple « Ouvert maintenant » ou « Tiers payant »). Les distinctions attribuées dans l’espace pro sont privées et ne sont pas affichées aux patients.',
         ],
       },
       {

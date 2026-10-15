@@ -64,11 +64,6 @@ export function PanneauResultats() {
         </span>
       </div>
 
-      {plafonne && !chargement && (
-        <p className="mt-2 text-sm text-fg-2">
-          La liste s’arrête aux {total} plus proches du centre de la carte. Resserrez la carte pour voir le reste.
-        </p>
-      )}
 
       {/*
         Pendant un chargement, la liste est remplacée par autant de squelettes
@@ -117,7 +112,12 @@ export function PanneauResultats() {
 
       {pages > 1 && <Pagination />}
 
-      <NoteClassement />
+      {/* Tout en bas de la dernière page : la liste s'arrête là, la carte permet d'aller plus loin. */}
+      {plafonne && !chargement && page === pages && (
+        <p className="mt-8 text-sm text-fg-2">
+          La liste s’arrête à {total.toLocaleString('fr-FR')} professionnels. Resserrez la carte pour voir les autres.
+        </p>
+      )}
     </div>
   )
 }
@@ -127,26 +127,6 @@ function premiereDuLieu(resultats: { lon: number | null; lat: number | null }[],
   const cle = clePosition(resultats[i]!.lon, resultats[i]!.lat)
   for (let j = 0; j < i; j++) if (clePosition(resultats[j]!.lon, resultats[j]!.lat) === cle) return false
   return true
-}
-
-/**
- * La règle de tri, dite sous la liste.
- *
- * Elle change avec le mode : alphabétique sur la page d'une commune,
- * distance au centre de la carte partout ailleurs. La
- * phrase suit la liste plutôt que la page, sans quoi elle mentirait dès le
- * premier déplacement de la carte.
- */
-function NoteClassement() {
-  const { territoire } = useRecherche()
-  const alphabetique = territoire?.classement === 'alphabetique'
-  return (
-    <p className="mt-8 text-sm text-fg-2">
-      {alphabetique
-        ? 'Le classement est alphabétique.'
-        : 'Les résultats sont classés par distance au centre de la carte, puis par ordre alphabétique à égalité. Les professionnels dont la position n’est qu’approximative, faute d’adresse exploitable, sont exclus de ce classement mais restent accessibles par leur commune.'}
-    </p>
-  )
 }
 
 /**

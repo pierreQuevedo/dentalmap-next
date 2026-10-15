@@ -97,7 +97,6 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-xs text-fg-2">La force ne change jamais votre place dans les résultats, triés par distance puis par ordre alphabétique.</p>
           </Tuile>
         </aside>
       </div>

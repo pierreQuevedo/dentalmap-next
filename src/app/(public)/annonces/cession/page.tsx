@@ -44,7 +44,6 @@ export default async function Page(props: { searchParams: Recherche }) {
         filtres={filtres}
         departements={departements}
         departement={null}
-        origine={null}
         emprise={EMPRISE_FRANCE}
       />
     </>

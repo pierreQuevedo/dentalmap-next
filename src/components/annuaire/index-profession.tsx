@@ -102,7 +102,7 @@ export async function PageIndexProfession({
       emprise={EMPRISE_FRANCE}
       initial={initial}
       mode="territoire"
-      territoire={{ libelle: 'dans la zone affichée', classement: 'distance' }}
+      territoire={{ libelle: 'dans la zone affichée' }}
       valeurLieu=""
       enTete={
         <>

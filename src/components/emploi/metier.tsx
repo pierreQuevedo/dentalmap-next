@@ -67,7 +67,6 @@ export async function PageMetier({ metier: m }: { metier: Metier }) {
       <section className="container py-16 md:py-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <TitreDeuxTons sous="partout en France.">Offres récentes</TitreDeuxTons>
-          {recentes.length > 0 && <p className="text-sm text-fg-2">Les dernières publiées. Indiquez une ville pour les voir par distance.</p>}
         </div>
         <div className="mt-10">
           {recentes.length > 0 ? (

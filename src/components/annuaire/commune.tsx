@@ -113,7 +113,7 @@ export async function PageCommune({
         emprise={emprise}
         initial={{ total, page, pages, plafonne: false, resultats }}
         mode="territoire"
-        territoire={{ libelle: `à ${c.nom}`, classement: 'alphabetique' }}
+        territoire={{ libelle: `à ${c.nom}` }}
         valeurLieu={c.nom}
         lieu={{ type: 'commune', code_insee: c.codeInsee, slug: c.slug, departement_slug: c.departementSlug }}
         enTete={

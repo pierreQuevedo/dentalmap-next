@@ -14,7 +14,7 @@
  */
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { ArrowDownWideNarrow, ArrowRight, Bell, List, Map as IconeCarte, MapPin, SlidersHorizontal } from 'lucide-react'
+import { ArrowRight, Bell, List, Map as IconeCarte, MapPin, SlidersHorizontal } from 'lucide-react'
 import { FilAriane } from '@/components/annuaire/primitives'
 import type { Commune, Departement } from '@/lib/annuaire/queries'
 import type { Emprise } from '@/lib/annuaire/emprise'
@@ -32,7 +32,6 @@ import {
   getOffresAutour,
   getOffresCommune,
   getOffresDepartement,
-  getOrigineDepartement,
 } from '@/lib/emploi/queries'
 import { SALAIRES } from '@/lib/emploi/salaires'
 import type { OffreResume } from '@/lib/emploi/types'
@@ -157,14 +156,10 @@ function Vues({ mode, liens }: { mode: 'liste' | 'carte'; liens: { liste: string
   )
 }
 
-function Compteur({ n, depuis }: { n: number; depuis: string }) {
+function Compteur({ n }: { n: number }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line pb-4">
       <p className="text-sm font-semibold text-fg">{nombreOffres(n)}</p>
-      <p className="text-sm text-fg-2">
-        <ArrowDownWideNarrow className="mr-1.5 inline size-4 align-[-3px]" aria-hidden />
-        <span className="font-medium text-fg">Les plus proches d’abord</span>, depuis {depuis}
-      </p>
     </div>
   )
 }
@@ -202,7 +197,6 @@ type Gabarit = {
   mode: 'liste' | 'carte'
   offres: OffreResume[]
   total: number
-  depuis: string
   emprise: Emprise
   rayon?: { lon: number; lat: number; metres: number }
   /** Filtres et sélecteur de vue : pages commune seulement. */
@@ -254,7 +248,7 @@ function Resultats({ g }: { g: Gabarit }) {
           {g.avant}
           {g.offres.length > 0 && (
             <>
-              <Compteur n={g.total} depuis={g.depuis} />
+              <Compteur n={g.total} />
               <ul className="mt-5 space-y-3">
                 {g.offres.map((o) => (
                   <CarteOffre key={o.id} o={o} forme="ligne" />
@@ -281,7 +275,7 @@ function Resultats({ g }: { g: Gabarit }) {
       <div className="hidden lg:grid lg:grid-cols-[28rem_minmax(0,1fr)]">
         <div className="border-r border-line px-6 py-6 xl:pl-10 [&_.alerte]:flex-col! [&_.alerte]:items-start!">
           {g.avant}
-          <Compteur n={g.total} depuis={g.depuis} />
+          <Compteur n={g.total} />
           <ul className="mt-4 space-y-3">
             {g.offres.map((o, i) => (
               <CarteOffre key={o.id} o={o} forme="compacte" actif={i === 0} />
@@ -296,7 +290,7 @@ function Resultats({ g }: { g: Gabarit }) {
         <CarteOffres key={cle} className="size-full" emprise={empriseMobile(g.emprise)} actif={g.offres[0]?.id} points={pts} rayon={g.rayon} mention={false} />
         <div className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-line bg-bg px-4 pb-5 pt-2 shadow-[0_-8px_28px_rgb(22_34_43/0.16)]">
           <span className="mx-auto mb-3 block h-1 w-10 rounded-full bg-line-strong" aria-hidden />
-          <Compteur n={g.total} depuis={g.depuis} />
+          <Compteur n={g.total} />
           <ul className="mt-3">
             {g.offres.slice(0, 1).map((o) => (
               <CarteOffre key={o.id} o={o} forme="compacte" actif />
@@ -391,12 +385,11 @@ export async function PageCommuneEmploi({ m, c, f }: { m: Metier; c: Commune; f:
           ariane,
           titre: `Aucune offre ${m.de} à ${c.nom} pour le moment`,
           intro: proches.length
-            ? `Aucun recruteur de ${c.nom} n’a d’offre en ligne aujourd’hui. Les offres les plus proches sont listées ci-dessous, par distance depuis ${c.nom}.`
+            ? `Aucun recruteur de ${c.nom} n’a d’offre en ligne aujourd’hui. Voici des offres dans les environs.`
             : `Aucun recruteur de ${c.nom} ni des environs n’a d’offre en ligne aujourd’hui. Créez une alerte pour être prévenu(e) dès qu’une offre paraît.`,
           mode: 'liste',
           offres: proches,
           total: totalProches,
-          depuis: c.nom,
           emprise: empriseOffres(points(proches), centre, 15_000),
           rayon: c.lon != null && c.lat != null ? { lon: c.lon, lat: c.lat, metres: 15_000 } : undefined,
           avant: (
@@ -453,7 +446,6 @@ export async function PageCommuneEmploi({ m, c, f }: { m: Metier; c: Commune; f:
         mode: f.vue,
         offres,
         total: offres.length,
-        depuis: `le centre de ${c.nom}`,
         emprise: empriseOffres(points(offres), centre),
         filtres: { f, comptes: comptesContrat, action: base },
         avant:
@@ -499,9 +491,8 @@ export async function PageCommuneEmploi({ m, c, f }: { m: Metier; c: Commune; f:
 /* ------------------------------------------------------------------ */
 
 export async function PageDepartementEmploi({ m, d, page }: { m: Metier; d: Departement; page: number }) {
-  const [{ offres, total }, origine, communes, comptes] = await Promise.all([
+  const [{ offres, total }, communes, comptes] = await Promise.all([
     getOffresDepartement(d.code, { metier: m.code }, page),
-    getOrigineDepartement(d.code),
     getCommunesAvecOffres(m.code, d.code),
     getComptes({ departementCode: d.code }),
   ])
@@ -520,7 +511,6 @@ export async function PageDepartementEmploi({ m, d, page }: { m: Metier; d: Depa
         mode: 'liste',
         offres,
         total,
-        depuis: origine ? origine.nom : d.nom,
         emprise: empriseOffres(points(offres), null),
         avant:
           liensCommunes.length > 0 ? (

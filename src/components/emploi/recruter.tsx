@@ -39,7 +39,7 @@ export const FAQ_RECRUTEURS = [
 ]
 
 const RAISONS = [
-  { icone: Crosshair, titre: 'Des candidats ciblés', texte: 'Uniquement des métiers du dentaire, et des candidats qui cherchent autour de votre adresse : les offres sont classées par distance.' },
+  { icone: Crosshair, titre: 'Des candidats ciblés', texte: 'Uniquement des métiers du dentaire, et des candidats qui cherchent autour de votre adresse.' },
   { icone: ShieldCheck, titre: 'Un recruteur vérifié', texte: 'Votre offre porte la pastille « Fiche vérifiée » et renvoie à votre fiche : adresse, présentation, accès.' },
   { icone: BadgeEuro, titre: 'La rémunération affichée', texte: 'Les candidats savent avant de postuler. Moins de candidatures hors sujet, des entretiens qui portent sur le poste.' },
   { icone: UsersRound, titre: 'Des profils disponibles', texte: 'Consultez des profils anonymisés de candidats qui cherchent près de chez vous, et proposez-leur un échange.' },

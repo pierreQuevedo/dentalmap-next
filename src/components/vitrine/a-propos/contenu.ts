@@ -120,10 +120,6 @@ export const FAQ = [
     r: 'Des registres publics, en lecture seule. Ce que le professionnel ajoute est affiché à part, avec sa date.',
   },
   {
-    q: 'Comment les résultats sont-ils classés ?',
-    r: 'Par distance, puis par ordre alphabétique. Ni la complétude d’une fiche ni un score n’y changent rien.',
-  },
-  {
     q: 'Faut-il envoyer un document pour revendiquer une fiche ?',
     r: 'Non, pour un praticien : son identité est confirmée par Pro Santé Connect, bientôt par FranceConnect+, ou avec l’équipe. Un laboratoire joint un extrait Kbis.',
   },

@@ -11,7 +11,7 @@ import { ETAPES } from './contenu'
 import { Defile } from './defile'
 import { HeroMosaique } from './heros'
 import { OngletsProfils } from './onglets'
-import { BentoChiffres, Donnees, FaqCentree, Fin, Neutralite, VisuelEtape } from './visuels'
+import { BentoChiffres, Donnees, FaqCentree, Fin, VisuelEtape } from './visuels'
 
 /** Disposition des cinq tuiles de la méthode : deux larges, trois étroites. */
 const TUILES = ['lg:col-span-2', '', '', 'lg:col-span-2', 'lg:col-span-3']
@@ -81,7 +81,6 @@ export function PageAPropos() {
         </Suspense>
       </section>
       <Methode />
-      <Neutralite />
       <Donnees />
       <FaqCentree />
       <Fin />

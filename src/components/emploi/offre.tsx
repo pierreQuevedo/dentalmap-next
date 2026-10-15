@@ -409,7 +409,6 @@ function OffresProches({ proches, v }: { proches: OffreResume[]; v: Vue }) {
           {v.lienProches.libelle} <ArrowRight className="size-4" aria-hidden />
         </Link>
       </div>
-      <p className="mt-2 text-sm text-fg-2">Les plus proches de ce recruteur d’abord.</p>
       <ul className="mt-6 space-y-3 sm:hidden">
         {proches.map((p) => (
           <CarteOffre key={p.id} o={p} forme="ligne" />

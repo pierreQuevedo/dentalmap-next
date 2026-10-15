@@ -98,7 +98,6 @@ export function BandeauForce({ force, className = '' }: { force: number; classNa
         <p className="text-sm font-semibold text-fg">
           Fiche à {force} % · {LIBELLE_PALIER[palierDe(force)]}
         </p>
-        <p className="text-xs text-fg-2">Votre place dans la liste reste la même : distance, puis ordre alphabétique.</p>
       </div>
     </div>
   )

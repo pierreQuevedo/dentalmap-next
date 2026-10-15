@@ -189,11 +189,6 @@ function Recentes({ offres }: { offres: OffreResume[] }) {
     <section className="container py-16 md:py-20">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <TitreDeuxTons sous="partout en France.">Offres récentes</TitreDeuxTons>
-        {offres.length > 0 && (
-          <p className="inline-flex items-center gap-1.5 text-sm text-fg-2">
-            <CalendarClock className="size-4" aria-hidden /> Les dernières publiées. Indiquez une ville pour les voir par distance.
-          </p>
-        )}
       </div>
       <div className="mt-10">
         {offres.length > 0 ? (

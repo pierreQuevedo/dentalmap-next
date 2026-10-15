@@ -34,8 +34,6 @@ export type Mode = 'territoire' | 'carte'
 export type Territoire = {
   /** « à Bordeaux », « en Gironde », « en France » : complète la phrase de comptage. */
   libelle: string
-  /** Règle de tri de la liste servie pour ce territoire. */
-  classement: 'alphabetique' | 'distance'
 }
 
 type Etat = {

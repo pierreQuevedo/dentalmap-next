@@ -57,7 +57,7 @@ export async function PageRegion({ profession, region: r, page }: { profession: 
         emprise={emprise}
         initial={initial}
         mode="territoire"
-        territoire={{ libelle: 'dans la zone affichée', classement: 'distance' }}
+        territoire={{ libelle: 'dans la zone affichée' }}
         valeurLieu={r.nom}
         lieu={{ type: 'region', code: r.code, slug: r.slug }}
         enTete={

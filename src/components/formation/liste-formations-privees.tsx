@@ -128,19 +128,6 @@ export function ListeFormationsPrivees({ formations, filtres, lieu, paramsLieu, 
               {formations.length} {formations.length > 1 ? 'formations' : 'formation'}
               {lieu ? ` ${lieu.dans} ou en ligne` : ''}
             </p>
-            {formations.length > 1 && (
-              <p className="text-sm text-fg-2">
-                {lieu ? (
-                  <>
-                    <span className="font-medium text-fg">Les plus proches</span> d’abord
-                  </>
-                ) : (
-                  <>
-                    <span className="font-medium text-fg">Les plus proches dans le temps</span> d’abord
-                  </>
-                )}
-              </p>
-            )}
           </div>
           {formations.length > 0 ? (
             <ul className="mt-5 space-y-3">

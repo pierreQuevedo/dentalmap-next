@@ -11,7 +11,7 @@
  * peuplée, puis titre ; pour la France entière, faute de point d'origine, les
  * plus récentes d'abord, puis titre. Aucun tri payant ni score.
  */
-import { ArrowDownWideNarrow, ChevronLeft, ChevronRight, List, Map as IconeCarte, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, List, Map as IconeCarte, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { chemin } from '@/lib/navigation'
 import { FilAriane } from '@/components/annuaire/primitives'
@@ -36,8 +36,6 @@ type Props = {
   filtres: FiltresCession
   departements: DepartementCession[]
   departement: { code: string; nom: string; slug: string } | null
-  /** Ville d'où la distance est mesurée ; `null` : tri par date. */
-  origine: string | null
   emprise: Emprise
 }
 
@@ -62,22 +60,10 @@ function Vues({ mode, base, filtres, dansBarre = false }: { mode: 'liste' | 'car
   )
 }
 
-function Compteur({ total, origine }: { total: number; origine: string | null }) {
+function Compteur({ total }: { total: number }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line pb-4">
+    <div className="border-b border-line pb-4">
       <p className="text-sm font-semibold text-fg">{nombre(total)}</p>
-      {total > 1 && (
-        <p className="text-sm text-fg-2">
-          <ArrowDownWideNarrow className="mr-1.5 inline size-4 align-[-3px]" aria-hidden />
-          {origine ? (
-            <>
-              <span className="font-medium text-fg">Les plus proches d’abord</span>, depuis {origine}
-            </>
-          ) : (
-            <span className="font-medium text-fg">Les plus récentes d’abord</span>
-          )}
-        </p>
-      )}
     </div>
   )
 }
@@ -162,7 +148,7 @@ function Pagination({ page, pages, base, filtres }: { page: number; pages: numbe
   )
 }
 
-export function ListeAnnonces({ mode, titre, ariane, annonces, toutes, filtres, departements, departement, origine, emprise }: Props) {
+export function ListeAnnonces({ mode, titre, ariane, annonces, toutes, filtres, departements, departement, emprise }: Props) {
   const base = departement ? cheminDepartementCession(departement.slug) : LISTE_CESSIONS
   const comptes = compterParType(toutes)
   const cle = `${departement?.slug ?? 'france'}${chaineFiltres(filtres)}`
@@ -205,7 +191,7 @@ export function ListeAnnonces({ mode, titre, ariane, annonces, toutes, filtres, 
               <Vues mode={mode} base={base} filtres={filtres} />
             </div>
             <div className="mt-8">
-              <Compteur total={annonces.length} origine={origine} />
+              <Compteur total={annonces.length} />
               {annonces.length ? (
                 <ul className="mt-4 space-y-3">
                   {annonces.map((a, i) => (
@@ -243,7 +229,7 @@ export function ListeAnnonces({ mode, titre, ariane, annonces, toutes, filtres, 
           <FiltresCessions key={cle} idPrefixe="filtres" {...filtresProps} />
         </aside>
         <div className="min-w-0">
-          <Compteur total={annonces.length} origine={origine} />
+          <Compteur total={annonces.length} />
           {visibles.length ? (
             <ul className="mt-5 space-y-3">
               {visibles.map((a) => (

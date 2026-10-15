@@ -144,9 +144,6 @@ export async function PageFiche({ profession, params }: { profession: Profession
                   Tous à {principal.communeNom ?? commune}
                 </Link>
               </div>
-              <p className="mt-2 text-sm text-fg-2">
-                Les plus proches de ce {personne ? 'cabinet' : 'laboratoire'}, par distance puis par ordre alphabétique.
-              </p>
               <Voisins praticiens={proches} base={base} profession={profession} />
             </section>
           )}

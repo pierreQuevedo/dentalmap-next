@@ -207,7 +207,7 @@ export function Celebration({ pct, partager, fermer, labo = false }: { pct: numb
           Votre fiche est exemplaire
         </h2>
         <p className="mt-2 text-fg-2">
-          {labo ? 'Les cabinets ont tout ce qu’il leur faut pour vous confier leurs travaux.' : 'Les patients ont tout ce qu’il leur faut pour vous choisir et venir.'} Votre place dans la liste ne change pas : elle reste fixée par la distance.
+          {labo ? 'Les cabinets ont tout ce qu’il leur faut pour vous confier leurs travaux.' : 'Les patients ont tout ce qu’il leur faut pour vous choisir et venir.'}
         </p>
         <div className="squircle-xl mt-6 flex items-center gap-3 bg-amber-50 p-4 text-left ring-1 ring-amber-200 dark:bg-amber-400/10 dark:ring-amber-400/30">
           <span className="grid size-11 shrink-0 place-items-center rounded-full border-2 border-amber-500 text-amber-700 dark:text-amber-300">

@@ -21,7 +21,7 @@ export function HomeProcess() {
           title: 'Comparez les fiches vérifiées',
           image: '/images/demo/pexels-6627320.jpg',
           description:
-            'Coordonnées, horaires, accès et conventionnement, triés par distance. Chaque information porte sa source : registre officiel, ou déclaration du praticien après vérification d’identité.',
+            'Coordonnées, horaires, accès et conventionnement. Chaque information porte sa source : registre officiel, ou déclaration du praticien après vérification d’identité.',
         },
         {
           step: '03',

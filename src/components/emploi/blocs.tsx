@@ -389,10 +389,6 @@ export const FAQ = [
     q: 'Pourquoi la rémunération est-elle toujours indiquée ?',
     r: 'Une offre ne peut pas être publiée sans sa rémunération : fourchette brute mensuelle pour un contrat salarié ou une alternance, taux de rétrocession ou de redevance pour un remplacement ou une collaboration.',
   },
-  {
-    q: 'Dans quel ordre les offres sont-elles affichées ?',
-    r: 'Par distance depuis le lieu de votre recherche, la plus proche d’abord, puis par ordre alphabétique.',
-  },
 ]
 
 export function FaqEmploi({ items = FAQ }: { items?: { q: string; r: string }[] }) {

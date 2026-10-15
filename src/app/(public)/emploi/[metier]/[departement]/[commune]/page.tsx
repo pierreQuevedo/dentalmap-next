@@ -28,7 +28,7 @@ export async function generateMetadata(props: { params: Promise<Params>; searchP
   return {
     title: total ? `Offres ${m.de} à ${lieu}` : `Aucune offre ${m.de} à ${c.nom}`,
     description: total
-      ? `${total} offre${total > 1 ? 's' : ''} ${m.de} à ${c.nom}, par distance, publiée${total > 1 ? 's' : ''} par des recruteurs vérifiés. La rémunération est affichée sur chaque offre.`
+      ? `${total} offre${total > 1 ? 's' : ''} ${m.de} à ${c.nom}, publiée${total > 1 ? 's' : ''} par des recruteurs vérifiés. La rémunération est affichée sur chaque offre.`
       : `Aucune offre ${m.de} à ${c.nom} pour le moment. Les offres les plus proches, et une alerte pour être prévenu(e).`,
     alternates: { canonical: cheminCommune(m.slug, c.departementSlug, c.slug) },
     robots: robotsListe(total, estFiltree(f) || f.vue === 'carte'),
