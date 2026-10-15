@@ -26,6 +26,7 @@ import { BASE_URL, PROFESSION_PAR_BASE } from './types'
 import type { FicheCompletee } from '@/lib/espace-pro/fiche-completee'
 import { COLONNES_FICHE, ficheDepuisLigne, type LigneFiche } from '@/lib/espace-pro/fiche-lecture'
 import { marquerRecruteurs } from './recrutement'
+import { getRemplissages } from './remplissage'
 
 /**
  * Clé de tri alphabétique.
@@ -232,10 +233,11 @@ export async function getCommune(departementSlug: string, communeSlug: string): 
 }
 
 /**
- * Praticiens d'une commune, classés par ordre alphabétique.
+ * Praticiens d'une commune, classés par taux de remplissage, puis distance au centre de la commune.
  *
- * L'ordre est alphabétique : c'est celui qu'un lecteur attend d'une liste de
- * commune, et il ne dépend d'aucune donnée de la fiche.
+ * L'ordre suit la règle des résultats : taux de remplissage de la fiche
+ * (`getRemplissages`), puis distance au centre de la commune, puis ordre
+ * alphabétique à égalité.
  */
 export async function getPraticiensDeCommune(
   profession: Profession,
@@ -247,6 +249,7 @@ export async function getPraticiensDeCommune(
   cacheLife('listing')
   cacheTag('annuaire', `commune:${codeInsee}`)
   const { rows } = await db.execute<{
+    id: string
     slug: string
     civilite: PraticienResume['civilite']
     nom: string
@@ -268,7 +271,7 @@ export async function getPraticiensDeCommune(
   }>(sql`
     WITH origine AS (SELECT centre FROM communes WHERE code_insee = ${codeInsee})
     SELECT DISTINCT ON (p.id)
-           p.slug, p.civilite, p.nom, p.prenom, p.raison_sociale, p.statut_verification,
+           p.id, p.slug, p.civilite, p.nom, p.prenom, p.raison_sociale, p.statut_verification,
            l.id AS lieu_id, l.adresse_ligne, l.code_postal, (l.telephone_officiel IS NOT NULL) AS a_telephone,
            EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = p.id AND v.statut = 'acceptee') AS revendiquee, l.precision_position,
            c.nom AS commune_nom, c.slug AS commune_slug, d.slug AS departement_slug,
@@ -287,8 +290,16 @@ export async function getPraticiensDeCommune(
   `)
   // Le tri se fait en mémoire : `DISTINCT ON` impose d'ordonner par l'identifiant
   // en premier, et l'effectif d'une commune reste modeste, quelques milliers
-  // pour Paris avec ses arrondissements.
-  const tous = rows
+  // pour Paris avec ses arrondissements. Taux de remplissage d'abord, puis
+  // distance au centre de la commune, puis ordre alphabétique.
+  const remplissages = await getRemplissages(profession, rows)
+  const tous = [...rows]
+    .sort(
+      (a, b) =>
+        (remplissages.get(b.id) ?? 0) - (remplissages.get(a.id) ?? 0) ||
+        a.metres - b.metres ||
+        cleDeTri(profession, { ...a, raisonSociale: a.raison_sociale }).localeCompare(cleDeTri(profession, { ...b, raisonSociale: b.raison_sociale }), 'fr'),
+    )
     .map((r) => ({
       slug: r.slug,
       civilite: r.civilite,
@@ -309,7 +320,6 @@ export async function getPraticiensDeCommune(
       lat: r.lat,
       metres: r.metres,
     }))
-    .sort((a, b) => cleDeTri(profession, a).localeCompare(cleDeTri(profession, b), 'fr'))
 
   const debut = (page - 1) * parPage
   return { liste: tous.slice(debut, debut + parPage), total: tous.length }
@@ -781,8 +791,8 @@ export type PraticienProche = PraticienResume & { metres: number }
 /**
  * Praticiens les plus proches d'un point.
  *
- * Le classement est la distance, puis l'ordre alphabétique à égalité. C'est la
- * seule règle de tri de DentalMap, et elle est annoncée sur la page.
+ * Les voisins d'une fiche : ordre de distance, puis alphabétique à égalité.
+ * Ce n'est pas une liste de résultats, le remplissage n'y entre pas.
  *
  * La distance est calculée sur `geography`, en mètres. L'opérateur de plus
  * proche voisin de PostGIS trie en degrés : sur un essai autour de Bordeaux il
@@ -1074,6 +1084,7 @@ export async function getPraticiensDansEmprise(
   const clause = clauseFiltres(filtres)
 
   const { rows } = await db.execute<{
+    id: string
     slug: string
     civilite: PraticienResume['civilite']
     nom: string
@@ -1092,12 +1103,11 @@ export async function getPraticiensDansEmprise(
     lon: number
     lat: number
     metres: number
-    total: number
   }>(sql`
     WITH centre AS (SELECT ST_SetSRID(ST_MakePoint(${centreLon}, ${centreLat}), 4326) AS point),
     retenus AS (
       SELECT DISTINCT ON (p.id)
-             p.slug, p.civilite, p.nom, p.prenom, p.raison_sociale, p.statut_verification,
+             p.id, p.slug, p.civilite, p.nom, p.prenom, p.raison_sociale, p.statut_verification,
              l.id AS lieu_id, l.adresse_ligne, l.code_postal, (l.telephone_officiel IS NOT NULL) AS a_telephone,
            EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = p.id AND v.statut = 'acceptee') AS revendiquee, l.precision_position,
              c.nom AS commune_nom, c.slug AS commune_slug, d.slug AS departement_slug,
@@ -1113,17 +1123,34 @@ export async function getPraticiensDansEmprise(
         AND l.position && ST_MakeEnvelope(${ouest}, ${sud}, ${est}, ${nord}, 4326)${clause}
       ORDER BY p.id, l.principal DESC
     ),
+    -- Les plus proches, plafonnés, et toutes les fiches attribuées de la zone :
+    -- le remplissage passe avant la distance, une fiche complétée ne doit pas
+    -- rester hors de la liste parce qu'elle est loin du centre.
     plafonnes AS (
-      SELECT * FROM retenus ORDER BY metres, nom, prenom LIMIT ${PLAFOND}
+      (SELECT * FROM retenus WHERE revendiquee)
+      UNION ALL
+      (SELECT * FROM retenus WHERE NOT revendiquee ORDER BY metres, nom, prenom LIMIT ${PLAFOND})
     )
-    SELECT *, count(*) OVER ()::int AS total
-    FROM plafonnes
-    ORDER BY metres, nom, prenom
-    OFFSET ${(Math.max(1, page) - 1) * parPage}
-    LIMIT ${parPage}
+    SELECT * FROM plafonnes
   `)
 
-  const total = rows[0]?.total ?? 0
+  /*
+   * Le classement se fait en mémoire, sur les fiches retenues : taux de
+   * remplissage d'abord, puis distance au centre de la recherche, puis nom.
+   * Le plafond ne s'applique qu'aux fiches non attribuées : resserrer la carte
+   * reste la façon d'aller plus loin parmi elles.
+   */
+  const remplissages = await getRemplissages(profession, rows)
+  const classes = [...rows].sort(
+    (a, b) =>
+      (remplissages.get(b.id) ?? 0) - (remplissages.get(a.id) ?? 0) ||
+      a.metres - b.metres ||
+      a.nom.localeCompare(b.nom, 'fr') ||
+      (a.prenom ?? '').localeCompare(b.prenom ?? '', 'fr'),
+  )
+  const total = classes.length
+  const debut = (Math.max(1, page) - 1) * parPage
+  const pageCourante = classes.slice(debut, debut + parPage)
   // La pastille « Recrute » est posée après le tri et la pagination : elle ne
   // change ni l'ordre ni le contenu de la page.
   return {
@@ -1131,7 +1158,7 @@ export async function getPraticiensDansEmprise(
     page: Math.max(1, page),
     pages: Math.max(1, Math.ceil(total / parPage)),
     plafonne: total >= PLAFOND,
-    resultats: await marquerRecruteurs(rows.map((r) => ({
+    resultats: await marquerRecruteurs(pageCourante.map((r) => ({
       slug: r.slug,
       civilite: r.civilite,
       nom: r.nom,

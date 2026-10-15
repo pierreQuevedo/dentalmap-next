@@ -4,7 +4,7 @@ Liste de toutes les informations que l'espace pro demande, par profil, avec leur
 
 ## Ce que « booster la présence » veut dire ici
 
-La place dans la liste ne change jamais : distance, puis ordre alphabétique. Une information renseignée agit seulement de trois façons :
+Révision du 15 octobre 2026 : la force de la fiche ordonne désormais les résultats, avant la distance au centre de la recherche. Une information renseignée agit en outre de trois façons :
 
 1. **Filtres** : la fiche apparaît quand un patient (ou un cabinet) filtre sur ce critère. Sans l'information, elle en est absente.
 2. **Rendu** : la fiche est plus complète à l'écran (photo, « Ouvert jusqu'à 19 h », présentation).

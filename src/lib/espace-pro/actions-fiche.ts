@@ -2,7 +2,7 @@
 
 import { randomUUID } from 'node:crypto'
 import { redirect } from 'next/navigation'
-import { updateTag } from 'next/cache'
+import { revalidateTag, updateTag } from 'next/cache'
 import { z } from 'zod'
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
@@ -53,6 +53,13 @@ async function ecrire(donnees: FormData, valeurs: (fiche: { id: string; slug: st
     .values({ id: randomUUID(), praticienId: fiche.id, ...v })
     .onConflictDoUpdate({ target: fichesCompletees.praticienId, set: v })
   updateTag(`praticien:${fiche.slug}`)
+  // Le remplissage ordonne les listes de commune : celles des lieux de la fiche (et de leur commune parente, Paris pour un arrondissement) sont recalculées.
+  const { rows: communes } = await db.execute<{ code: string }>(sql`
+    SELECT DISTINCT unnest(ARRAY[c.code_insee, c.commune_parente_code]) AS code
+    FROM lieux_exercice l JOIN communes c ON c.code_insee = l.code_insee
+    WHERE l.praticien_id = ${fiche.id}
+  `)
+  for (const { code } of communes) if (code) revalidateTag(`commune:${code}`, 'max')
 
   // Le palier Exemplaire franchi par cet enregistrement : la célébration (J).
   const avant = Number(donnees.get('avant') ?? NaN)

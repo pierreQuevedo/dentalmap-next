@@ -4,7 +4,8 @@ import { PIECES } from './labo'
 
 /**
  * La force d'une fiche de laboratoire. Même principe que pour un soignant :
- * calculée à la volée, jamais stockée, jamais utilisée pour trier.
+ * calculée à la volée, jamais stockée ; elle ordonne les listes de résultats
+ * avant la distance (`src/lib/annuaire/remplissage.ts`).
  *
  * Barème : identité 30, savoir-faire 15 (trois techniques), matériaux 10,
  * délais 10, zone 10, réalisations 10, ANSM 10, présentation 5.

@@ -10,7 +10,7 @@ DentalMap est un annuaire dentaire vérifié par les registres officiels (Annuai
 
 | Règle | Conséquence dans le code |
 |---|---|
-| La place ne s'achète pas | Tri des résultats : distance, puis ordre alphabétique. Aucune colonne `score`, `boost`, `premium`, `sponsorise`. La force de fiche est calculée à la volée et n'entre jamais dans un `ORDER BY`. |
+| Classement des résultats (révisé le 15 octobre 2026) | Taux de remplissage des fiches d'abord (la force, calculée à la volée par `calculerForce` et `calculerForceLabo`, sur fiche attribuée seulement, voir `src/lib/annuaire/remplissage.ts`), puis distance au centre de la recherche, puis ordre alphabétique. Aucune colonne `score`, `boost`, `premium`, `sponsorise`. Le site n'explique plus le classement nulle part. |
 | Rien de déclaratif sans source | Les données de registre sont en lecture seule. Les données saisies par le pro sont stockées à part (`fiches_completees`, `fiches_labo`) et affichées avec la mention « renseigné par le praticien ». |
 | Aucune fiche créée à la demande | Un RPPS ou un SIREN absent déclenche une alerte, pas une création. Seule la synchro registre crée des fiches. |
 | Logos institutionnels | Règle « aucun logo sans convention » retirée le 13 octobre 2026 (décision client) : l’accueil peut afficher des logos d’universités et d’écoles. Une demande de partenariat ne crée toujours ni compte pro ni affichage automatique. |

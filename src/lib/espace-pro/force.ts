@@ -3,8 +3,9 @@ import { JOURS, PRESENTATION_MAX, PRESENTATION_MIN, termesRefuses, type FicheCom
 /**
  * La force d'une fiche de soignant, et tout ce qui en découle.
  *
- * Fonctions pures, calculées à la volée, jamais stockées : la force n'influence
- * jamais l'ordre des résultats (distance, puis ordre alphabétique). Barème et
+ * Fonctions pures, calculées à la volée, jamais stockées. La force est le taux
+ * de remplissage qui ordonne les listes de résultats, avant la distance au
+ * centre de la recherche (`src/lib/annuaire/remplissage.ts`). Barème et
  * règles : `docs/handoff/03-gamification.md`.
  */
 

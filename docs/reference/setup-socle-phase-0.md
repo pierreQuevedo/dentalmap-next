@@ -679,7 +679,7 @@ Annuaire dentaire vérifié par registres officiels. Deux sources de données, j
 
 Règles :
 - Tout accès données passe par une fonction `'use cache'` avec `cacheLife` et `cacheTag` (profils : editorial, praticien, listing).
-- Aucune colonne ni logique de mise en avant payante. Tri : distance puis alphabétique.
+- Aucune colonne ni logique de mise en avant payante. Tri des résultats (décision du 15 octobre 2026) : taux de remplissage des fiches, puis distance au centre de la recherche, puis alphabétique.
 - Copie en français, vouvoiement, pas de tirets cadratins.
 - Après modification d'une requête GraphQL : `pnpm codegen`. Après modification du schéma Drizzle : `pnpm db:generate`.
 - Référence : document d'architecture v2 dans le projet Dental Map.
