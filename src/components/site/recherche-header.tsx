@@ -6,6 +6,7 @@ import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } f
 import { chemin, type NavLink } from '@/lib/navigation'
 import { useSuggestionsLieu, type SuggestionLieu } from '@/lib/annuaire/use-suggestions'
 import { CIBLES, LIBELLE_TYPE, destination, precision, type Cible } from '@/lib/annuaire/cibles'
+import { AUCUN_RESULTAT, type ResultatUniversel, type ResultatsUniversels } from '@/lib/recherche/types'
 import { SearchIcon } from './nav-icon'
 
 /**
@@ -14,8 +15,10 @@ import { SearchIcon } from './nav-icon'
  * La loupe n'emmène plus vers la page de recherche : elle déplie un panneau
  * sous la barre, et le reste de la page passe derrière un rideau flou. Le
  * champ y est grand, sans bordure, et la liste qui l'accompagne change de
- * nature selon la saisie : des liens rapides tant que le champ est vide, les
- * lieux suggérés dès deux caractères.
+ * nature selon la saisie : des liens rapides tant que le champ est vide, puis,
+ * dès deux caractères, les lieux suggérés et tout ce que le site contient
+ * d'autre : professionnels par nom, formations, offres d'emploi et annonces
+ * de cession (`/api/recherche/`).
  *
  * Trois façons de refermer : la touche Échap, un clic sur le rideau, et un
  * changement de route. La troisième est dérivée de l'état plutôt que posée
@@ -47,6 +50,35 @@ const DUREE_FERMETURE = 520
 
 /** Rang d'un élément dans la chorégraphie, lu par `calc()` dans la feuille de style. */
 const rang = (i: number) => ({ '--i': i }) as CSSProperties
+
+const GROUPES: { cle: keyof ResultatsUniversels; titre: string }[] = [
+  { cle: 'professionnels', titre: 'Professionnels' },
+  { cle: 'formations', titre: 'Formations' },
+  { cle: 'emploi', titre: 'Emploi' },
+  { cle: 'annonces', titre: 'Annonces de cession' },
+]
+
+/** Les résultats du site pour la saisie, un court instant après la dernière frappe. */
+function useResultatsUniversels(texte: string): ResultatsUniversels {
+  const [resultats, setResultats] = useState<{ pour: string; donnees: ResultatsUniversels }>({ pour: '', donnees: AUCUN_RESULTAT })
+  const q = texte.trim()
+  useEffect(() => {
+    if (q.length < 2) return
+    const controleur = new AbortController()
+    const minuteur = setTimeout(() => {
+      fetch(`/api/recherche/?q=${encodeURIComponent(q)}`, { signal: controleur.signal })
+        .then((r) => (r.ok ? (r.json() as Promise<ResultatsUniversels>) : AUCUN_RESULTAT))
+        .then((donnees) => setResultats({ pour: q, donnees }))
+        .catch(() => {})
+    }, 200)
+    return () => {
+      clearTimeout(minuteur)
+      controleur.abort()
+    }
+  }, [q])
+  // Une réponse arrivée pour une autre saisie, ou un champ vidé, ne s'affiche pas.
+  return q.length >= 2 && resultats.pour === q ? resultats.donnees : AUCUN_RESULTAT
+}
 export function RechercheHeader({ accesRapide = [] }: { accesRapide?: NavLink[] }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -83,6 +115,10 @@ export function RechercheHeader({ accesRapide = [] }: { accesRapide?: NavLink[] 
   const bouton = useRef<HTMLButtonElement>(null)
 
   const suggestions = useSuggestionsLieu(texte, '')
+  const resultats = useResultatsUniversels(texte)
+  // Une seule suite d'options pour le clavier : les lieux, puis chaque groupe dans l'ordre.
+  const autres: ResultatUniversel[] = GROUPES.flatMap((g) => resultats[g.cle])
+  const nombreOptions = suggestions.length + autres.length
 
   // Tant que le panneau est visible, fermeture comprise : le corps ne défile
   // plus, et la barre reste opaque même au-dessus du hero transparent. Lever
@@ -123,7 +159,12 @@ export function RechercheHeader({ accesRapide = [] }: { accesRapide?: NavLink[] 
     router.push(chemin(destination(cible, s)))
   }
 
-  const liste = suggestions.length > 0
+  const ouvrirResultat = (r: ResultatUniversel) => {
+    fermer()
+    router.push(chemin(r.href))
+  }
+
+  const liste = nombreOptions > 0
 
   return (
     <>
@@ -186,7 +227,7 @@ export function RechercheHeader({ accesRapide = [] }: { accesRapide?: NavLink[] 
             <div className="recherche-intro flex items-center gap-3 md:gap-4" style={rang(0)}>
               <SearchIcon className="size-6 shrink-0 text-fg-2" />
               <label htmlFor={idChamp} className="sr-only">
-                Rechercher une ville, un département ou une région
+                Rechercher une ville, un professionnel, une formation, une offre ou une annonce
               </label>
               <input
                 ref={champ}
@@ -201,13 +242,14 @@ export function RechercheHeader({ accesRapide = [] }: { accesRapide?: NavLink[] 
                   if (!liste) return
                   if (e.key === 'ArrowDown') {
                     e.preventDefault()
-                    setIndexActif((i) => Math.min(i + 1, suggestions.length - 1))
+                    setIndexActif((i) => Math.min(i + 1, nombreOptions - 1))
                   } else if (e.key === 'ArrowUp') {
                     e.preventDefault()
                     setIndexActif((i) => Math.max(i - 1, 0))
                   } else if (e.key === 'Enter' && indexActif >= 0) {
                     e.preventDefault()
-                    choisir(suggestions[indexActif]!)
+                    if (indexActif < suggestions.length) choisir(suggestions[indexActif]!)
+                    else ouvrirResultat(autres[indexActif - suggestions.length]!)
                   }
                 }}
                 placeholder="Rechercher sur DentalMap"
@@ -267,36 +309,79 @@ export function RechercheHeader({ accesRapide = [] }: { accesRapide?: NavLink[] 
           </form>
 
           <div className="mt-8 pl-9 md:mt-10 md:pl-10">
-            <h3 className="recherche-intro text-xs font-medium text-fg-2" style={rang(2)}>{liste ? 'Suggestions' : 'Liens rapides'}</h3>
             {liste ? (
-              <ul id={`${idChamp}-liste`} role="listbox" aria-label="Lieux suggérés" className="mt-2 -ml-2">
-                {suggestions.map((s, i) => (
-                  <li key={s.type === 'commune' ? s.code_insee : `${s.type}-${s.code}`} className="recherche-intro" style={rang(3 + i)}>
-                    <button
-                      type="button"
-                      id={`${idChamp}-option-${i}`}
-                      role="option"
-                      aria-selected={i === indexActif}
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => choisir(s)}
-                      className={[
-                        'group flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-sm font-semibold text-fg',
-                        i === indexActif ? 'bg-bg-soft text-teal' : 'hover:text-teal',
-                      ].join(' ')}
-                    >
-                      <FlecheIcon className="size-4 shrink-0 text-fg-2 transition-colors group-hover:text-teal" />
-                      <span className="truncate">{s.nom}</span>
-                      {s.type !== 'commune' && (
-                        <span className="shrink-0 rounded-full bg-line px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[.06em] text-fg-2">
-                          {LIBELLE_TYPE[s.type]}
-                        </span>
-                      )}
-                      <span className="shrink-0 text-xs font-normal text-fg-2">{precision(s)}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <div id={`${idChamp}-liste`} role="listbox" aria-label="Résultats de la recherche" className="grid gap-x-10 gap-y-6 md:grid-cols-2">
+                {suggestions.length > 0 && (
+                  <div role="group" aria-label="Lieux">
+                    <h3 className="recherche-intro text-xs font-medium text-fg-2" style={rang(2)}>Lieux</h3>
+                    <ul className="mt-2 -ml-2">
+                      {suggestions.map((s, i) => (
+                        <li key={s.type === 'commune' ? s.code_insee : `${s.type}-${s.code}`} className="recherche-intro" style={rang(3 + i)}>
+                          <button
+                            type="button"
+                            id={`${idChamp}-option-${i}`}
+                            role="option"
+                            aria-selected={i === indexActif}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => choisir(s)}
+                            className={[
+                              'group flex w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-left text-sm font-semibold text-fg',
+                              i === indexActif ? 'bg-bg-soft text-teal' : 'hover:text-teal',
+                            ].join(' ')}
+                          >
+                            <FlecheIcon className="size-4 shrink-0 text-fg-2 transition-colors group-hover:text-teal" />
+                            <span className="truncate">{s.nom}</span>
+                            {s.type !== 'commune' && (
+                              <span className="shrink-0 rounded-full bg-line px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[.06em] text-fg-2">
+                                {LIBELLE_TYPE[s.type]}
+                              </span>
+                            )}
+                            <span className="shrink-0 text-xs font-normal text-fg-2">{precision(s)}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {GROUPES.filter((g) => resultats[g.cle].length > 0).map((g) => {
+                  // Rang de la première option du groupe dans la suite du clavier.
+                  const debut = suggestions.length + autres.indexOf(resultats[g.cle][0]!)
+                  return (
+                    <div key={g.cle} role="group" aria-label={g.titre}>
+                      <h3 className="recherche-intro text-xs font-medium text-fg-2" style={rang(2)}>{g.titre}</h3>
+                      <ul className="mt-2 -ml-2">
+                        {resultats[g.cle].map((r, j) => {
+                          const i = debut + j
+                          return (
+                            <li key={r.href} className="recherche-intro" style={rang(3 + j)}>
+                              <Link
+                                href={chemin(r.href)}
+                                id={`${idChamp}-option-${i}`}
+                                role="option"
+                                aria-selected={i === indexActif}
+                                onClick={fermer}
+                                className={[
+                                  'group flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-sm',
+                                  i === indexActif ? 'bg-bg-soft text-teal' : 'hover:text-teal',
+                                ].join(' ')}
+                              >
+                                <FlecheIcon className="size-4 shrink-0 text-fg-2 transition-colors group-hover:text-teal" />
+                                <span className="min-w-0">
+                                  <span className="block truncate font-semibold text-fg group-hover:text-teal">{r.titre}</span>
+                                  <span className="block truncate text-xs text-fg-2">{r.detail}</span>
+                                </span>
+                              </Link>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </div>
+                  )
+                })}
+              </div>
             ) : (
+              <>
+              <h3 className="recherche-intro text-xs font-medium text-fg-2" style={rang(2)}>Liens rapides</h3>
               <ul className="mt-2 -ml-2">
                 {liensRapides(accesRapide).map((l, i) => (
                   <li key={l.href} className="recherche-intro" style={rang(3 + i)}>
@@ -311,6 +396,7 @@ export function RechercheHeader({ accesRapide = [] }: { accesRapide?: NavLink[] 
                   </li>
                 ))}
               </ul>
+              </>
             )}
           </div>
         </div>
