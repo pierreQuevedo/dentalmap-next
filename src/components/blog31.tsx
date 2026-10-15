@@ -186,8 +186,8 @@ const Blog31 = ({
                       transition={{ duration: 0.3, ease: "easeOut" }}
                       className="aspect-[4/3] h-full w-full bg-gradient-to-b from-black/10 to-black/50 object-cover"
                     />
-                    {/* Hauteur minimale et non fixe, contenu calé en bas : le texte ne déborde plus du retrait. */}
-                    <div className="absolute bottom-0 flex min-h-1/2 w-full flex-col justify-end gap-5 bg-gradient-to-b from-black/0 via-black/10 via-black/30 via-black/60 to-black/95 p-6 text-secondary md:p-10">
+                    {/* Hauteur minimale et non fixe, contenu calé en bas : le texte ne déborde plus du retrait. Texte blanc dans les deux thèmes : il est toujours posé sur le dégradé noir. */}
+                    <div className="absolute bottom-0 flex min-h-1/2 w-full flex-col justify-end gap-5 bg-gradient-to-b from-black/0 via-black/10 via-black/30 via-black/60 to-black/95 p-6 text-white md:p-10">
                       <span className="text-xs">{blog.topNote}</span>
                       <h3 className="text-xl font-semibold md:text-3xl">
                         {blog.title}

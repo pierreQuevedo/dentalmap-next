@@ -59,7 +59,7 @@ export function HomeHero() {
         // clé présente dans les props le remplace.
         buttons={undefined}
         action={
-          <div className="flex w-full max-w-xl justify-center pt-2">
+          <div className="flex w-full max-w-3xl justify-center pt-2">
             <RechercheUniverselle />
           </div>
         }

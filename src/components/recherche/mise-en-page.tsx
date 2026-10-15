@@ -3,6 +3,7 @@ import type { LieuChoisi } from '@/lib/annuaire/cibles'
 import type { BaseUrl } from '@/lib/annuaire/types'
 import { BarreRecherche } from './barre-recherche'
 import { CarteRecherche } from './carte-recherche'
+import { ColonneCarte } from './colonne-carte'
 import { FournisseurRecherche, type Mode, type Territoire } from './contexte'
 import { PanneauResultats } from './panneau-resultats'
 
@@ -38,29 +39,30 @@ export function GrilleRecherche({
   carte,
   contenu,
   barre,
+  carteMobile = true,
 }: {
   enTete: React.ReactNode
   carte: React.ReactNode
   contenu: React.ReactNode
   barre: React.ReactNode
+  /** Faux : aucune carte sous `lg`, ni bouton pour l'ouvrir. */
+  carteMobile?: boolean
 }) {
   return (
     <>
       <main className="grid grid-cols-1 pb-24 lg:grid-cols-[9fr_11fr]">
-        <section className="px-5 pt-8 md:px-10 lg:col-start-1 lg:row-start-1 xl:px-12">{enTete}</section>
+        {/* Sous `lg`, l'en-tête se fait court, la liste vient vite : la présentation tient en trois lignes. */}
+        <section className="px-5 pt-6 md:px-10 lg:col-start-1 lg:row-start-1 lg:pt-8 xl:px-12 max-lg:[&>p]:line-clamp-3 max-lg:[&>p]:text-sm">{enTete}</section>
 
         {/*
           La carte occupe une cellule qui couvre les deux rangées de la colonne
           de gauche : sa hauteur est donc celle de toute la colonne, et le bloc
-          collant a de quoi voyager. Sur petit écran la grille repasse à une
-          colonne et la carte se glisse entre l'en-tête et le contenu, sans
-          jamais être dupliquée : une seconde instance de MapLibre coûterait
-          un contexte WebGL et un worker pour rien.
+          collant a de quoi voyager. Sous `lg`, elle quitte la grille et
+          s'ouvre en plein écran depuis le bouton « Carte » : voir
+          `ColonneCarte`. Jamais dupliquée : une seconde instance de MapLibre
+          coûterait un contexte WebGL et un worker pour rien.
         */}
-        <aside className="border-y border-line lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:border-y-0 lg:border-l">
-          {/* `top-20` est la hauteur de l'en-tête collant, cinq rem. */}
-          <div className="sticky top-20 h-[22rem] lg:h-[calc(100vh-5rem)]">{carte}</div>
-        </aside>
+        <ColonneCarte mobile={carteMobile}>{carte}</ColonneCarte>
 
         <section className="px-5 pb-16 pt-6 md:px-10 lg:col-start-1 lg:row-start-2 xl:px-12">{contenu}</section>
       </main>
@@ -101,7 +103,7 @@ export function MiseEnPageRecherche({
     <FournisseurRecherche key={cle} base={base} empriseInitiale={emprise} initial={initial} mode={mode} territoire={territoire}>
       <GrilleRecherche
         enTete={enTete}
-        carte={<CarteRecherche emprise={emprise} />}
+        carte={<CarteRecherche />}
         contenu={
           <>
             <PanneauResultats />

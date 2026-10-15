@@ -56,7 +56,7 @@ export function MobileNav() {
         type="button"
         aria-expanded={ouvert}
         onClick={() => setOuvert(true)}
-        className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-2 text-sm font-medium text-fg md:hidden"
+        className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-2 text-sm font-medium text-fg xl:hidden"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" className="size-4" aria-hidden>
           <path d="M4 7h16M4 12h16M4 17h16" />
@@ -65,7 +65,7 @@ export function MobileNav() {
       </button>
 
       {ouvert && (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-bg md:hidden">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-bg xl:hidden">
           <div className="flex items-center justify-between border-b border-line px-5 py-4">
             <Logo hauteur={26} />
             <button

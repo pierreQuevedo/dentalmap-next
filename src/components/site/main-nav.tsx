@@ -69,7 +69,7 @@ export function MainNav({
   }
 
   return (
-    <nav aria-label="Navigation principale" className="relative hidden justify-self-center gap-1 md:flex">
+    <nav aria-label="Navigation principale" className="relative hidden justify-self-center gap-1 xl:flex">
       {mainNav.map((entry) => {
         const actif = estActif(entry, pathname)
         const estOuvert = ouvert === entry.label

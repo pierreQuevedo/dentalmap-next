@@ -1,7 +1,6 @@
 'use client'
 
 import { Carte } from '@/components/map/carte'
-import type { Emprise } from '@/lib/annuaire/emprise'
 import { useRecherche } from './contexte'
 
 /**
@@ -10,8 +9,10 @@ import { useRecherche } from './contexte'
  * Un composant de trois lignes, mais qui garde `Carte` ignorante du contexte :
  * la carte reçoit des rappels, elle ne va rien chercher elle-même.
  */
-export function CarteRecherche({ emprise }: { emprise: Emprise }) {
-  const { base, survol, setSurvol, deplacer, filtres, cadrage } = useRecherche()
+export function CarteRecherche() {
+  // L'emprise courante et non celle du serveur : sous `lg`, la carte n'est
+  // montée qu'à sa première ouverture, et doit reprendre où en est la liste.
+  const { base, emprise, survol, setSurvol, deplacer, filtres, cadrage } = useRecherche()
   return (
     <Carte
       profession={base}

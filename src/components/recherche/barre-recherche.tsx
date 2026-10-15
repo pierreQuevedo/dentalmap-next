@@ -35,7 +35,10 @@ export function BarreRecherche({ base, valeurLieu, lieu }: { base: BaseUrl; vale
   const recherche = useRechercheOptionnelle()
   const [cible, setCible] = useState<Cible>(base)
   const [texte, setTexte] = useState(valeurLieu)
-  const [filtresOuverts, setFiltresOuverts] = useState(false)
+  // Un seul panneau ouvert à la fois au-dessus de la barre : la cible ou les filtres.
+  const [panneau, setPanneau] = useState<'cible' | 'filtres' | null>(null)
+  const filtresOuverts = panneau === 'filtres'
+  const setFiltresOuverts = (o: boolean) => setPanneau(o ? 'filtres' : null)
   const router = useRouter()
 
   const praticiens = CIBLES_ANNUAIRE.includes(cible)
@@ -75,6 +78,16 @@ export function BarreRecherche({ base, valeurLieu, lieu }: { base: BaseUrl; vale
         <Deroulant ouvert={filtresOuverts && praticiens && !!recherche} origine="bas" className="absolute bottom-full left-1/2 z-20 mb-3 -translate-x-1/2">
           {recherche && <PanneauFiltres fermer={() => setFiltresOuverts(false)} />}
         </Deroulant>
+        <Deroulant ouvert={panneau === 'cible'} origine="bas" className="absolute bottom-full left-1/2 z-20 mb-3 -translate-x-1/2">
+          <PanneauCible
+            cible={cible}
+            choisir={(c) => {
+              setPanneau(null)
+              changerCible(c)
+            }}
+            fermer={() => setPanneau(null)}
+          />
+        </Deroulant>
 
         <form
           method="get"
@@ -86,31 +99,57 @@ export function BarreRecherche({ base, valeurLieu, lieu }: { base: BaseUrl; vale
 
           <span aria-hidden className="mx-1 h-6 w-px bg-line" />
 
-          <label className="relative flex h-10 items-center">
-            <span className="sr-only">Que cherchez-vous ?</span>
-            <select
-              name="profession"
-              value={cible}
-              onChange={(e) => changerCible(e.target.value as Cible)}
-              className="h-10 appearance-none rounded-full bg-transparent pl-3 pr-8 text-sm font-medium text-fg outline-none hover:bg-bg-soft focus-visible:bg-bg-soft"
-            >
-              {CIBLES.map((c) => (
-                <option key={c.cle} value={c.cle}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 size-4 text-fg-2" />
-          </label>
+          {/* La cible part avec le formulaire, choisie dans un panneau au dessin des filtres plutôt que dans un menu natif. */}
+          <input type="hidden" name="profession" value={cible} />
+          <button
+            type="button"
+            onClick={() => setPanneau((p) => (p === 'cible' ? null : 'cible'))}
+            aria-expanded={panneau === 'cible'}
+            aria-haspopup="dialog"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full pl-3 pr-2.5 text-sm font-medium text-fg hover:bg-bg-soft focus-visible:bg-bg-soft focus-visible:outline-none"
+          >
+            <span className="sr-only">Que cherchez-vous ? </span>
+            {CIBLES.find((c) => c.cle === cible)?.label}
+            <ChevronDown className={`size-4 text-fg-2 transition-transform ${panneau === 'cible' ? 'rotate-180' : ''}`} />
+          </button>
 
           {praticiens && recherche && (
-            <BoutonFiltres ouvert={filtresOuverts} basculer={() => setFiltresOuverts((o) => !o)} />
+            <BoutonFiltres ouvert={filtresOuverts} basculer={() => setFiltresOuverts(!filtresOuverts)} />
           )}
 
           <button type="submit" className="sr-only">
             Rechercher
           </button>
         </form>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Le choix de la cible : même panneau que les filtres, posé au-dessus de la
+ * barre, les cibles en pastilles avec leur aide en dessous.
+ */
+function PanneauCible({ cible, choisir, fermer }: { cible: Cible; choisir: (c: Cible) => void; fermer: () => void }) {
+  useEffect(() => {
+    const surTouche = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') fermer()
+    }
+    document.addEventListener('keydown', surTouche)
+    return () => document.removeEventListener('keydown', surTouche)
+  }, [fermer])
+
+  return (
+    <div role="dialog" aria-label="Que cherchez-vous ?" className="squircle-2xl w-[26rem] max-w-[calc(100vw-2rem)] border border-line bg-bg shadow-pop">
+      <div className="flex items-center justify-between border-b border-line px-5 py-3">
+        <h2 className="text-base font-semibold text-fg">Que cherchez-vous ?</h2>
+        <button type="button" onClick={fermer} aria-label="Fermer" className="grid size-8 place-items-center rounded-full text-fg-2 hover:bg-bg-soft hover:text-fg">
+          <X className="size-4" />
+        </button>
+      </div>
+      <div className="px-5 py-4">
+        <Pastilles options={CIBLES.map((c) => ({ code: c.cle, libelle: c.label }))} valeur={cible} choisir={(v) => v && choisir(v as Cible)} />
+        <p className="mt-3 text-sm text-fg-2">{CIBLES.find((c) => c.cle === cible)?.aide}</p>
       </div>
     </div>
   )

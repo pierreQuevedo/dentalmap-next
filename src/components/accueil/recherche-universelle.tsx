@@ -16,11 +16,9 @@ import { Deroulant } from '@/components/site/deroulant'
  * de savoir ce qu'il cherche reviendrait à lui faire porter notre découpage
  * technique.
  *
- * Posé sur le hero sombre de l'accueil : le sélecteur de cible a la forme
- * des onglets de la section « Explorer l'annuaire », capsule compacte de
- * 36 px sur une seule ligne, la cible choisie surlignée, sur le fond du badge
- * du hero ; le champ reste
- * clair, et son bouton est dans le teal de la marque, sans effet au survol.
+ * Même dessin que la recherche d'emploi : une capsule claire, deux champs
+ * à libellé en surtitre, la cible puis le lieu, et le bouton « Rechercher ».
+ * En ligne à partir de `md`, empilée en dessous, le bouton en pleine largeur.
  *
  * Le formulaire part toujours vers `/recherche/`, en méthode GET, avec la
  * cible en paramètre. Sans JavaScript la page de recherche redirige elle-même
@@ -37,7 +35,6 @@ export function RechercheUniverselle() {
 
   const suggestions = useSuggestionsLieu(texte, '')
   const visibles = ferme ? [] : suggestions
-  const index = CIBLES.findIndex((c) => c.cle === cible)
 
   const choisir = (s: SuggestionLieu) => {
     setTexte(s.nom)
@@ -46,60 +43,26 @@ export function RechercheUniverselle() {
   }
 
   return (
-    <form
-      method="get"
-      action="/recherche/"
-      role="search"
-      className="w-full max-w-xl"
-      onSubmit={() => setFerme(true)}
-    >
-      {/*
-        Groupe de boutons radio et non une liste d'onglets : la cible est une
-        donnée du formulaire, pas un état d'affichage. Les flèches du clavier
-        fonctionnent sans une ligne de script, et la valeur part dans l'URL
-        même si l'hydratation n'a pas eu lieu.
-      */}
-      <fieldset className="relative flex justify-center">
-        <legend className="sr-only">Que cherchez-vous ?</legend>
-        {/*
-          Une seule ligne, quel que soit le nombre de cibles : la grille de
-          quatre colonnes passait sur deux lignes dès la cinquième cible et
-          débordait de sa capsule. Plus large que le champ en desktop, la
-          rangée déborde des deux côtés à parts égales ; sur un téléphone elle
-          défile à l'horizontale.
-        */}
-        <div className="flex h-9 w-max max-w-[calc(100vw-2rem)] shrink-0 gap-1 overflow-x-auto rounded-full border border-white/10 bg-black/30 p-1 backdrop-blur-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {CIBLES.map((c) => (
-            <label
-              key={c.cle}
-              title={c.aide}
-              className={`relative flex shrink-0 cursor-pointer items-center justify-center rounded-full px-3.5 text-center text-sm font-medium whitespace-nowrap transition-colors duration-fast has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:-outline-offset-2 has-[:focus-visible]:outline-white ${
-                cible === c.cle ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white/90'
-              }`}
-            >
-              <input
-                type="radio"
-                name="profession"
-                value={c.cle}
-                checked={cible === c.cle}
-                onChange={() => {
-                  setCible(c.cle)
-                  setIndexActif(-1)
-                }}
-                className="sr-only"
-              />
-              {c.label}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      <div className="relative mt-3">
-        <label htmlFor={idChamp} className="sr-only">
-          Votre ville ou votre code postal
-        </label>
-        <div className="squircle-full flex items-center gap-2 border border-line bg-bg/80 p-1.5 pl-5 shadow-pill backdrop-blur-xl focus-within:border-line-strong">
-          <PinIcon className="size-5 shrink-0 text-fg-2" />
+    <form method="get" action="/recherche/" role="search" className="relative w-full max-w-3xl text-left" onSubmit={() => setFerme(true)}>
+      <div className="flex flex-col divide-y divide-line rounded-3xl border border-line bg-bg p-1.5 shadow-pill md:flex-row md:items-center md:divide-x md:divide-y-0 md:rounded-full">
+        <Champ icone={LoupeIcon} label="Que cherchez-vous ?" className="md:flex-1">
+          <select
+            name="profession"
+            value={cible}
+            onChange={(e) => {
+              setCible(e.target.value as Cible)
+              setIndexActif(-1)
+            }}
+            className={controle}
+          >
+            {CIBLES.map((c) => (
+              <option key={c.cle} value={c.cle}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </Champ>
+        <Champ icone={PinIcon} label="Où ?" htmlFor={idChamp} className="md:flex-[1.3]">
           <input
             id={idChamp}
             name="q"
@@ -126,55 +89,81 @@ export function RechercheUniverselle() {
                 setFerme(true)
               }
             }}
-            placeholder="Votre ville ou votre code postal"
+            placeholder="Ville ou code postal"
             autoComplete="off"
             role="combobox"
             aria-expanded={visibles.length > 0}
             aria-controls={`${idChamp}-liste`}
             aria-autocomplete="list"
-            className="min-w-0 flex-1 bg-transparent py-2.5 text-base text-fg outline-none placeholder:text-fg-2"
+            className={controle}
           />
+        </Champ>
+        <div className="p-1.5 md:p-0 md:pl-1.5">
           <button
             type="submit"
-            className="squircle-full flex size-11 shrink-0 items-center justify-center bg-teal text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+            className="inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-action px-7 text-sm font-semibold text-action-foreground hover:bg-action-hover"
           >
-            <span className="sr-only">Rechercher</span>
-            <LoupeIcon className="size-5" />
+            <LoupeIcon className="size-4" /> Rechercher
           </button>
         </div>
-
-        <Deroulant ouvert={visibles.length > 0} className="absolute z-20 mt-2 w-full">
-          <ul id={`${idChamp}-liste`} role="listbox" className="squircle-xl w-full overflow-hidden border border-line bg-bg shadow-pop">
-            {visibles.map((s, i) => (
-              <li key={s.type === 'commune' ? s.code_insee : `${s.type}-${s.code}`}>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={i === indexActif}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => choisir(s)}
-                  className={`flex w-full items-baseline justify-between gap-3 px-5 py-2.5 text-left text-sm ${
-                    i === indexActif ? 'bg-bg-soft' : 'hover:bg-bg-soft'
-                  }`}
-                >
-                  <span className="flex min-w-0 items-baseline gap-2">
-                    <span className="truncate text-fg">{s.nom}</span>
-                    {s.type !== 'commune' && (
-                      <span className="shrink-0 rounded-full bg-line px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[.06em] text-fg-2">
-                        {LIBELLE_TYPE[s.type]}
-                      </span>
-                    )}
-                  </span>
-                  <span className="shrink-0 text-xs text-fg-2">{precision(s)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </Deroulant>
       </div>
 
-      <p className="mt-3 text-center text-sm text-fg-2">{CIBLES[index]!.aide}</p>
+      <Deroulant ouvert={visibles.length > 0} className="absolute z-20 mt-2 w-full">
+        <ul id={`${idChamp}-liste`} role="listbox" className="squircle-xl w-full overflow-hidden border border-line bg-bg shadow-pop">
+          {visibles.map((s, i) => (
+            <li key={s.type === 'commune' ? s.code_insee : `${s.type}-${s.code}`}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={i === indexActif}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => choisir(s)}
+                className={`flex w-full items-baseline justify-between gap-3 px-5 py-2.5 text-left text-sm ${
+                  i === indexActif ? 'bg-bg-soft' : 'hover:bg-bg-soft'
+                }`}
+              >
+                <span className="flex min-w-0 items-baseline gap-2">
+                  <span className="truncate text-fg">{s.nom}</span>
+                  {s.type !== 'commune' && (
+                    <span className="shrink-0 rounded-full bg-line px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[.06em] text-fg-2">
+                      {LIBELLE_TYPE[s.type]}
+                    </span>
+                  )}
+                </span>
+                <span className="shrink-0 text-xs text-fg-2">{precision(s)}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Deroulant>
     </form>
+  )
+}
+
+const controle = 'w-full min-w-0 truncate bg-transparent text-sm text-fg outline-none placeholder:text-fg-2'
+
+/** Un champ, sur le modèle de la recherche d'emploi : libellé en surtitre, contrôle natif en dessous. */
+function Champ({
+  icone: I,
+  label,
+  htmlFor,
+  className = '',
+  children,
+}: {
+  icone: typeof PinIcon
+  label: string
+  htmlFor?: string
+  className?: string
+  children: React.ReactNode
+}) {
+  return (
+    <label htmlFor={htmlFor} className={`flex min-w-0 items-center gap-3 px-4 py-2.5 ${className}`}>
+      <I className="size-4 shrink-0 text-fg-2" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-[11px] font-medium uppercase tracking-wide text-fg-2">{label}</span>
+        {children}
+      </span>
+    </label>
   )
 }
 

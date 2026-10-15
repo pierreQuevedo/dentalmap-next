@@ -23,6 +23,7 @@ export async function metadonneesParDepartement(profession: Profession): Promise
  * La carte de France par département : mêmes colonnes que la recherche,
  * mais la carte dessine les départements en zones au lieu des praticiens en
  * points, et la colonne de gauche liste les départements par région.
+ * Sous `lg`, pas de carte : la liste des départements suffit.
  */
 export async function PageParDepartement({ profession }: { profession: Profession }) {
   const base = BASE_URL[profession]
@@ -52,6 +53,7 @@ export async function PageParDepartement({ profession }: { profession: Professio
         carte={<CarteDepartements base={base} comptes={departements.map((d) => ({ code: d.code, nom: d.nom, slug: d.slug, total: d.total }))} />}
         contenu={<ListeDepartementsParRegion base={base} departements={departements} />}
         barre={<BarreRecherche base={base} valeurLieu="" />}
+        carteMobile={false}
       />
     </>
   )

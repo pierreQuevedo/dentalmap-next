@@ -32,7 +32,7 @@ export async function Header() {
 
   return (
     <header id="site-header" className="sticky top-0 z-50 h-20 bg-bg">
-      <div className="grid h-20 grid-cols-[auto_1fr_auto] items-center px-5 md:grid-cols-[1fr_auto_1fr] md:px-10 xl:px-20">
+      <div className="grid h-20 grid-cols-[auto_1fr_auto] items-center px-5 md:px-10 xl:grid-cols-[1fr_auto_1fr] xl:px-20">
         <Link href="/" className="inline-flex items-center" aria-label="DentalMap, accueil">
           <Logo priorite />
         </Link>
@@ -40,8 +40,8 @@ export async function Header() {
         <MainNav conseils={conseils.slice(0, 2)} />
 
         <div className="flex items-center justify-end gap-2">
-          {/* Les fiches mises de côté. La page demande la connexion : le lien reste le même pour tous. Sous `md`, il passe dans le menu (`mobile-nav.tsx`). */}
-          <Link href="/favoris" aria-label="Mes favoris" className="hidden size-9 place-items-center rounded-full md:grid text-fg hover:bg-bg-soft">
+          {/* Les fiches mises de côté. La page demande la connexion : le lien reste le même pour tous. Sous `xl`, il passe dans le menu (`mobile-nav.tsx`). */}
+          <Link href="/favoris" aria-label="Mes favoris" className="hidden size-9 place-items-center rounded-full xl:grid text-fg hover:bg-bg-soft">
             <BookmarkIcon className="size-[18px]" />
           </Link>
           <RechercheHeader accesRapide={accesRapide} />
@@ -52,8 +52,8 @@ export async function Header() {
           <MobileNav />
           {/* La session n'est lue que par ce fragment : le reste du header
               reste identique pour tout le monde, donc cachable. */}
-          <Suspense fallback={<span className="hidden h-[42px] w-[86px] rounded-full border border-line md:inline-block" />}>
-            <div className="hidden md:block">
+          <Suspense fallback={<span className="hidden h-[42px] w-[86px] rounded-full border border-line xl:inline-block" />}>
+            <div className="hidden xl:block">
               <UserMenu />
             </div>
           </Suspense>

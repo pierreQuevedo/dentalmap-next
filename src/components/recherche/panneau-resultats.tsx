@@ -13,10 +13,10 @@ import { useRecherche } from './contexte'
  *
  * La liste décrit ce que la carte montre : elle se renouvelle à chaque
  * déplacement, et se pagine plutôt que de s'allonger. Vingt fiches par page.
- * Deux cartes côte à côte dès que la mise en page passe sur deux colonnes,
- * soit un écran de 1280 pixels : la colonne de gauche, quarante-cinq pour cent
- * de la page, offre alors près de cinq cents pixels utiles, de quoi montrer
- * deux portraits. En dessous, une seule colonne.
+ * Deux cartes côte à côte en tablette, où la liste a toute la largeur, puis
+ * de nouveau à partir de 1280 pixels : la colonne de gauche, quarante-cinq
+ * pour cent de la page, offre alors près de cinq cents pixels utiles. Une
+ * seule colonne sur téléphone et entre 1024 et 1280 pixels.
  *
  * Le rendu initial vient du serveur, donc la première page s'affiche sans
  * JavaScript et les liens de pagination sont de vrais liens. Le script se
@@ -77,7 +77,7 @@ export function PanneauResultats() {
         montre, alors qu'elles décrivaient l'emprise précédente.
       */}
       {chargement ? (
-        <ol className="mt-5 grid gap-4 xl:grid-cols-2">
+        <ol className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
           {Array.from({ length: nombreDeSquelettes }, (_, i) => (
             <SqueletteFiche key={i} profession={profession} />
           ))}
@@ -89,7 +89,7 @@ export function PanneauResultats() {
            * rejouent leur entrée, décalées par leur rang, au lieu de remplacer
            * les squelettes d'un coup.
            */
-          <ol key={version} className="mt-5 grid gap-4 xl:grid-cols-2">
+          <ol key={version} className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {resultats.map((p, i) => (
               <CarteFiche
                 key={p.slug}
