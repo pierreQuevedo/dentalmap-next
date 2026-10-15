@@ -129,7 +129,7 @@ export function EntreesContact({ objetInitial, initiales }: { objetInitial?: Obj
             aria-haspopup="dialog"
             aria-controls={idPanneau}
             onClick={(e) => ouvrir(premiere.objet, e.currentTarget)}
-            className="squircle-3xl dark flex h-full min-h-64 w-full flex-col justify-between overflow-hidden bg-background p-6 text-left text-fg md:p-8"
+            className="squircle-3xl dark flex h-full min-h-64 w-full cursor-pointer flex-col justify-between overflow-hidden bg-background p-6 text-left text-fg md:p-8"
           >
             <span className="grid size-12 place-items-center rounded-2xl bg-teal text-white">
               <premiere.icone className="size-6" aria-hidden />
@@ -137,7 +137,7 @@ export function EntreesContact({ objetInitial, initiales }: { objetInitial?: Obj
             <span className="mt-10 block">
               <span className="block text-3xl font-semibold tracking-tight text-white md:text-4xl">{premiere.titre}</span>
               <span className="mt-3 block max-w-md text-white/70">{premiere.texte}</span>
-              <span className="mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-action px-5 text-sm font-semibold text-action-foreground">
+              <span className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-action px-5 text-sm font-semibold text-action-foreground sm:inline-flex sm:w-auto">
                 {premiere.lien} <ArrowUpRight className="size-4" aria-hidden />
               </span>
             </span>
@@ -150,7 +150,7 @@ export function EntreesContact({ objetInitial, initiales }: { objetInitial?: Obj
               aria-haspopup="dialog"
               aria-controls={idPanneau}
               onClick={(ev) => ouvrir(e.objet, ev.currentTarget)}
-              className="squircle-3xl group flex h-full w-full flex-col border border-line bg-bg p-4 text-left transition-colors hover:bg-bg-soft sm:p-6"
+              className="squircle-3xl group flex h-full w-full cursor-pointer flex-col border border-line bg-bg p-4 text-left transition-colors hover:bg-bg-soft sm:p-6"
             >
               <span className="grid size-10 place-items-center rounded-xl bg-teal/10 text-teal">
                 <e.icone className="size-5" aria-hidden />
@@ -167,7 +167,7 @@ export function EntreesContact({ objetInitial, initiales }: { objetInitial?: Obj
       </ul>
       <p className="mt-6 text-fg-2">
         Autre chose&nbsp;?{' '}
-        <button type="button" onClick={(e) => ouvrir('autre', e.currentTarget)} className="font-semibold text-fg underline underline-offset-4 hover:no-underline">
+        <button type="button" onClick={(e) => ouvrir('autre', e.currentTarget)} className="cursor-pointer font-semibold text-fg underline underline-offset-4 hover:no-underline">
           Écrivez-nous
         </button>
       </p>
@@ -189,7 +189,7 @@ export function EntreesContact({ objetInitial, initiales }: { objetInitial?: Obj
               <div>
                 <div className="recherche-intro flex items-start justify-between gap-4" style={rang(0)}>
                   <h2 className="text-3xl font-semibold tracking-tight text-fg md:text-4xl">{tete.titre}</h2>
-                  <button type="button" onClick={fermer} aria-label="Fermer" className="grid size-10 shrink-0 place-items-center rounded-full border border-line text-fg hover:bg-bg-soft lg:hidden">
+                  <button type="button" onClick={fermer} aria-label="Fermer" className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-line text-fg hover:bg-bg-soft lg:hidden">
                     <X className="size-4" aria-hidden />
                   </button>
                 </div>

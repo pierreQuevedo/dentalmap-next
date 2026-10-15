@@ -130,7 +130,7 @@ export function Deposer() {
           </ul>
         </div>
         <div className="mt-10 flex justify-center">
-          <Link href={chemin(ROUTE_DEPOT_CESSION)} className="inline-flex h-12 items-center gap-2 rounded-full bg-action px-7 text-sm font-semibold text-action-foreground hover:bg-action-hover">
+          <Link href={chemin(ROUTE_DEPOT_CESSION)} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-action sm:w-auto px-7 text-sm font-semibold text-action-foreground hover:bg-action-hover">
             Déposer depuis mon espace pro <ArrowRight className="size-4" aria-hidden />
           </Link>
         </div>

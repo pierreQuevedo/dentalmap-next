@@ -19,7 +19,7 @@ import { Deroulant } from '@/components/site/deroulant'
  * Même dessin que la recherche d'emploi : une capsule claire, deux champs
  * à libellé en surtitre, la cible puis le lieu, et le bouton « Rechercher ».
  * En ligne à partir de `md`, empilée en dessous, le bouton en pleine largeur.
- * Toujours en thème clair (`clair`), y compris sur le hero sombre.
+ * Elle suit le thème du site (`theme-site`), y compris sur le hero, toujours sombre.
  *
  * Le formulaire part toujours vers `/recherche/`, en méthode GET, avec la
  * cible en paramètre. Sans JavaScript la page de recherche redirige elle-même
@@ -44,7 +44,7 @@ export function RechercheUniverselle() {
   }
 
   return (
-    <form method="get" action="/recherche/" role="search" className="clair relative w-full max-w-3xl text-left" onSubmit={() => setFerme(true)}>
+    <form method="get" action="/recherche/" role="search" className="theme-site relative w-full max-w-3xl text-left" onSubmit={() => setFerme(true)}>
       <div className="flex flex-col divide-y divide-line rounded-3xl border border-line bg-bg p-1.5 shadow-pill md:flex-row md:items-stretch md:divide-x md:divide-y-0 md:rounded-full">
         <Champ icone={LoupeIcon} label="Que cherchez-vous ?" className="md:flex-1">
           <select

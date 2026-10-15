@@ -139,10 +139,11 @@ export function LienFleche({ href, children, sombre, petit }: { href: string; ch
   )
 }
 
+/** Pleine largeur sur téléphone, à sa taille au-delà. */
 export function Bouton({ href, children, ton = 'action' }: { href: string; children: React.ReactNode; ton?: 'action' | 'secondaire' }) {
   const c = ton === 'action' ? 'bg-action text-action-foreground hover:bg-action-hover' : 'border border-line bg-bg text-fg hover:bg-bg-soft'
   return (
-    <Lien href={href} className={`inline-flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold ${c}`}>
+    <Lien href={href} className={`inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold sm:w-auto ${c}`}>
       {children}
     </Lien>
   )

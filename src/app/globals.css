@@ -9,9 +9,13 @@
  */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* `.clair` : un îlot en thème clair dans une section sombre (la recherche du hero de l'accueil). */
+/*
+ * `.theme-site` : un îlot qui suit le thème du site dans une section toujours
+ * sombre (la recherche du hero de l'accueil). En clair, il reprend les jetons
+ * clairs ; en sombre, il garde ceux de la section.
+ */
 :root,
-.clair {
+html:not(.dark) .theme-site {
   /*
    * Ardoise profonde, et le bleu réservé à l'action.
    *
@@ -182,7 +186,7 @@
   --shadow-8: 0 0 0 1px var(--lm-ring-8), 0 1px 1px -0.5px var(--lm-drop), 0 3px 3px -1.5px var(--lm-drop), 0 6px 6px -3px var(--lm-drop), 0 12px 12px -6px var(--lm-drop), 0 24px 24px -12px var(--lm-drop), 0 48px 48px -24px var(--lm-drop), 0 96px 96px -48px var(--lm-drop);
 }
 
-.clair {
+html:not(.dark) .theme-site {
   color-scheme: light;
 }
 
@@ -634,11 +638,15 @@ html[data-hero='transparent'] #site-header {
   --bg-soft: rgb(255 255 255 / 0.12);
   --line: rgb(255 255 255 / 0.28);
 }
-/* Le logo est une image : on bascule sur sa version blanche, quel que soit le thème. */
-html[data-hero='transparent'] #site-header [data-logo='encre'] {
+/*
+ * Le logo est une image : on bascule sur sa version blanche, quel que soit le
+ * thème. Pas quand la barre redevient opaque, menu mobile ou recherche
+ * ouverts : le logo reprend alors celui du thème, encre en clair.
+ */
+html[data-hero='transparent']:not([data-menu='ouvert'], [data-recherche='ouverte']) #site-header [data-logo='encre'] {
   display: none;
 }
-html[data-hero='transparent'] #site-header [data-logo='blanc'] {
+html[data-hero='transparent']:not([data-menu='ouvert'], [data-recherche='ouverte']) #site-header [data-logo='blanc'] {
   display: block;
 }
 /* Le bouton de thème vient d'un registre et parle en jetons shadcn : on le force. */

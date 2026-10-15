@@ -1,14 +1,17 @@
 /**
  * Liste des cessions de cabinet (`/annonces/cession/` et
  * `/annonces/cession/[departement]/`), dans le gabarit des listes Emploi :
- * en-tête sur fond doux, bascule « Liste | Carte » (`?vue=carte`), filtres en
- * colonne portés par l'URL, résultats, alerte sans compte.
+ * en-tête sur fond doux, filtres en colonne portés par l'URL, résultats,
+ * alerte sans compte. La vue carte reprend la mise en page de l'annuaire :
+ * la liste à gauche, la carte collée à droite. La bascule « Liste | Carte »
+ * (`?vue=carte`) et les filtres vivent aussi dans une barre flottante en bas
+ * de l'écran, comme dans l'annuaire : voir `BarreCessions`.
  *
  * Tri : dans un département, distance au centre de sa commune la plus
  * peuplée, puis titre ; pour la France entière, faute de point d'origine, les
  * plus récentes d'abord, puis titre. Aucun tri payant ni score.
  */
-import { ArrowDownWideNarrow, ChevronLeft, ChevronRight, List, Map as IconeCarte, Plus, SlidersHorizontal } from 'lucide-react'
+import { ArrowDownWideNarrow, ChevronLeft, ChevronRight, List, Map as IconeCarte, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { chemin } from '@/lib/navigation'
 import { FilAriane } from '@/components/annuaire/primitives'
@@ -20,6 +23,7 @@ import { CarteSecteur, type PointAnnonce } from './carte'
 import { CarteAnnonce } from './blocs'
 import { FiltresCessions } from './filtres'
 import { AlerteCessions } from './alerte'
+import { BarreCessions, ID_VUES_EN_TETE } from './barre'
 
 type Props = {
   mode: 'liste' | 'carte'
@@ -39,11 +43,15 @@ type Props = {
 
 const nombre = (n: number) => `${n} annonce${n > 1 ? 's' : ''}`
 
-function Vues({ mode, base, filtres }: { mode: 'liste' | 'carte'; base: string; filtres: FiltresCession }) {
+function Vues({ mode, base, filtres, dansBarre = false }: { mode: 'liste' | 'carte'; base: string; filtres: FiltresCession; dansBarre?: boolean }) {
   const b = (actif: boolean) =>
-    `inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold sm:flex-none ${actif ? 'bg-fg text-bg shadow-sm' : 'text-fg hover:bg-bg-soft'}`
+    `inline-flex h-10 items-center justify-center gap-2 rounded-full text-sm font-semibold ${dansBarre ? 'px-4' : 'flex-1 px-5 sm:flex-none'} ${actif ? 'bg-fg text-bg shadow-sm' : 'text-fg hover:bg-bg-soft'}`
   return (
-    <nav aria-label="Affichage des annonces" className="flex w-full rounded-full border border-line bg-bg p-1 sm:inline-flex sm:w-auto">
+    <nav
+      aria-label="Affichage des annonces"
+      id={dansBarre ? undefined : ID_VUES_EN_TETE}
+      className={dansBarre ? 'flex gap-1' : 'hidden rounded-full border border-line bg-bg p-1 lg:inline-flex'}
+    >
       <Link href={chemin(`${base}${chaineFiltres(filtres)}`)} aria-current={mode === 'liste' ? 'page' : undefined} className={b(mode === 'liste')} scroll={false}>
         <List className="size-4" aria-hidden /> Liste
       </Link>
@@ -74,6 +82,20 @@ function Compteur({ total, origine }: { total: number; origine: string | null })
   )
 }
 
+/** Le bouton de dépôt, sous le sous-titre. */
+function Deposer() {
+  return (
+    <Link
+      href={chemin(DEPOSER_CESSION)}
+      className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-line bg-bg px-5 text-sm font-semibold text-fg hover:bg-bg-soft sm:w-auto"
+    >
+      <Plus className="size-4" aria-hidden /> Déposer une annonce
+    </Link>
+  )
+}
+
+const SOUS_TITRE = 'Cabinets, parts de société, patientèles et locaux, publiés par des praticiens vérifiés et relus par l’équipe.'
+
 function EnTete({ titre, ariane, mode, base, filtres }: Pick<Props, 'titre' | 'ariane' | 'mode' | 'filtres'> & { base: string }) {
   return (
     <section className="border-b border-line bg-bg-soft">
@@ -82,17 +104,10 @@ function EnTete({ titre, ariane, mode, base, filtres }: Pick<Props, 'titre' | 'a
         <div className="mt-4 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-semibold tracking-tight text-fg md:text-4xl">{titre}</h1>
-            <p className="mt-2 text-fg-2">Cabinets, parts de société, patientèles et locaux, publiés par des praticiens vérifiés et relus par l’équipe.</p>
+            <p className="mt-2 text-fg-2">{SOUS_TITRE}</p>
+            <Deposer />
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link
-              href={chemin(DEPOSER_CESSION)}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-line bg-bg px-5 text-sm font-semibold text-fg hover:bg-bg-soft"
-            >
-              <Plus className="size-4" aria-hidden /> Déposer une annonce
-            </Link>
-            <Vues mode={mode} base={base} filtres={filtres} />
-          </div>
+          <Vues mode={mode} base={base} filtres={filtres} />
         </div>
       </div>
     </section>
@@ -155,16 +170,12 @@ export function ListeAnnonces({ mode, titre, ariane, annonces, toutes, filtres, 
   const alerte = <AlerteCessions departementCode={departement?.code} departementNom={departement?.nom} types={filtres.types} />
   const actifs = (filtres.types.length ? 1 : 0) + (filtres.fauteuils ? 1 : 0) + (filtres.dispo ? 1 : 0) + (departement ? 1 : 0)
 
-  const filtresRepliables = (idPrefixe: string, classe: string) => (
-    <details className={`group relative ${classe}`}>
-      <summary className="inline-flex h-9 cursor-pointer list-none items-center gap-2 rounded-full border border-line bg-bg px-3.5 text-sm font-medium text-fg [&::-webkit-details-marker]:hidden">
-        <SlidersHorizontal className="size-4" aria-hidden /> Filtres
-        {actifs > 0 && <span className="grid size-5 place-items-center rounded-full bg-fg text-[11px] text-bg">{actifs}</span>}
-      </summary>
-      <div className="squircle-2xl absolute left-0 top-11 z-20 w-[min(20rem,calc(100vw-2rem))] border border-line bg-bg p-5 shadow-pop">
-        <FiltresCessions key={cle} idPrefixe={idPrefixe} {...filtresProps} />
-      </div>
-    </details>
+  const barre = (
+    <BarreCessions
+      vues={<Vues mode={mode} base={base} filtres={filtres} dansBarre />}
+      filtres={<FiltresCessions key={cle} idPrefixe="filtres-barre" {...filtresProps} />}
+      actifs={actifs}
+    />
   )
 
   if (mode === 'carte') {
@@ -177,49 +188,46 @@ export function ListeAnnonces({ mode, titre, ariane, annonces, toutes, filtres, 
       titre: a.titre,
     }))
     const premiere = annonces[0]
+    /*
+     * La grille de l'annuaire : liste à gauche, qui défile avec la page, carte
+     * collée sous l'en-tête à droite, jusqu'au bas de la liste. Sous `lg`, la
+     * carte prend tout l'écran sous l'en-tête, la barre flottante par-dessus.
+     */
     return (
-      <main>
-        <EnTete titre={titre} ariane={ariane} mode={mode} base={base} filtres={filtres} />
-        <div className="border-b border-line">
-          <div className="container py-4">{filtresRepliables('filtres-carte', '')}</div>
-        </div>
-        <div className="hidden lg:grid lg:grid-cols-[28rem_minmax(0,1fr)]">
-          <div className="max-h-[44rem] overflow-y-auto border-r border-line px-6 py-6 xl:pl-10">
-            <Compteur total={annonces.length} origine={origine} />
-            {annonces.length ? (
-              <ul className="mt-4 space-y-3">
-                {annonces.map((a, i) => (
-                  <CarteAnnonce key={a.id} a={a} forme="compacte" actif={i === 0} />
-                ))}
-              </ul>
-            ) : (
-              <Vide departement={departement} filtres={filtres} base={base} />
-            )}
-            <div className="[&_.alerte>div]:flex-col! [&_.alerte>div]:items-start!">{alerte}</div>
-          </div>
-          <CarteSecteur key={cle} className="h-full min-h-[44rem]" emprise={emprise} actif={premiere?.id} points={points} />
-        </div>
-        <div className="relative h-[42rem] lg:hidden">
-          <CarteSecteur key={cle} className="size-full" emprise={emprise} actif={premiere?.id} points={points} mention={false} />
-          <div className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-line bg-bg px-4 pb-5 pt-2 shadow-[0_-8px_28px_rgb(22_34_43/0.16)]">
-            <span className="mx-auto mb-3 block h-1 w-10 rounded-full bg-line-strong" aria-hidden />
-            <Compteur total={annonces.length} origine={origine} />
-            {premiere && (
-              <ul className="mt-3">
-                <CarteAnnonce a={premiere} forme="compacte" actif />
-              </ul>
-            )}
-            <Link
-              href={chemin(`${base}${chaineFiltres(filtres)}`)}
-              className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-line text-sm font-medium text-fg"
-            >
-              <List className="size-4" aria-hidden /> Voir {annonces.length > 1 ? `les ${annonces.length} annonces` : 'l’annonce'} en liste
-            </Link>
-            <p className="mt-2 text-center text-[10px] text-fg-2">© OpenStreetMap, OpenMapTiles, OpenFreeMap</p>
-          </div>
-        </div>
-        <p className="container py-6 text-xs text-fg-2">Les repères de la carte marquent le centre d’un secteur, jamais l’adresse du cabinet.</p>
-      </main>
+      <>
+        <main className="grid grid-cols-1 pb-28 lg:grid-cols-[9fr_11fr]">
+          <section className="px-5 pt-8 max-lg:hidden md:px-10 lg:col-start-1 xl:px-12">
+            <FilAriane segments={ariane} />
+            <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg md:text-3xl">{titre}</h1>
+            <p className="mt-2 text-fg-2">{SOUS_TITRE}</p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <Deposer />
+              <Vues mode={mode} base={base} filtres={filtres} />
+            </div>
+            <div className="mt-8">
+              <Compteur total={annonces.length} origine={origine} />
+              {annonces.length ? (
+                <ul className="mt-4 space-y-3">
+                  {annonces.map((a, i) => (
+                    <CarteAnnonce key={a.id} a={a} forme="compacte" actif={i === 0} />
+                  ))}
+                </ul>
+              ) : (
+                <Vide departement={departement} filtres={filtres} base={base} />
+              )}
+              {alerte}
+              <p className="mt-6 text-xs text-fg-2">Les repères de la carte marquent le centre d’un secteur, jamais l’adresse du cabinet.</p>
+            </div>
+          </section>
+          <aside className="max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:top-20 max-lg:z-30 lg:col-start-2 lg:row-start-1 lg:border-l lg:border-line">
+            {/* `top-20` est la hauteur de l'en-tête collant, cinq rem. */}
+            <div className="size-full lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)]">
+              <CarteSecteur key={cle} className="size-full" emprise={emprise} actif={premiere?.id} points={points} />
+            </div>
+          </aside>
+        </main>
+        {barre}
+      </>
     )
   }
 
@@ -227,14 +235,14 @@ export function ListeAnnonces({ mode, titre, ariane, annonces, toutes, filtres, 
   const page = Math.min(filtres.page, pages)
   const visibles = annonces.slice((page - 1) * PAR_PAGE, page * PAR_PAGE)
   return (
-    <main>
+    <main className="pb-24">
       <EnTete titre={titre} ariane={ariane} mode={mode} base={base} filtres={filtres} />
+      {barre}
       <div className="container grid gap-10 py-8 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-12 lg:py-10">
         <aside className="hidden lg:block">
           <FiltresCessions key={cle} idPrefixe="filtres" {...filtresProps} />
         </aside>
         <div className="min-w-0">
-          <div className="mb-5 lg:hidden">{filtresRepliables('filtres-mobile', '')}</div>
           <Compteur total={annonces.length} origine={origine} />
           {visibles.length ? (
             <ul className="mt-5 space-y-3">

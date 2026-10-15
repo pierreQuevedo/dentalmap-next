@@ -3,11 +3,11 @@
 /**
  * Corps de la FAQ : héros court avec recherche, sommaire des catégories
  * (collant à gauche sur grand écran, pastilles défilantes sur mobile), toutes
- * les questions en accordéon, la première de chaque catégorie ouverte, bloc
+ * les questions en accordéon, la catégorie lue surlignée dans le sommaire au fil du défilement, la première de chaque catégorie ouverte, bloc
  * contact discret. La recherche filtre les questions sur place, sans
  * tenir compte des accents ni de la casse.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATEGORIES, TOTAL, type Categorie } from './donnees'
 import { LienFleche, Questions, Recherche } from './blocs'
 
@@ -32,25 +32,77 @@ function filtrer(categories: Categorie[], requete: string): Categorie[] {
     .filter((c) => c.questions.length > 0)
 }
 
+/** Hauteur sous laquelle une section compte comme lue : l'en-tête collant et la marge de `scroll-mt-28`. */
+const SEUIL_LECTURE = 120
+
+/** La catégorie en cours de lecture : la dernière dont le titre est passé sous l'en-tête. */
+function useCategorieActive(slugs: string[]): string | undefined {
+  const [active, setActive] = useState<string | undefined>(slugs[0])
+  const cle = slugs.join(' ')
+  useEffect(() => {
+    const liste = cle ? cle.split(' ') : []
+    let image = 0
+    const mesurer = () => {
+      image = 0
+      let courante = liste[0]
+      for (const slug of liste) {
+        const el = document.getElementById(slug)
+        if (el && el.getBoundingClientRect().top <= SEUIL_LECTURE) courante = slug
+      }
+      // Bas de page atteint : la dernière catégorie, même trop courte pour monter jusqu'au seuil.
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) courante = liste[liste.length - 1]
+      setActive(courante)
+    }
+    const surDefilement = () => {
+      if (!image) image = requestAnimationFrame(mesurer)
+    }
+    mesurer()
+    window.addEventListener('scroll', surDefilement, { passive: true })
+    window.addEventListener('resize', surDefilement)
+    return () => {
+      cancelAnimationFrame(image)
+      window.removeEventListener('scroll', surDefilement)
+      window.removeEventListener('resize', surDefilement)
+    }
+  }, [cle])
+  return active
+}
+
 function Sommaire({ categories }: { categories: Categorie[] }) {
+  const active = useCategorieActive(categories.map((c) => c.slug))
+  const rangee = useRef<HTMLOListElement>(null)
+
+  // Mobile : la pastille active reste visible dans la rangée qui défile.
+  useEffect(() => {
+    const ol = rangee.current
+    const lien = ol?.querySelector<HTMLElement>(`a[href="#${active}"]`)
+    if (!ol || !lien || ol.scrollWidth <= ol.clientWidth) return
+    const decalage = lien.getBoundingClientRect().left - ol.getBoundingClientRect().left
+    ol.scrollTo({ left: ol.scrollLeft + decalage - ol.clientWidth / 2 + lien.offsetWidth / 2, behavior: 'smooth' })
+  }, [active])
+
   return (
     <nav aria-label="Catégories" className="min-w-0 lg:sticky lg:top-28 lg:self-start">
       <p className="hidden text-xs font-semibold uppercase tracking-wide text-fg-2 lg:block">Catégories</p>
       {/* Mobile : une rangée de pastilles qui défile, du bord au bord de l'écran. */}
-      <ol className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none] lg:mx-0 lg:mt-4 lg:block lg:space-y-1 lg:overflow-visible lg:border-l lg:border-line lg:px-0 lg:pb-0">
-        {categories.map((c, i) => (
-          <li key={c.slug} className="shrink-0">
-            <a
-              href={`#${c.slug}`}
-              className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm lg:-ml-px lg:flex lg:justify-between lg:rounded-none lg:border-0 lg:border-l-2 lg:py-2 lg:pl-4 lg:pr-0 ${
-                i === 0 ? 'border-fg bg-fg text-bg lg:border-teal lg:bg-transparent lg:font-semibold lg:text-fg' : 'border-line text-fg hover:border-line-strong lg:border-transparent'
-              }`}
-            >
-              {c.titre}
-              <span className={`tabular-nums ${i === 0 ? 'text-bg/70 lg:text-fg-2' : 'text-fg-2'}`}>{c.questions.length}</span>
-            </a>
-          </li>
-        ))}
+      <ol ref={rangee} className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none] lg:mx-0 lg:mt-4 lg:block lg:space-y-1 lg:overflow-visible lg:border-l lg:border-line lg:px-0 lg:pb-0">
+        {categories.map((c) => {
+          const actif = c.slug === active
+          return (
+            <li key={c.slug} className="shrink-0">
+              <a
+                href={`#${c.slug}`}
+                aria-current={actif ? 'location' : undefined}
+                className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm transition-colors lg:-ml-px lg:flex lg:justify-between lg:rounded-none lg:border-0 lg:border-l-2 lg:py-2 lg:pl-4 lg:pr-0 ${
+                  actif ? 'border-fg bg-fg text-bg lg:border-teal lg:bg-transparent lg:font-semibold lg:text-fg' : 'border-line text-fg hover:border-line-strong lg:border-transparent'
+                }`}
+              >
+                {c.titre}
+                <span className={`tabular-nums ${actif ? 'text-bg/70 lg:text-fg-2' : 'text-fg-2'}`}>{c.questions.length}</span>
+              </a>
+            </li>
+          )
+        })}
       </ol>
     </nav>
   )
