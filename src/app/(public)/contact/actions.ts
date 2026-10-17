@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { envoyerMessageContact as envoyerCourriel } from '@/lib/email'
 import { CLES_OBJETS, libelleObjet } from '@/lib/contact/objets'
 import { FORMULAIRES, libelleDetail } from '@/lib/contact/formulaires'
+import { deposerTicketSav } from '@/lib/wp/sav'
 
 export type EtatContact = { ok: boolean; message: string } | null
 
@@ -21,10 +22,11 @@ const Message = z.object({
  * Message déposé depuis l'un des formulaires dédiés de la page contact
  * (`src/lib/contact/formulaires.ts`).
  *
- * Rien n'est stocké : le message part par courriel à l'équipe, avec l'objet
- * en sujet, et la personne reçoit un accusé à l'écran. La case de
- * consentement est exigée côté serveur aussi, un formulaire sans script ne
- * doit pas la contourner.
+ * Il devient un ticket dans l'espace SAV du back-office et part aussi par
+ * courriel à l'équipe, avec l'objet en sujet. Il suffit que l'un des deux
+ * aboutisse pour que le message ne soit pas perdu. La case de consentement
+ * est exigée côté serveur aussi, un formulaire sans script ne doit pas la
+ * contourner.
  */
 export async function envoyerMessageContact(_etat: EtatContact, donnees: FormData): Promise<EtatContact> {
   const brut = Object.fromEntries(donnees.entries())
@@ -46,10 +48,17 @@ export async function envoyerMessageContact(_etat: EtatContact, donnees: FormDat
     details.push(libelleDetail(r.data.objet, champ.nom, v))
   }
 
-  try {
-    await envoyerCourriel({ ...r.data, objet: libelleObjet(r.data.objet), details })
-  } catch (e) {
-    console.error('[contact] envoi impossible', e)
+  // Le ticket du SAV porte aussi les champs propres au formulaire.
+  const message = details.length ? `${r.data.message}\n\n${details.map((d) => `${d.libelle} : ${d.valeur}`).join('\n')}` : r.data.message
+  const [ticket, courriel] = await Promise.allSettled([
+    deposerTicketSav({ ...r.data, message }),
+    envoyerCourriel({ ...r.data, objet: libelleObjet(r.data.objet), details }),
+  ])
+  if (ticket.status === 'rejected') console.error('[contact] ticket SAV impossible', ticket.reason)
+  if (courriel.status === 'rejected') console.error('[contact] envoi impossible', courriel.reason)
+
+  const ticketCree = ticket.status === 'fulfilled' && ticket.value !== 'coupe'
+  if (!ticketCree && courriel.status === 'rejected') {
     return { ok: false, message: 'Votre message n’a pas pu partir. Réessayez dans quelques minutes.' }
   }
   return {
