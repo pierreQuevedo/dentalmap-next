@@ -3,6 +3,7 @@
 import { z } from 'zod'
 import { envoyerMessageContact as envoyerCourriel } from '@/lib/email'
 import { CLES_OBJETS, libelleObjet } from '@/lib/contact/objets'
+import { deposerTicketSav } from '@/lib/wp/sav'
 
 export type EtatContact = { ok: boolean; message: string } | null
 
@@ -25,19 +26,25 @@ const Message = z.object({
 /**
  * Message déposé depuis la page contact.
  *
- * Rien n'est stocké : le message part par courriel à l'équipe, avec l'objet
- * en sujet, et la personne reçoit un accusé à l'écran. La case de
- * consentement est exigée côté serveur aussi, un formulaire sans script ne
- * doit pas la contourner.
+ * Il devient un ticket dans l'espace SAV du back-office et part aussi par
+ * courriel à l'équipe, avec l'objet en sujet. Il suffit que l'un des deux
+ * aboutisse pour que le message ne soit pas perdu. La case de consentement
+ * est exigée côté serveur aussi, un formulaire sans script ne doit pas la
+ * contourner.
  */
 export async function envoyerMessageContact(_etat: EtatContact, donnees: FormData): Promise<EtatContact> {
   const r = Message.safeParse(Object.fromEntries(donnees.entries()))
   if (!r.success) return { ok: false, message: r.error.issues[0]?.message ?? 'Formulaire incomplet.' }
 
-  try {
-    await envoyerCourriel({ ...r.data, objet: libelleObjet(r.data.objet) })
-  } catch (e) {
-    console.error('[contact] envoi impossible', e)
+  const [ticket, courriel] = await Promise.allSettled([
+    deposerTicketSav(r.data),
+    envoyerCourriel({ ...r.data, objet: libelleObjet(r.data.objet) }),
+  ])
+  if (ticket.status === 'rejected') console.error('[contact] ticket SAV impossible', ticket.reason)
+  if (courriel.status === 'rejected') console.error('[contact] envoi impossible', courriel.reason)
+
+  const ticketCree = ticket.status === 'fulfilled' && ticket.value !== 'coupe'
+  if (!ticketCree && courriel.status === 'rejected') {
     return { ok: false, message: 'Votre message n’a pas pu partir. Réessayez dans quelques minutes.' }
   }
   return {
