@@ -57,7 +57,7 @@ export function Etapes({ etape, total = 4, libelle }: { etape: number; total?: n
   return (
     <div className="mb-6">
       <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-fg-2">
-        Étape {etape} sur {total} · {libelle}
+        {etape > 0 ? `Étape ${etape} sur ${total} · ${libelle}` : libelle}
       </p>
       <div className="mt-2 grid gap-1" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }} aria-hidden>
         {Array.from({ length: total }, (_, i) => (

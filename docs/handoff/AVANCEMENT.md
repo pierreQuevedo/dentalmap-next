@@ -5,15 +5,17 @@ Tenu à jour par Claude Code. Statuts : à faire, en cours, fait, bloqué, retir
 | ID | Écran | Phase | Desktop | Mobile | Sorties branchées | Écarts / notes |
 |---|---|---|---|---|---|---|
 | CX1 | Connexion ou inscription | B | fait | fait | 3/5 | Site actuel, inchangé. PSC annoncé « Bientôt ». Clé d'accès : voir CX4. |
-| CX2 | Lien envoyé ou code | B | fait | fait | 4/6 | Site actuel (code à six chiffres). CX4 en attente. |
+| CX2 | Lien envoyé ou code | B | fait | fait | 4/6 | Site actuel (code à six chiffres). Clé d’accès : voir CX4 (fait). |
 | CX3 | Première connexion | B | fait | fait | 2/2 | Site actuel, profil choisi à l'inscription : T3 est sauté. |
 | CX7 | Mot de passe oublié | B | fait | fait | 1/1 | Site actuel, inchangé. |
 | T3 | Qui êtes-vous ? | B | fait | fait | 2/6 | `/inscription/profil` dans la coquille compte. Spécialistes sous le rôle `dentiste`, nouveau rôle `organisme`. « Ne pas répondre » = patient. Sorties S0, L1, O1, P1/P2 à reconstruire. Sortie SE1 (salarié ou étudiant) ajoutée le 2026-10-11. |
 | CX1-E | Connexion, adresse invalide | B | fait | fait | 1/1 | État de `/connexion`, suggestion de domaine en un clic (`suggererAdresse`). |
 | CX2-E | Code incorrect | B | fait | fait | 3/3 | Essais restants sur 5, renvoi depuis l'erreur, bascule vers CX5. |
-| CX4 | Proposer une clé d'accès | B | à faire | à faire | 0/1 | Bloqué : demande le plugin passkey de Better Auth (dépendance et table). |
+| CX4 | Proposer une clé d'accès | B | fait | fait | 1/1 | `/connexion/cle-d-acces/` (2026-10-17), après chaque connexion par mot de passe : 2e session au moins, aucune clé, proposition puis une relance à 7 jours. Plugin `@better-auth/passkey` 1.7.4, table `passkey` (migration 0019). « Se connecter avec une clé d’accès » sur `/connexion`, tuile « Clés d’accès » dans les deux pages « Compte et sécurité ». Figma 70:2175. |
 | CX6 | Plus accès à mon email | B | fait | fait | 2/3 | État de `/connexion`, lien depuis « Mot de passe oublié ». Santé « Bientôt » (PSC n'ouvre pas de session), structure vers `/contact/`, patient vers l'inscription. |
 | CX5 | Lien expiré ou déjà utilisé | B | fait | fait | 1/1 | État de `/connexion` (code expiré ou épuisé), adresse gardée. |
+| FAV | Mes favoris | B | fait | fait | 2/2 | `/favoris/`, conforme à la maquette 267:8539. 2026-10-17 : adresse et lien repris du premier lieu quand aucun n’est principal (16 994 fiches sur 72 374), corrigé aussi dans la modération et l’email d’acceptation. |
+| FAV-0 | Mes favoris, aucune fiche | B | fait | fait | 1/1 | Même page sans favori, conforme à 267:10989. |
 | P2 | Retour à la fiche, numéro visible | B | à faire | à faire | 0/3 | |
 | P1 | Personnaliser (facultatif) | B | à faire | à faire | 0/1 | |
 | S0 | Comment vous identifier ? | C | fait | fait | 2/2 | `/espace-pro/revendiquer/`. Depuis une fiche (`?fiche=`), la recherche est faite : carte centrée sur le praticien, RPPS dans la pastille, « Confirmer ma fiche » mène droit à S2. |
@@ -22,7 +24,7 @@ Tenu à jour par Claude Code. Statuts : à faire, en cours, fait, bloqué, retir
 | PSC2 | Retour PSC, fiche trouvée | E | fait | fait | 4/4 | `/espace-pro/revendiquer/psc/confirmer/`. Le retour ne décide plus seul : identité scellée en cookie, écriture à la confirmation. Fiche gérée par un autre compte : contestation en attente. |
 | M1 | Choisir les lieux d'exercice | C | fait | fait | 1/1 | `/espace-pro/lieux/?fiche=`, `revendications.lieux_geres`. Mène à l'espace pro tant que B0 n'est pas refait. |
 | B0 | Ce que nous savons déjà | F | fait | fait | 2/2 | `/espace-pro/onboarding/recuperation/`, aperçu patient à gauche. |
-| B0S | Spécialité et domaines de soins | F | à faire | à faire | 0/1 | Ajouté le 2026-10-11, node id Figma à reporter. Poids à arbitrer. |
+| B0S | Spécialité et domaines de soins | F | fait | fait | 1/1 | `/espace-pro/onboarding/specialite/` (2026-10-15), première question après B0. Qualification du registre verrouillée, domaines dans `fiches_completees.orientations` (5 au plus, aussi dans la mission), pas de gain affiché (poids non arbitré, barème +8 % inchangé). B0 dit « 4 questions », B7 liste les domaines. Figma 200:7039. |
 | B1 | Horaires | F | fait | fait | 1/1 | Interrupteur par jour, deux plages, copie du lundi. `horaires_confirmes_le`. |
 | B2 | Conventionnement | F | fait | fait | 1/1 | Secteur + tiers payant (Oui, Partiel, Non rangés sous les codes existants). |
 | B3 | Accueil des patients | F | fait | fait | 1/1 | Langues, `acces_pmr` (oui alimente aussi le filtre `pmr`), `age_minimum`. |
@@ -138,7 +140,7 @@ Migration `0013_massive_ma_gnuci` appliquée : sur `fiches_completees`, `secteur
 Tableau de bord dans `(pro)/espace-pro/` : vue d'ensemble, ma fiche, missions (photo, présentation, soins, liens), fraîcheur (reconfirmation en un clic), registre, distinctions, partager (lien court `/p/<slug>/`, badge HTML), compte et sécurité (mot de passe, appareils). Écarts assumés :
 - distinctions calculées sur l'état présent, pas stockées ; « Toujours à jour » reste à obtenir faute d'historique de reconfirmations ;
 - Emploi, Statistiques, Notifications : « Bientôt » dans la navigation (aucune donnée derrière) ; visuel réseaux et parrainage : « Bientôt » ;
-- test hebdomadaire des liens du cabinet, rappels par courriel de fraîcheur : non faits (tâches planifiées à créer).
+- test hebdomadaire des liens du cabinet, rappels par courriel de fraîcheur : faits le 2026-10-15 (voir « Tâches planifiées »).
 
 La fiche publique affiche photo, présentation, liens, secteur, âge minimum et la mention « horaires non confirmés depuis six mois ».
 ## Couloir laboratoire (2026-10-11)
@@ -147,7 +149,7 @@ Migrations `0014_fearless_mandrill` (champs laboratoire sur `fiches_completees`,
 
 Barème laboratoire dans `src/lib/espace-pro/force-labo.ts` (tests) : 30 % vérifié, 75 % après LO1 et LO2. Tableau de bord : délais (reconfirmation à six mois), savoir-faire, zone et logistique, réalisations (une à huit photos, recadrées et nettoyées dans le navigateur), conformité ANSM, équipe (invitations par lien à usage unique, trente jours). Fiche publique : savoir-faire, matériaux, frise des délais (masquée au-delà d'un an), zone, réalisations avec crédit, mention ANSM.
 
-Écarts : les laboratoires sont en base une fiche par SIREN, sans SIRET ; le code au siège (LCODE, CE1) attend un prestataire postal ; les critères des cabinets (« Zircone », « Ramassage »…) sont calculés et affichés, la recherche ne filtre pas encore dessus.
+Écarts : les laboratoires sont en base une fiche par SIREN, sans SIRET ; le code au siège (LCODE, CE1) attend un prestataire postal ; les critères des cabinets (« Zircone », « Ramassage »…) sont filtrables dans la recherche depuis le 2026-10-15 (voir plus bas).
 
 ## Couloir école et organisme (2026-10-11)
 
@@ -209,3 +211,28 @@ Décision : un chirurgien-dentiste ne dépose plus de document. Une attestation 
 - Figma (même jour) : S3b, C1 et L redessinés avec les trois voies (icônes « id-card » et « message-circle » ajoutées au jeu « Icônes » de la page Site) ; JD1 et K grisés et renommés « Retiré » ; S0, S0F, modération (exemple praticien devenu une contestation Pro Santé Connect), emails (accusé, refus, « À modérer ») et notes alignés.
 - Conséquence : tant que Pro Santé Connect n’est pas ouvert en production, un dentiste ne peut revendiquer qu’en écrivant à l’équipe, qui vérifie à la main.
 
+## Filtres de recherche des laboratoires (2026-10-15)
+
+- Panneau « Filtres » de la recherche des prothésistes : « Savoir-faire » (8 techniques) et « Matériau » (7 matériaux), un choix chacun, et « Équipement et logistique » : usinage CFAO sur place, empreintes STL acceptées, impression 3D, ramassage des empreintes au cabinet. Absents pour les autres professions.
+- `src/lib/annuaire/filtres.ts` (paramètres `technique`, `materiau`, `usinage`, `stl`, `impression3d`, `ramassage`) et `clauseFiltres` : une sous-requête sur `fiches_completees`, comptée seulement sur une fiche attribuée, comme l’orientation et l’accessibilité. Liste, compteur et points de la carte filtrent ensemble.
+- Vérifié : API (133 laboratoires sans filtre sur l’emprise d’essai, 0 avec « Zircone » et ramassage), compteur du panneau, tests d’aller-retour par l’adresse. Aujourd’hui aucun laboratoire n’a de fiche attribuée et remplie : tout filtre labo rend 0 résultat tant que les laboratoires n’ont pas complété leur fiche.
+- Non fait : « dessert ma zone » (rayon déclaré contre la position du cabinet) et un filtre par délai ; le panneau Figma des filtres n’a pas été redessiné.
+
+## Tâches planifiées (2026-10-15)
+
+Migration `0018_large_kingpin` appliquée : sur `fiches_completees`, `rappel_fraicheur_le`, `rappels_coupes_le`, `liens_testes_le`, `liens_echecs` (jsonb).
+
+- **Rappels de fraîcheur** (`/api/cron/rappels-fraicheur/`, chaque jour) : pour chaque fiche publiée et gérée, les blocs en « rappel », « à reconfirmer » ou « expiré » (règles de `fraicheurDe` et `fraicheurLabo`), dans un seul email avec le bouton « Reconfirmer mes informations ». Un email par fiche et par mois au plus, daté avant l’envoi et remis en l’état si l’envoi échoue.
+- **Test des liens du cabinet** (`/api/cron/liens/`, chaque jour par lots de 50, chaque fiche une fois par semaine) : HEAD puis GET, 10 s, redirections suivies et contrôlées à chaque saut (domaines publics seulement, ni IP ni nom local). 401, 403 et 429 comptent comme une réponse. Deux échecs de suite : le bouton est masqué sur la fiche (`lienPublic`), la fiche est revalidée et le professionnel reçoit un email. La mission « Liens du cabinet » signale l’échec dès la première fois ; enregistrer remet le compteur à zéro.
+- **Purge des documents** (`/api/cron/purge-documents/`, chaque jour) : Kbis, mandats, attestations et anciens justificatifs supprimés du stockage 30 jours après la décision, et leurs colonnes vidées. Tient la promesse des mentions légales.
+- **Coupure des rappels** : lien signé au bas de chaque email (`/rappels/couper/[jeton]/`, bouton de confirmation, sans connexion) ; « Fraîcheur » affiche l’état et permet de les rétablir.
+- `vercel.json` déclare les cinq tâches (purge 2 h, liens 3 h, alertes 6 h, alertes formation 7 h, rappels 8 h, heure UTC). Elles ne tournent qu’avec `CRON_SECRET` posé sur Vercel.
+- Vérifié : routes refusées sans secret (401), page de coupure, SQL contre le schéma, tests (`tests/rappels.test.ts`). Non lancé : aucune tâche n’a été exécutée contre la base (pas de `CRON_SECRET` local) ; en base aujourd’hui, aucune fiche publiée à rappeler, aucun lien à tester, aucun document à purger.
+- Non fait : « Toujours à jour » (historique des reconfirmations) et clôture automatique des contestations à J+7.
+
+
+## Repasse du couloir chirurgien-dentiste (2026-10-17)
+
+- Comparaison texte par texte des maquettes desktop (S0, PSC1, PSC2, PSC-E, PSC-0, M1, S1, S2, H1, S1-0, C1, S3b, R1, R2, L, REMP, B0, B0S, B1, B2, B3, B7, J, DASH-1 à 3) avec le code : aucun écart de libellé, hors chaînes construites à partir des données (nom, nombre de lieux, RPPS).
+- Figma remis au niveau du code après B0S : B7 liste les domaines de soins parmi les réponses, deux missions restantes (photo, présentation), aperçu à jour ; B0 affiche « Avant de commencer · 4 questions » sans numéro d’étape, quatre segments vides ; notes de B7 et R1 corrigées.
+- Non vérifié à l’écran : ces pages demandent une session (pas de compte de test sur la base partagée).

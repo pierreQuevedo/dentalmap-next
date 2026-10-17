@@ -15,7 +15,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { fiche } = espace
   return (
     <CoquilleOnboarding espace={espace}>
-      <Etapes etape={1} libelle="Avant de commencer · 3 questions" />
+      <Etapes etape={0} libelle="Avant de commencer · 4 questions" />
       <h1 className={titre}>Voici ce que nous savons déjà</h1>
       <p className="mt-2 text-sm text-fg-2">Ces informations viennent des registres et apparaissent déjà sur votre fiche. Vous n’avez rien à saisir.</p>
       <div className="mt-6">

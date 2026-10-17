@@ -9,12 +9,12 @@ import { getEspace, type Espace } from '@/lib/espace-pro/espace'
 import { adresseDe, garde, libelleProfession, nomDe } from '../revendiquer/_commun'
 
 /**
- * L'onboarding court d'un soignant : B0 (ce que nous savons déjà), trois
- * questions (horaires, conventionnement, accueil), puis le récapitulatif B7.
- * La fiche passe de 30 à 70 % ; photo, présentation et soins deviennent des
- * missions du tableau de bord.
+ * L'onboarding court d'un soignant : B0 (ce que nous savons déjà), quatre
+ * questions (spécialité et domaines, horaires, conventionnement, accueil),
+ * puis le récapitulatif B7. Photo, présentation et liens restent des missions
+ * du tableau de bord ; les domaines de soins y restent aussi, pour y revenir.
  */
-export const ETAPES_ONBOARDING = ['recuperation', 'horaires', 'conventionnement', 'accueil', 'recapitulatif'] as const
+export const ETAPES_ONBOARDING = ['recuperation', 'specialite', 'horaires', 'conventionnement', 'accueil', 'recapitulatif'] as const
 export type EtapeOnboarding = (typeof ETAPES_ONBOARDING)[number]
 
 /** Le chemin d'une étape, la fiche courante gardée dans l'adresse. */

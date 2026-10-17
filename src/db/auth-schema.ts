@@ -6,6 +6,7 @@ import {
   boolean,
   uuid,
   index,
+  integer,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -23,6 +24,9 @@ export const user = pgTable("user", {
   role: text("role", { enum: ["patient", "dentiste", "prothesiste"] }),
   /** Dernière étape du tunnel atteinte, pour reprendre un parcours interrompu. */
   etapeTunnel: text("etape_tunnel"),
+  /** CX4 : combien de fois la clé d'accès a été proposée (deux au plus : la proposition et une relance), et la dernière. */
+  cleProposeeFois: integer("cle_proposee_fois").default(0).notNull(),
+  cleProposeeLe: timestamp("cle_proposee_le"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -93,6 +97,29 @@ export const verification = pgTable(
       .notNull(),
   },
   (table) => [index("verification_identifier_idx").on(table.identifier)],
+);
+
+/** Clés d'accès (WebAuthn), plugin passkey de Better Auth : seule la partie publique est gardée. */
+export const passkey = pgTable(
+  "passkey",
+  {
+    id: uuid("id")
+      .default(sql`pg_catalog.gen_random_uuid()`)
+      .primaryKey(),
+    name: text("name"),
+    publicKey: text("public_key").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    credentialID: text("credential_id").notNull(),
+    counter: integer("counter").notNull(),
+    deviceType: text("device_type").notNull(),
+    backedUp: boolean("backed_up").notNull(),
+    transports: text("transports"),
+    createdAt: timestamp("created_at").defaultNow(),
+    aaguid: text("aaguid"),
+  },
+  (table) => [index("passkey_userId_idx").on(table.userId), index("passkey_credentialID_idx").on(table.credentialID)],
 );
 
 export const userRelations = relations(user, ({ many }) => ({

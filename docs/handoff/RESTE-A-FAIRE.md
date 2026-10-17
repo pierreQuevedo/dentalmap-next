@@ -7,7 +7,7 @@
 | Sujet | Effet tant que ce n’est pas fait | Action |
 |---|---|---|
 | `BLOB_READ_WRITE_TOKEN` sur Vercel | Justificatifs, Kbis, attestations et photos ne se déposent pas | Poser la variable |
-| `CRON_SECRET` sur Vercel + tâches planifiées | Pas de filet quotidien pour les alertes « fiche créée » ni pour les alertes formation (elles partent seulement à la revalidation WordPress ou à la mise en ligne) | Poser la variable, déclarer `/api/cron/alertes` et `/api/cron/alertes-formation` en tâches planifiées (le projet n’a pas encore de `vercel.ts` ni de `vercel.json`) |
+| `CRON_SECRET` sur Vercel | Aucune tâche planifiée ne tourne : ni rappels de fraîcheur, ni test des liens, ni purge des documents, ni filet des alertes | Poser la variable ; les cinq tâches sont déjà déclarées dans `vercel.json` |
 | Synchro n8n | Une fiche retirée peut revenir ; l’alerte `fiche_creee` dépend de l’appel à `/api/revalidate` | Respecter `praticiens.retire_le` dans le workflow |
 | `WP_ECRITURE` | Aucune écriture dans WordPress : diplômes des établissements et article minimal des formations privées sont à créer à la main | Décider de passer à `1` après un essai sur un article de test |
 
@@ -22,10 +22,10 @@
 ## 3. Chantiers produit, par ordre conseillé
 
 1. **Preuve d’identité sans document** : fait le 2026-10-13 (voir AVANCEMENT). Reste : obtenir Pro Santé Connect en production (sans lui, l’équipe vérifie chaque dentiste à la main) et demander l’habilitation FranceConnect+ pour la carte d’identité.
-2. **B0S, Spécialité et domaines de soins** : nouvel écran d’onboarding entre B0 et B1, remplace la mission « Domaines de soins ».
-3. **Filtres de recherche laboratoire** : les critères (« Zircone », « Ramassage »…) sont calculés et affichés sur les fiches, la recherche ne filtre pas dessus.
-4. **Tâches planifiées de l’espace pro** : rappel de fraîcheur par email, test hebdomadaire des liens du cabinet, « Toujours à jour » (demande un historique des reconfirmations).
-5. **CX4, clé d’accès** : plugin passkey de Better Auth (dépendance et table).
+2. **B0S, Spécialité et domaines de soins** : fait le 2026-10-15. Reste à arbitrer son poids (aujourd’hui +8 % dès deux domaines, sans gain affiché).
+3. **Filtres de recherche laboratoire** : faits le 2026-10-15 (savoir-faire, matériau, usinage, STL, 3D, ramassage). Reste possible : « dessert ma zone » et un filtre par délai.
+4. **Tâches planifiées de l’espace pro** : rappels de fraîcheur, test des liens et purge des documents faits le 2026-10-15. Restent « Toujours à jour » (historique des reconfirmations) et la clôture des contestations à J+7.
+5. **CX4, clé d’accès** : faite le 2026-10-17. À tester sur dentalmap.fr avec un vrai compte (les clés sont liées au domaine : rien ne marche sur une prévisualisation Vercel).
 6. **P1 et P2** (personnaliser, retour à la fiche) : écrans courts, non construits.
 7. **Emploi** (SE1 à SE5, espaces candidat et étudiant, offres, candidatures) : le plus gros lot restant, 33 écrans. Seule la partie publique a une maquette de code (`/maquettes/emploi`) ; les écrans de l’espace n’ont pas de node id dans `parcours.json`. À dessiner et figer dans Figma avant de coder.
 8. **Statistiques et notifications** du tableau de bord : « Bientôt » dans la navigation, aucune donnée derrière.

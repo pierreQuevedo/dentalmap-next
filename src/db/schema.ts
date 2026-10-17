@@ -389,6 +389,16 @@ export const fichesCompletees = pgTable('fiches_completees', {
   delaisConfirmesLe: timestamp('delais_confirmes_le', { withTimezone: true }),
   zoneConfirmeeLe: timestamp('zone_confirmee_le', { withTimezone: true }),
   realisationsConfirmeesLe: timestamp('realisations_confirmees_le', { withTimezone: true }),
+  /*
+   * Tâches planifiées : dernier rappel de fraîcheur envoyé (un par mois au
+   * plus), rappels coupés par le professionnel (lien de chaque email), test
+   * hebdomadaire des liens du cabinet et nombre d'échecs consécutifs par lien
+   * (`{ site: 2 }` : masqué sur la fiche à partir de deux).
+   */
+  rappelFraicheurLe: timestamp('rappel_fraicheur_le', { withTimezone: true }),
+  rappelsCoupesLe: timestamp('rappels_coupes_le', { withTimezone: true }),
+  liensTestesLe: timestamp('liens_testes_le', { withTimezone: true }),
+  liensEchecs: jsonb('liens_echecs').$type<{ site?: number; rdv?: number }>().notNull().default({}),
   /** Laboratoire intégré à un cabinet : la fiche du praticien liée (LK1). Les deux fiches restent distinctes. */
   praticienLieId: text('praticien_lie_id').references(() => praticiens.id, { onDelete: 'set null' }),
   /** Dernière étape du parcours d'accueil enregistrée, de 0 à 5. */

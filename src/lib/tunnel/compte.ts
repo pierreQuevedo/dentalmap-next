@@ -151,7 +151,7 @@ export async function rechercherMaFiche(profession: Role, q: string): Promise<Fi
            c.nom AS commune_nom, l.code_postal,
            EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = p.id AND v.statut = 'acceptee') AS deja_geree
     FROM praticiens p
-    LEFT JOIN lieux_exercice l ON l.praticien_id = p.id AND l.principal
+    LEFT JOIN LATERAL (SELECT x.code_postal, x.code_insee FROM lieux_exercice x WHERE x.praticien_id = p.id ORDER BY x.principal DESC, x.id LIMIT 1) l ON true
     LEFT JOIN communes c ON c.code_insee = l.code_insee
     WHERE p.deleted_at IS NULL AND p.profession = ANY(ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(professions)}::jsonb))::text[])
       AND (
@@ -220,7 +220,11 @@ export async function getFavoris(userId: string): Promise<Favori[]> {
            c.nom AS commune_nom, c.slug AS commune_slug, d.slug AS departement_slug, f.ajoute_le
     FROM favoris f
     JOIN praticiens p ON p.id = f.praticien_id AND p.deleted_at IS NULL
-    LEFT JOIN lieux_exercice l ON l.praticien_id = p.id AND l.principal
+    -- Le lieu principal, sinon le premier : près d'une fiche sur quatre n'en marque aucun comme principal.
+    LEFT JOIN LATERAL (
+      SELECT x.adresse_ligne, x.code_postal, x.code_insee FROM lieux_exercice x
+      WHERE x.praticien_id = p.id ORDER BY x.principal DESC, x.id LIMIT 1
+    ) l ON true
     LEFT JOIN communes c ON c.code_insee = l.code_insee
     LEFT JOIN departements d ON d.code = c.departement_code
     WHERE f.user_id = ${userId}::uuid
@@ -303,7 +307,7 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     FROM revendications r
     JOIN "user" u ON u.id = r.user_id
     JOIN praticiens p ON p.id = r.praticien_id
-    LEFT JOIN lieux_exercice l ON l.praticien_id = p.id AND l.principal
+    LEFT JOIN LATERAL (SELECT x.code_postal, x.code_insee FROM lieux_exercice x WHERE x.praticien_id = p.id ORDER BY x.principal DESC, x.id LIMIT 1) l ON true
     LEFT JOIN communes c ON c.code_insee = l.code_insee
     WHERE r.statut = 'en_attente'
     ORDER BY r.demande_le ASC

@@ -171,7 +171,7 @@ async function lireDemande(id: string): Promise<Demande | null> {
     FROM revendications r
     JOIN "user" u ON u.id = r.user_id
     JOIN praticiens p ON p.id = r.praticien_id
-    LEFT JOIN lieux_exercice l ON l.praticien_id = p.id AND l.principal
+    LEFT JOIN LATERAL (SELECT x.code_postal, x.code_insee FROM lieux_exercice x WHERE x.praticien_id = p.id ORDER BY x.principal DESC, x.id LIMIT 1) l ON true
     LEFT JOIN communes c ON c.code_insee = l.code_insee
     LEFT JOIN departements d ON d.code = c.departement_code
     WHERE r.id = ${id} LIMIT 1

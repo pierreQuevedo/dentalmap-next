@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { Lock, Smartphone } from 'lucide-react'
+import { KeyRound, Lock, Smartphone } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 import { pastille, saisie } from '@/components/compte/ui'
 
@@ -101,6 +101,72 @@ export function Appareils({ jetonCourant }: { jetonCourant: string | null }) {
           Déconnecter les autres appareils
         </button>
       )}
+    </div>
+  )
+}
+
+type Cle = { id: string; name?: string | null; createdAt?: Date | string | null; deviceType?: string }
+
+/** Clés d'accès (CX4) : les voir, en ajouter une sur cet appareil, en retirer une. Le mot de passe reste valable. */
+export function ClesAcces() {
+  const [cles, setCles] = useState<Cle[] | null>(null)
+  const [message, setMessage] = useState<{ ok: boolean; texte: string } | null>(null)
+  const [enCours, demarrer] = useTransition()
+  const recharger = () =>
+    authClient.passkey.listUserPasskeys().then(({ data }) => setCles(((data as Cle[] | null) ?? []).sort((a, b) => +new Date(b.createdAt ?? 0) - +new Date(a.createdAt ?? 0))))
+  useEffect(() => {
+    recharger()
+  }, [])
+  if (!cles) return <p className="mt-3 text-sm text-fg-2">Chargement des clés…</p>
+  return (
+    <div>
+      {cles.length === 0 ? (
+        <p className="mt-4 text-sm text-fg-2">Aucune clé. Avec une clé d’accès, vous vous connectez avec Face ID, Touch ID ou le code de votre appareil, sans mot de passe.</p>
+      ) : (
+        <ul className="mt-2 divide-y divide-line text-sm">
+          {cles.map((c) => (
+            <li key={c.id} className="flex items-center justify-between gap-3 py-3">
+              <span className="flex items-center gap-2 text-fg">
+                <KeyRound className="size-4 text-fg-2" aria-hidden /> {c.name || 'Clé d’accès'}
+                {c.createdAt && <span className="text-fg-2">· créée le {new Date(c.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+              </span>
+              <button
+                type="button"
+                disabled={enCours}
+                onClick={() =>
+                  demarrer(async () => {
+                    const { error } = await authClient.passkey.deletePasskey({ id: c.id })
+                    setMessage(error ? { ok: false, texte: 'La clé n’a pas pu être retirée.' } : { ok: true, texte: 'Clé retirée. Pensez à la supprimer aussi de votre appareil.' })
+                    await recharger()
+                  })
+                }
+                className="cursor-pointer text-sm font-medium text-fg underline underline-offset-4 hover:no-underline disabled:opacity-60"
+              >
+                Retirer
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {message && (
+        <p role="status" className={`mt-2 text-sm ${message.ok ? 'text-teal' : 'text-destructive'}`}>
+          {message.texte}
+        </p>
+      )}
+      <button
+        type="button"
+        disabled={enCours}
+        onClick={() =>
+          demarrer(async () => {
+            const r = await authClient.passkey.addPasskey()
+            setMessage(r?.error ? { ok: false, texte: 'La clé n’a pas été créée : la demande a été annulée ou votre appareil l’a refusée.' } : { ok: true, texte: 'Clé créée sur cet appareil.' })
+            await recharger()
+          })
+        }
+        className="mt-3 inline-flex h-10 cursor-pointer items-center gap-2 rounded-full border border-line px-4 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-60"
+      >
+        <KeyRound className="size-4" aria-hidden /> {cles.length ? 'Ajouter une clé sur cet appareil' : 'Créer une clé d’accès'}
+      </button>
     </div>
   )
 }

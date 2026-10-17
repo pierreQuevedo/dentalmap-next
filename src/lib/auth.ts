@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { emailOTP } from 'better-auth/plugins'
+import { passkey } from '@better-auth/passkey'
 import { nextCookies } from 'better-auth/next-js'
 import { db } from '@/db'
 import { envoyerBienvenue, envoyerCode } from '@/lib/email'
@@ -19,8 +20,10 @@ const origines = [SITE_URL, process.env.BETTER_AUTH_URL, process.env.VERCEL_URL 
   .filter((v): v is string => Boolean(v))
   .map((v) => v.replace(/\/$/, ''))
 
+const baseURL = process.env.BETTER_AUTH_URL ?? SITE_URL
+
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL ?? SITE_URL,
+  baseURL,
   trustedOrigins: [...new Set(origines)],
   database: drizzleAdapter(db, { provider: 'pg' }),
   /*
@@ -60,6 +63,13 @@ export const auth = betterAuth({
       sendVerificationOnSignUp: true,
       overrideDefaultEmailVerification: true,
     }),
+    /*
+     * CX4 : clé d'accès (WebAuthn). Liée au domaine de `baseURL` : une clé
+     * créée sur dentalmap.fr ne sert pas sur un déploiement de
+     * prévisualisation, qui garde l'adresse et le mot de passe. Le mot de
+     * passe reste valable dans tous les cas.
+     */
+    passkey({ rpName: 'DentalMap', rpID: new URL(baseURL).hostname, origin: baseURL.replace(/\/$/, '') }),
     nextCookies(),
   ],
   session: { expiresIn: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },

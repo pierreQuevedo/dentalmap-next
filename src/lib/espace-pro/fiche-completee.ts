@@ -125,6 +125,9 @@ export const ORIENTATIONS: readonly { code: string; libelle: string; court: stri
   { code: 'cancerologie_tete_cou', libelle: 'Cancérologie de la tête et du cou', court: 'Cancérologie tête et cou', professions: ['orl'] },
   { code: 'orl_pediatrique', libelle: 'ORL pédiatrique', court: 'ORL pédiatrique', professions: ['orl'] },
 ]
+/** Domaines d'exercice déclarés : cinq au plus (B0S et mission « Domaines de soins »). */
+export const MAX_ORIENTATIONS = 5
+
 export type CodeOrientation = (typeof ORIENTATIONS)[number]['code']
 
 /** Les orientations qu'une profession peut déclarer, dans l'ordre de la liste. Aucune pour un laboratoire. */
@@ -278,6 +281,10 @@ export type FicheCompletee = {
   photoUrl: string | null
   siteWeb: string | null
   rdvEnLigne: string | null
+  /** Échecs consécutifs du test hebdomadaire, par lien ; masqué sur la fiche à partir de `ECHECS_MASQUE`. */
+  liensEchecs: { site?: number; rdv?: number }
+  liensTestesLe: string | null
+  rappelsCoupesLe: string | null
   horairesConfirmesLe: string | null
   conventionnementConfirmeLe: string | null
   accueilConfirmeLe: string | null
@@ -325,6 +332,9 @@ export const FICHE_VIDE: FicheCompletee = {
   photoUrl: null,
   siteWeb: null,
   rdvEnLigne: null,
+  liensEchecs: {},
+  liensTestesLe: null,
+  rappelsCoupesLe: null,
   horairesConfirmesLe: null,
   conventionnementConfirmeLe: null,
   accueilConfirmeLe: null,
@@ -384,4 +394,11 @@ export function aDuContenu(f: FicheCompletee | null): f is FicheCompletee {
 
 export function libelle<T extends string>(liste: readonly { code: T; libelle: string }[], code: string): string {
   return liste.find((e) => e.code === code)?.libelle ?? code
+}
+
+/** Un lien du cabinet qui a échoué deux semaines de suite n'est plus affiché aux patients. */
+export const ECHECS_MASQUE = 2
+export function lienPublic(f: Pick<FicheCompletee, 'siteWeb' | 'rdvEnLigne' | 'liensEchecs'>, lien: 'site' | 'rdv'): string | null {
+  const url = lien === 'site' ? f.siteWeb : f.rdvEnLigne
+  return url && (f.liensEchecs[lien] ?? 0) < ECHECS_MASQUE ? url : null
 }

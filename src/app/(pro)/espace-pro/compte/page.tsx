@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import Link from 'next/link'
-import { CreditCard, GraduationCap, KeyRound, Mail, Smartphone } from 'lucide-react'
+import { CreditCard, Fingerprint, GraduationCap, KeyRound, Mail, Smartphone } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
-import { Appareils, MotDePasse } from '@/components/espace/compte-securite'
+import { Appareils, ClesAcces, MotDePasse } from '@/components/espace/compte-securite'
 import { auth } from '@/lib/auth'
 import { chargerTableau } from '../_commun'
 
@@ -38,6 +38,10 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <Tuile>
           <TitreTuile i={KeyRound}>Mot de passe</TitreTuile>
           <MotDePasse />
+        </Tuile>
+        <Tuile>
+          <TitreTuile i={Fingerprint}>Clés d’accès</TitreTuile>
+          <ClesAcces />
         </Tuile>
         <Tuile>
           <TitreTuile i={Smartphone}>Appareils connectés</TitreTuile>

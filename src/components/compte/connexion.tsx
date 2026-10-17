@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useTransition } from 'react'
-import { ArrowRight, BriefcaseBusiness, Building2, CreditCard, Eye, EyeOff, Hourglass, Lock, Mail, RefreshCw, UserRound } from 'lucide-react'
+import { useState, useSyncExternalStore, useTransition } from 'react'
+import { ArrowRight, BriefcaseBusiness, Building2, CreditCard, Eye, EyeOff, Hourglass, KeyRound, Lock, Mail, RefreshCw, UserRound } from 'lucide-react'
 import { emailOtp, signIn, signUp } from '@/lib/auth-client'
 import { chemin } from '@/lib/navigation'
 import type { Role } from '@/lib/tunnel/etapes'
@@ -72,6 +72,12 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
   const [adresseVue, setAdresseVue] = useState(false)
   const [voie, setVoie] = useState<Voie>('structure')
   const [enCours, demarrer] = useTransition()
+  /** Le navigateur sait-il utiliser une clé d'accès ? Faux au rendu serveur, lu dans le navigateur ensuite. */
+  const webauthn = useSyncExternalStore(
+    () => () => {},
+    () => 'PublicKeyCredential' in window,
+    () => false,
+  )
 
   const aller = (e: Etat) => {
     setErreur(null)
@@ -106,7 +112,7 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
     setErreur(null)
     demarrer(async () => {
       const { error } = await signIn.email({ email, password: motDePasse })
-      if (!error) return window.location.assign(chemin(retour))
+      if (!error) return window.location.assign(chemin(`/connexion/cle-d-acces/?retour=${encodeURIComponent(retour)}`))
       if (error.status === 403) {
         // Adresse jamais confirmée : on envoie un code et on passe à la confirmation.
         await emailOtp.sendVerificationOtp({ email, type: 'email-verification' })
@@ -117,6 +123,16 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
       }
       // Le message ne dit jamais lequel des deux est faux.
       setRefuse(true)
+    })
+  }
+
+  /** Connexion par clé d'accès : le navigateur propose les clés enregistrées pour DentalMap. */
+  const connexionParCle = () => {
+    setErreur(null)
+    demarrer(async () => {
+      const { error } = await signIn.passkey()
+      if (!error) return window.location.assign(chemin(retour))
+      setErreur('La connexion par clé d’accès n’a pas abouti. Réessayez, ou utilisez votre adresse et votre mot de passe.')
     })
   }
 
@@ -279,6 +295,17 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
               {enCours ? <Point /> : 'Se connecter'}
               {!enCours && <ArrowRight className="size-4" aria-hidden />}
             </button>
+            {webauthn && (
+              <button type="button" onClick={connexionParCle} disabled={enCours} className={`${secondaire} mt-2.5`}>
+                <KeyRound className="size-4" aria-hidden />
+                Se connecter avec une clé d’accès
+              </button>
+            )}
+            {erreur && (
+              <Encart ton="erreur" className="mt-4">
+                {erreur}
+              </Encart>
+            )}
             {refuse ? (
               <p className="mt-4 text-sm">
                 <button type="button" onClick={() => aller('oubli')} className={lien}>

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    { "path": "/api/cron/purge-documents/", "schedule": "0 2 * * *" },
+    { "path": "/api/cron/liens/", "schedule": "0 3 * * *" },
+    { "path": "/api/cron/alertes/", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/alertes-formation/", "schedule": "0 7 * * *" },
+    { "path": "/api/cron/alertes-cession/", "schedule": "30 7 * * *" },
+    { "path": "/api/cron/rappels-fraicheur/", "schedule": "0 8 * * *" }
+  ]
+}

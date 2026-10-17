@@ -18,6 +18,7 @@ import {
   ACCES_PMR,
   AGES_MINIMUM,
   LANGUES,
+  MAX_ORIENTATIONS,
   PRESENTATION_MAX,
   SECTEURS,
   TIERS_PAYANT,
@@ -162,6 +163,7 @@ export async function enregistrerSoins(donnees: FormData): Promise<never> {
   const permis = new Set(orientationsDe(profession).map((o) => o.code))
   const orientations = donnees.getAll('orientation').map(String).filter((c) => permis.has(c))
   if (!slug) return erreur(donnees, 'Fiche introuvable.')
+  if (orientations.length > MAX_ORIENTATIONS) return erreur(donnees, `Choisissez ${MAX_ORIENTATIONS} domaines au plus.`)
   return ecrire(donnees, () => ({ orientations }), '/espace-pro/missions/')
 }
 
@@ -169,7 +171,7 @@ export async function enregistrerLiens(donnees: FormData): Promise<never> {
   const site = String(donnees.get('site') ?? '').trim()
   const rdv = String(donnees.get('rdv') ?? '').trim()
   if ((site && !lienValide(site)) || (rdv && !lienValide(rdv))) return erreur(donnees, 'Une adresse ne ressemble pas à un lien web : elle doit commencer par https://')
-  return ecrire(donnees, () => ({ siteWeb: site || null, rdvEnLigne: rdv || null }), '/espace-pro/missions/')
+  return ecrire(donnees, () => ({ siteWeb: site || null, rdvEnLigne: rdv || null, liensEchecs: {}, liensTestesLe: null }), '/espace-pro/missions/')
 }
 
 /** MIS-1 : la photo, déjà téléversée en stockage public ; ici, son adresse. Vide : retirer. */
@@ -315,4 +317,13 @@ export async function lierPraticien(donnees: FormData): Promise<never> {
   const { rows } = cible ? await db.execute<{ id: string }>(sql`SELECT id FROM praticiens WHERE slug = ${cible} AND profession = 'dentiste' AND deleted_at IS NULL LIMIT 1`) : { rows: [] }
   if (!rows[0]) return erreur(donnees, 'Fiche praticien introuvable.')
   return ecrire(donnees, () => ({ praticienLieId: rows[0].id }), '/espace-pro/')
+}
+
+/* ------------------------------------------------------------------ */
+/* Rappels par email                                                    */
+/* ------------------------------------------------------------------ */
+
+/** Rétablir les rappels coupés depuis un email : un bouton de « Fraîcheur ». */
+export async function retablirRappels(donnees: FormData): Promise<never> {
+  return ecrire(donnees, () => ({ rappelsCoupesLe: null }), '/espace-pro/fraicheur/')
 }

@@ -336,8 +336,9 @@ Toutes les pages `(pro)` sont dynamiques (session). La page fiche publique rév�
 | Job | Fréquence | Action |
 |---|---|---|
 | `alertes-registre` | après `sync-ans` et `sync-sirene` | Notifier les `alertes_registre` dont l'identifiant vient d'apparaître ; appliquer les revendications `en_attente_fiche` |
-| `rappels-fraicheur` | quotidien | J+75 horaires, 5 mois délais labo, etc. Respect du plafond d'envoi |
-| `purge-documents` | quotidien | Supprimer les Kbis et attestations 30 j après décision (les justificatifs santé ne sont jamais stockés) |
+| `rappels-fraicheur` | quotidien, `/api/cron/rappels-fraicheur/` (`vercel.json`) | Blocs en rappel ou échus selon `fraicheurDe` et `fraicheurLabo`, un email par fiche et par mois au plus, coupure par lien signé (`src/lib/espace-pro/taches.ts`) |
+| `liens` | quotidien par lots, chaque fiche une fois par semaine, `/api/cron/liens/` | Tester site et prise de rendez-vous ; masquer après deux échecs consécutifs et prévenir le professionnel |
+| `purge-documents` | quotidien, `/api/cron/purge-documents/` | Supprimer Kbis, mandats et attestations 30 j après décision ; un praticien ne dépose plus de document |
 | `purge-candidatures` | quotidien | Supprimer candidatures et CV 6 mois après la clôture de l’offre (durée à valider) |
 | `alertes-emploi` | quotidien | Envoyer les nouvelles offres correspondant aux alertes, seulement s’il y a du nouveau |
 | `alertes-formation` | à chaque publication (webhook `/api/revalidate` sur `wp:formation`, et mise en ligne depuis la modération), filet quotidien `/api/cron/alertes-formation` (`CRON_SECRET`) | Envoyer aux alertes confirmées les formations privées publiées depuis leur dernier envoi qui correspondent à leurs thèmes, région et public ; un email par semaine au plus (`src/lib/formation/alertes.ts`) |

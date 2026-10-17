@@ -8,7 +8,7 @@ import type { FicheCompletee } from './fiche-completee'
  */
 export const COLONNES_FICHE = sql`
   f.horaires, f.langues, f.accessibilite, f.accessibilite_commentaire, f.paiements, f.tiers_payant, f.orientations,
-  f.secteur, f.acces_pmr, f.age_minimum, f.presentation, f.photo_url, f.site_web, f.rdv_en_ligne,
+  f.secteur, f.acces_pmr, f.age_minimum, f.presentation, f.photo_url, f.site_web, f.rdv_en_ligne, f.liens_echecs, f.liens_testes_le, f.rappels_coupes_le,
   f.horaires_confirmes_le, f.conventionnement_confirme_le, f.accueil_confirme_le, f.presentation_confirmee_le, f.photo_confirmee_le,
   f.publiee_le, f.etape, f.termine_le, f.updated_at,
   f.techniques, f.materiaux, f.usinage, f.empreintes_stl, f.impression_3d, f.delais, f.rayon_km, f.ramassage, f.jours_ramassage, f.transporteur,
@@ -30,6 +30,9 @@ export type LigneFiche = {
   photo_url: string | null
   site_web: string | null
   rdv_en_ligne: string | null
+  liens_echecs: { site?: number; rdv?: number } | null
+  liens_testes_le: string | null
+  rappels_coupes_le: string | null
   horaires_confirmes_le: string | null
   conventionnement_confirme_le: string | null
   accueil_confirme_le: string | null
@@ -76,6 +79,9 @@ export function ficheDepuisLigne(r: LigneFiche): FicheCompletee {
     photoUrl: r.photo_url,
     siteWeb: r.site_web,
     rdvEnLigne: r.rdv_en_ligne,
+    liensEchecs: r.liens_echecs ?? {},
+    liensTestesLe: r.liens_testes_le,
+    rappelsCoupesLe: r.rappels_coupes_le,
     horairesConfirmesLe: r.horaires_confirmes_le,
     conventionnementConfirmeLe: r.conventionnement_confirme_le,
     accueilConfirmeLe: r.accueil_confirme_le,

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { RefreshCw } from 'lucide-react'
 import { CoqueEspace } from '@/components/espace/coque'
 import { etatFraicheur } from '@/components/espace/tuiles'
-import { reconfirmer } from '@/lib/espace-pro/actions-fiche'
+import { reconfirmer, retablirRappels } from '@/lib/espace-pro/actions-fiche'
 import { chargerTableau } from '../_commun'
 
 export const metadata: Metadata = { title: 'Fraîcheur', robots: { index: false, follow: false } }
@@ -50,6 +50,17 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         </ul>
       )}
       <p className="mt-4 text-xs text-fg-2">Reconfirmer ne demande aucune ressaisie. Pour changer une information, passez par « Ma fiche ».</p>
+      {espace.completee?.rappelsCoupesLe ? (
+        <form action={retablirRappels} className="mt-2 flex flex-wrap items-center gap-x-3 text-xs text-fg-2">
+          <input type="hidden" name="fiche" value={espace.fiche.slug} />
+          <input type="hidden" name="suite" value={`/espace-pro/fraicheur/${q}`} />
+          <input type="hidden" name="ici" value={`/espace-pro/fraicheur/${q}`} />
+          Rappels par email coupés le {date(espace.completee.rappelsCoupesLe)}.
+          <button type="submit" className="cursor-pointer font-medium text-fg underline underline-offset-4">Les rétablir</button>
+        </form>
+      ) : (
+        <p className="mt-2 text-xs text-fg-2">Un email vous prévient quand un bloc approche de son échéance, un par mois au plus.</p>
+      )}
     </CoqueEspace>
   )
 }

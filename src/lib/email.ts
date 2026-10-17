@@ -177,6 +177,41 @@ export async function envoyerFicheEnLigne(to: string, fiche: string, chemin: str
   })
 }
 
+/**
+ * Rappel de fraîcheur : les informations déclarées qui approchent de leur
+ * échéance ou l'ont passée. Un par fiche et par mois au plus ; le lien du
+ * bas coupe les rappels de cette fiche.
+ */
+export async function envoyerRappelFraicheur(to: string, fiche: string, slug: string, blocs: [string, string][], jetonCoupure: string) {
+  const n = blocs.length
+  await envoyer(to, n > 1 ? `${n} informations de votre fiche à reconfirmer` : 'Une information de votre fiche à reconfirmer', {
+    titre: n > 1 ? `${n} informations à reconfirmer` : 'Une information à reconfirmer',
+    blocs: [
+      { type: 'texte', texte: `Sur la fiche « ${fiche} », ces informations n’ont pas été confirmées depuis longtemps. Si rien n’a changé, une confirmation suffit : un clic par bloc.` },
+      { type: 'champs', lignes: blocs },
+      { type: 'bouton', libelle: 'Reconfirmer mes informations', url: `${SITE}/espace-pro/fraicheur/?fiche=${encodeURIComponent(slug)}` },
+      { type: 'texte', texte: 'Des horaires non confirmés depuis six mois sont signalés aux patients sur la fiche.' },
+      { type: 'lien', libelle: 'Ne plus recevoir ces rappels pour cette fiche', url: `${SITE}/rappels/couper/${jetonCoupure}/` },
+    ],
+    raison: 'Vous recevez cet email parce que vous gérez cette fiche sur DentalMap.',
+  })
+}
+
+/** Un lien du cabinet ne répond plus depuis deux semaines : il est masqué sur la fiche. */
+export async function envoyerLienMasque(to: string, fiche: string, slug: string, liens: string[], jetonCoupure: string) {
+  await envoyer(to, liens.length > 1 ? 'Deux liens de votre fiche ne répondent plus' : 'Un lien de votre fiche ne répond plus', {
+    titre: liens.length > 1 ? 'Deux liens ne répondent plus' : 'Un lien ne répond plus',
+    blocs: [
+      { type: 'texte', texte: `Nous testons chaque semaine les liens de la fiche « ${fiche} ». Ces adresses n’ont pas répondu deux semaines de suite : leurs boutons sont masqués pour les patients.` },
+      { type: 'champs', lignes: liens.map((l) => ['Lien', l] as [string, string]) },
+      { type: 'bouton', libelle: 'Corriger les liens', url: `${SITE}/espace-pro/missions/liens/?fiche=${encodeURIComponent(slug)}` },
+      { type: 'texte', texte: 'Dès que vous enregistrez une adresse, le bouton réapparaît et le test reprend.' },
+      { type: 'lien', libelle: 'Ne plus recevoir ces rappels pour cette fiche', url: `${SITE}/rappels/couper/${jetonCoupure}/` },
+    ],
+    raison: 'Vous recevez cet email parce que vous gérez cette fiche sur DentalMap.',
+  })
+}
+
 /* ------------------------------------------------------------------ */
 /* École ou organisme                                                   */
 /* ------------------------------------------------------------------ */

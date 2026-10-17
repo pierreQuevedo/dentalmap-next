@@ -1,5 +1,6 @@
 import { createAuthClient } from 'better-auth/react'
 import { emailOTPClient, inferAdditionalFields } from 'better-auth/client/plugins'
+import { passkeyClient } from '@better-auth/passkey/client'
 import type { auth } from './auth'
 
 /**
@@ -15,7 +16,7 @@ import type { auth } from './auth'
  * routeur interne de Better Auth ne la reconnaissant pas non plus.
  */
 export const authClient = createAuthClient({
-  plugins: [emailOTPClient(), inferAdditionalFields<typeof auth>()],
+  plugins: [emailOTPClient(), passkeyClient(), inferAdditionalFields<typeof auth>()],
   fetchOptions: {
     customFetchImpl: (entree, init) => {
       const base = typeof window === 'undefined' ? 'http://localhost' : window.location.origin
@@ -26,4 +27,4 @@ export const authClient = createAuthClient({
   },
 })
 
-export const { signIn, signUp, signOut, useSession, emailOtp } = authClient
+export const { signIn, signUp, signOut, useSession, emailOtp, passkey } = authClient

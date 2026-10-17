@@ -6,15 +6,15 @@ import { Anneau } from '@/components/espace/apercu'
 import { chemin } from '@/lib/navigation'
 import { publierFiche } from '@/lib/espace-pro/actions-fiche'
 import { LIBELLE_PALIER } from '@/lib/espace-pro/force'
-import { resumeAccueil, resumeConventionnement, resumeSemaine } from '@/lib/espace-pro/resumes'
+import { resumeAccueil, resumeConventionnement, resumeSemaine, resumeSoins } from '@/lib/espace-pro/resumes'
 import { CoquilleOnboarding, chargerOnboarding, versEtape } from '../_commun'
 
 export const metadata: Metadata = { title: 'Voici ce que verront les patients', robots: { index: false, follow: false } }
 export const instant = false
 
 /**
- * B7 : le récapitulatif avant publication. Les trois réponses, chacune
- * modifiable ; photo, présentation et soins annoncés comme missions. La
+ * B7 : le récapitulatif avant publication. Les quatre réponses, chacune
+ * modifiable ; photo et présentation annoncées comme missions. La
  * publication est immédiate, sauf si la revendication attend encore la
  * vérification : la fiche est alors prête, et publiée dès l'accord.
  */
@@ -23,16 +23,17 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { fiche, completee, force, palier, missions } = espace
   const verifiee = espace.ctx.identiteVerifiee
   const reponses = [
+    { titre: 'Domaines de soins', valeur: resumeSoins(completee, fiche.profession), etape: 'specialite' as const },
     { titre: 'Horaires', valeur: resumeSemaine(completee), etape: 'horaires' as const },
     { titre: 'Conventionnement', valeur: resumeConventionnement(completee), etape: 'conventionnement' as const },
     { titre: 'Accueil', valeur: resumeAccueil(completee), etape: 'accueil' as const },
   ]
-  const plusTard = missions.filter((m) => ['photo', 'presentation', 'soins'].includes(m.cle) && !m.faite)
+  const plusTard = missions.filter((m) => ['photo', 'presentation'].includes(m.cle) && !m.faite)
 
   return (
     <CoquilleOnboarding espace={espace}>
       <h1 className={titre}>Voici ce que verront les patients</h1>
-      <p className="mt-2 text-sm text-fg-2">Vérifiez l’aperçu, puis publiez. Photo, présentation et domaines de soins se complètent ensuite depuis votre espace, à votre rythme.</p>
+      <p className="mt-2 text-sm text-fg-2">Vérifiez l’aperçu, puis publiez. Photo et présentation se complètent ensuite depuis votre espace, à votre rythme.</p>
       <div className="mt-6 flex items-center gap-4">
         <Anneau pct={force.total} taille={72} legende={LIBELLE_PALIER[palier]} />
         <p className="text-sm text-fg-2">

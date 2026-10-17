@@ -631,12 +631,12 @@ Lecture : **Objectif** dit pourquoi l'écran existe, **Règles** ce qui doit êt
 **Spécialité et domaines de soins** · titre affiché : « Votre spécialité et vos domaines de soins »
 
 - Route : `/espace-pro/onboarding/specialite`
-- Figma : node id à reporter (écran ajouté le 11 octobre 2026, absent de la page Figma).
+- Figma : section 200:7039 (desktop 200:7057, mobile 200:7211). Codé le 15 octobre 2026.
 - Action principale : « Continuer »
 - Action secondaire : « Passer cette étape »
 - Objectif : Afficher la qualification du registre et recueillir les domaines d'exercice.
 - Règles : Étape 1 sur 4. Qualification lue au registre (Annuaire Santé), verrouillée : omnipratique, ou spécialité qualifiante (orthopédie dento-faciale, chirurgie orale, médecine bucco-dentaire). Domaines d'exercice déclarés, 5 au plus, liste fermée : soins conservateurs, endodontie, parodontologie, implantologie, prothèse, orthodontie, soins des enfants, chirurgie orale, esthétique, occlusodontie, soins sous sédation, patients en situation de handicap. Affichés « renseigné par le praticien ». Ouvre le filtre « Domaine de soins ». Remplace la mission « Domaines de soins » du tableau de bord (ancienne B6). Poids à arbitrer : la mission valait +8 %, aucun gain affiché sur le bouton tant qu'il n'est pas fixé.
-- Données : Lu : qualification (praticiens, Annuaire Santé). Écrit : fiches_completees.domaines (text[]).
+- Données : Lu : qualification (praticiens.specialite, Annuaire Santé). Écrit : fiches_completees.orientations (text[]), la colonne existante de la mission.
 - Sorties :
   - → **B1** : valider ou passer
 
