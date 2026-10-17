@@ -4,6 +4,7 @@ import { chemin } from '@/lib/navigation'
 import { couperRappels } from '@/lib/espace-pro/actions-rappels'
 
 export const metadata: Metadata = { title: 'Ne plus recevoir les rappels', robots: { index: false, follow: false } }
+export const instant = false
 
 /**
  * Le lien du bas des rappels de fraîcheur et des alertes de liens : il coupe
