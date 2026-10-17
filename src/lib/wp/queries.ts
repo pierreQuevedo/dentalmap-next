@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache'
-import { decoderEntites, lireDiplomes, type DiplomeEcole } from '@/lib/formation/faculte'
+import { decoderEntites, lireDiplomes, lireUai, type DiplomeEcole } from '@/lib/formation/faculte'
+import { aUnType } from '@/lib/formation/types'
 import { graphql } from './generated'
 import { wp } from './client'
 
@@ -364,6 +365,7 @@ export async function getFormationsAccueil(limite = 8): Promise<FormationAccueil
         ? { url: n.featuredImage.node.sourceUrl, alt: n.featuredImage.node.altText ?? '' }
         : null,
     }))
+    .filter(aUnType)
 }
 
 /* ------------------------------------------------------------------ */
@@ -422,6 +424,11 @@ export type FormationResume = {
   /** Diplômes listés dans le contenu balisé d'une école ; vide pour les autres fiches. */
   diplomes: DiplomeEcole[]
   /**
+   * Numéro UAI, quand le contenu le porte : les lycées publics publient une
+   * adresse académique bâtie sur lui (`ce.0340042l@ac-montpellier.fr`).
+   */
+  uai: string | null
+  /**
    * Logo de l'établissement. Le CMS n'a pas de champ pour lui : c'est le
    * média nommé `logo-<slug de la formation>` dans la médiathèque, par
    * convention, en attendant un champ ACF dédié (voir docs/acf).
@@ -471,6 +478,7 @@ function resumeFormation(n: {
       ? { url: n.featuredImage.node.sourceUrl, alt: n.featuredImage.node.altText ?? '' }
       : null,
     diplomes: lireDiplomes(n.content),
+    uai: lireUai(n.content),
     logo: logo?.sourceUrl ? { url: logo.sourceUrl, alt: logo.altText ?? '' } : null,
   }
 }
@@ -488,7 +496,10 @@ export async function getFormations(): Promise<FormationResume[]> {
   cacheTag('wp', 'wp:formation')
   const data = await wp(FormationsDocument, { first: 200 })
   const logos = new Map((data.logos?.nodes ?? []).filter((l) => l.slug?.startsWith(PREFIXE_LOGO)).map((l) => [l.slug!.slice(PREFIXE_LOGO.length), l]))
-  return (data.formations?.nodes ?? []).filter((n) => n.slug && n.title).map((n) => resumeFormation(n, logos.get(n.slug!)))
+  return (data.formations?.nodes ?? [])
+    .filter((n) => n.slug && n.title)
+    .map((n) => resumeFormation(n, logos.get(n.slug!)))
+    .filter(aUnType)
 }
 
 export async function getFormation(slug: string): Promise<FormationComplete | null> {
@@ -498,6 +509,8 @@ export async function getFormation(slug: string): Promise<FormationComplete | nu
   const data = await wp(FormationDocument, { slug, logo: `${PREFIXE_LOGO}${slug}` })
   const n = data.formation
   if (!n?.slug) return null
+  // Sans type connu, la fiche n'existe pas pour le site (voir `aUnType`).
+  if (!aUnType({ type: n.formationFields?.typeFormation?.[0] ?? null })) return null
   return {
     ...resumeFormation(n, data.logo),
     creditImage: texteBrut(n.featuredImage?.node?.caption),

@@ -1,9 +1,9 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { magicLink } from 'better-auth/plugins'
+import { emailOTP } from 'better-auth/plugins'
 import { nextCookies } from 'better-auth/next-js'
 import { db } from '@/db'
-import { envoyerBienvenue, sendMagicLink } from '@/lib/email'
+import { envoyerBienvenue, envoyerCode } from '@/lib/email'
 import { SITE_URL } from '@/lib/seo/site'
 
 /**
@@ -23,7 +23,14 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL ?? SITE_URL,
   trustedOrigins: [...new Set(origines)],
   database: drizzleAdapter(db, { provider: 'pg' }),
-  emailAndPassword: { enabled: true, minPasswordLength: 12 },
+  /*
+   * Connexion par adresse et mot de passe. L'adresse est vérifiée par un code
+   * à six chiffres envoyé par courriel, à l'inscription comme pour un mot de
+   * passe oublié ; un code peut aussi servir à se connecter sans mot de
+   * passe. La session s'ouvre dès que le code de l'inscription est bon.
+   */
+  emailAndPassword: { enabled: true, minPasswordLength: 12, requireEmailVerification: true },
+  emailVerification: { autoSignInAfterVerification: true },
   /*
    * Champs du tunnel sur le compte. `input: true` les rend modifiables par
    * `updateUser`, ce que font les actions du tunnel ; ils ne sont jamais
@@ -45,8 +52,13 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    magicLink({
-      sendMagicLink: async ({ email, url }) => sendMagicLink(email, url),
+    emailOTP({
+      sendVerificationOTP: async ({ email, otp, type }) => envoyerCode(email, otp, type),
+      otpLength: 6,
+      expiresIn: 10 * 60,
+      allowedAttempts: 5,
+      sendVerificationOnSignUp: true,
+      overrideDefaultEmailVerification: true,
     }),
     nextCookies(),
   ],

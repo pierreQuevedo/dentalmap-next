@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { FicheFormation } from '@/components/formation/fiche-formation'
+import { getDeclarationPublique } from '@/lib/espace-pro/etablissement-donnees'
+import { getFormationPrivee } from '@/lib/formation/privee-donnees'
 import type { PointFaculte } from '@/components/formation/carte-faculte'
 import { chemin } from '@/lib/navigation'
 import { enRegion as libelleRegion } from '@/lib/annuaire/libelles'
@@ -44,6 +46,9 @@ export default async function Page(props: { params: Params }) {
   if (!f) notFound()
   if (typeDe(f) !== type) permanentRedirect(chemin(lienFormation(f)))
 
+  const gerable = f.type === 'ecole_prothese' || f.type === 'faculte'
+  const declaration = gerable ? await getDeclarationPublique(f.slug) : undefined
+  const privee = f.type === 'privee' ? await getFormationPrivee(f.slug) : null
   const fac = type === 'facultes-odontologie' ? lireFaculte(f.contenu) : null
   const ecole = type === 'ecoles-de-prothese' ? lireEcole(f.contenu) : null
 
@@ -82,6 +87,8 @@ export default async function Page(props: { params: Params }) {
       points={points}
       autres={autres}
       regionNom={enRegion.length > 0 && departement ? libelleRegion(departement.regionSlug, departement.regionNom) : null}
+      declaration={declaration}
+      privee={privee}
     />
   )
 }

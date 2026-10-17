@@ -3,6 +3,7 @@ import type { Profession } from '@/lib/annuaire/types'
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import type { FicheCompletee } from './fiche-completee'
+import { COLONNES_FICHE, ficheDepuisLigne, type LigneFiche } from './fiche-lecture'
 
 /**
  * Accès aux revendications, côté espace pro.
@@ -72,7 +73,7 @@ export async function detientLaFiche(userId: string, praticienId: string): Promi
   const { rows } = await db.execute<{ ok: boolean }>(sql`
     SELECT EXISTS (
       SELECT 1 FROM revendications
-      WHERE user_id = ${userId}::uuid AND praticien_id = ${praticienId} AND statut IN ('acceptee', 'en_attente')
+      WHERE user_id = ${userId}::uuid AND praticien_id = ${praticienId} AND statut IN ('acceptee', 'en_attente') AND objet = 'revendication'
     ) AS ok
   `)
   return rows[0]?.ok ?? false
@@ -81,7 +82,7 @@ export async function detientLaFiche(userId: string, praticienId: string): Promi
 /** Vrai si une revendication acceptée existe pour ce praticien, quel que soit le compte. */
 export async function ficheAttribuee(praticienId: string): Promise<boolean> {
   const { rows } = await db.execute<{ ok: boolean }>(sql`
-    SELECT EXISTS (SELECT 1 FROM revendications WHERE praticien_id = ${praticienId} AND statut = 'acceptee') AS ok
+    SELECT EXISTS (SELECT 1 FROM revendications WHERE praticien_id = ${praticienId} AND statut = 'acceptee' AND objet = 'revendication') AS ok
   `)
   return rows[0]?.ok ?? false
 }
@@ -105,6 +106,7 @@ export async function accorderParPsc(args: {
             ${args.identifiantNational}, ${args.rpps}, now(), now())
     ON CONFLICT (praticien_id, user_id) DO UPDATE
       SET statut = 'acceptee',
+          objet = 'revendication',
           methode = 'pro_sante_connect',
           identifiant_psc = EXCLUDED.identifiant_psc,
           rpps_verifie = EXCLUDED.rpps_verifie,
@@ -122,7 +124,7 @@ export type FicheDuCompte = {
   communeSlug: string | null
   departementSlug: string | null
   statut: 'en_attente' | 'acceptee' | 'refusee'
-  methode: 'manuelle' | 'pro_sante_connect'
+  methode: 'manuelle' | 'pro_sante_connect' | 'justificatif'
   demandeLe: string
   etape: number
   termineLe: string | null
@@ -154,7 +156,7 @@ export async function getFichesDuCompte(userId: string): Promise<FicheDuCompte[]
     LEFT JOIN lieux_exercice l ON l.praticien_id = p.id
     LEFT JOIN communes c ON c.code_insee = l.code_insee
     LEFT JOIN departements d ON d.code = c.departement_code
-    WHERE r.user_id = ${userId}::uuid
+    WHERE r.user_id = ${userId}::uuid AND r.objet = 'revendication'
     ORDER BY r.id, l.principal DESC
   `)
   return rows.map((r) => ({
@@ -174,35 +176,36 @@ export async function getFichesDuCompte(userId: string): Promise<FicheDuCompte[]
   }))
 }
 
-/** Lecture directe, sans cache, pour préremplir le parcours d'accueil. */
+/** Lecture directe, sans cache : l'espace pro voit sa saisie, publiée ou non. */
 export async function getFicheCompleteeParPraticien(praticienId: string): Promise<FicheCompletee | null> {
-  const { rows } = await db.execute<{
-    horaires: FicheCompletee['horaires']
-    langues: string[]
-    accessibilite: string[]
-    accessibilite_commentaire: string | null
-    paiements: string[]
-    tiers_payant: FicheCompletee['tiersPayant']
-    orientations: string[]
-    etape: number
-    termine_le: string | null
-    updated_at: string
-  }>(sql`
-    SELECT horaires, langues, accessibilite, accessibilite_commentaire, paiements, tiers_payant, orientations, etape, termine_le, updated_at
-    FROM fiches_completees WHERE praticien_id = ${praticienId} LIMIT 1
+  const { rows } = await db.execute<LigneFiche>(sql`SELECT ${COLONNES_FICHE} FROM fiches_completees f WHERE f.praticien_id = ${praticienId} LIMIT 1`)
+  return rows[0] ? ficheDepuisLigne(rows[0]) : null
+}
+
+/**
+ * Applique un retrait de fiche, identité vérifiée (Pro Santé Connect, ou
+ * justificatif accepté par l'équipe).
+ *
+ * La fiche est marquée supprimée, comme le fait la synchronisation pour un
+ * praticien sorti du registre, et `retire_le` dit pourquoi : la
+ * synchronisation ne doit pas la recréer. Les données déclaratives sont
+ * effacées. La demande de retrait est gardée, acceptée : c'est elle qui
+ * permet au même compte d'annuler pendant trente jours.
+ */
+export async function appliquerRetrait(args: { praticienId: string; userId: string; methode: 'pro_sante_connect' | 'justificatif'; rpps?: string; identifiantNational?: string }): Promise<void> {
+  await db.execute(sql`
+    INSERT INTO revendications (id, praticien_id, user_id, statut, methode, objet, identifiant_psc, rpps_verifie, demande_le, traite_le)
+    VALUES (${randomUUID()}, ${args.praticienId}, ${args.userId}::uuid, 'acceptee', ${args.methode}, 'retrait',
+            ${args.identifiantNational ?? null}, ${args.rpps ?? null}, now(), now())
+    ON CONFLICT (praticien_id, user_id) DO UPDATE
+      SET statut = 'acceptee', objet = 'retrait', methode = EXCLUDED.methode, traite_le = now()
   `)
-  const r = rows[0]
-  if (!r) return null
-  return {
-    horaires: r.horaires,
-    langues: r.langues ?? [],
-    accessibilite: r.accessibilite ?? [],
-    accessibiliteCommentaire: r.accessibilite_commentaire,
-    paiements: r.paiements ?? [],
-    tiersPayant: r.tiers_payant,
-    orientations: r.orientations ?? [],
-    etape: r.etape,
-    termineLe: r.termine_le,
-    majLe: r.updated_at,
-  }
+  await db.execute(sql`DELETE FROM fiches_completees WHERE praticien_id = ${args.praticienId}`)
+  await db.execute(sql`UPDATE praticiens SET deleted_at = now(), retire_le = now(), updated_at = now() WHERE id = ${args.praticienId}`)
+}
+
+/** Le RPPS porté par une fiche, pour la retrouver au retour de Pro Santé Connect. */
+export async function getFicheParRpps(rpps: string): Promise<FicheRevendicable | null> {
+  const { rows } = await db.execute<{ slug: string }>(sql`SELECT slug FROM praticiens WHERE rpps = ${rpps} AND deleted_at IS NULL LIMIT 1`)
+  return rows[0] ? getFicheParSlug(rows[0].slug) : null
 }

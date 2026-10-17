@@ -215,7 +215,7 @@ Supprimés : Elementor, JetEngine Map Listing, plugin DentalMap v1.2.0 (le routi
 | CPT | Slug GraphQL | Champs | Usage front |
 |---|---|---|---|
 | `conseil` | conseils | Gutenberg (contenu), image, catégorie, temps de lecture | Pilier Conseils et ressources |
-| `annonce` | annonces | type (cession, collaboration, remplacement, emploi), département, date d'expiration, contact | Section Annonces |
+| `annonce` | annonces | type (cession uniquement depuis le 11 octobre 2026 ; emploi, remplacement et collaboration passent par les offres en base, voir `handoff/`), département, date d'expiration, contact | Section Annonces |
 | `formation` | formations | type (école de prothèse, faculté, formation privée), ville, département, site, durée, diplôme | Pilier Formation |
 | `page` | pages | Gutenberg | Pages statiques (à propos, méthode de vérification, mentions légales, FAQ) |
 | `faq` | faqs | question, réponse, ordre | Blocs FAQ + JSON-LD FAQPage |

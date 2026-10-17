@@ -40,7 +40,22 @@ export function estFormationType(v: string | undefined): v is FormationType {
   return !!v && (FORMATION_TYPES as readonly string[]).includes(v)
 }
 
-/** Segment de page d'une formation, d'après son type ACF ; les formations sans type vont aux formations privées. */
+/**
+ * Vrai si la formation porte un type ACF connu. Garde-fou : une fiche saisie
+ * sans type (ou avec une valeur inconnue) n'est publiée nulle part, au lieu
+ * d'atterrir dans les formations privées et de faire sortir cette rubrique
+ * de son état « Bientôt ». Le filtre est posé à la lecture WordPress
+ * (`getFormations`, `getFormationsAccueil`, `getFormation`).
+ */
+export function aUnType(f: Pick<FormationResume, 'type'>): boolean {
+  return !!f.type && f.type in PAGE_PAR_TYPE
+}
+
+/**
+ * Segment de page d'une formation, d'après son type ACF. Les lectures ne
+ * renvoient que des formations typées (voir `aUnType`) ; le repli ne sert
+ * qu'à satisfaire le typage.
+ */
 export function typeDe(f: Pick<FormationResume, 'type'>): FormationType {
   return (f.type && PAGE_PAR_TYPE[f.type]) || 'formations-privees'
 }

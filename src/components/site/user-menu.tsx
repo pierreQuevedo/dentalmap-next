@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Deroulant } from './deroulant'
 import { useEffect, useState } from 'react'
 import { signOut, useSession } from '@/lib/auth-client'
@@ -14,6 +15,7 @@ import { signOut, useSession } from '@/lib/auth-client'
 export function UserMenu() {
   const { data: session } = useSession()
   const [ouvert, setOuvert] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     if (!ouvert) return
@@ -23,6 +25,10 @@ export function UserMenu() {
   }, [ouvert])
 
   const item = 'block rounded-xl px-4 py-3 text-[15px] text-fg hover:bg-bg-soft'
+  // Le menu suit le profil : un patient a ses favoris, un soignant son espace pro.
+  const role = (session?.user as { role?: string | null } | undefined)?.role ?? null
+  const patient = role === 'patient'
+  const soignant = role === 'dentiste' || role === 'medecin' || role === 'prothesiste'
 
   return (
     <div className="relative">
@@ -55,13 +61,21 @@ export function UserMenu() {
         >
           {session ? (
             <>
-              <Link role="menuitem" href="/espace-pro" className={`${item} font-semibold`}>Espace pro</Link>
-              <Link role="menuitem" href="/espace-pro/fiche" className={item}>Ma fiche</Link>
-              <Link role="menuitem" href="/favoris" className={item}>Mes favoris</Link>
-              <Link role="menuitem" href="/espace-pro/revendiquer" className={item}>Vous êtes praticien ?</Link>
+              {!patient && (
+                <Link role="menuitem" href="/espace-pro" className={`${item} font-semibold`}>Espace pro</Link>
+              )}
+              <Link role="menuitem" href="/favoris" className={`${item} ${patient ? 'font-semibold' : ''}`}>Mes favoris</Link>
+              {soignant ? (
+                <Link role="menuitem" href="/espace-pro/revendiquer" className={item}>Revendiquer une fiche</Link>
+              ) : (
+                patient && <Link role="menuitem" href="/espace-pro/revendiquer" className={item}>Vous êtes praticien ?</Link>
+              )}
               <hr className="mx-2 my-1.5 border-line" />
               <Link role="menuitem" href="/faq" className={item}>Aide</Link>
-              <button role="menuitem" type="button" onClick={() => signOut()} className={`${item} w-full text-left`}>
+              <button role="menuitem" type="button" onClick={() => signOut().then(() => {
+                  router.push('/')
+                  router.refresh()
+                })} className={`${item} w-full text-left`}>
                 Se déconnecter
               </button>
             </>

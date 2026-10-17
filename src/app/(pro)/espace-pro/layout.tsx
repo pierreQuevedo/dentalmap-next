@@ -1,9 +1,7 @@
-import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
-
-export default async function EspaceProLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) redirect('/connexion')
-  return children
+/**
+ * L'espace pro d'un soignant, hors de l'en-tête du site : chaque page garde
+ * sa session elle-même, pour revenir au bon endroit après la connexion.
+ */
+export default function EspaceProLayout({ children }: { children: React.ReactNode }) {
+  return <div className="min-h-dvh bg-bg">{children}</div>
 }

@@ -16,6 +16,7 @@
     "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
     "design:contraste": "tsx scripts/design/contraste.ts",
     "dev": "next dev",
+    "dev:psc": "pnpm maplibre:worker && PSC_SIMULATEUR=0 BETTER_AUTH_URL=https://localhost next dev --experimental-https -p 443",
     "lint": "eslint .",
     "maplibre:worker": "node scripts/copie-worker-maplibre.mjs",
     "prebuild": "pnpm maplibre:worker",

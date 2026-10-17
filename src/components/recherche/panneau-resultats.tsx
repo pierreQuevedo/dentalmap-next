@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { clePosition, PAR_PAGE_CARTE } from '@/lib/annuaire/emprise'
 import { LIBELLE } from '@/lib/annuaire/libelles'
 import { PROFESSION_PAR_BASE } from '@/lib/annuaire/types'
@@ -167,9 +168,10 @@ function Pagination() {
   const numeros = fenetre(page, pages)
 
   return (
-    <nav aria-label="Pages de résultats" className="mt-8 flex flex-wrap items-center gap-2">
+    <nav aria-label="Pages de résultats" className="mt-8 flex flex-wrap items-center gap-1.5 sm:gap-2">
       <Lien page={page - 1} desactive={page <= 1} libelle="Page précédente">
-        Précédent
+        <ChevronLeft className="size-4 sm:hidden" aria-hidden />
+        <span className="hidden sm:inline">Précédent</span>
       </Lien>
 
       {numeros.map((n, i) =>
@@ -185,7 +187,8 @@ function Pagination() {
       )}
 
       <Lien page={page + 1} desactive={page >= pages} libelle="Page suivante">
-        Suivant
+        <span className="hidden sm:inline">Suivant</span>
+        <ChevronRight className="size-4 sm:hidden" aria-hidden />
       </Lien>
 
       <span className="sr-only" aria-live="polite">
@@ -209,7 +212,7 @@ function Pagination() {
   }) {
     if (desactive) {
       return (
-        <span aria-hidden className="squircle-full border border-line px-3 py-1.5 text-sm text-line-strong">
+        <span aria-hidden className="squircle-full inline-flex items-center border border-line px-3 py-1.5 text-sm text-line-strong">
           {children}
         </span>
       )
@@ -226,7 +229,7 @@ function Pagination() {
           e.preventDefault()
           allerPage(n)
         }}
-        className={`squircle-full border px-3 py-1.5 text-sm tabular-nums transition-colors ${
+        className={`squircle-full inline-flex items-center border px-3 py-1.5 text-sm tabular-nums transition-colors ${
           courante
             ? 'border-brand bg-brand text-brand-foreground'
             : 'border-line text-fg hover:border-line-strong hover:bg-bg-soft'

@@ -14,8 +14,11 @@ import { SITE_URL } from '@/lib/seo/site'
  * L'intégration est optionnelle. Tant que les identifiants ne sont pas posés,
  * `pscConfigure()` rend faux et l'interface propose la vérification manuelle.
  */
-export const PSC_ISSUER_BAC_A_SABLE = 'https://wallet.bas.esw.esante.gouv.fr/auth/realms/esante-wallet'
-export const PSC_ISSUER_PRODUCTION = 'https://wallet.esw.esante.gouv.fr/auth/realms/esante-wallet'
+// Émetteurs constatés dans les documents de découverte le 10 octobre 2026 :
+// l'hôte `auth.` porte le realm Keycloak, l'hôte `wallet.` ne sert que la page
+// d'autorisation (il est renvoyé par la découverte).
+export const PSC_ISSUER_BAC_A_SABLE = 'https://auth.bas.psc.esante.gouv.fr/auth/realms/esante-wallet'
+export const PSC_ISSUER_PRODUCTION = 'https://auth.esw.esante.gouv.fr/auth/realms/esante-wallet'
 
 export type ConfigPsc = {
   clientId: string

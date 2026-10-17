@@ -11,6 +11,7 @@ import {
   Building2,
   Clock,
   CreditCard,
+  ExternalLink,
   Languages,
   MapPin,
   Navigation,
@@ -25,13 +26,14 @@ import {
   LIBELLE_JOUR,
   ORIENTATIONS,
   PAIEMENTS,
+  SECTEURS,
   TIERS_PAYANT,
   aDuContenu,
   libelle,
+  libelleAge,
   type FicheCompletee,
 } from '@/lib/espace-pro/fiche-completee'
-import { pscConfigure } from '@/lib/psc/config'
-import { RevendiquerDialog } from './revendiquer-dialog'
+import { MATERIAUX, PIECES, TECHNIQUES, libelleDe } from '@/lib/espace-pro/labo'
 import { clePosition, empriseAutour } from '@/lib/annuaire/emprise'
 import { illustration } from '@/lib/annuaire/illustration'
 import { LIBELLE as LIBELLE_PROFESSION } from '@/lib/annuaire/libelles'
@@ -297,7 +299,7 @@ export async function PageFiche({ profession, params }: { profession: Profession
             </Module>
 
             {aDuContenu(completee) ? (
-              <ModuleCabinet fiche={completee} />
+              <ModuleCabinet fiche={completee} labo={!personne} />
             ) : (
               <Module id="pratique" titre="Horaires, langues, accès et paiement">
                 <div className="squircle-xl border border-dashed border-line p-5 text-sm text-fg-2">
@@ -346,21 +348,17 @@ export async function PageFiche({ profession, params }: { profession: Profession
                   être joint par les patients qui vous cherchent.
                 </p>
                 {/*
-                  Les professions du RPPS sont dans Pro Santé Connect : la
-                  fenêtre leur propose la vérification par carte. Les laboratoires
-                  n'y sont pas et gardent la demande manuelle.
+                  Un seul point d'entrée : la revendication s'ouvre sur cette
+                  fiche, la recherche déjà faite. Pro Santé Connect y est
+                  proposé aux professions du RPPS.
                 */}
                 <div className="mt-4">
-                  {personne ? (
-                    <RevendiquerDialog slug={p.slug} pscDisponible={pscConfigure()} />
-                  ) : (
-                    <Link
-                      href={chemin(`/espace-pro/revendiquer/?fiche=${encodeURIComponent(p.slug)}`)}
-                      className="squircle-full inline-block bg-action px-5 py-2.5 text-sm font-medium text-action-foreground hover:bg-action-hover"
-                    >
-                      Revendiquer cette fiche
-                    </Link>
-                  )}
+                  <Link
+                    href={chemin(`/espace-pro/revendiquer/?fiche=${encodeURIComponent(p.slug)}`)}
+                    className="squircle-full inline-block bg-action px-5 py-2.5 text-sm font-medium text-action-foreground hover:bg-action-hover"
+                  >
+                    Revendiquer cette fiche
+                  </Link>
                 </div>
               </div>
             )}
@@ -424,14 +422,41 @@ function aHoraires(f: FicheCompletee): boolean {
  * langues, accès et paiement en étiquettes. Rendu à part des données de
  * registre, avec la date de déclaration : l'un se vérifie, l'autre se croit.
  */
-async function ModuleCabinet({ fiche }: { fiche: FicheCompletee }) {
+async function ModuleCabinet({ fiche, labo = false }: { fiche: FicheCompletee; labo?: boolean }) {
   const horaires = fiche.horaires ?? {}
   const maj = new Date(fiche.majLe).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
   // Le jour courant change entre deux rendus : il se lit à la requête, jamais au prérendu.
   await connection()
   const aujourdhui = JOURS[(new Date().getDay() + 6) % 7]
+  const horairesExpires = new Date().getTime() - new Date(fiche.horairesConfirmesLe ?? fiche.majLe).getTime() > 180 * 86_400_000
   return (
-    <Module id="pratique" titre="Horaires, langues, accès et paiement" intro={`Déclarés par le cabinet, dont l’identité a été vérifiée avant qu’il puisse écrire ici. Mis à jour le ${maj}.`}>
+    <Module
+      id="pratique"
+      titre={labo ? 'Le laboratoire, en ses mots' : 'Le cabinet, en ses mots'}
+      intro={`Déclaré par le ${labo ? 'laboratoire' : 'cabinet'}, dont l’identité a été vérifiée avant qu’il puisse écrire ici. Mis à jour le ${maj}.`}
+    >
+      {labo && <ModuleLabo fiche={fiche} />}
+      {fiche.photoUrl && (
+        <div className="squircle-2xl relative mb-6 aspect-video overflow-hidden border border-line bg-bg-soft">
+          <Image src={fiche.photoUrl} alt="Le cabinet" fill sizes="(min-width: 1024px) 48rem, 100vw" className="object-cover" />
+        </div>
+      )}
+      {fiche.presentation && <p className="mb-6 max-w-3xl whitespace-pre-line text-[15px] leading-relaxed text-fg">{fiche.presentation}</p>}
+      {(fiche.siteWeb || fiche.rdvEnLigne) && (
+        <div className="mb-6 flex flex-wrap gap-2">
+          {fiche.rdvEnLigne && (
+            <a href={fiche.rdvEnLigne} target="_blank" rel="noopener nofollow" className="inline-flex h-10 items-center gap-2 rounded-full bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">
+              Prendre rendez-vous <ExternalLink className="size-3.5" aria-hidden />
+            </a>
+          )}
+          {fiche.siteWeb && (
+            <a href={fiche.siteWeb} target="_blank" rel="noopener nofollow" className="inline-flex h-10 items-center gap-2 rounded-full border border-line px-4 text-sm font-medium text-fg hover:border-line-strong">
+              Site du cabinet <ExternalLink className="size-3.5" aria-hidden />
+            </a>
+          )}
+        </div>
+      )}
+      {horairesExpires && <p className="mb-3 text-sm text-fg-2">Horaires non confirmés par le cabinet depuis plus de six mois : appelez avant de vous déplacer.</p>}
       {aHoraires(fiche) && (
         <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
           {JOURS.map((j) => {
@@ -477,6 +502,13 @@ async function ModuleCabinet({ fiche }: { fiche: FicheCompletee }) {
             {fiche.accessibiliteCommentaire && <p className="basis-full text-sm text-fg-2">{fiche.accessibiliteCommentaire}</p>}
           </Bloc>
         )}
+        {(fiche.secteur || fiche.ageMinimum !== null || fiche.accesPmr) && (
+          <Bloc icone={BadgeCheck} titre="Conventionnement et accueil">
+            {fiche.secteur && <Etiquette>{libelle(SECTEURS, fiche.secteur)}</Etiquette>}
+            {fiche.ageMinimum !== null && <Etiquette>{libelleAge(fiche.ageMinimum)}</Etiquette>}
+            {fiche.accesPmr && fiche.accesPmr !== 'oui' && <Etiquette>{fiche.accesPmr === 'partiel' ? 'Accès PMR partiel' : 'Pas d’accès PMR'}</Etiquette>}
+          </Bloc>
+        )}
         {(fiche.paiements.length > 0 || fiche.tiersPayant) && (
           <Bloc icone={CreditCard} titre="Paiement">
             {fiche.paiements.map((c) => (
@@ -495,6 +527,74 @@ async function ModuleCabinet({ fiche }: { fiche: FicheCompletee }) {
         )}
       </div>
     </Module>
+  )
+}
+
+/** Ce qu'un laboratoire déclare pour les cabinets : savoir-faire, délais, zone, réalisations, ANSM. */
+function ModuleLabo({ fiche }: { fiche: FicheCompletee }) {
+  const delais = Object.entries(fiche.delais ?? {})
+  const delaisAffiches = delais.length > 0 && new Date().getTime() - new Date(fiche.delaisConfirmesLe ?? fiche.majLe).getTime() < 365 * 86_400_000
+  const max = Math.max(10, ...delais.map(([, j]) => j))
+  return (
+    <div className="mb-6 space-y-6">
+      {fiche.realisations.length > 0 && (
+        <figure>
+          <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {fiche.realisations.map((r, i) => (
+              <li key={r.url} className={`squircle-xl relative overflow-hidden border border-line bg-bg-soft ${i === 0 ? 'col-span-2 row-span-2 aspect-[4/3]' : 'aspect-[4/3]'}`}>
+                <Image src={r.url} alt={r.legende || 'Réalisation du laboratoire'} fill sizes="(min-width: 640px) 25vw, 50vw" className="object-cover" />
+                {r.legende && <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-6 text-xs text-white">{r.legende}</span>}
+              </li>
+            ))}
+          </ol>
+          {fiche.creditPhotos && <figcaption className="mt-2 text-xs text-fg-2">Crédit photo : {fiche.creditPhotos}</figcaption>}
+        </figure>
+      )}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {(fiche.techniques.length > 0 || fiche.materiaux.length > 0) && (
+          <Bloc icone={Stethoscope} titre="Savoir-faire et matériaux">
+            {fiche.techniques.map((c) => (
+              <Etiquette key={c}>{libelleDe(TECHNIQUES, c)}</Etiquette>
+            ))}
+            {fiche.materiaux.map((c) => (
+              <Etiquette key={c}>{libelleDe(MATERIAUX, c)}</Etiquette>
+            ))}
+            {fiche.usinage && <Etiquette>Usinage sur place</Etiquette>}
+            {fiche.empreintesStl && <Etiquette>Empreintes STL acceptées</Etiquette>}
+            {fiche.impression3d && <Etiquette>Impression 3D</Etiquette>}
+          </Bloc>
+        )}
+        {(fiche.rayonKm || fiche.ansmNumero) && (
+          <Bloc icone={Navigation} titre="Zone et conformité">
+            {fiche.rayonKm && <Etiquette>Dessert {fiche.rayonKm} km</Etiquette>}
+            {fiche.ramassage && <Etiquette>Ramassage des empreintes</Etiquette>}
+            {fiche.transporteur && <Etiquette>Envoi par transporteur au-delà</Etiquette>}
+            {fiche.ansmNumero && <Etiquette>Fabricant déclaré à l’ANSM</Etiquette>}
+          </Bloc>
+        )}
+      </div>
+      {delaisAffiches && (
+        <div className="squircle-xl border border-line p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-fg">
+            <Clock className="size-4 text-teal" aria-hidden /> Délais moyens
+          </h3>
+          <ul className="mt-3 space-y-2.5">
+            {delais.map(([code, j]) => (
+              <li key={code}>
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-fg">{libelleDe(PIECES, code)}</span>
+                  <span className="tabular-nums text-fg">{j} j ouvrés</span>
+                </div>
+                <span className="mt-1 block h-1.5 rounded-full bg-line">
+                  <span className="block h-full rounded-full bg-teal" style={{ width: `${(j / max) * 100}%` }} />
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-fg-2">Délais moyens déclarés par le laboratoire, de la réception de l’empreinte à l’expédition. Ce n’est pas un engagement.</p>
+        </div>
+      )}
+    </div>
   )
 }
 

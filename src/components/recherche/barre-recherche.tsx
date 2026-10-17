@@ -124,10 +124,12 @@ function BoutonFiltres({ ouvert, basculer }: { ouvert: boolean; basculer: () => 
       type="button"
       onClick={basculer}
       aria-expanded={ouvert}
-      className="inline-flex h-10 items-center gap-2 rounded-full bg-fg px-4 text-sm font-semibold text-bg transition-colors hover:bg-fg/85"
+      aria-label="Filtres"
+      className="inline-flex h-10 items-center gap-2 rounded-full bg-fg px-3 text-sm font-semibold text-bg transition-colors hover:bg-fg/85 sm:px-4"
     >
       <SlidersHorizontal className="size-4" />
-      Filtres
+      {/* Libellé masqué sous 640 px : la barre doit tenir dans un écran de 390 px. */}
+      <span className="hidden sm:inline">Filtres</span>
       {n > 0 && (
         <span className="grid size-5 place-items-center rounded-full bg-teal text-[11px] font-semibold text-white">{n}</span>
       )}
@@ -191,7 +193,7 @@ function ChampLieuBarre({ texte, setTexte, cible }: { texte: string; setTexte: (
         aria-expanded={visibles.length > 0}
         aria-controls={`${id}-liste`}
         aria-autocomplete="list"
-        className="h-10 w-52 rounded-full bg-transparent pl-9 pr-3 text-sm text-fg outline-none placeholder:text-fg-2 focus-visible:bg-bg-soft sm:w-64"
+        className="h-10 w-36 rounded-full bg-transparent pl-9 pr-3 text-sm text-fg outline-none placeholder:text-fg-2 focus-visible:bg-bg-soft sm:w-64"
       />
       <Deroulant ouvert={visibles.length > 0} origine="bas" className="absolute bottom-full left-0 z-20 mb-3">
         <ul id={`${id}-liste`} role="listbox" className="squircle-xl w-80 overflow-hidden border border-line bg-bg shadow-pop">

@@ -1,0 +1,288 @@
+'use server'
+
+import { randomUUID } from 'node:crypto'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { revalidateTag } from 'next/cache'
+import { sql } from 'drizzle-orm'
+import { z } from 'zod'
+import { db } from '@/db'
+import { chemin } from '@/lib/navigation'
+import { envoyerAModerer, envoyerDemandeInvitation, envoyerMandatAuGerant, envoyerRevendicationRecue } from '@/lib/email'
+import { nomAffiche } from '@/lib/annuaire/types'
+import { exigerConnexion } from '@/lib/tunnel/compte'
+import { COOKIE_IDENTITE, descellerIdentite } from '@/lib/psc/etat'
+import { accorderParPsc } from './revendication'
+import { getFicheRevendication } from './parcours'
+import { controlerJustificatif, rangerJustificatif, typeDepuisNom } from './justificatif'
+import { nettoyerRpps, rppsValide } from './rpps'
+import { nettoyerNumero, siretValide } from './labo'
+import { consulterSiret } from './sirene'
+import { DELAI_ANNULATION_RETRAIT_JOURS, REVENDIQUER, apresAccord } from './chemins'
+
+/**
+ * Les actions du parcours de revendication d'un soignant.
+ *
+ * Aucune n'accorde une fiche sur parole : seules Pro Santé Connect (le
+ * registre répond lui-même) et la décision de l'équipe (Kbis d'un
+ * laboratoire, demande examinée avec le praticien) donnent la main. Le reste enregistre une intention : une alerte, un choix
+ * de lieux, une demande à examiner.
+ */
+
+/* ------------------------------------------------------------------ */
+/* PSC2 : confirmer la fiche retrouvée par Pro Santé Connect           */
+/* ------------------------------------------------------------------ */
+
+export async function confirmerPsc(): Promise<never> {
+  const compte = await exigerConnexion(`${REVENDIQUER}/psc/confirmer/`)
+  const pot = await cookies()
+  const identite = descellerIdentite(pot.get(COOKIE_IDENTITE)?.value, compte.id)
+  if (!identite) redirect(chemin(`${REVENDIQUER}/psc/erreur/?code=etat`))
+  const fiche = await getFicheRevendication(identite.fiche, compte.id)
+  if (!fiche || fiche.rpps !== identite.rpps) redirect(chemin(`${REVENDIQUER}/psc/erreur/?code=fiche`))
+  pot.set(COOKIE_IDENTITE, '', { path: `${REVENDIQUER}/`, maxAge: 0 })
+
+  // Déjà gérée par un autre compte : la preuve est forte, mais l'autre compte a sept jours pour répondre.
+  if (fiche.gereeParUnAutre) {
+    await db.execute(sql`
+      INSERT INTO revendications (id, praticien_id, user_id, statut, methode, identifiant_psc, rpps_verifie, message)
+      VALUES (${randomUUID()}, ${fiche.id}, ${compte.id}::uuid, 'en_attente', 'pro_sante_connect', ${identite.identifiantNational}, ${identite.rpps},
+              'Contestation : identité prouvée par Pro Santé Connect, fiche déjà gérée par un autre compte.')
+      ON CONFLICT (praticien_id, user_id) DO UPDATE SET statut = 'en_attente', methode = 'pro_sante_connect', objet = 'revendication',
+        identifiant_psc = EXCLUDED.identifiant_psc, rpps_verifie = EXCLUDED.rpps_verifie, message = EXCLUDED.message, demande_le = now()
+    `)
+    await envoyerAModerer(`contestation de ${nomAffiche(fiche)}`, `Le compte ${compte.email} a prouvé par Pro Santé Connect être ${nomAffiche(fiche)} (RPPS ${identite.rpps}), fiche déjà gérée par un autre compte. Délai de réponse : 7 jours.`)
+    redirect(chemin(`${REVENDIQUER}/suivi/?fiche=${encodeURIComponent(fiche.slug)}`))
+  }
+
+  await accorderParPsc({ praticienId: fiche.id, userId: compte.id, identifiantNational: identite.identifiantNational, rpps: identite.rpps })
+  revalidateTag('annuaire', 'max')
+  redirect(chemin(apresAccord(fiche.slug, fiche.lieux.length)))
+}
+
+/* ------------------------------------------------------------------ */
+/* JD1 : déposer un justificatif                                       */
+/* ------------------------------------------------------------------ */
+
+export async function deposerJustificatif(donnees: FormData): Promise<never> {
+  const slug = String(donnees.get('fiche') ?? '')
+  const objet = donnees.get('objet') === 'retrait' ? 'retrait' : 'revendication'
+  const ici = `${REVENDIQUER}/${encodeURIComponent(slug)}/justificatif/${objet === 'retrait' ? '?objet=retrait' : ''}`
+  const compte = await exigerConnexion(ici)
+  const fiche = await getFicheRevendication(slug, compte.id)
+  if (!fiche) redirect(chemin(`${REVENDIQUER}/`))
+  // Un soignant ne dépose plus de document (JD1 retiré) : seul le Kbis d'un laboratoire passe ici.
+  if (fiche.profession !== 'prothesiste') redirect(chemin(`${REVENDIQUER}/${encodeURIComponent(fiche.slug)}/methode/${objet === 'retrait' ? '?objet=retrait' : ''}`))
+
+  const avecErreur = (message: string) => chemin(`${ici}${ici.includes('?') ? '&' : '?'}erreur=${encodeURIComponent(message)}`)
+
+  // Deux arrivées par document : le chemin d'un fichier déjà téléversé vers
+  // le stockage privé (production), ou le fichier lui-même (développement).
+  const lireDocument = async (nom: string, requis: boolean): Promise<{ rangement: string; nom: string; taille: number } | null> => {
+    const televerse = String(donnees.get(`chemin_${nom}`) ?? '')
+    const nomFichier = String(donnees.get(`nom_${nom}`) ?? nom)
+    const tailleFichier = Number(donnees.get(`taille_${nom}`) ?? 0)
+    if (televerse) {
+      if (!televerse.startsWith(`justificatifs/${fiche.id}/`)) redirect(avecErreur('Le document n’a pas pu être rattaché à cette fiche.'))
+      const controle = controlerJustificatif({ type: typeDepuisNom(televerse), size: tailleFichier || 1, name: nomFichier })
+      if (!controle.ok) redirect(avecErreur(controle.erreur))
+      return { rangement: `blob:${televerse}`, nom: nomFichier, taille: tailleFichier }
+    }
+    const fichier = donnees.get(nom)
+    if (!(fichier instanceof File) || !fichier.size) {
+      if (requis) redirect(avecErreur('Choisissez un fichier.'))
+      return null
+    }
+    const controle = controlerJustificatif(fichier)
+    if (!controle.ok) redirect(avecErreur(controle.erreur))
+    return { rangement: await rangerJustificatif(fichier, fiche.id), nom: fichier.name, taille: fichier.size }
+  }
+  const document = (await lireDocument('document', true))!
+  const rangement = document.rangement
+  const nomFichier = document.nom
+  const tailleFichier = document.taille
+
+  // Laboratoire : le rôle déclaré, et pour un salarié mandaté le mandat et l'adresse du gérant.
+  const role = (['gerant', 'mandate'] as const).find((r) => r === donnees.get('role')) ?? null
+  const mandat = role === 'mandate' ? await lireDocument('mandat', true) : null
+  const gerantEmail = role === 'mandate' ? String(donnees.get('gerantEmail') ?? '').trim().toLowerCase() : null
+  if (role === 'mandate' && !z.string().email().safeParse(gerantEmail).success) redirect(avecErreur('Indiquez l’adresse électronique du gérant.'))
+  const connus = new Set(fiche.lieux.map((l) => l.id))
+  const lieux = String(donnees.get('lieux') ?? '').split(',').filter((id) => connus.has(id))
+
+  await db.execute(sql`
+    INSERT INTO revendications (id, praticien_id, user_id, statut, methode, objet, justificatif_chemin, justificatif_nom, justificatif_taille,
+                                role_labo, mandat_chemin, mandat_nom, gerant_email, lieux_geres)
+    VALUES (${randomUUID()}, ${fiche.id}, ${compte.id}::uuid, 'en_attente', 'justificatif', ${objet}, ${rangement}, ${nomFichier.slice(0, 200)}, ${tailleFichier},
+            ${role}, ${mandat?.rangement ?? null}, ${mandat?.nom.slice(0, 200) ?? null}, ${gerantEmail}, ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(lieux)}::jsonb))::text[])
+    ON CONFLICT (praticien_id, user_id) DO UPDATE SET
+      statut = 'en_attente', methode = 'justificatif', objet = EXCLUDED.objet,
+      justificatif_chemin = EXCLUDED.justificatif_chemin, justificatif_nom = EXCLUDED.justificatif_nom, justificatif_taille = EXCLUDED.justificatif_taille,
+      role_labo = EXCLUDED.role_labo, mandat_chemin = EXCLUDED.mandat_chemin, mandat_nom = EXCLUDED.mandat_nom, gerant_email = EXCLUDED.gerant_email,
+      lieux_geres = EXCLUDED.lieux_geres,
+      motif_refus = NULL, commentaire_refus = NULL, traite_le = NULL, demande_le = now()
+  `)
+  const nom = nomAffiche(fiche)
+  await Promise.all([
+    envoyerRevendicationRecue(compte.email, nom, objet),
+    ...(gerantEmail ? [envoyerMandatAuGerant(gerantEmail, nom, compte.nom || compte.email)] : []),
+    envoyerAModerer(
+      `${objet === 'retrait' ? 'retrait' : 'justificatif'} pour ${nom}`,
+      `Le compte ${compte.email} a déposé ${role === 'mandate' ? 'un Kbis et un mandat' : role === 'gerant' ? 'un Kbis' : 'un justificatif'} (${nomFichier}) pour ${objet === 'retrait' ? 'retirer' : 'revendiquer'} la fiche ${nom}${fiche.gereeParUnAutre ? ', déjà gérée par un autre compte (contestation, 7 jours)' : ''}. À examiner sous 48 heures ouvrées.`,
+    ),
+  ])
+  redirect(chemin(`${REVENDIQUER}/suivi/?fiche=${encodeURIComponent(fiche.slug)}`))
+}
+
+/* ------------------------------------------------------------------ */
+/* S1-0, PSC-0, REMP : m'avertir                                       */
+/* ------------------------------------------------------------------ */
+
+const schemaAlerte = z.discriminatedUnion('motif', [
+  z.object({ motif: z.literal('prothesiste_salarie'), fiche: z.string().optional(), retour: z.string() }),
+  z.object({ motif: z.literal('fiche_creee'), rpps: z.string().refine(rppsValide), retour: z.string() }),
+  z.object({ motif: z.literal('remplacant'), exercice: z.enum(['remplacant', 'collaborateur', 'salarie']), fiche: z.string().optional(), retour: z.string() }),
+])
+
+export async function poserAlerte(donnees: FormData): Promise<never> {
+  const brut = Object.fromEntries(donnees.entries())
+  const r = schemaAlerte.safeParse(brut)
+  const retour = typeof brut.retour === 'string' && brut.retour.startsWith('/') && !brut.retour.startsWith('//') ? brut.retour : `${REVENDIQUER}/`
+  const compte = await exigerConnexion(retour)
+  if (!r.success) redirect(chemin(retour))
+
+  if (r.data.motif === 'fiche_creee') {
+    await db.execute(sql`
+      INSERT INTO alertes_espace_pro (id, user_id, motif, rpps) VALUES (${randomUUID()}, ${compte.id}::uuid, 'fiche_creee', ${nettoyerRpps(r.data.rpps)})
+      ON CONFLICT (user_id, motif, rpps) DO NOTHING
+    `)
+  } else {
+    const { rows } = r.data.fiche ? await db.execute<{ id: string }>(sql`SELECT id FROM praticiens WHERE slug = ${r.data.fiche} LIMIT 1`) : { rows: [] }
+    await db.execute(sql`
+      INSERT INTO alertes_espace_pro (id, user_id, motif, exercice, praticien_id)
+      VALUES (${randomUUID()}, ${compte.id}::uuid, ${r.data.motif}, ${r.data.motif === 'remplacant' ? r.data.exercice : null}, ${rows[0]?.id ?? null})
+    `)
+  }
+  redirect(chemin(`${retour}${retour.includes('?') ? '&' : '?'}alerte=1`))
+}
+
+/* ------------------------------------------------------------------ */
+/* R1, R2 : retrait                                                    */
+/* ------------------------------------------------------------------ */
+
+export async function annulerRetrait(donnees: FormData): Promise<never> {
+  const slug = String(donnees.get('fiche') ?? '')
+  const compte = await exigerConnexion(`${REVENDIQUER}/${encodeURIComponent(slug)}/retrait/confirme/`)
+  const fiche = await getFicheRevendication(slug, compte.id, { retirees: true })
+  // Seul le compte qui a obtenu le retrait peut l'annuler, et seulement dans le délai.
+  if (fiche?.retireLe && fiche.demande?.objet === 'retrait' && fiche.demande.statut === 'acceptee') {
+    await db.execute(sql`
+      UPDATE praticiens SET deleted_at = NULL, retire_le = NULL, updated_at = now()
+      WHERE id = ${fiche.id} AND retire_le > now() - make_interval(days => ${DELAI_ANNULATION_RETRAIT_JOURS})
+    `)
+    await db.execute(sql`DELETE FROM revendications WHERE id = ${fiche.demande.id}`)
+    revalidateTag('annuaire', 'max')
+  }
+  redirect(chemin(`${REVENDIQUER}/${encodeURIComponent(slug)}/`))
+}
+
+/* ------------------------------------------------------------------ */
+/* M1 : les lieux gérés                                                */
+/* ------------------------------------------------------------------ */
+
+export async function choisirLieux(donnees: FormData): Promise<never> {
+  const slug = String(donnees.get('fiche') ?? '')
+  const ici = `/espace-pro/lieux/?fiche=${encodeURIComponent(slug)}`
+  const compte = await exigerConnexion(ici)
+  const fiche = await getFicheRevendication(slug, compte.id)
+  if (!fiche || fiche.demande?.statut !== 'acceptee') redirect(chemin('/espace-pro/'))
+  const connus = new Set(fiche.lieux.map((l) => l.id))
+  const choisis = donnees.getAll('lieu').map(String).filter((id) => connus.has(id))
+  if (choisis.length === 0) redirect(chemin(`${ici}&erreur=1`))
+  await db.execute(sql`
+    UPDATE revendications SET lieux_geres = ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(choisis)}::jsonb))::text[]
+    WHERE id = ${fiche.demande.id}
+  `)
+  redirect(chemin('/espace-pro/'))
+}
+
+/* ------------------------------------------------------------------ */
+/* H1 : la fiche choisie parmi les homonymes                           */
+/* ------------------------------------------------------------------ */
+
+export async function ouvrirFiche(donnees: FormData): Promise<never> {
+  const slug = String(donnees.get('fiche') ?? '')
+  redirect(chemin(slug ? `${REVENDIQUER}/${encodeURIComponent(slug)}/` : `${REVENDIQUER}/recherche/`))
+}
+
+/* ------------------------------------------------------------------ */
+/* Laboratoire : LC1, LA1                                               */
+/* ------------------------------------------------------------------ */
+
+/** LC1 : demander au titulaire de la fiche une invitation dans son équipe. Il n'est jamais nommé au demandeur. */
+export async function demanderInvitation(donnees: FormData): Promise<never> {
+  const slug = String(donnees.get('fiche') ?? '')
+  const ici = `/espace-pro/laboratoire/revendiquer/${encodeURIComponent(slug)}/conflit/`
+  const compte = await exigerConnexion(ici)
+  const fiche = await getFicheRevendication(slug, compte.id)
+  if (!fiche) redirect(chemin('/espace-pro/laboratoire/revendiquer/'))
+  const { rows } = await db.execute<{ email: string }>(sql`
+    SELECT u.email FROM revendications r JOIN "user" u ON u.id = r.user_id
+    WHERE r.praticien_id = ${fiche.id} AND r.statut = 'acceptee' AND r.objet = 'revendication'
+  `)
+  await Promise.all(rows.map((r) => envoyerDemandeInvitation(r.email, nomAffiche(fiche), compte.nom || compte.email, compte.email)))
+  redirect(chemin(`${ici}?invitation=1`))
+}
+
+/**
+ * LA1 : un laboratoire absent de l'annuaire. Le SIRET est contrôlé dans
+ * Sirene : établissement actif, activité 32.50A ou examen manuel. Aucune
+ * fiche n'est créée ici : la demande, avec son Kbis, part en modération.
+ */
+export async function demanderAjoutLabo(donnees: FormData): Promise<never> {
+  const ici = '/espace-pro/laboratoire/ajout/'
+  const compte = await exigerConnexion(ici)
+  const avecErreur = (m: string) => chemin(`${ici}?erreur=${encodeURIComponent(m)}`)
+  const siret = nettoyerNumero(String(donnees.get('siret') ?? ''))
+  const raison = String(donnees.get('raison') ?? '').trim().slice(0, 200)
+  if (!siretValide(siret)) redirect(avecErreur('Ce SIRET ne passe pas le contrôle de clé : vérifiez les quatorze chiffres.'))
+  if (raison.length < 2) redirect(avecErreur('Indiquez la raison sociale du laboratoire.'))
+
+  const etab = await consulterSiret(siret)
+  if (etab && !etab.actif) redirect(avecErreur('Sirene indique cet établissement comme fermé : il ne peut pas être ajouté.'))
+
+  const dossier = `ajout-${compte.id}`
+  const televerse = String(donnees.get('chemin_document') ?? '')
+  let rangement: string
+  let nomFichier = String(donnees.get('nom_document') ?? 'kbis')
+  if (televerse) {
+    if (!televerse.startsWith(`justificatifs/${dossier}/`)) redirect(avecErreur('Le Kbis n’a pas pu être rattaché à la demande.'))
+    rangement = `blob:${televerse}`
+  } else {
+    const f = donnees.get('document')
+    if (!(f instanceof File) || !f.size) redirect(avecErreur('Joignez un extrait Kbis de moins de trois mois.'))
+    const controle = controlerJustificatif(f)
+    if (!controle.ok) redirect(avecErreur(controle.erreur))
+    rangement = await rangerJustificatif(f, dossier)
+    nomFichier = f.name
+  }
+
+  const note = !etab
+    ? 'Établissement introuvable dans Sirene au moment de la demande : vérification manuelle.'
+    : etab.naf === '32.50A'
+      ? 'Sirene : établissement actif, activité 32.50A.'
+      : `Sirene : établissement actif, activité ${etab.naf ?? 'inconnue'} (hors 32.50A) : examen manuel de l’activité.`
+  await db.execute(sql`
+    INSERT INTO demandes_creation_fiche (id, user_id, profession, nom, raison_sociale, siret, adresse, code_postal, ville, email, message, justificatif_chemin, justificatif_nom)
+    VALUES (${randomUUID()}, ${compte.id}::uuid, 'prothesiste', ${raison}, ${raison}, ${siret}, ${etab?.adresse ?? 'À vérifier'}, ${etab?.codePostal ?? ''}, ${etab?.ville ?? ''},
+            ${compte.email}, ${note}, ${rangement}, ${nomFichier.slice(0, 200)})
+  `)
+  await envoyerAModerer(`ajout du laboratoire ${raison}`, `Le compte ${compte.email} demande l'ajout de « ${raison} », SIRET ${siret}. ${note}`)
+  redirect(chemin(`${ici}?envoyee=1`))
+}
+
+/** L1 : le laboratoire choisi parmi plusieurs résultats. */
+export async function ouvrirFicheLabo(donnees: FormData): Promise<never> {
+  const slug = String(donnees.get('fiche') ?? '')
+  redirect(chemin(slug ? `/espace-pro/laboratoire/revendiquer/${encodeURIComponent(slug)}/` : '/espace-pro/laboratoire/revendiquer/'))
+}

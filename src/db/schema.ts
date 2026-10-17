@@ -122,6 +122,12 @@ export const praticiens = pgTable('praticiens', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  /**
+   * Retrait demandé par le praticien lui-même, identité vérifiée. La fiche
+   * est aussi marquée supprimée ; ce marqueur dit à la synchronisation de ne
+   * pas la recréer. Annulable trente jours.
+   */
+  retireLe: timestamp('retire_le', { withTimezone: true }),
 }, (t) => [
   index('praticiens_profession').on(t.profession),
   // Sert les sitemaps et les listes : on filtre toujours par profession et par
@@ -258,7 +264,30 @@ export const revendications = pgTable('revendications', {
    *   son numéro RPPS. La demande est alors acceptée sans intervention, le
    *   registre lui-même ayant répondu.
    */
-  methode: text('methode', { enum: ['manuelle', 'pro_sante_connect'] }).notNull().default('manuelle'),
+  methode: text('methode', { enum: ['manuelle', 'pro_sante_connect', 'justificatif', 'invitation'] }).notNull().default('manuelle'),
+  /**
+   * Ce que la demande vise : la gestion de la fiche, ou son retrait (droit de
+   * retrait, appliqué une fois l'identité vérifiée).
+   */
+  objet: text('objet', { enum: ['revendication', 'retrait'] }).notNull().default('revendication'),
+  /**
+   * Justificatif déposé (méthode `justificatif`) : chemin dans le stockage
+   * privé, jamais une URL publique. Vu par l'équipe seule, supprimé trente
+   * jours après la décision.
+   */
+  justificatifChemin: text('justificatif_chemin'),
+  justificatifNom: text('justificatif_nom'),
+  justificatifTaille: integer('justificatif_taille'),
+  /** Refus : motif pris dans une liste fermée, et commentaire libre de l'équipe. */
+  motifRefus: text('motif_refus'),
+  commentaireRefus: text('commentaire_refus'),
+  /** Laboratoire : le rôle déclaré (L2). Le salarié mandaté joint un mandat et l'adresse du gérant (MAN). */
+  roleLabo: text('role_labo', { enum: ['gerant', 'mandate', 'salarie'] }),
+  mandatChemin: text('mandat_chemin'),
+  mandatNom: text('mandat_nom'),
+  gerantEmail: text('gerant_email'),
+  /** Lieux d'exercice que le compte choisit de gérer (M1). Vide : tous. */
+  lieuxGeres: text('lieux_geres').array().notNull().default(sql`'{}'::text[]`),
   /** Identifiant national renvoyé par Pro Santé Connect, préfixe de type compris. */
   identifiantPsc: text('identifiant_psc'),
   /** Numéro RPPS certifié par Pro Santé Connect, tel que comparé à la fiche. */
@@ -307,6 +336,61 @@ export const fichesCompletees = pgTable('fiches_completees', {
   tiersPayant: text('tiers_payant', { enum: ['aucun', 'securite_sociale', 'securite_sociale_et_mutuelle'] }),
   /** Orientations d'exercice déclarées, codes de `ORIENTATIONS` dans le même module. */
   orientations: text('orientations').array().notNull().default([]),
+  /** Conventionnement : secteur 1, secteur 2 (dépassements possibles), ou non conventionné. */
+  secteur: text('secteur', { enum: ['secteur_1', 'secteur_2', 'non_conventionne'] }),
+  /**
+   * Accès des personnes à mobilité réduite : oui, partiel ou non. C'est la
+   * réponse qui compte, pas le oui ; « oui » ajoute aussi `pmr` à `accessibilite`
+   * pour le filtre de la recherche.
+   */
+  accesPmr: text('acces_pmr', { enum: ['oui', 'partiel', 'non'] }),
+  /** Âge minimum des patients reçus, en années ; 0 : tous âges. */
+  ageMinimum: integer('age_minimum'),
+  /** Présentation du cabinet, 200 à 800 caractères pour compter. */
+  presentation: text('presentation'),
+  /** Photo du cabinet : URL publique du stockage, paysage 16:9. */
+  photoUrl: text('photo_url'),
+  /** Liens du cabinet, sans intermédiaire : site, prise de rendez-vous en ligne. */
+  siteWeb: text('site_web'),
+  rdvEnLigne: text('rdv_en_ligne'),
+  /** Dernière confirmation de chaque bloc : la fraîcheur se calcule à partir d'elles. */
+  horairesConfirmesLe: timestamp('horaires_confirmes_le', { withTimezone: true }),
+  conventionnementConfirmeLe: timestamp('conventionnement_confirme_le', { withTimezone: true }),
+  accueilConfirmeLe: timestamp('accueil_confirme_le', { withTimezone: true }),
+  presentationConfirmeeLe: timestamp('presentation_confirmee_le', { withTimezone: true }),
+  photoConfirmeeLe: timestamp('photo_confirmee_le', { withTimezone: true }),
+  /** Publication de la fiche à la fin de l'onboarding (B7). */
+  publieeLe: timestamp('publiee_le', { withTimezone: true }),
+  /*
+   * Laboratoire de prothèse (LO1 à LO4 et missions) : ce que les cabinets
+   * cherchent pour choisir un laboratoire. Codes des listes fermées de
+   * `src/lib/espace-pro/labo.ts`.
+   */
+  techniques: text('techniques').array().notNull().default(sql`'{}'::text[]`),
+  materiaux: text('materiaux').array().notNull().default(sql`'{}'::text[]`),
+  /** Usinage CFAO sur place, empreintes numériques (STL) acceptées, impression 3D. */
+  usinage: boolean('usinage').notNull().default(false),
+  empreintesStl: boolean('empreintes_stl').notNull().default(false),
+  impression3d: boolean('impression_3d').notNull().default(false),
+  /** Délais moyens en jours ouvrés, par type de pièce : `{ couronne_unitaire: 5, … }`. */
+  delais: jsonb('delais').$type<Record<string, number>>(),
+  /** Rayon desservi en km, ramassage des empreintes au cabinet et ses jours, envoi au-delà. */
+  rayonKm: integer('rayon_km'),
+  ramassage: boolean('ramassage'),
+  joursRamassage: text('jours_ramassage').array().notNull().default(sql`'{}'::text[]`),
+  transporteur: boolean('transporteur'),
+  /** Réalisations : photos publiques, une à huit, avec légende ; crédit commun. */
+  realisations: jsonb('realisations').$type<{ url: string; legende: string }[]>(),
+  creditPhotos: text('credit_photos'),
+  /** Déclaration de fabricant de dispositifs sur mesure auprès de l'ANSM. */
+  ansmNumero: text('ansm_numero'),
+  ansmDeclareLe: timestamp('ansm_declare_le', { withTimezone: true }),
+  savoirFaireConfirmeLe: timestamp('savoir_faire_confirme_le', { withTimezone: true }),
+  delaisConfirmesLe: timestamp('delais_confirmes_le', { withTimezone: true }),
+  zoneConfirmeeLe: timestamp('zone_confirmee_le', { withTimezone: true }),
+  realisationsConfirmeesLe: timestamp('realisations_confirmees_le', { withTimezone: true }),
+  /** Laboratoire intégré à un cabinet : la fiche du praticien liée (LK1). Les deux fiches restent distinctes. */
+  praticienLieId: text('praticien_lie_id').references(() => praticiens.id, { onDelete: 'set null' }),
   /** Dernière étape du parcours d'accueil enregistrée, de 0 à 5. */
   etape: integer('etape').notNull().default(0),
   /** Renseigné quand le parcours d'accueil a été mené jusqu'au bout. */
@@ -355,6 +439,9 @@ export const demandesCreationFiche = pgTable('demandes_creation_fiche', {
   email: text('email'),
   message: text('message'),
   statut: text('statut', { enum: ['en_attente', 'acceptee', 'refusee'] }).notNull().default('en_attente'),
+  /** Justificatif joint (Kbis d'un laboratoire, LA1) : chemin en stockage privé. */
+  justificatifChemin: text('justificatif_chemin'),
+  justificatifNom: text('justificatif_nom'),
   /** Fiche créée à partir de la demande, une fois acceptée. */
   praticienId: text('praticien_id').references(() => praticiens.id, { onDelete: 'set null' }),
   demandeLe: timestamp('demande_le', { withTimezone: true }).defaultNow().notNull(),
@@ -362,4 +449,177 @@ export const demandesCreationFiche = pgTable('demandes_creation_fiche', {
 }, (t) => [
   index('demandes_creation_statut').on(t.statut, t.demandeLe),
   index('demandes_creation_compte').on(t.userId),
+])
+
+/**
+ * Les « prévenez-moi » de l'espace pro.
+ *
+ * - `fiche_creee` : un RPPS valide sans fiche (S1-0, PSC-0). La synchronisation
+ *   prévient le compte quand la fiche apparaît.
+ * - `remplacant` : remplaçants, collaborateurs et salariés, qui n'ont pas
+ *   encore de fiche à leur nom (REMP).
+ *
+ * Une alerte n'accorde rien : elle n'est pas une revendication.
+ */
+export const alertesEspacePro = pgTable('alertes_espace_pro', {
+  id: text('id').primaryKey(),
+  userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  motif: text('motif', { enum: ['fiche_creee', 'remplacant', 'prothesiste_salarie'] }).notNull(),
+  /** RPPS saisi ou certifié, pour `fiche_creee`. */
+  rpps: text('rpps'),
+  /** Remplaçant, collaborateur libéral ou salarié d'un centre, pour `remplacant`. */
+  exercice: text('exercice', { enum: ['remplacant', 'collaborateur', 'salarie'] }),
+  /** Fiche depuis laquelle l'alerte a été posée, le cas échéant. */
+  praticienId: text('praticien_id').references(() => praticiens.id, { onDelete: 'set null' }),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  envoyeeLe: timestamp('envoyee_le', { withTimezone: true }),
+}, (t) => [
+  uniqueIndex('alertes_compte_motif_rpps').on(t.userId, t.motif, t.rpps),
+  index('alertes_rpps').on(t.rpps),
+])
+
+/**
+ * Les invitations à gérer une fiche (équipe d'un laboratoire, U-COL).
+ *
+ * Le titulaire invite une adresse ; la personne qui ouvre le lien, connectée
+ * avec cette adresse, obtient une revendication acceptée (méthode
+ * `invitation`). Jeton aléatoire, comparé sous forme de condensat.
+ */
+export const invitationsFiche = pgTable('invitations_fiche', {
+  id: text('id').primaryKey(),
+  praticienId: text('praticien_id').notNull().references(() => praticiens.id, { onDelete: 'cascade' }),
+  invitePar: uuid('invite_par').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  email: text('email').notNull(),
+  /** Ce que la personne fait au laboratoire : prothésiste, secrétariat… Affiché dans l'équipe. */
+  fonction: text('fonction'),
+  jetonHash: text('jeton_hash').notNull(),
+  statut: text('statut', { enum: ['envoyee', 'acceptee', 'annulee'] }).notNull().default('envoyee'),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  accepteeLe: timestamp('acceptee_le', { withTimezone: true }),
+}, (t) => [
+  index('invitations_praticien').on(t.praticienId),
+  uniqueIndex('invitations_jeton').on(t.jetonHash),
+])
+
+/* ------------------------------------------------------------------ */
+/* Établissements de formation (couloir « École ou organisme »)        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * La demande d'un compte à gérer la page d'un établissement (O2a, OAT).
+ *
+ * L'établissement vit dans WordPress (type de contenu `formation`) : on le
+ * désigne par son slug. Une adresse sur le domaine de l'établissement donne
+ * la main tout de suite (méthode `domaine`) ; sinon, une attestation de
+ * fonction signée attend la décision de l'équipe (méthode `attestation`).
+ */
+export const revendicationsEtablissement = pgTable('revendications_etablissement', {
+  id: text('id').primaryKey(),
+  userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  slug: text('slug').notNull(),
+  /** Nom de l'établissement au moment de la demande, pour la file de modération. */
+  titre: text('titre').notNull(),
+  type: text('type', { enum: ['ecole_prothese', 'faculte'] }).notNull(),
+  methode: text('methode', { enum: ['domaine', 'attestation'] }).notNull(),
+  statut: text('statut', { enum: ['en_attente', 'acceptee', 'refusee'] }).notNull().default('en_attente'),
+  justificatifChemin: text('justificatif_chemin'),
+  justificatifNom: text('justificatif_nom'),
+  justificatifTaille: integer('justificatif_taille'),
+  motifRefus: text('motif_refus'),
+  demandeLe: timestamp('demande_le', { withTimezone: true }).defaultNow().notNull(),
+  traiteLe: timestamp('traite_le', { withTimezone: true }),
+}, (t) => [
+  uniqueIndex('revendications_etab_compte_slug').on(t.userId, t.slug),
+  index('revendications_etab_slug').on(t.slug),
+  index('revendications_etab_statut').on(t.statut),
+])
+
+/**
+ * Ce que l'établissement déclare (O3a, puis le tableau de bord) : formations,
+ * portes ouvertes, photo, et pour une faculté accès aux études, cursus et
+ * centres de soins. Un document par établissement, partagé entre ses
+ * gestionnaires. Affiché « renseigné par l'établissement », à côté du contenu
+ * éditorial de WordPress, jamais mélangé avec lui.
+ */
+export const fichesEtablissement = pgTable('fiches_etablissement', {
+  slug: text('slug').primaryKey(),
+  type: text('type', { enum: ['ecole_prothese', 'faculte'] }).notNull(),
+  donnees: jsonb('donnees').notNull().default(sql`'{}'::jsonb`),
+  /** Première publication (OEND) ; null tant que l'établissement n'a pas publié. */
+  publieeLe: timestamp('publiee_le', { withTimezone: true }),
+  misAJourLe: timestamp('mis_a_jour_le', { withTimezone: true }).defaultNow().notNull(),
+  misAJourPar: uuid('mis_a_jour_par').references(() => user.id, { onDelete: 'set null' }),
+})
+
+/** Un établissement absent de l'annuaire (OA1) : examiné avant toute publication. */
+export const demandesAjoutEtablissement = pgTable('demandes_ajout_etablissement', {
+  id: text('id').primaryKey(),
+  userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  nom: text('nom').notNull(),
+  uai: text('uai').notNull(),
+  ville: text('ville').notNull(),
+  statut: text('statut', { enum: ['en_attente', 'acceptee', 'refusee'] }).notNull().default('en_attente'),
+  demandeLe: timestamp('demande_le', { withTimezone: true }).defaultNow().notNull(),
+  traiteLe: timestamp('traite_le', { withTimezone: true }),
+}, (t) => [index('demandes_ajout_etab_statut').on(t.statut)])
+
+/** La liste d'attente de la formation continue (W1) : aucune donnée publiée. */
+export const listeAttenteFormation = pgTable('liste_attente_formation', {
+  id: text('id').primaryKey(),
+  userId: uuid('user_id').references(() => user.id, { onDelete: 'set null' }),
+  email: text('email').notNull(),
+  organisme: text('organisme').notNull(),
+  specialites: text('specialites').array().notNull(),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [uniqueIndex('liste_attente_formation_email').on(t.email)])
+
+/* ------------------------------------------------------------------ */
+/* Formations privées (décisions du 13 octobre 2026)                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Une formation proposée par un professionnel depuis son espace compte.
+ * Rien n'est publié sans la décision de l'équipe. Le détail déclaré
+ * (sessions, programme, public, format, tarif, prise en charge) reste ici et
+ * se lit sur la page publique ; WordPress ne porte que l'article minimal,
+ * désigné par `wp_slug` une fois créé.
+ */
+export const demandesFormation = pgTable('demandes_formation', {
+  id: text('id').primaryKey(),
+  userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  /** `acceptee` : validée, en attente de création dans WordPress ; `publiee` : en ligne. */
+  statut: text('statut', { enum: ['en_attente', 'acceptee', 'publiee', 'refusee'] }).notNull().default('en_attente'),
+  motif: text('motif'),
+  donnees: jsonb('donnees').notNull(),
+  /** Mentions de prise en charge vérifiées par l'équipe : { DPC: source, … }. */
+  verifications: jsonb('verifications').notNull().default(sql`'{}'::jsonb`),
+  wpSlug: text('wp_slug'),
+  demandeLe: timestamp('demande_le', { withTimezone: true }).defaultNow().notNull(),
+  traiteLe: timestamp('traite_le', { withTimezone: true }),
+  publieeLe: timestamp('publiee_le', { withTimezone: true }),
+}, (t) => [
+  index('demandes_formation_statut').on(t.statut),
+  index('demandes_formation_compte').on(t.userId),
+  uniqueIndex('demandes_formation_wp_slug').on(t.wpSlug),
+])
+
+/**
+ * L'alerte des praticiens sur les nouvelles formations : sans compte, une
+ * adresse confirmée par lien. Le jeton (gardé sous forme de condensat) sert à
+ * la confirmation et à la désinscription en un clic. Un email par semaine au
+ * plus.
+ */
+export const alertesFormation = pgTable('alertes_formation', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull(),
+  themes: text('themes').array().notNull(),
+  regions: text('regions').array().notNull(),
+  publics: text('publics').array().notNull(),
+  jetonHash: text('jeton_hash').notNull(),
+  confirmeeLe: timestamp('confirmee_le', { withTimezone: true }),
+  dernierEnvoiLe: timestamp('dernier_envoi_le', { withTimezone: true }),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('alertes_formation_email').on(t.email),
+  uniqueIndex('alertes_formation_jeton').on(t.jetonHash),
 ])

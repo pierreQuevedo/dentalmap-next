@@ -37,7 +37,7 @@ export async function getCompte(): Promise<Compte | null> {
       SELECT r.statut, f.termine_le
       FROM revendications r
       LEFT JOIN fiches_completees f ON f.praticien_id = r.praticien_id
-      WHERE r.user_id = ${u.id}::uuid
+      WHERE r.user_id = ${u.id}::uuid AND r.objet = 'revendication'
     `),
     db.execute<{ n: number }>(sql`
       SELECT count(*)::int AS n FROM demandes_creation_fiche WHERE user_id = ${u.id}::uuid AND statut = 'en_attente'
@@ -56,6 +56,18 @@ export async function getCompte(): Promise<Compte | null> {
       demandeCreationEnAttente: (creations[0]?.n ?? 0) > 0,
     },
   }
+}
+
+/**
+ * Enregistre le rôle et le nom sur le compte connecté, et le conduit à
+ * l'étape qui suit. Partagé par le formulaire de profil et par l'arrivée du
+ * nouveau compte, qui a déjà répondu en s'inscrivant.
+ */
+export async function enregistrerProfil(role: Role, nom: string): Promise<void> {
+  await auth.api.updateUser({
+    headers: await headers(),
+    body: { name: nom, role, etapeTunnel: role === 'patient' || role === 'organisme' ? 'tableau-de-bord' : 'fiche' },
+  })
 }
 
 /**
@@ -245,8 +257,15 @@ export async function estFavori(userId: string, slug: string): Promise<boolean> 
 export type RevendicationAModerer = {
   id: string
   statut: 'en_attente' | 'acceptee' | 'refusee'
-  methode: 'manuelle' | 'pro_sante_connect'
+  methode: 'manuelle' | 'pro_sante_connect' | 'justificatif'
+  objet: 'revendication' | 'retrait'
   message: string | null
+  justificatifNom: string | null
+  mandatNom: string | null
+  roleLabo: string | null
+  gerantEmail: string | null
+  /** Une autre revendication acceptée existe : c'est une contestation. */
+  contestation: boolean
   demandeLe: string
   compteEmail: string
   compteNom: string
@@ -259,7 +278,13 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     id: string
     statut: RevendicationAModerer['statut']
     methode: RevendicationAModerer['methode']
+    objet: RevendicationAModerer['objet']
     message: string | null
+    justificatif_nom: string | null
+    mandat_nom: string | null
+    role_labo: string | null
+    gerant_email: string | null
+    contestation: boolean
     demande_le: string
     email: string
     name: string
@@ -272,7 +297,8 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     rpps: string | null
     siret: string | null
   }>(sql`
-    SELECT r.id, r.statut, r.methode, r.message, r.demande_le, u.email, u.name,
+    SELECT r.id, r.statut, r.methode, r.objet, r.message, r.justificatif_nom, r.mandat_nom, r.role_labo, r.gerant_email, r.demande_le, u.email, u.name,
+           EXISTS (SELECT 1 FROM revendications a WHERE a.praticien_id = r.praticien_id AND a.id <> r.id AND a.statut = 'acceptee' AND a.objet = 'revendication') AS contestation,
            p.slug, p.profession, p.nom, p.prenom, p.raison_sociale, p.rpps, p.siret, c.nom AS commune_nom
     FROM revendications r
     JOIN "user" u ON u.id = r.user_id
@@ -287,7 +313,13 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     id: r.id,
     statut: r.statut,
     methode: r.methode,
+    objet: r.objet,
     message: r.message,
+    justificatifNom: r.justificatif_nom,
+    mandatNom: r.mandat_nom,
+    roleLabo: r.role_labo,
+    gerantEmail: r.gerant_email,
+    contestation: r.contestation,
     demandeLe: r.demande_le,
     compteEmail: r.email,
     compteNom: r.name,
@@ -312,16 +344,17 @@ export type DemandeCreation = {
   statut: 'en_attente' | 'acceptee' | 'refusee'
   demandeLe: string
   compteEmail: string
+  justificatifNom: string | null
 }
 
 export async function getDemandesCreationEnAttente(): Promise<DemandeCreation[]> {
-  const { rows } = await db.execute<Omit<DemandeCreation, 'raisonSociale' | 'codePostal' | 'demandeLe' | 'compteEmail'> & { raison_sociale: string | null; code_postal: string; demande_le: string; compte_email: string }>(sql`
+  const { rows } = await db.execute<Omit<DemandeCreation, 'raisonSociale' | 'codePostal' | 'demandeLe' | 'compteEmail' | 'justificatifNom'> & { raison_sociale: string | null; code_postal: string; demande_le: string; compte_email: string; justificatif_nom: string | null }>(sql`
     SELECT d.id, d.profession, d.nom, d.prenom, d.raison_sociale, d.rpps, d.siret, d.adresse, d.code_postal, d.ville,
-           d.telephone, d.email, d.message, d.statut, d.demande_le, u.email AS compte_email
+           d.telephone, d.email, d.message, d.statut, d.demande_le, u.email AS compte_email, d.justificatif_nom
     FROM demandes_creation_fiche d JOIN "user" u ON u.id = d.user_id
     WHERE d.statut = 'en_attente'
     ORDER BY d.demande_le ASC
     LIMIT 100
   `)
-  return rows.map((r) => ({ ...r, raisonSociale: r.raison_sociale, codePostal: r.code_postal, demandeLe: r.demande_le, compteEmail: r.compte_email }))
+  return rows.map((r) => ({ ...r, raisonSociale: r.raison_sociale, codePostal: r.code_postal, demandeLe: r.demande_le, compteEmail: r.compte_email, justificatifNom: r.justificatif_nom }))
 }

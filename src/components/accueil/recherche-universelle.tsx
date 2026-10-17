@@ -10,7 +10,7 @@ import { Deroulant } from '@/components/site/deroulant'
 /**
  * Le champ unique de l'accueil.
  *
- * Quatre cibles, un seul champ. L'utilisateur qui arrive ne sait pas encore
+ * Plusieurs cibles, un seul champ. L'utilisateur qui arrive ne sait pas encore
  * qu'il existe deux bases de données derrière, ni que les écoles viennent du
  * CMS et les praticiens de Postgres : lui demander de choisir un onglet avant
  * de savoir ce qu'il cherche reviendrait à lui faire porter notre découpage
@@ -18,7 +18,8 @@ import { Deroulant } from '@/components/site/deroulant'
  *
  * Posé sur le hero sombre de l'accueil : le sélecteur de cible a la forme
  * des onglets de la section « Explorer l'annuaire », capsule compacte de
- * 36 px avec un curseur qui glisse, sur le fond du badge du hero ; le champ reste
+ * 36 px sur une seule ligne, la cible choisie surlignée, sur le fond du badge
+ * du hero ; le champ reste
  * clair, et son bouton est dans le teal de la marque, sans effet au survol.
  *
  * Le formulaire part toujours vers `/recherche/`, en méthode GET, avec la
@@ -60,24 +61,20 @@ export function RechercheUniverselle() {
       */}
       <fieldset className="relative flex justify-center">
         <legend className="sr-only">Que cherchez-vous ?</legend>
-        <div className="relative grid h-9 w-fit grid-cols-4 gap-1 rounded-full border border-white/10 bg-black/30 p-1 backdrop-blur-sm">
-          <span
-            aria-hidden
-            className="absolute inset-y-1 left-1 rounded-full bg-white/15 transition-transform duration-moderate ease-spring motion-reduce:transition-none"
-            style={{
-              // Largeur d'une colonne : le conteneur moins ses marges internes et
-              // les trois écarts, divisé par quatre. Sans les écarts, le curseur
-              // débordait un peu plus à chaque colonne.
-              width: 'calc((100% - 0.5rem - 0.75rem) / 4)',
-              transform: `translateX(calc(${index} * (100% + 0.25rem)))`,
-            }}
-          />
+        {/*
+          Une seule ligne, quel que soit le nombre de cibles : la grille de
+          quatre colonnes passait sur deux lignes dès la cinquième cible et
+          débordait de sa capsule. Plus large que le champ en desktop, la
+          rangée déborde des deux côtés à parts égales ; sur un téléphone elle
+          défile à l'horizontale.
+        */}
+        <div className="flex h-9 w-max max-w-[calc(100vw-2rem)] shrink-0 gap-1 overflow-x-auto rounded-full border border-white/10 bg-black/30 p-1 backdrop-blur-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {CIBLES.map((c) => (
             <label
               key={c.cle}
               title={c.aide}
-              className={`relative z-10 flex cursor-pointer items-center justify-center rounded-full px-4 text-center text-sm font-medium whitespace-nowrap transition-colors duration-fast has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-white ${
-                cible === c.cle ? 'text-white' : 'text-white/60 hover:text-white/90'
+              className={`relative flex shrink-0 cursor-pointer items-center justify-center rounded-full px-3.5 text-center text-sm font-medium whitespace-nowrap transition-colors duration-fast has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:-outline-offset-2 has-[:focus-visible]:outline-white ${
+                cible === c.cle ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white/90'
               }`}
             >
               <input
