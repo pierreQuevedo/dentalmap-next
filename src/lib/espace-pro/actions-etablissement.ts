@@ -14,11 +14,10 @@ import {
   envoyerAModerer,
   envoyerAttestationRecue,
   envoyerDemandePartenariat,
-  envoyerAttestationDecidee,
-  envoyerEtablissementAjoute,
 } from '@/lib/email'
 import { enregistrerProfil, estModerateur, exigerConnexion, type Compte } from '@/lib/tunnel/compte'
 import { synchroniserFormation } from '@/lib/wp/ecriture'
+import { deciderAjoutEtablissement, deciderAttestation as deciderAttestationModeration } from '@/lib/moderation/decisions'
 import { COOKIE_PARTENARIAT, SPECIALITES, adresseReconnue, controlerUai, CentreSoins, Cycle, Donnees, FormationDeclaree, Photo, VoieAcces, type Bloc } from './etablissement'
 import { ESPACE_ETAB, ORGANISME, getFicheEtablissement, getGestions, getSourceEtablissement, initialiserFiche, type Gestion } from './etablissement-donnees'
 import { controlerJustificatif, rangerJustificatif, typeDepuisNom } from './justificatif'
@@ -353,24 +352,11 @@ export async function publierEtablissement(donnees: FormData): Promise<never> {
 export async function deciderAttestation(donnees: FormData): Promise<never> {
   const compte = await exigerConnexion('/espace-pro/moderation/')
   if (!estModerateur(compte.email)) redirect(chemin('/espace-pro/'))
-  const id = String(donnees.get('id') ?? '')
-  const decision = donnees.get('decision') === 'acceptee' ? 'acceptee' : 'refusee'
-  const motif = String(donnees.get('motif') ?? '').trim().slice(0, 500) || null
-  const { rows } = await db.execute<{ slug: string; titre: string; email: string }>(sql`
-    UPDATE revendications_etablissement r SET statut = ${decision}, traite_le = now(), motif_refus = ${decision === 'refusee' ? motif : null}
-    FROM "user" u WHERE r.id = ${id} AND r.statut = 'en_attente' AND u.id = r.user_id
-    RETURNING r.slug, r.titre, u.email
-  `)
-  const r = rows[0]
-  if (r) {
-    updateTag(`etablissement:${r.slug}`)
-    const source = await getSourceEtablissement(r.slug)
-    try {
-      await envoyerAttestationDecidee(r.email, r.titre, decision === 'acceptee' ? { acceptee: true, lien: source?.lien ?? '/formation/' } : { acceptee: false, motif })
-    } catch (e) {
-      console.error('[etablissement] courriel de décision', e)
-    }
-  }
+  await deciderAttestationModeration(
+    String(donnees.get('id') ?? ''),
+    donnees.get('decision') === 'acceptee' ? 'acceptee' : 'refusee',
+    String(donnees.get('motif') ?? ''),
+  )
   redirect(chemin('/espace-pro/moderation/'))
 }
 
@@ -378,19 +364,6 @@ export async function deciderAttestation(donnees: FormData): Promise<never> {
 export async function traiterAjoutEtablissement(donnees: FormData): Promise<never> {
   const compte = await exigerConnexion('/espace-pro/moderation/')
   if (!estModerateur(compte.email)) redirect(chemin('/espace-pro/'))
-  const decision = donnees.get('decision') === 'acceptee' ? 'acceptee' : 'refusee'
-  const { rows } = await db.execute<{ nom: string; email: string }>(sql`
-    UPDATE demandes_ajout_etablissement d SET statut = ${decision}, traite_le = now()
-    FROM "user" u WHERE d.id = ${String(donnees.get('id') ?? '')} AND d.statut = 'en_attente' AND u.id = d.user_id
-    RETURNING d.nom, u.email
-  `)
-  // La page est créée : la personne qui l'a demandée est prévenue, comme promis à l'accusé de réception.
-  if (decision === 'acceptee' && rows[0]) {
-    try {
-      await envoyerEtablissementAjoute(rows[0].email, rows[0].nom)
-    } catch (e) {
-      console.error('[etablissement] courriel de page créée', e)
-    }
-  }
+  await deciderAjoutEtablissement(String(donnees.get('id') ?? ''), donnees.get('decision') === 'acceptee' ? 'acceptee' : 'refusee')
   redirect(chemin('/espace-pro/moderation/'))
 }
