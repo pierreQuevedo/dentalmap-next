@@ -25,7 +25,20 @@ export function controlerJustificatif(fichier: { type: string; size: number; nam
   return { ok: true }
 }
 
-/** Le téléversement direct est possible : le navigateur envoie au stockage, l'action ne reçoit que le chemin. */
+/**
+ * Un stockage Vercel Blob est branché : par jeton (`BLOB_READ_WRITE_TOKEN`,
+ * anciens stockages) ou par identifiant de stockage (`BLOB_STORE_ID`), le
+ * SDK s'authentifiant alors avec le jeton OIDC du déploiement.
+ */
+export function stockageBlob(): boolean {
+  return !!(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID)
+}
+
+/**
+ * Le téléversement direct depuis le navigateur demande le jeton de lecture et
+ * d'écriture (jeton client signé avec lui). Sans lui, le fichier part avec le
+ * formulaire et l'action le range.
+ */
 export function televersementDirect(): boolean {
   return !!process.env.BLOB_READ_WRITE_TOKEN
 }
@@ -39,11 +52,11 @@ export function typeDepuisNom(nom: string): string {
 export async function rangerJustificatif(fichier: File, praticienId: string): Promise<string> {
   const extension = fichier.type === 'application/pdf' ? 'pdf' : fichier.type === 'image/png' ? 'png' : 'jpg'
   const chemin = `justificatifs/${praticienId}/${randomUUID()}.${extension}`
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (stockageBlob()) {
     const blob = await put(chemin, fichier, { access: 'private', contentType: fichier.type, addRandomSuffix: false })
     return `blob:${blob.pathname}`
   }
-  if (process.env.NODE_ENV === 'production') throw new Error('BLOB_READ_WRITE_TOKEN manquant : dépôt des justificatifs impossible')
+  if (process.env.NODE_ENV === 'production') throw new Error('Aucun stockage Vercel Blob (BLOB_READ_WRITE_TOKEN ou BLOB_STORE_ID) : dépôt des justificatifs impossible')
   const dossier = join(tmpdir(), 'dentalmap', 'justificatifs', praticienId)
   await mkdir(dossier, { recursive: true })
   const local = join(dossier, chemin.split('/').pop()!)
