@@ -41,7 +41,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       fiche={fiche}
       etiquette={fiche ? (fiche.gereeParUnAutre ? 'Gérée par un autre compte' : 'Fiche non revendiquée') : undefined}
       recherche={fiche ? (fiche.rpps ?? nomDe(fiche)) : ''}
-      encart={{ icone: 'carte', titre: 'Pro Santé Connect', texte: 'Votre carte CPS ou e-CPS retrouve la fiche toute seule.' }}
+      encart={{ icone: 'carte', titre: 'Pro Santé Connect', texte: 'Votre carte CPS ou e-CPS retrouve la fiche toute seule.', badge: psc ? undefined : 'Bientôt' }}
       retour={fiche ? pageFiche(fiche) : '/'}
     >
       <Etapes etape={1} libelle="Identification" />

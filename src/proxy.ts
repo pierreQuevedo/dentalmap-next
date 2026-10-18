@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { getSessionCookie } from 'better-auth/cookies'
 import { DELAI_ANNULATION_RETRAIT_JOURS } from '@/lib/espace-pro/chemins'
 
 /**
@@ -19,7 +20,29 @@ import { DELAI_ANNULATION_RETRAIT_JOURS } from '@/lib/espace-pro/chemins'
  * une lenteur de cette lecture laisse passer la requête vers la fiche plutôt
  * que de la bloquer.
  */
+/**
+ * Espace pro et favoris sans session : la connexion, avant tout rendu.
+ *
+ * Les pages vérifient la session elles-mêmes, mais leur redirection arrive au
+ * milieu d'une navigation côté client : depuis une fiche, « Revendiquer cette
+ * fiche » chargeait la page en arrière-plan et l'écran ne changeait pas. Une
+ * redirection du proxy est une vraie réponse HTTP, que le routeur suit. Le
+ * contrôle reste optimiste (présence du cookie) : la page vérifie la session.
+ */
+const PUBLIQUES = ['/espace-pro/laboratoire/modele-mandat/']
+
+function exigerSession(request: NextRequest): NextResponse | null {
+  const { pathname, search } = request.nextUrl
+  if (!pathname.startsWith('/espace-pro') && !pathname.startsWith('/favoris')) return null
+  if (PUBLIQUES.some((p) => pathname.startsWith(p)) || getSessionCookie(request)) return NextResponse.next()
+  const connexion = new URL('/connexion/', request.url)
+  connexion.searchParams.set('retour', `${pathname}${search}`)
+  return NextResponse.redirect(connexion)
+}
+
 export async function proxy(request: NextRequest) {
+  const session = exigerSession(request)
+  if (session) return session
   const [base, departement, commune, slug] = request.nextUrl.pathname.split('/').filter(Boolean)
   if (!slug) return NextResponse.next()
 
@@ -42,5 +65,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/:base(dentistes|prothesistes|maxillo-faciaux|stomatologues|orl)/:departement/:commune/:slug',
+  matcher: ['/:base(dentistes|prothesistes|maxillo-faciaux|stomatologues|orl)/:departement/:commune/:slug', '/espace-pro/:path*', '/favoris/:path*'],
 }

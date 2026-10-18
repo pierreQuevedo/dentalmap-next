@@ -46,7 +46,7 @@ export type IconeEncart = keyof typeof ICONES
 
 type Point = { lon: number | null; lat: number | null }
 
-export type EncartCarte = { icone: IconeEncart; titre: string; texte: string; ton?: 'teal' | 'attention' | 'erreur' }
+export type EncartCarte = { icone: IconeEncart; titre: string; texte: string; ton?: 'teal' | 'attention' | 'erreur'; badge?: string }
 
 /** Toute la France métropolitaine, quand aucune fiche n'est encore désignée. */
 const FRANCE = { centre: [2.45, 46.6] as [number, number], zoom: 4.7 }
@@ -127,7 +127,7 @@ export function VoletCarte({
         </div>
         {recherche !== undefined && (
           <div aria-hidden className="squircle-full flex h-11 max-w-md items-center gap-2.5 border border-line bg-bg pl-4 pr-1.5 shadow-pill">
-            <Search className="size-4 shrink-0 text-fg-2" />
+            {/^\d{11}$/.test(recherche) ? <span className="shrink-0 text-sm font-medium text-fg-2">RPPS :</span> : <Search className="size-4 shrink-0 text-fg-2" />}
             <span className={`min-w-0 flex-1 truncate text-sm ${recherche ? `text-fg ${/^\d+$/.test(recherche) ? 'font-mono' : ''}` : 'text-fg-2'}`}>
               {recherche || invite}
             </span>
@@ -153,7 +153,7 @@ export function VignetteCarte({ praticien }: { praticien: Point }) {
   )
 }
 
-function Encart({ icone, titre, texte, ton = 'teal' }: EncartCarte) {
+function Encart({ icone, titre, texte, ton = 'teal', badge }: EncartCarte) {
   const Icone = ICONES[icone]
   const fond = ton === 'attention' ? 'bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-300' : ton === 'erreur' ? 'bg-destructive/10 text-destructive' : 'bg-teal/10 text-teal'
   return (
@@ -162,7 +162,10 @@ function Encart({ icone, titre, texte, ton = 'teal' }: EncartCarte) {
         <Icone className="size-4" aria-hidden />
       </span>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-fg">{titre}</p>
+        <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-fg">
+          {titre}
+          {badge && <span className="rounded-full bg-bg-soft px-2 py-0.5 text-[11px] font-medium text-fg-2 ring-1 ring-inset ring-line">{badge}</span>}
+        </p>
         <p className="mt-0.5 text-xs text-fg-2">{texte}</p>
       </div>
     </div>
@@ -218,6 +221,9 @@ function Plan({
       fadeDuration: 0,
     })
     carte.current = map
+    // Le cadre change de taille sans que la fenêtre bouge (volet redimensionné, barre d'outils) : le plan suit.
+    const suivi = new ResizeObserver(() => map.resize())
+    suivi.observe(conteneur.current)
     // Dans la vignette, la mention des sources reste repliée derrière son « i » : déployée, elle couvrirait le repère.
     if (vignette) map.once('load', () => conteneur.current?.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show'))
 
@@ -247,6 +253,7 @@ function Plan({
     }
     return () => {
       cancelAnimationFrame(cadre)
+      suivi.disconnect()
       for (const m of marqueurs) m.remove()
       map.remove()
       carte.current = null
