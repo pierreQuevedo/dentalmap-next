@@ -135,6 +135,50 @@ export async function deposerJustificatif(donnees: FormData): Promise<never> {
 }
 
 /* ------------------------------------------------------------------ */
+/* S3b : demander à l'équipe                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Sans carte CPS ni e-CPS : la demande part à l'équipe, qui vérifie à la main
+ * (appel au cabinet, échange par email). Elle crée une revendication en
+ * attente : le praticien prépare sa fiche en brouillon, rien n'est publié
+ * avant l'accord. Aucun document n'est demandé.
+ */
+export async function demanderEquipe(donnees: FormData): Promise<never> {
+  const slug = String(donnees.get('fiche') ?? '')
+  const objet = donnees.get('objet') === 'retrait' ? 'retrait' : 'revendication'
+  const ici = `${REVENDIQUER}/${encodeURIComponent(slug)}/equipe/${objet === 'retrait' ? '?objet=retrait' : ''}`
+  const compte = await exigerConnexion(ici)
+  const fiche = await getFicheRevendication(slug, compte.id)
+  if (!fiche) redirect(chemin(`${REVENDIQUER}/`))
+  const telephone = String(donnees.get('telephone') ?? '').trim().slice(0, 30)
+  const mot = String(donnees.get('message') ?? '').trim().slice(0, 1000)
+  const message = [telephone && `Téléphone : ${telephone}`, mot, fiche.gereeParUnAutre && 'Contestation : fiche déjà gérée par un autre compte.'].filter(Boolean).join('\n') || null
+
+  await db.execute(sql`
+    INSERT INTO revendications (id, praticien_id, user_id, statut, methode, objet, message)
+    VALUES (${randomUUID()}, ${fiche.id}, ${compte.id}::uuid, 'en_attente', 'manuelle', ${objet}, ${message})
+    ON CONFLICT (praticien_id, user_id) DO UPDATE SET
+      statut = 'en_attente', methode = 'manuelle', objet = EXCLUDED.objet, message = EXCLUDED.message,
+      justificatif_chemin = NULL, justificatif_nom = NULL, justificatif_taille = NULL,
+      motif_refus = NULL, commentaire_refus = NULL, traite_le = NULL, demande_le = now()
+  `)
+  const nom = nomAffiche(fiche)
+  try {
+    await Promise.all([
+      envoyerRevendicationRecue(compte.email, nom, objet),
+      envoyerAModerer(
+        `${objet === 'retrait' ? 'retrait' : 'revendication'} sans carte pour ${nom}`,
+        `Le compte ${compte.email} demande à ${objet === 'retrait' ? 'retirer' : 'gérer'} la fiche ${nom} (RPPS ${fiche.rpps ?? 'aucun'}), sans carte CPS ni e-CPS. Identité à vérifier avec lui${telephone ? `, joignable au ${telephone}` : ''}.${fiche.gereeParUnAutre ? ' Fiche déjà gérée par un autre compte (contestation, 7 jours).' : ''}${mot ? ` Son message : « ${mot} »` : ''}`,
+      ),
+    ])
+  } catch (e) {
+    console.error('[revendication] courriel de demande à l’équipe', e)
+  }
+  redirect(chemin(`${REVENDIQUER}/suivi/?fiche=${encodeURIComponent(fiche.slug)}`))
+}
+
+/* ------------------------------------------------------------------ */
 /* S1-0, PSC-0, REMP : m'avertir                                       */
 /* ------------------------------------------------------------------ */
 

@@ -83,7 +83,7 @@ export async function envoyerRevendicationRecue(to: string, fiche: string, objet
           { type: 'texte', texte: 'En attendant, vous pouvez déjà préparer vos horaires, vos langues et l’accessibilité de vos locaux.' },
           ESPACE,
         ],
-    raison: 'Vous recevez cet email parce que vous avez déposé un document pour une fiche sur DentalMap.',
+    raison: 'Vous recevez cet email parce que vous avez demandé à gérer ou à retirer une fiche sur DentalMap.',
   })
 }
 
