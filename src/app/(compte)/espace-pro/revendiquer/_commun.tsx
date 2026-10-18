@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
 import { Logo } from '@/components/site/logo'
+import { FermerFenetre } from '@/components/compte/fermer-fenetre'
 import { Coquille } from '@/components/compte/coquille'
 import { Marque } from '@/components/compte/ui'
 import type { Voie } from '@/components/compte/choix'
@@ -167,41 +167,34 @@ export async function CoquilleParcours({
 
 /**
  * La fenêtre du parcours : la carte occupe tout l'écran, floutée, et l'étape
- * s'affiche au centre dans une fenêtre (S2). Sur mobile, la fenêtre prend la
- * largeur de l'écran.
+ * s'affiche au centre dans une fenêtre (S2), sous le logo. Un clic autour de
+ * la fenêtre ou Échap la ferme. Sur mobile, elle prend la largeur de l'écran.
  */
 export async function FenetreParcours({
   fiche,
   etiquette,
   recherche,
   retour = '/',
-  libelleRetour = 'Retour au site',
   children,
 }: {
   fiche: FicheRevendication
   etiquette?: string
   recherche?: string
+  /** Où mène la fermeture (clic autour de la fenêtre, Échap) : la fiche publique. */
   retour?: string
-  libelleRetour?: string
   children: React.ReactNode
 }) {
   return (
     <div className="relative min-h-dvh">
       <div aria-hidden className="fixed inset-0">
-        <VoletCarte praticiens={[fiche.resume]} profession={fiche.profession} etiquette={etiquette} recherche={recherche} />
+        <VoletCarte praticiens={[fiche.resume]} profession={fiche.profession} etiquette={etiquette} recherche={recherche} sansMarque />
       </div>
-      <div aria-hidden className="fixed inset-0 bg-bg/40 backdrop-blur-md" />
-      <div className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-8 md:px-8">
-        <div className="mb-4 flex w-full max-w-lg items-center justify-between">
-          <Link href={chemin(retour)} className="inline-flex items-center gap-2 text-sm text-fg hover:underline">
-            <ArrowLeft className="size-4" aria-hidden />
-            {libelleRetour}
-          </Link>
-          <Link href="/" aria-label="DentalMap, accueil" className="inline-flex">
-            <Logo />
-          </Link>
-        </div>
-        <section role="dialog" aria-modal="true" aria-labelledby="fenetre-titre" className="squircle-3xl animate-fiche-entree w-full max-w-lg border border-line bg-bg p-6 shadow-pop md:p-8">
+      <FermerFenetre retour={chemin(retour)} />
+      <div className="pointer-events-none relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-8 md:px-8">
+        <Link href="/" aria-label="DentalMap, accueil" className="pointer-events-auto mb-5 inline-flex">
+          <Logo />
+        </Link>
+        <section role="dialog" aria-modal="true" aria-labelledby="fenetre-titre" className="squircle-3xl animate-fiche-entree pointer-events-auto w-full max-w-lg border border-line bg-bg p-6 shadow-pop md:p-8">
           {children}
         </section>
       </div>
