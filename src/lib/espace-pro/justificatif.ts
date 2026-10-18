@@ -17,8 +17,9 @@ export const TAILLE_MAX_JUSTIFICATIF = 10 * 1024 * 1024
 
 export type ControleJustificatif = { ok: true } | { ok: false; erreur: string }
 
-export function controlerJustificatif(fichier: { type: string; size: number; name: string }): ControleJustificatif {
+export function controlerJustificatif(fichier: { type: string; size: number; name: string }, options: { pdfSeul?: boolean } = {}): ControleJustificatif {
   if (!fichier.size) return { ok: false, erreur: 'Choisissez un fichier.' }
+  if (options.pdfSeul && fichier.type !== 'application/pdf') return { ok: false, erreur: 'Le document doit être un PDF.' }
   if (!(TYPES_JUSTIFICATIF as readonly string[]).includes(fichier.type)) return { ok: false, erreur: 'Le document doit être un PDF, un JPG ou un PNG.' }
   if (fichier.size > TAILLE_MAX_JUSTIFICATIF) return { ok: false, erreur: 'Le document dépasse 10 Mo.' }
   return { ok: true }

@@ -103,9 +103,9 @@ export function voiesIdentite(fiche: { slug: string }, o: { psc: boolean; retrai
     {
       valeur: 'equipe',
       titre: 'Demander à l’équipe',
-      detail: 'Sans carte CPS ni e-CPS : écrivez-nous, l’équipe vérifie avec vous et vous répond.',
+      detail: 'Sans carte CPS ni e-CPS : un justificatif PDF, vérifié par l’équipe. Vous prenez la main sur votre fiche sans attendre.',
       icone: 'equipe',
-      badge: 'Sur demande',
+      badge: '48 h',
       bouton: 'Demander à l’équipe',
       href: cheminFiche(fiche.slug, `equipe${o.retrait ? '?objet=retrait' : ''}`),
     },

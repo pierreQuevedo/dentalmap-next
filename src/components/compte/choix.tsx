@@ -107,7 +107,7 @@ export type Emplacement = {
 /** Une consigne d'action ne nomme pas le document : on ne la répète pas sous le fichier choisi. */
 const nomDocument = (e: Emplacement) => e.document ?? (/^(glissez|déposez|choisissez)/i.test(e.titre) ? 'Prêt à l’envoi' : e.titre)
 
-function Zone({ e, fichier, onFichier, onRetirer }: { e: Emplacement; fichier: File | null; onFichier: (f: File) => void; onRetirer: () => void }) {
+function Zone({ e, fichier, onFichier, onRetirer, pdfSeul = false }: { e: Emplacement; fichier: File | null; onFichier: (f: File) => void; onRetirer: () => void; pdfSeul?: boolean }) {
   const [survol, setSurvol] = useState(false)
   if (fichier) {
     return (
@@ -146,7 +146,7 @@ function Zone({ e, fichier, onFichier, onRetirer }: { e: Emplacement; fichier: F
       </span>
       <span className="mt-3 text-sm font-semibold text-fg">{e.titre}</span>
       <span className="mt-1 text-xs text-fg-2">{e.detail ?? 'Glissez le fichier ici, ou choisissez-le · PDF, JPG ou PNG, 10 Mo au plus'}</span>
-      <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="sr-only" onChange={(ev) => ev.target.files?.[0] && onFichier(ev.target.files[0])} />
+      <input type="file" accept={pdfSeul ? '.pdf,application/pdf' : '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png'} className="sr-only" onChange={(ev) => ev.target.files?.[0] && onFichier(ev.target.files[0])} />
     </label>
   )
 }
@@ -161,6 +161,7 @@ export function DepotJustificatif({
   erreurInitiale,
   emplacements = [{ nom: 'document', titre: 'Glissez votre fichier ici', detail: 'ou choisissez-le · PDF, JPG ou PNG, 10 Mo au plus', document: 'Justificatif' }],
   libelle = 'Envoyer le justificatif',
+  pdfSeul = false,
 }: {
   action: (d: FormData) => Promise<void>
   champsCaches: Record<string, string>
@@ -175,6 +176,8 @@ export function DepotJustificatif({
   erreurInitiale?: string
   emplacements?: Emplacement[]
   libelle?: string
+  /** Seul le PDF est accepté (demande à l'équipe d'un soignant). */
+  pdfSeul?: boolean
 }) {
   const [fichiers, setFichiers] = useState<Record<string, File | null>>({})
   const [erreur, setErreur] = useState<string | null>(erreurInitiale ?? null)
@@ -183,7 +186,7 @@ export function DepotJustificatif({
 
   const prendre = (nom: string, f: File) => {
     setErreur(null)
-    if (!TYPES.includes(f.type)) return setErreur('Le document doit être un PDF, un JPG ou un PNG.')
+    if (pdfSeul ? f.type !== 'application/pdf' : !TYPES.includes(f.type)) return setErreur(pdfSeul ? 'Le document doit être un PDF.' : 'Le document doit être un PDF, un JPG ou un PNG.')
     if (f.size > MAX) return setErreur('Le document dépasse 10 Mo.')
     setFichiers((x) => ({ ...x, [nom]: f }))
   }
@@ -228,7 +231,7 @@ export function DepotJustificatif({
       {avant}
       <div className="space-y-3">
         {emplacements.map((e) => (
-          <Zone key={e.nom} e={e} fichier={fichiers[e.nom] ?? null} onFichier={(f) => prendre(e.nom, f)} onRetirer={() => setFichiers((x) => ({ ...x, [e.nom]: null }))} />
+          <Zone key={e.nom} e={e} pdfSeul={pdfSeul} fichier={fichiers[e.nom] ?? null} onFichier={(f) => prendre(e.nom, f)} onRetirer={() => setFichiers((x) => ({ ...x, [e.nom]: null }))} />
         ))}
       </div>
       {erreur && (

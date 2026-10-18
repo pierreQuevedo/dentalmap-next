@@ -155,12 +155,32 @@ export async function demanderEquipe(donnees: FormData): Promise<never> {
   const mot = String(donnees.get('message') ?? '').trim().slice(0, 1000)
   const message = [telephone && `Téléphone : ${telephone}`, mot, fiche.gereeParUnAutre && 'Contestation : fiche déjà gérée par un autre compte.'].filter(Boolean).join('\n') || null
 
+  // Le justificatif PDF, obligatoire : déjà téléversé en stockage privé, ou envoyé avec le formulaire.
+  const avecErreur = (texte: string) => chemin(`${ici}${ici.includes('?') ? '&' : '?'}erreur=${encodeURIComponent(texte)}`)
+  const televerse = String(donnees.get('chemin_document') ?? '')
+  const nomFichier = String(donnees.get('nom_document') ?? 'justificatif.pdf').slice(0, 200)
+  let rangement: string
+  let tailleFichier = Number(donnees.get('taille_document') ?? 0)
+  if (televerse) {
+    if (!televerse.startsWith(`justificatifs/${fiche.id}/`)) redirect(avecErreur('Le document n’a pas pu être rattaché à cette fiche.'))
+    const controle = controlerJustificatif({ type: typeDepuisNom(televerse), size: tailleFichier || 1, name: nomFichier }, { pdfSeul: true })
+    if (!controle.ok) redirect(avecErreur(controle.erreur))
+    rangement = `blob:${televerse}`
+  } else {
+    const fichier = donnees.get('document')
+    if (!(fichier instanceof File) || !fichier.size) redirect(avecErreur('Joignez votre justificatif en PDF.'))
+    const controle = controlerJustificatif(fichier, { pdfSeul: true })
+    if (!controle.ok) redirect(avecErreur(controle.erreur))
+    rangement = await rangerJustificatif(fichier, fiche.id)
+    tailleFichier = fichier.size
+  }
+
   await db.execute(sql`
-    INSERT INTO revendications (id, praticien_id, user_id, statut, methode, objet, message)
-    VALUES (${randomUUID()}, ${fiche.id}, ${compte.id}::uuid, 'en_attente', 'manuelle', ${objet}, ${message})
+    INSERT INTO revendications (id, praticien_id, user_id, statut, methode, objet, message, justificatif_chemin, justificatif_nom, justificatif_taille)
+    VALUES (${randomUUID()}, ${fiche.id}, ${compte.id}::uuid, 'en_attente', 'justificatif', ${objet}, ${message}, ${rangement}, ${nomFichier}, ${tailleFichier})
     ON CONFLICT (praticien_id, user_id) DO UPDATE SET
-      statut = 'en_attente', methode = 'manuelle', objet = EXCLUDED.objet, message = EXCLUDED.message,
-      justificatif_chemin = NULL, justificatif_nom = NULL, justificatif_taille = NULL,
+      statut = 'en_attente', methode = 'justificatif', objet = EXCLUDED.objet, message = EXCLUDED.message,
+      justificatif_chemin = EXCLUDED.justificatif_chemin, justificatif_nom = EXCLUDED.justificatif_nom, justificatif_taille = EXCLUDED.justificatif_taille,
       motif_refus = NULL, commentaire_refus = NULL, traite_le = NULL, demande_le = now()
   `)
   const nom = nomAffiche(fiche)
@@ -169,7 +189,7 @@ export async function demanderEquipe(donnees: FormData): Promise<never> {
       envoyerRevendicationRecue(compte.email, nom, objet),
       envoyerAModerer(
         `${objet === 'retrait' ? 'retrait' : 'revendication'} sans carte pour ${nom}`,
-        `Le compte ${compte.email} demande à ${objet === 'retrait' ? 'retirer' : 'gérer'} la fiche ${nom} (RPPS ${fiche.rpps ?? 'aucun'}), sans carte CPS ni e-CPS. Identité à vérifier avec lui${telephone ? `, joignable au ${telephone}` : ''}.${fiche.gereeParUnAutre ? ' Fiche déjà gérée par un autre compte (contestation, 7 jours).' : ''}${mot ? ` Son message : « ${mot} »` : ''}`,
+        `Le compte ${compte.email} demande à ${objet === 'retrait' ? 'retirer' : 'gérer'} la fiche ${nom} (RPPS ${fiche.rpps ?? 'aucun'}), sans carte CPS ni e-CPS, justificatif PDF joint (${nomFichier}), à examiner dans « Demandes à valider » du back-office. Identité à vérifier avec lui${telephone ? `, joignable au ${telephone}` : ''}.${fiche.gereeParUnAutre ? ' Fiche déjà gérée par un autre compte (contestation, 7 jours).' : ''}${mot ? ` Son message : « ${mot} »` : ''}`,
       ),
     ])
   } catch (e) {
