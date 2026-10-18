@@ -44,6 +44,9 @@ const ICONES = {
 
 export type IconeEncart = keyof typeof ICONES
 
+/** Événement de la colonne de droite (H1) : l'index de la fiche choisie ou survolée. */
+export const EVENEMENT_CHOIX = 'dm:fiche-choisie'
+
 type Point = { lon: number | null; lat: number | null }
 
 export type EncartCarte = { icone: IconeEncart; titre: string; texte: string; ton?: 'teal' | 'attention' | 'erreur'; badge?: string }
@@ -81,7 +84,16 @@ export function VoletCarte({
   /** Texte d'invite de la pastille vide. */
   invite?: string
 }) {
-  const principal: Point | undefined = praticiens.find((p) => p.lon !== null && p.lat !== null) ?? position ?? undefined
+  // H1 : la fiche choisie ou survolée à droite devient la fiche de la carte.
+  const [choix, setChoix] = useState(0)
+  useEffect(() => {
+    const surChoix = (e: Event) => setChoix((e as CustomEvent<number>).detail)
+    window.addEventListener(EVENEMENT_CHOIX, surChoix)
+    return () => window.removeEventListener(EVENEMENT_CHOIX, surChoix)
+  }, [])
+  const situes = praticiens.filter((p) => p.lon !== null && p.lat !== null)
+  const choisi = praticiens[choix]
+  const principal: Point | undefined = (choisi && choisi.lon !== null && choisi.lat !== null ? choisi : situes[0]) ?? position ?? undefined
   const fiche = praticiens.find((p) => p === principal)
   return (
     <div className="relative isolate size-full overflow-hidden bg-muted">
@@ -125,21 +137,40 @@ export function VoletCarte({
             <Logo />
           </Link>
         </div>
-        {recherche !== undefined && (
-          <div aria-hidden className="squircle-full flex h-11 max-w-md items-center gap-2.5 border border-line bg-bg pl-4 pr-1.5 shadow-pill">
-            {/^\d{11}$/.test(recherche) ? <span className="shrink-0 text-sm font-medium text-fg-2">RPPS :</span> : <Search className="size-4 shrink-0 text-fg-2" />}
-            <span className={`min-w-0 flex-1 truncate text-sm ${recherche ? `text-fg ${/^\d+$/.test(recherche) ? 'font-mono' : ''}` : 'text-fg-2'}`}>
-              {recherche || invite}
-            </span>
-            <span className="grid size-8 place-items-center rounded-full bg-action text-action-foreground">
-              <Search className="size-3.5" />
-            </span>
-          </div>
-        )}
+        {recherche !== undefined && <PastilleRecherche valeur={recherche} invite={invite} profession={profession} />}
       </div>
 
       {encart && <Encart {...encart} />}
     </div>
+  )
+}
+
+/**
+ * La pastille de recherche du volet : un vrai champ, qui relance la recherche
+ * de sa fiche (S1) avec ce qu'on y tape. « RPPS : » devant un numéro.
+ */
+function PastilleRecherche({ valeur, invite, profession }: { valeur: string; invite: string; profession: Profession }) {
+  const [texte, setTexte] = useState(valeur)
+  const numero = /^\d{11}$/.test(texte.replace(/\s/g, ''))
+  return (
+    <form method="get" action="/espace-pro/revendiquer/recherche/" role="search" className="squircle-full pointer-events-auto flex h-11 max-w-md items-center gap-2.5 border border-line bg-bg pl-4 pr-1.5 shadow-pill focus-within:border-line-strong">
+      <input type="hidden" name="profession" value={profession === 'prothesiste' ? 'dentiste' : profession} />
+      {numero ? <span className="shrink-0 text-sm font-medium text-fg-2">RPPS :</span> : <Search className="size-4 shrink-0 text-fg-2" aria-hidden />}
+      <label htmlFor="volet-recherche" className="sr-only">Rechercher une fiche par numéro RPPS ou par nom</label>
+      <input
+        id="volet-recherche"
+        name="q"
+        required
+        minLength={2}
+        value={texte}
+        onChange={(e) => setTexte(e.target.value)}
+        placeholder={invite}
+        className={`min-w-0 flex-1 bg-transparent text-sm text-fg outline-none placeholder:text-fg-2 ${numero ? 'font-mono' : ''}`}
+      />
+      <button type="submit" aria-label="Rechercher" className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full bg-action text-action-foreground hover:bg-action-hover">
+        <Search className="size-3.5" aria-hidden />
+      </button>
+    </form>
   )
 }
 
@@ -199,7 +230,15 @@ function Plan({
   const [hote, setHote] = useState<HTMLElement | null>(null)
   const { resolvedTheme } = useTheme()
 
-  const cle = `${principal?.lon},${principal?.lat}|${autres.map((a) => `${a.lon},${a.lat}`).join(';')}`
+  // Le plan se crée sur l'ensemble des points, quel que soit celui qui porte la fiche :
+  // choisir une autre fiche (H1) déplace le repère au lieu de recréer la carte.
+  const cle = [principal, ...autres]
+    .filter(Boolean)
+    .map((a) => `${a!.lon},${a!.lat}`)
+    .sort()
+    .join(';')
+  const repere = useRef<Marker | null>(null)
+  const premier = useRef(true)
 
   useEffect(() => {
     if (!conteneur.current) return
@@ -239,7 +278,7 @@ function Plan({
 
     const marqueurs: Marker[] = []
     let cadre = 0
-    for (const p of points.slice(principal ? 1 : 0)) {
+    for (const p of points.slice(principal && points.length === 1 ? 1 : 0)) {
       const el = document.createElement('span')
       el.className = 'block size-3 rounded-full border-2 border-bg bg-teal shadow-pill'
       marqueurs.push(new Marker({ element: el }).setLngLat([p.lon, p.lat]).addTo(map))
@@ -247,7 +286,10 @@ function Plan({
     if (principal?.lon != null && principal.lat != null) {
       const el = document.createElement('div')
       el.className = 'flex flex-col items-center'
-      marqueurs.push(new Marker({ element: el, anchor: vignette ? 'center' : 'bottom' }).setLngLat([principal.lon, principal.lat]).addTo(map))
+      const m = new Marker({ element: el, anchor: vignette ? 'center' : 'bottom' }).setLngLat([principal.lon, principal.lat]).addTo(map)
+      marqueurs.push(m)
+      repere.current = m
+      premier.current = true
       // Le contenu du marqueur est rendu au cadre suivant, une fois l'élément posé sur le plan.
       cadre = requestAnimationFrame(() => setHote(el))
     }
@@ -257,11 +299,25 @@ function Plan({
       for (const m of marqueurs) m.remove()
       map.remove()
       carte.current = null
+      repere.current = null
       setHote(null)
     }
     // `cle` résume les positions : les tableaux sont recréés à chaque rendu.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cle, zoom, vignette])
+
+  // Une autre fiche choisie : le repère la rejoint, le plan s'éloigne puis revient sur elle.
+  useEffect(() => {
+    const map = carte.current
+    if (premier.current) {
+      premier.current = false
+      return
+    }
+    if (!map || !repere.current || principal?.lon == null || principal.lat == null) return
+    repere.current.setLngLat([principal.lon, principal.lat])
+    map.flyTo({ center: [principal.lon, principal.lat], zoom: 15, padding: children ? { top: 360, bottom: 0, left: 0, right: 0 } : undefined, speed: 1.1, curve: 1.6, essential: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [principal?.lon, principal?.lat])
 
   useEffect(() => {
     if (!resolvedTheme || !carte.current) return

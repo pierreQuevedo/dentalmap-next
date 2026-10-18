@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getSessionCookie } from 'better-auth/cookies'
-import { DELAI_ANNULATION_RETRAIT_JOURS } from '@/lib/espace-pro/chemins'
+import { COOKIE_FICHE, DELAI_ANNULATION_RETRAIT_JOURS } from '@/lib/espace-pro/chemins'
 
 /**
  * Fiche retirée à la demande du professionnel : statut HTTP 410.
@@ -34,10 +34,27 @@ const PUBLIQUES = ['/espace-pro/laboratoire/modele-mandat/']
 function exigerSession(request: NextRequest): NextResponse | null {
   const { pathname, search } = request.nextUrl
   if (!pathname.startsWith('/espace-pro') && !pathname.startsWith('/favoris')) return null
-  if (PUBLIQUES.some((p) => pathname.startsWith(p)) || getSessionCookie(request)) return NextResponse.next()
+  if (PUBLIQUES.some((p) => pathname.startsWith(p))) return NextResponse.next()
+  if (getSessionCookie(request)) return memoriserFiche(request, NextResponse.next())
   const connexion = new URL('/connexion/', request.url)
   connexion.searchParams.set('retour', `${pathname}${search}`)
   return NextResponse.redirect(connexion)
+}
+
+/**
+ * La fiche visée par le parcours de revendication, gardée trente jours : en
+ * revenant sur « Revendiquer ma fiche » sans fiche dans l'adresse, on retombe
+ * dessus (S0 la relit).
+ */
+const HORS_FICHE = new Set(['recherche', 'psc', 'suivi'])
+function memoriserFiche(request: NextRequest, reponse: NextResponse): NextResponse {
+  const { pathname, searchParams } = request.nextUrl
+  const m = pathname.match(/^\/espace-pro\/(?:laboratoire\/)?revendiquer\/([^/]+)\//)
+  const slug = searchParams.get('fiche') ?? (m && !HORS_FICHE.has(m[1]) ? decodeURIComponent(m[1]) : null)
+  if (slug && /^[a-z0-9-]{3,200}$/.test(slug) && pathname.startsWith('/espace-pro/')) {
+    reponse.cookies.set(COOKIE_FICHE, slug, { path: '/', maxAge: 60 * 60 * 24 * 30, httpOnly: true, sameSite: 'lax', secure: request.nextUrl.protocol === 'https:' })
+  }
+  return reponse
 }
 
 export async function proxy(request: NextRequest) {

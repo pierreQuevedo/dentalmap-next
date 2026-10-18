@@ -41,3 +41,6 @@ export function dateLongue(d: Date | string): string {
   const [h, m] = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }).split(':')
   return `${jour}, ${Number(h)} h${m === '00' ? '' : ` ${m}`}`
 }
+
+/** La dernière fiche visée par le parcours de revendication, posée par le proxy, relue par S0. */
+export const COOKIE_FICHE = 'dm_fiche_revendiquee'

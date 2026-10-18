@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowRight, Bell, Search } from 'lucide-react'
-import { Encart, Etapes, FicheResume, Pictogramme, Puce, discret, lien, pastille, pastilleInvalide, principal, saisie, secondaire, titre } from '@/components/compte/ui'
+import { ArrowLeft, ArrowRight, Bell, Search } from 'lucide-react'
+import { Encart, Etapes, FicheResume, Pictogramme, Puce, lien, pastille, pastilleInvalide, principal, saisie, secondaire, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { LIBELLE } from '@/lib/annuaire/libelles'
 import { nomAffiche, type Profession } from '@/lib/annuaire/types'
@@ -10,6 +10,7 @@ import { REVENDIQUER } from '@/lib/espace-pro/chemins'
 import { ouvrirFiche, poserAlerte } from '@/lib/espace-pro/actions-revendication'
 import { chercherFiches } from '@/lib/espace-pro/parcours'
 import { nettoyerRpps, ressembleRpps, rppsMasque, rppsValide } from '@/lib/espace-pro/rpps'
+import { SurvolFiche } from '@/components/compte/survol-fiche'
 import { CoquilleParcours, adresseDe, garde } from '../_commun'
 
 export const metadata: Metadata = { title: 'Retrouvons votre fiche', robots: { index: false, follow: false } }
@@ -115,10 +116,11 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
         <form action={ouvrirFiche} className="mt-6">
           <fieldset>
             <legend className="sr-only">Votre fiche</legend>
-            <div className="grid gap-2.5">
+            {/* Hauteur bornée : le haut de la page et les boutons restent visibles, la liste défile. */}
+            <div className="-mx-1 grid max-h-[min(46dvh,26rem)] gap-2.5 overflow-y-auto overscroll-contain px-1 py-1">
               {resultats.map((r, i) => (
+                <SurvolFiche key={r.slug} index={i}>
                 <label
-                  key={r.slug}
                   className="group squircle-xl flex cursor-pointer items-center border border-line bg-bg px-[18px] py-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:checked]:ring-[0.5px] has-[:checked]:ring-fg has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action"
                 >
                   <input type="radio" name="fiche" value={r.slug} defaultChecked={i === 0} required className="sr-only" />
@@ -126,6 +128,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
                     <span aria-hidden className="size-5 shrink-0 rounded-full border border-line-strong bg-bg transition-[border-width,border-color] group-has-[:checked]:border-[6px] group-has-[:checked]:border-fg" />
                   </FicheResume>
                 </label>
+                </SurvolFiche>
               ))}
             </div>
           </fieldset>
@@ -134,9 +137,15 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
             <ArrowRight className="size-4" aria-hidden />
           </button>
         </form>
-        <Link href={chemin(`${ici}&resultats=aucun`)} className={`${discret} mt-1`}>
-          Aucune n’est la mienne
-        </Link>
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <Link href={chemin(`${REVENDIQUER}/recherche/?profession=${profession}&q=${encodeURIComponent(q)}&mode=modifier`)} className="inline-flex h-11 items-center gap-1.5 text-sm font-medium text-fg-2 hover:text-fg">
+            <ArrowLeft className="size-4" aria-hidden />
+            Étape précédente
+          </Link>
+          <Link href={chemin(`${ici}&resultats=aucun`)} className="inline-flex h-11 items-center text-sm font-medium text-fg underline underline-offset-4 hover:no-underline">
+            Aucune n’est la mienne
+          </Link>
+        </div>
       </CoquilleParcours>
     )
   }

@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { sql } from 'drizzle-orm'
+import { db } from '@/db'
 import { ChoixVoies } from '@/components/compte/choix'
 import { Etapes, FicheResume, cadre, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { pscConfigure } from '@/lib/psc/config'
-import { REVENDIQUER } from '@/lib/espace-pro/chemins'
+import { COOKIE_FICHE, REVENDIQUER } from '@/lib/espace-pro/chemins'
 import { getFicheRevendication } from '@/lib/espace-pro/parcours'
 import { CoquilleParcours, adresseDe, dejaEngage, garde, libelleProfession, nomDe, pageFiche, versFiche } from './_commun'
 
@@ -24,6 +27,16 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { fiche: slug } = await props.searchParams
   const ici = `${REVENDIQUER}/${slug ? `?fiche=${encodeURIComponent(slug)}` : ''}`
   const compte = await garde(ici)
+  if (!slug) {
+    // On revient sur sa fiche : la dernière demande du compte, sinon la dernière fiche visée par le parcours.
+    const { rows } = await db.execute<{ slug: string }>(sql`
+      SELECT p.slug FROM revendications r JOIN praticiens p ON p.id = r.praticien_id AND p.deleted_at IS NULL
+      WHERE r.user_id = ${compte.id}::uuid AND r.objet = 'revendication' AND r.statut <> 'refusee'
+      ORDER BY r.demande_le DESC LIMIT 1
+    `)
+    const memoire = rows[0]?.slug ?? (await cookies()).get(COOKIE_FICHE)?.value
+    if (memoire && (await getFicheRevendication(memoire, compte.id))) redirect(chemin(`${REVENDIQUER}/?fiche=${encodeURIComponent(memoire)}`))
+  }
   const fiche = slug ? await getFicheRevendication(slug, compte.id) : null
   // Un laboratoire a son propre parcours : SIREN, rôle, Kbis.
   if (fiche?.profession === 'prothesiste') redirect(chemin(`/espace-pro/laboratoire/revendiquer/?fiche=${encodeURIComponent(fiche.slug)}`))
