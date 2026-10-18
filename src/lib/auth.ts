@@ -3,9 +3,11 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { emailOTP } from 'better-auth/plugins'
 import { passkey } from '@better-auth/passkey'
 import { nextCookies } from 'better-auth/next-js'
+import { APIError, createAuthMiddleware } from 'better-auth/api'
 import { db } from '@/db'
 import { envoyerBienvenue, envoyerCode } from '@/lib/email'
 import { SITE_URL } from '@/lib/seo/site'
+import { LONGUEUR_MOT_DE_PASSE, MESSAGE_MOT_DE_PASSE, motDePasseValide } from '@/lib/tunnel/mot-de-passe'
 
 /**
  * Origines acceptées.
@@ -14,13 +16,25 @@ import { SITE_URL } from '@/lib/seo/site'
  * `Origin` ne correspond pas à `baseURL`. Sur Vercel, chaque déploiement de
  * prévisualisation a sa propre adresse : sans l'ajouter ici, la connexion
  * marcherait en production et nulle part ailleurs, ce qui est la pire façon de
- * s'en apercevoir.
+ * s'en apercevoir. L'adresse de branche (`…-git-<branche>-…vercel.app`), celle
+ * qu'on partage pour relire une prévisualisation, n'est pas `VERCEL_URL` :
+ * sans elle, inscription et connexion y répondaient 403.
  */
-const origines = [SITE_URL, process.env.BETTER_AUTH_URL, process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`]
+/** Où se trouve le nouveau mot de passe, selon la route de Better Auth. */
+const CHAMP_MOT_DE_PASSE: Record<string, string> = {
+  '/sign-up/email': 'password',
+  '/email-otp/reset-password': 'password',
+  '/reset-password': 'newPassword',
+  '/change-password': 'newPassword',
+}
+
+const brancheVercel = process.env.VERCEL_BRANCH_URL && `https://${process.env.VERCEL_BRANCH_URL}`
+const origines = [SITE_URL, process.env.BETTER_AUTH_URL, process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`, brancheVercel]
   .filter((v): v is string => Boolean(v))
   .map((v) => v.replace(/\/$/, ''))
 
-const baseURL = process.env.BETTER_AUTH_URL ?? SITE_URL
+// En prévisualisation sans `BETTER_AUTH_URL`, l'adresse de branche : c'est elle qu'on ouvre, et la clé d'accès s'y rattache.
+const baseURL = process.env.BETTER_AUTH_URL ?? (process.env.VERCEL_ENV === 'preview' && brancheVercel ? brancheVercel : SITE_URL)
 
 export const auth = betterAuth({
   baseURL,
@@ -32,7 +46,7 @@ export const auth = betterAuth({
    * passe oublié ; un code peut aussi servir à se connecter sans mot de
    * passe. La session s'ouvre dès que le code de l'inscription est bon.
    */
-  emailAndPassword: { enabled: true, minPasswordLength: 12, requireEmailVerification: true },
+  emailAndPassword: { enabled: true, minPasswordLength: LONGUEUR_MOT_DE_PASSE, requireEmailVerification: true },
   emailVerification: { autoSignInAfterVerification: true },
   /*
    * Champs du tunnel sur le compte. `input: true` les rend modifiables par
@@ -44,6 +58,18 @@ export const auth = betterAuth({
       role: { type: 'string', required: false, input: true },
       etapeTunnel: { type: 'string', required: false, input: true },
     },
+  },
+  /*
+   * La règle complète du mot de passe (majuscule, minuscule, chiffre,
+   * caractère spécial) vérifiée côté serveur, quel que soit l'écran.
+   */
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      const champ = CHAMP_MOT_DE_PASSE[ctx.path]
+      if (!champ) return
+      const valeur = (ctx.body as Record<string, unknown> | undefined)?.[champ]
+      if (typeof valeur === 'string' && !motDePasseValide(valeur)) throw new APIError('BAD_REQUEST', { message: MESSAGE_MOT_DE_PASSE, code: 'PASSWORD_TOO_WEAK' })
+    }),
   },
   databaseHooks: {
     user: {

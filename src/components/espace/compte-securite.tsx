@@ -4,6 +4,8 @@ import { useEffect, useState, useTransition } from 'react'
 import { KeyRound, Lock, Smartphone } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 import { pastille, saisie } from '@/components/compte/ui'
+import { Criteres } from '@/components/compte/connexion'
+import { MESSAGE_MOT_DE_PASSE, motDePasseValide } from '@/lib/tunnel/mot-de-passe'
 
 /**
  * Compte et sécurité : changer le mot de passe, voir les appareils connectés,
@@ -30,7 +32,7 @@ export function MotDePasse() {
         setMessage(null)
         demarrer(async () => {
           const { error } = await authClient.changePassword({ currentPassword: actuel, newPassword: nouveau, revokeOtherSessions: true })
-          if (error) setMessage({ ok: false, texte: 'Le mot de passe actuel ne correspond pas, ou le nouveau fait moins de douze caractères.' })
+          if (error) setMessage({ ok: false, texte: error.code === 'PASSWORD_TOO_WEAK' || error.code === 'PASSWORD_TOO_SHORT' ? MESSAGE_MOT_DE_PASSE : 'Le mot de passe actuel ne correspond pas.' })
           else {
             setMessage({ ok: true, texte: 'Mot de passe changé. Les autres appareils sont déconnectés.' })
             setActuel('')
@@ -46,14 +48,15 @@ export function MotDePasse() {
       </div>
       <div className={pastille}>
         <Lock className="size-4 shrink-0 text-fg-2" aria-hidden />
-        <input type="password" required minLength={12} autoComplete="new-password" value={nouveau} onChange={(e) => setNouveau(e.target.value)} placeholder="Nouveau, douze caractères au moins" aria-label="Nouveau mot de passe" className={saisie} />
+        <input type="password" required minLength={12} autoComplete="new-password" value={nouveau} onChange={(e) => setNouveau(e.target.value)} placeholder="Nouveau mot de passe" aria-label="Nouveau mot de passe" className={saisie} />
       </div>
+      <Criteres motDePasse={nouveau} />
       {message && (
         <p role="status" className={`text-sm ${message.ok ? 'text-teal' : 'text-destructive'}`}>
           {message.texte}
         </p>
       )}
-      <button type="submit" disabled={enCours} className="inline-flex h-10 cursor-pointer items-center rounded-full border border-line px-4 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-60">
+      <button type="submit" disabled={enCours || !motDePasseValide(nouveau)} className="inline-flex h-10 cursor-pointer items-center rounded-full border border-line px-4 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-60">
         {enCours ? 'Enregistrement…' : 'Changer le mot de passe'}
       </button>
     </form>

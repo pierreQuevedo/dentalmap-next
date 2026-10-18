@@ -2,10 +2,11 @@
 
 import Link from 'next/link'
 import { useState, useSyncExternalStore, useTransition } from 'react'
-import { ArrowRight, BriefcaseBusiness, Building2, CreditCard, Eye, EyeOff, Hourglass, KeyRound, Lock, Mail, RefreshCw, UserRound } from 'lucide-react'
+import { ArrowRight, BriefcaseBusiness, Building2, Circle, CircleCheck, CreditCard, Eye, EyeOff, Hourglass, KeyRound, Lock, Mail, RefreshCw, UserRound } from 'lucide-react'
 import { emailOtp, signIn, signUp } from '@/lib/auth-client'
 import { chemin } from '@/lib/navigation'
 import type { Role } from '@/lib/tunnel/etapes'
+import { CRITERES_MOT_DE_PASSE, LONGUEUR_MOT_DE_PASSE, MESSAGE_MOT_DE_PASSE, motDePasseValide } from '@/lib/tunnel/mot-de-passe'
 import { suggererAdresse } from './suggestion'
 import { CarteOption, Encart, Marque, Pictogramme, lien, pastille, pastilleInvalide, principal, saisie, secondaire, titre } from './ui'
 
@@ -39,7 +40,6 @@ const PROFILS: { role: Role; titre: string; detail: string }[] = [
   { role: 'medecin', titre: 'Médecin', detail: 'Chirurgien maxillo-facial, stomatologue ou ORL.' },
 ]
 
-const LONGUEUR_MOT_DE_PASSE = 12
 /** Essais par code, comme `allowedAttempts` dans `src/lib/auth.ts`. */
 const ESSAIS_PAR_CODE = 5
 
@@ -148,7 +148,13 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
         etapeTunnel: role === 'patient' ? 'tableau-de-bord' : 'fiche',
       })
       if (error) {
-        setErreur(error.status === 422 || /exist/i.test(error.message ?? '') ? 'Un compte existe déjà avec cette adresse.' : 'Le compte n’a pas pu être créé. Vérifiez le mot de passe, douze caractères au moins.')
+        setErreur(
+          error.status === 422 || /exist/i.test(error.message ?? '')
+            ? 'Un compte existe déjà avec cette adresse.'
+            : error.code === 'PASSWORD_TOO_WEAK' || error.code === 'PASSWORD_TOO_SHORT'
+              ? MESSAGE_MOT_DE_PASSE
+              : 'Le compte n’a pas pu être créé. Réessayez dans un instant ; si cela persiste, écrivez-nous.',
+        )
         return
       }
       // Le code de confirmation part avec l'inscription.
@@ -231,7 +237,7 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
       const { error } = await emailOtp.resetPassword({ email, otp: codeSaisi, password: motDePasse })
       if (error) {
         if (error.code === 'INVALID_OTP' || codeMort(error.code)) codeRefuse(error.code)
-        else setErreur('Le mot de passe n’a pas pu être enregistré. Douze caractères au moins.')
+        else setErreur(error.code === 'PASSWORD_TOO_WEAK' || error.code === 'PASSWORD_TOO_SHORT' ? MESSAGE_MOT_DE_PASSE : 'Le mot de passe n’a pas pu être enregistré. Réessayez dans un instant.')
         return
       }
       const connexion = await signIn.email({ email, password: motDePasse })
@@ -413,9 +419,9 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
                 onChange={setMotDePasse}
               />
             </div>
-            <Jauge motDePasse={motDePasse} />
+            <Criteres motDePasse={motDePasse} />
             {erreur && <Erreur>{erreur}</Erreur>}
-            <button type="submit" disabled={enCours} className={`${principal} mt-6`}>
+            <button type="submit" disabled={enCours || !motDePasseValide(motDePasse)} className={`${principal} mt-6`}>
               {enCours ? <Point /> : 'Créer mon compte'}
               {!enCours && <ArrowRight className="size-4" aria-hidden />}
             </button>
@@ -463,13 +469,14 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
                     valeur={motDePasse}
                     onChange={setMotDePasse}
                   />
+                  <Criteres motDePasse={motDePasse} />
                 </>
               )}
             </div>
             {echecs > 0 && <CodeFaux restants={essaisRestants} />}
             {info && !erreur && echecs === 0 && <Info>{info}</Info>}
             {erreur && <Erreur>{erreur}</Erreur>}
-            <button type="submit" disabled={enCours || (codeEnvoye && codeSaisi.length < 6)} className={`${principal} mt-6`}>
+            <button type="submit" disabled={enCours || (codeEnvoye && (codeSaisi.length < 6 || !motDePasseValide(motDePasse)))} className={`${principal} mt-6`}>
               {enCours ? <Point /> : codeEnvoye ? 'Enregistrer et me connecter' : 'Recevoir un code'}
               {!enCours && <ArrowRight className="size-4" aria-hidden />}
             </button>
@@ -784,17 +791,21 @@ function ChampCode({ valeur, onChange, invalide = false }: { valeur: string; onC
   )
 }
 
-/** Une jauge sobre : la longueur du mot de passe, jusqu'au minimum puis au-delà. */
-function Jauge({ motDePasse }: { motDePasse: string }) {
-  const part = Math.min(1, motDePasse.length / (LONGUEUR_MOT_DE_PASSE + 4))
-  const ok = motDePasse.length >= LONGUEUR_MOT_DE_PASSE
+/** Les critères du mot de passe, cochés au fil de la saisie. */
+export function Criteres({ motDePasse }: { motDePasse: string }) {
   return (
-    <div className="mt-3 flex items-center gap-3 text-xs text-fg-2" aria-live="polite">
-      <span className="h-1 flex-1 overflow-hidden rounded-full bg-line">
-        <span className={`block h-full rounded-full transition-[width] duration-moderate ${ok ? 'bg-teal' : 'bg-fg-2'}`} style={{ width: `${part * 100}%` }} />
-      </span>
-      <span className="shrink-0">{ok ? 'Longueur suffisante' : `${LONGUEUR_MOT_DE_PASSE} caractères au moins`}</span>
-    </div>
+    <ul className="mt-3 grid gap-1 text-xs sm:grid-cols-2" aria-live="polite" aria-label="Règles du mot de passe">
+      {CRITERES_MOT_DE_PASSE.map((c) => {
+        const ok = c.test(motDePasse)
+        return (
+          <li key={c.cle} className={`flex items-center gap-1.5 ${ok ? 'text-teal' : 'text-fg-2'}`}>
+            {ok ? <CircleCheck className="size-3.5 shrink-0" aria-hidden /> : <Circle className="size-3.5 shrink-0" aria-hidden />}
+            {c.libelle}
+            <span className="sr-only">{ok ? ' : respecté' : ' : manquant'}</span>
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 
