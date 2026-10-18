@@ -40,6 +40,7 @@ export async function chargerTableau(page: CleNav, slug?: string, sousPage?: str
     ligne2: `${espace.labo ? 'Laboratoire · ' : ''}${fiche.resume.communeNom ?? (espace.labo ? '' : 'Cabinet')}`,
     pagePublique: pageFiche(fiche) === '/' ? null : pageFiche(fiche),
     enLigne: espace.ctx.identiteVerifiee && !!completee?.publieeLe,
+    enVerification: !espace.ctx.identiteVerifiee,
     missionsRestantes: espace.missions.filter((m) => !m.faite).length,
     aReconfirmer: espace.fraicheur.filter((f) => f.etat !== 'a_jour').length,
     moderateur: estModerateur(compte.email),

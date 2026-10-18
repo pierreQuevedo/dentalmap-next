@@ -6,14 +6,15 @@ import { Encart, Etapes, discret, pastille, principal, saisie, titre } from '@/c
 import { chemin } from '@/lib/navigation'
 import { REVENDIQUER } from '@/lib/espace-pro/chemins'
 import { demanderEquipe } from '@/lib/espace-pro/actions-revendication'
-import { CoquilleParcours, dejaEngage, ficheOu404, garde, nomDe, versFiche } from '../../_commun'
+import { FenetreParcours, dejaEngage, ficheOu404, garde, nomDe, versFiche } from '../../_commun'
 
 export const metadata: Metadata = { title: 'Demander à l’équipe', robots: { index: false, follow: false } }
 export const instant = false
 
 /**
- * S3b, voie « Demander à l'équipe » : sans carte CPS ni e-CPS, l'équipe
- * vérifie l'identité à la main. La demande crée une revendication en
+ * S3b et C1, voie « Demander à l'équipe », en fenêtre au-dessus de la carte
+ * floutée : sans carte CPS ni e-CPS, l'équipe vérifie l'identité à la main.
+ * Après l'envoi, le praticien enchaîne sur l'onboarding. La demande crée une revendication en
  * attente : le praticien prépare sa fiche en brouillon pendant ce temps, rien
  * n'est publié avant l'accord. Aucun document n'est demandé.
  */
@@ -29,24 +30,17 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   const versMethode = `${versFiche(fiche, fiche.gereeParUnAutre && !retrait ? 'conflit' : 'methode')}${retrait ? '?objet=retrait' : ''}`
 
   return (
-    <CoquilleParcours
-      fiche={fiche}
-      etiquette={retrait ? 'Retrait demandé' : 'Vérification en cours'}
-      recherche={fiche.rpps ?? nomDe(fiche)}
-      encart={{ icone: 'confrere', titre: 'Vérification par l’équipe', texte: 'Une personne de l’équipe vous répond sous 48 heures ouvrées.' }}
-      retour={versMethode}
-      libelleRetour="Retour"
-    >
+    <FenetreParcours fiche={fiche} etiquette={retrait ? 'Retrait demandé' : 'Vérification en cours'} recherche={fiche.rpps ?? nomDe(fiche)} retour={versMethode}>
       <Etapes etape={3} libelle="Vérification" />
-      <h1 className={titre}>Demander à l’équipe</h1>
+      <h1 id="fenetre-titre" className={titre}>Demander à l’équipe</h1>
       <p className="mt-2 text-sm text-fg-2">
         {retrait
           ? 'L’équipe vérifie votre identité avec vous avant de retirer la fiche : personne d’autre ne peut la retirer à votre place.'
           : 'Vous n’avez ni carte CPS ni e-CPS ? L’équipe vérifie votre identité avec vous, par téléphone au cabinet ou par email, et vous répond sous 48 heures ouvrées.'}
       </p>
-      {!retrait && (
+      {!retrait && !fiche.gereeParUnAutre && (
         <Encart titre="Préparez votre fiche dès maintenant" className="mt-5">
-          Horaires, conventionnement, accueil : vous pouvez tout remplir en attendant. Rien n’est publié tant que votre identité n’est pas vérifiée.
+          Après l’envoi, vous continuez directement sur votre fiche : horaires, conventionnement, accueil. Tout reste en brouillon et sera publié dès que l’équipe aura vérifié votre identité.
         </Encart>
       )}
       <form action={demanderEquipe} className="mt-6">
@@ -71,13 +65,13 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
           className="squircle-xl w-full resize-y border border-line bg-bg px-4 py-3 text-sm text-fg outline-none placeholder:text-fg-2 focus:border-line-strong"
         />
         <button type="submit" className={`${principal} mt-5`}>
-          Envoyer la demande
+          {retrait || fiche.gereeParUnAutre ? 'Envoyer la demande' : 'Envoyer et préparer ma fiche'}
           <ArrowRight className="size-4" aria-hidden />
         </button>
       </form>
       <Link href={chemin(versMethode)} className={`${discret} mt-1`}>
         Choisir une autre preuve
       </Link>
-    </CoquilleParcours>
+    </FenetreParcours>
   )
 }

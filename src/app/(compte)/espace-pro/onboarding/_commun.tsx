@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { Eye } from 'lucide-react'
 import { Coquille } from '@/components/compte/coquille'
 import { ApercuPatient, type BlocApercu } from '@/components/espace/apercu'
+import { EnVerification } from '@/components/espace/en-verification'
 import { chemin } from '@/lib/navigation'
 import { getEspace, type Espace } from '@/lib/espace-pro/espace'
 import { adresseDe, garde, libelleProfession, nomDe } from '../revendiquer/_commun'
@@ -73,6 +74,7 @@ export function CoquilleOnboarding({ espace, enCours, children }: { espace: Espa
         </summary>
         <div className="mt-4">{apercu}</div>
       </details>
+      {!espace.ctx.identiteVerifiee && <EnVerification className="mb-6" />}
       <div className="animate-fiche-entree">{children}</div>
     </Coquille>
   )

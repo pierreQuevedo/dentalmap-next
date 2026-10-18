@@ -20,6 +20,10 @@ export async function slugsDuCompte(userId: string): Promise<{ slug: string; sta
   const { rows } = await db.execute<{ slug: string; statut: 'en_attente' | 'acceptee' | 'refusee' }>(sql`
     SELECT p.slug, r.statut FROM revendications r JOIN praticiens p ON p.id = r.praticien_id AND p.deleted_at IS NULL
     WHERE r.user_id = ${userId}::uuid AND r.objet = 'revendication' AND r.statut <> 'refusee'
+      -- Une contestation en attente n'ouvre pas l'espace de la fiche : elle a déjà un titulaire.
+      AND (r.statut = 'acceptee' OR NOT EXISTS (
+        SELECT 1 FROM revendications a WHERE a.praticien_id = r.praticien_id AND a.user_id <> r.user_id AND a.statut = 'acceptee' AND a.objet = 'revendication'
+      ))
     ORDER BY (r.statut = 'acceptee') DESC, r.demande_le ASC
   `)
   return rows

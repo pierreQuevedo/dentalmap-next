@@ -175,7 +175,10 @@ export async function demanderEquipe(donnees: FormData): Promise<never> {
   } catch (e) {
     console.error('[revendication] courriel de demande à l’équipe', e)
   }
-  redirect(chemin(`${REVENDIQUER}/suivi/?fiche=${encodeURIComponent(fiche.slug)}`))
+  // Rien ne bloque : le praticien enchaîne sur sa fiche, en brouillon jusqu'à l'accord. Un retrait attend la décision.
+  // Un retrait, ou une contestation (la fiche a déjà un titulaire), attend la décision.
+  const attendre = objet === 'retrait' || fiche.gereeParUnAutre
+  redirect(chemin(attendre ? `${REVENDIQUER}/suivi/?fiche=${encodeURIComponent(fiche.slug)}` : `/espace-pro/onboarding/?fiche=${encodeURIComponent(fiche.slug)}&demande=1`))
 }
 
 /* ------------------------------------------------------------------ */

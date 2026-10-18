@@ -72,8 +72,16 @@ export async function getFicheParSlug(slug: string): Promise<FicheRevendicable |
 export async function detientLaFiche(userId: string, praticienId: string): Promise<boolean> {
   const { rows } = await db.execute<{ ok: boolean }>(sql`
     SELECT EXISTS (
-      SELECT 1 FROM revendications
-      WHERE user_id = ${userId}::uuid AND praticien_id = ${praticienId} AND statut IN ('acceptee', 'en_attente') AND objet = 'revendication'
+      SELECT 1 FROM revendications r
+      WHERE r.user_id = ${userId}::uuid AND r.praticien_id = ${praticienId} AND r.objet = 'revendication'
+        AND (
+          r.statut = 'acceptee'
+          -- En attente : la main sur un brouillon, sauf si un autre compte gère déjà la fiche (contestation) :
+          -- il n'y a qu'une saisie par fiche, celle du titulaire.
+          OR (r.statut = 'en_attente' AND NOT EXISTS (
+            SELECT 1 FROM revendications a WHERE a.praticien_id = r.praticien_id AND a.user_id <> r.user_id AND a.statut = 'acceptee' AND a.objet = 'revendication'
+          ))
+        )
     ) AS ok
   `)
   return rows[0]?.ok ?? false

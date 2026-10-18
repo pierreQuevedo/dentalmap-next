@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, CircleCheck } from 'lucide-react'
 import { Etapes, LignesRegistre, discret, principal, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { CoquilleOnboarding, chargerOnboarding, etapeSuivante } from '../_commun'
@@ -10,12 +10,18 @@ export const metadata: Metadata = { title: 'Ce que nous savons déjà', robots: 
 export const instant = false
 
 /** B0 : la valeur déjà acquise, avant de demander quoi que ce soit. Aucune saisie. */
-export default async function Page(props: { searchParams: Promise<{ fiche?: string }> }) {
-  const espace = await chargerOnboarding('recuperation', (await props.searchParams).fiche)
+export default async function Page(props: { searchParams: Promise<{ fiche?: string; demande?: string }> }) {
+  const sp = await props.searchParams
+  const espace = await chargerOnboarding('recuperation', sp.fiche)
   const { fiche } = espace
   return (
     <CoquilleOnboarding espace={espace}>
       <Etapes etape={0} libelle="Avant de commencer · 4 questions" />
+      {sp.demande && (
+        <p role="status" className="squircle-xl mb-5 flex items-start gap-2 bg-teal/10 px-4 py-3 text-sm text-teal">
+          <CircleCheck className="mt-0.5 size-4 shrink-0" aria-hidden /> Votre demande est partie à l’équipe, qui vous répond sous 48 heures ouvrées. Continuez : votre fiche se prépare dès maintenant.
+        </p>
+      )}
       <h1 className={titre}>Voici ce que nous savons déjà</h1>
       <p className="mt-2 text-sm text-fg-2">Ces informations viennent des registres et apparaissent déjà sur votre fiche. Vous n’avez rien à saisir.</p>
       <div className="mt-6">

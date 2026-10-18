@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
+import { EnVerification } from './en-verification'
 import {
   Award,
   GraduationCap,
@@ -84,6 +85,8 @@ export type InfosCoque = {
   delaisAReconfirmer: boolean
   /** Un établissement de formation : sa navigation, sa page plutôt qu'une fiche. */
   etablissement?: 'ecole_prothese' | 'faculte'
+  /** Identité pas encore vérifiée : bandeau « brouillon » en tête de chaque page. */
+  enVerification?: boolean
 }
 
 function navigation(c: InfosCoque): { groupe: string | null; items: Entree[] }[] {
@@ -324,6 +327,7 @@ export function CoqueEspace({
           )}
         </header>
         <div className="mt-6">
+          {c.enVerification && <EnVerification className="mb-6" />}
           {/* L'espace établissement a son propre retour, bloc par bloc. */}
           {!c.etablissement && (
             <Suspense fallback={null}>
