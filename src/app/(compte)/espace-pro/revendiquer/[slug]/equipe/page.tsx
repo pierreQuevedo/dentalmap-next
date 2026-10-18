@@ -47,7 +47,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
       <p className="mt-2 text-sm text-fg-2">
         {retrait
           ? 'L’équipe vérifie votre identité avec vous avant de retirer la fiche : personne d’autre ne peut la retirer à votre place.'
-          : 'Vous n’avez ni carte CPS ni e-CPS ? Joignez un justificatif en PDF : l’équipe le vérifie, avec vous si besoin, et vous répond sous 48 heures ouvrées.'}
+          : 'Joignez un justificatif en PDF : l’équipe le vérifie, avec vous si besoin, et vous répond sous 48 heures ouvrées.'}
       </p>
       <div className="mt-5">
         <DepotJustificatif
@@ -64,7 +64,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
             <>
               {!retrait && !fiche.gereeParUnAutre && (
                 <Encart titre="La vérification ne vous bloque pas" className="mb-5">
-                  Elle se fait ensuite et ne vous empêche pas de prendre la main sur votre fiche : après l’envoi, vous continuez directement (horaires, conventionnement, accueil). Tout reste en brouillon et sera publié dès que l’équipe aura validé votre identité.
+                  Elle ne vous empêche pas de prendre la main sur votre fiche : après l’envoi, vous continuez directement (horaires, conventionnement, accueil). Tout reste en brouillon et sera publié dès que l’équipe aura validé votre identité.
                 </Encart>
               )}
               <p className="mb-2 text-sm font-medium text-fg">
