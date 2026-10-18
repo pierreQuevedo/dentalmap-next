@@ -1,5 +1,6 @@
 'use client'
 
+/* eslint-disable @next/next/no-html-link-for-pages -- espace pro et favoris en vrais liens : leurs pages redirigent côté serveur et le routeur client restait figé */
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -143,15 +144,15 @@ export function MobileNav() {
           </div>
 
           <div className="grid gap-3 border-t border-line px-5 py-4 md:px-10">
-            <Link href="/favoris" className="block rounded-full border border-line px-5 py-3 text-center text-[15px] font-medium text-fg">
+            <a href="/favoris/" className="block rounded-full border border-line px-5 py-3 text-center text-[15px] font-medium text-fg">
               Mes favoris
-            </Link>
-            <Link
-              href="/espace-pro"
+            </a>
+            <a
+              href="/espace-pro/"
               className="block rounded-full bg-action px-5 py-3 text-center text-[15px] font-semibold text-action-foreground"
             >
               Espace pro
-            </Link>
+            </a>
           </div>
         </div>
       )}

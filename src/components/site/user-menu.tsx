@@ -1,5 +1,6 @@
 'use client'
 
+/* eslint-disable @next/next/no-html-link-for-pages -- espace pro et favoris en vrais liens : leurs pages redirigent côté serveur et le routeur client restait figé */
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Deroulant } from './deroulant'
@@ -25,6 +26,8 @@ export function UserMenu() {
   }, [ouvert])
 
   const item = 'block rounded-xl px-4 py-3 text-[15px] text-fg hover:bg-bg-soft'
+  // Espace pro et favoris : de vrais liens. Ces pages redirigent côté serveur (connexion, revendication) ;
+  // atteintes par le routeur client depuis le site, la redirection laissait l'écran figé.
   // Le menu suit le profil : un patient a ses favoris, un soignant son espace pro.
   const role = (session?.user as { role?: string | null } | undefined)?.role ?? null
   const patient = role === 'patient'
@@ -62,13 +65,13 @@ export function UserMenu() {
           {session ? (
             <>
               {!patient && (
-                <Link role="menuitem" href="/espace-pro" className={`${item} font-semibold`}>Espace pro</Link>
+                <a role="menuitem" href="/espace-pro/" className={`${item} font-semibold`}>Espace pro</a>
               )}
-              <Link role="menuitem" href="/favoris" className={`${item} ${patient ? 'font-semibold' : ''}`}>Mes favoris</Link>
+              <a role="menuitem" href="/favoris/" className={`${item} ${patient ? 'font-semibold' : ''}`}>Mes favoris</a>
               {soignant ? (
-                <Link role="menuitem" href="/espace-pro/revendiquer" className={item}>Revendiquer une fiche</Link>
+                <a role="menuitem" href="/espace-pro/revendiquer/" className={item}>Revendiquer une fiche</a>
               ) : (
-                patient && <Link role="menuitem" href="/espace-pro/revendiquer" className={item}>Vous êtes praticien ?</Link>
+                patient && <a role="menuitem" href="/espace-pro/revendiquer/" className={item}>Vous êtes praticien ?</a>
               )}
               <hr className="mx-2 my-1.5 border-line" />
               <Link role="menuitem" href="/faq" className={item}>Aide</Link>
@@ -86,7 +89,7 @@ export function UserMenu() {
               </Link>
               <Link role="menuitem" href="/connexion" className={item}>Se connecter</Link>
               <hr className="mx-2 my-1.5 border-line" />
-              <Link role="menuitem" href="/espace-pro/revendiquer" className={item}>Vous êtes praticien ?</Link>
+              <a role="menuitem" href="/espace-pro/revendiquer/" className={item}>Vous êtes praticien ?</a>
               <Link role="menuitem" href="/faq" className={item}>Aide</Link>
             </>
           )}
