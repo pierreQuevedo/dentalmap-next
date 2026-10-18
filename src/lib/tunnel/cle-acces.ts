@@ -13,3 +13,13 @@ export function proposerCle(e: EtatCle, maintenant = new Date()): boolean {
   if (e.cles > 0 || e.sessions < 2 || e.fois >= PROPOSITIONS_MAX) return false
   return !e.derniere || maintenant.getTime() - e.derniere.getTime() >= DELAI_RELANCE_JOURS * 86_400_000
 }
+
+/**
+ * Jamais au milieu d'un parcours : revendication, onboarding, inscription,
+ * établissement. La clé se propose en arrivant sur l'espace pro ou le site,
+ * pas entre deux étapes.
+ */
+const EN_PARCOURS = ['/espace-pro/revendiquer', '/espace-pro/laboratoire/revendiquer', '/espace-pro/onboarding', '/espace-pro/laboratoire/onboarding', '/espace-pro/organisme', '/espace-pro/lieux', '/inscription', '/connexion']
+export function moment(retour: string): boolean {
+  return !EN_PARCOURS.some((p) => retour.startsWith(p))
+}

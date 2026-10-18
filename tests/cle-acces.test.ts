@@ -18,3 +18,14 @@ describe('CX4 : proposer une clé d’accès', () => {
     expect(proposerCle({ cles: 0, sessions: 9, fois: PROPOSITIONS_MAX, derniere: ilYa(90) }, maintenant)).toBe(false)
   })
 })
+
+describe('CX4 : jamais au milieu d’un parcours', () => {
+  it('se propose en arrivant sur l’espace pro ou le site, pas entre deux étapes', async () => {
+    const { moment } = await import('../src/lib/tunnel/cle-acces')
+    expect(moment('/espace-pro/')).toBe(true)
+    expect(moment('/')).toBe(true)
+    expect(moment('/espace-pro/revendiquer/dr-test/')).toBe(false)
+    expect(moment('/espace-pro/onboarding/horaires/?fiche=x')).toBe(false)
+    expect(moment('/inscription/profil/')).toBe(false)
+  })
+})
