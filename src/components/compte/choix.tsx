@@ -162,6 +162,7 @@ export function DepotJustificatif({
   emplacements = [{ nom: 'document', titre: 'Glissez votre fichier ici', detail: 'ou choisissez-le · PDF, JPG ou PNG, 10 Mo au plus', document: 'Justificatif' }],
   libelle = 'Envoyer le justificatif',
   pdfSeul = false,
+  defilant = false,
 }: {
   action: (d: FormData) => Promise<void>
   champsCaches: Record<string, string>
@@ -178,6 +179,8 @@ export function DepotJustificatif({
   libelle?: string
   /** Seul le PDF est accepté (demande à l'équipe d'un soignant). */
   pdfSeul?: boolean
+  /** Hauteur bornée : le contenu défile, le bouton d'envoi reste visible sous lui. */
+  defilant?: boolean
 }) {
   const [fichiers, setFichiers] = useState<Record<string, File | null>>({})
   const [erreur, setErreur] = useState<string | null>(erreurInitiale ?? null)
@@ -228,18 +231,21 @@ export function DepotJustificatif({
       {Object.entries(champsCaches).map(([n, v]) => (
         <input key={n} type="hidden" name={n} value={v} />
       ))}
-      {avant}
-      <div className="space-y-3">
-        {emplacements.map((e) => (
-          <Zone key={e.nom} e={e} pdfSeul={pdfSeul} fichier={fichiers[e.nom] ?? null} onFichier={(f) => prendre(e.nom, f)} onRetirer={() => setFichiers((x) => ({ ...x, [e.nom]: null }))} />
-        ))}
+      <div className={defilant ? '-mx-1 max-h-[min(46dvh,26rem)] overflow-y-auto overscroll-contain px-1 py-1' : undefined}>
+        {avant}
+        <div className="space-y-3">
+          {emplacements.map((e) => (
+            <Zone key={e.nom} e={e} pdfSeul={pdfSeul} fichier={fichiers[e.nom] ?? null} onFichier={(f) => prendre(e.nom, f)} onRetirer={() => setFichiers((x) => ({ ...x, [e.nom]: null }))} />
+          ))}
+        </div>
+        {apres}
       </div>
+      {/* Hors de la zone qui défile : l'erreur reste visible au-dessus du bouton. */}
       {erreur && (
         <p role="alert" className="mt-3 text-sm text-destructive">
           {erreur}
         </p>
       )}
-      {apres}
       <Envoyer libelle={envoi ? 'Envoi…' : libelle} desactive={!complet || envoi} />
     </form>
   )

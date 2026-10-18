@@ -49,12 +49,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
           ? 'L’équipe vérifie votre identité avec vous avant de retirer la fiche : personne d’autre ne peut la retirer à votre place.'
           : 'Vous n’avez ni carte CPS ni e-CPS ? Joignez un justificatif en PDF : l’équipe le vérifie, avec vous si besoin, et vous répond sous 48 heures ouvrées.'}
       </p>
-      {!retrait && !fiche.gereeParUnAutre && (
-        <Encart titre="La vérification ne vous bloque pas" className="mt-5">
-          Elle se fait ensuite et ne vous empêche pas de prendre la main sur votre fiche : après l’envoi, vous continuez directement (horaires, conventionnement, accueil). Tout reste en brouillon et sera publié dès que l’équipe aura validé votre identité.
-        </Encart>
-      )}
-      <div className="mt-6">
+      <div className="mt-5">
         <DepotJustificatif
           action={demanderEquipe}
           champsCaches={{ fiche: fiche.slug, objet: retrait ? 'retrait' : 'revendication' }}
@@ -64,7 +59,19 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
           pdfSeul
           emplacements={[{ nom: 'document', titre: 'Glissez votre justificatif ici', detail: 'ou choisissez-le · PDF uniquement, 10 Mo au plus', document: 'Justificatif' }]}
           libelle={retrait || fiche.gereeParUnAutre ? 'Envoyer la demande' : 'Envoyer et préparer ma fiche'}
-          avant={<p className="mb-2 text-sm font-medium text-fg">Votre justificatif <span className="font-normal text-fg-2">(obligatoire)</span></p>}
+          defilant
+          avant={
+            <>
+              {!retrait && !fiche.gereeParUnAutre && (
+                <Encart titre="La vérification ne vous bloque pas" className="mb-5">
+                  Elle se fait ensuite et ne vous empêche pas de prendre la main sur votre fiche : après l’envoi, vous continuez directement (horaires, conventionnement, accueil). Tout reste en brouillon et sera publié dès que l’équipe aura validé votre identité.
+                </Encart>
+              )}
+              <p className="mb-2 text-sm font-medium text-fg">
+                Votre justificatif <span className="font-normal text-fg-2">(obligatoire)</span>
+              </p>
+            </>
+          }
           apres={
             <div className="mt-5">
               <label htmlFor="equipe-telephone" className="mb-1.5 block text-sm font-medium text-fg">
