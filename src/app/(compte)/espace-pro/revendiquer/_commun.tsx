@@ -1,7 +1,4 @@
-import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { Logo } from '@/components/site/logo'
-import { FermerFenetre } from '@/components/compte/fermer-fenetre'
 import { Coquille } from '@/components/compte/coquille'
 import { Marque } from '@/components/compte/ui'
 import type { Voie } from '@/components/compte/choix'
@@ -162,42 +159,5 @@ export async function CoquilleParcours({
       {montres[0] ? <VignetteCarte praticien={montres[0]} /> : <Marque />}
       <div className="animate-fiche-entree">{children}</div>
     </Coquille>
-  )
-}
-
-/**
- * La fenêtre du parcours : la carte occupe tout l'écran, floutée, et l'étape
- * s'affiche au centre dans une fenêtre (S2), sous le logo. Un clic autour de
- * la fenêtre ou Échap la ferme. Sur mobile, elle prend la largeur de l'écran.
- */
-export async function FenetreParcours({
-  fiche,
-  etiquette,
-  recherche,
-  retour = '/',
-  children,
-}: {
-  fiche: FicheRevendication
-  etiquette?: string
-  recherche?: string
-  /** Où mène la fermeture (clic autour de la fenêtre, Échap) : la fiche publique. */
-  retour?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="relative min-h-dvh">
-      <div aria-hidden className="fixed inset-0">
-        <VoletCarte praticiens={[fiche.resume]} profession={fiche.profession} etiquette={etiquette} recherche={recherche} sansMarque />
-      </div>
-      <FermerFenetre retour={chemin(retour)} />
-      <div className="pointer-events-none relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-8 md:px-8">
-        <Link href="/" aria-label="DentalMap, accueil" className="pointer-events-auto mb-5 inline-flex">
-          <Logo />
-        </Link>
-        <section role="dialog" aria-modal="true" aria-labelledby="fenetre-titre" className="squircle-3xl animate-fiche-entree pointer-events-auto w-full max-w-lg border border-line bg-bg p-6 shadow-pop md:p-8">
-          {children}
-        </section>
-      </div>
-    </div>
   )
 }

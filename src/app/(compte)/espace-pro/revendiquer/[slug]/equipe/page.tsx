@@ -6,14 +6,14 @@ import { Encart, Etapes, discret, pastille, principal, saisie, titre } from '@/c
 import { chemin } from '@/lib/navigation'
 import { REVENDIQUER } from '@/lib/espace-pro/chemins'
 import { demanderEquipe } from '@/lib/espace-pro/actions-revendication'
-import { FenetreParcours, dejaEngage, ficheOu404, garde, nomDe, versFiche } from '../../_commun'
+import { CoquilleParcours, dejaEngage, ficheOu404, garde, nomDe, versFiche } from '../../_commun'
 
 export const metadata: Metadata = { title: 'Demander à l’équipe', robots: { index: false, follow: false } }
 export const instant = false
 
 /**
- * S3b et C1, voie « Demander à l'équipe », en fenêtre au-dessus de la carte
- * floutée : sans carte CPS ni e-CPS, l'équipe vérifie l'identité à la main.
+ * S3b et C1, voie « Demander à l'équipe », dans la mise en page de JD1 :
+ * sans carte CPS ni e-CPS, l'équipe vérifie l'identité à la main.
  * Après l'envoi, le praticien enchaîne sur l'onboarding. La demande crée une revendication en
  * attente : le praticien prépare sa fiche en brouillon pendant ce temps, rien
  * n'est publié avant l'accord. Aucun document n'est demandé.
@@ -30,9 +30,16 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   const versMethode = `${versFiche(fiche, fiche.gereeParUnAutre && !retrait ? 'conflit' : 'methode')}${retrait ? '?objet=retrait' : ''}`
 
   return (
-    <FenetreParcours fiche={fiche} etiquette={retrait ? 'Retrait demandé' : 'Vérification en cours'} recherche={fiche.rpps ?? nomDe(fiche)} retour={versMethode}>
+    <CoquilleParcours
+      fiche={fiche}
+      etiquette={retrait ? 'Retrait demandé' : 'Vérification en cours'}
+      recherche={fiche.rpps ?? nomDe(fiche)}
+      encart={{ icone: 'confrere', titre: 'Vérification par l’équipe', texte: 'Une personne de l’équipe vous répond sous 48 heures ouvrées.' }}
+      retour={versMethode}
+      libelleRetour="Retour"
+    >
       <Etapes etape={3} libelle="Vérification" />
-      <h1 id="fenetre-titre" className={titre}>Demander à l’équipe</h1>
+      <h1 className={titre}>Demander à l’équipe</h1>
       <p className="mt-2 text-sm text-fg-2">
         {retrait
           ? 'L’équipe vérifie votre identité avec vous avant de retirer la fiche : personne d’autre ne peut la retirer à votre place.'
@@ -72,6 +79,6 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
       <Link href={chemin(versMethode)} className={`${discret} mt-1`}>
         Choisir une autre preuve
       </Link>
-    </FenetreParcours>
+    </CoquilleParcours>
   )
 }
