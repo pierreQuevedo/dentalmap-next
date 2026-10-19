@@ -4,7 +4,7 @@ import { ArrowRight, Lock } from 'lucide-react'
 import { Encart, Etapes, Puce, discret, principal, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { enregistrerSoins } from '@/lib/espace-pro/actions-fiche'
-import { MAX_ORIENTATIONS, orientationsDe } from '@/lib/espace-pro/fiche-completee'
+import { orientationsDe } from '@/lib/espace-pro/fiche-completee'
 import { lireSaisie } from '@/lib/espace-pro/saisie'
 import { CoquilleOnboarding, chargerOnboarding, etapeSuivante, versEtape } from '../_commun'
 
@@ -13,7 +13,7 @@ export const instant = false
 
 /**
  * B0S : la qualification lue au registre, verrouillée, puis les domaines
- * d'exercice déclarés (cinq au plus), affichés « renseigné par le
+ * d'exercice déclarés, sans limite, affichés « renseigné par le
  * praticien ». Remplace, dans l'onboarding, la mission « Domaines de soins »,
  * qui reste au tableau de bord pour y revenir. Aucun gain affiché : le poids
  * de l'étape n'est pas arbitré, le barème reste celui de la mission.
@@ -54,7 +54,6 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <input type="hidden" name="ici" value={versEtape('specialite', fiche.slug)} />
         <fieldset>
           <legend className="text-sm font-medium text-fg">Vos domaines d’exercice</legend>
-          <p className="mt-0.5 text-xs text-fg-2">Jusqu’à {MAX_ORIENTATIONS}. Affichés « renseigné par le praticien ».</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {orientationsDe(fiche.profession).map((o) => (
               <Puce key={o.code} name="orientation" value={o.code} multiple defaultChecked={choisis.has(o.code)}>

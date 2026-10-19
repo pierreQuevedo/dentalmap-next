@@ -21,7 +21,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         cle="soins"
         titre="Domaines de soins"
         meta="Mission · +8 % · 1 min"
-        intro="Ce que vous pratiquez le plus, au-delà de votre spécialité. De deux à cinq domaines ; chacun ouvre un filtre de la recherche."
+        intro="Ce que vous pratiquez le plus, au-delà de votre spécialité. Au moins deux pour compter ; chacun ouvre un filtre de la recherche."
         action={enregistrerSoins}
         fiche={espace.fiche.slug}
         avant={espace.force.total}

@@ -18,7 +18,6 @@ import {
   ACCES_PMR,
   AGES_MINIMUM,
   LANGUES,
-  MAX_ORIENTATIONS,
   PRESENTATION_MAX,
   SECTEURS,
   TIERS_PAYANT,
@@ -163,7 +162,6 @@ export async function enregistrerSoins(donnees: FormData): Promise<never> {
   const permis = new Set(orientationsDe(profession).map((o) => o.code))
   const orientations = donnees.getAll('orientation').map(String).filter((c) => permis.has(c))
   if (!slug) return erreur(donnees, 'Fiche introuvable.')
-  if (orientations.length > MAX_ORIENTATIONS) return erreur(donnees, `Choisissez ${MAX_ORIENTATIONS} domaines au plus.`)
   return ecrire(donnees, () => ({ orientations }), '/espace-pro/missions/')
 }
 

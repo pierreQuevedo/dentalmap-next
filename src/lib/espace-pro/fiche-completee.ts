@@ -125,9 +125,6 @@ export const ORIENTATIONS: readonly { code: string; libelle: string; court: stri
   { code: 'cancerologie_tete_cou', libelle: 'Cancérologie de la tête et du cou', court: 'Cancérologie tête et cou', professions: ['orl'] },
   { code: 'orl_pediatrique', libelle: 'ORL pédiatrique', court: 'ORL pédiatrique', professions: ['orl'] },
 ]
-/** Domaines d'exercice déclarés : cinq au plus (B0S et mission « Domaines de soins »). */
-export const MAX_ORIENTATIONS = 5
-
 export type CodeOrientation = (typeof ORIENTATIONS)[number]['code']
 
 /** Les orientations qu'une profession peut déclarer, dans l'ordre de la liste. Aucune pour un laboratoire. */
