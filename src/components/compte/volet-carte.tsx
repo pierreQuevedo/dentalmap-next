@@ -99,7 +99,7 @@ export function VoletCarte({
     <div className="relative isolate size-full overflow-hidden bg-muted">
       <Plan principal={principal} autres={[...praticiens.filter((p) => p !== principal), ...lieux]}>
         {principal && contenu && !fiche && (
-          <div className="pointer-events-none w-[15rem] origin-bottom scale-[0.86]">
+          <div className="pointer-events-none w-[19.25rem] [&_li]:min-h-[24rem]">
             <div className="relative">
               {etiquette && (
                 <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1 rounded-full bg-bg/90 px-2 py-0.5 text-xs font-medium text-fg shadow-pill backdrop-blur">
@@ -112,7 +112,7 @@ export function VoletCarte({
           </div>
         )}
         {fiche && (
-          <div className="pointer-events-none w-[15rem] origin-bottom scale-[0.86] [&_li]:min-h-[22rem] xl:[&_li]:min-h-[22rem]">
+          <div className="pointer-events-none w-[19.25rem] [&_li]:min-h-[24rem]">
             <div className="relative">
               {etiquette && (
                 <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1 rounded-full bg-bg/90 px-2 py-0.5 text-xs font-medium text-fg shadow-pill backdrop-blur">
@@ -270,10 +270,10 @@ function Plan({
     if (points.length > 1) {
       const bornes = new LngLatBounds()
       for (const p of points) bornes.extend([p.lon, p.lat])
-      map.fitBounds(bornes, { padding: { top: 420, bottom: 90, left: 60, right: 60 }, maxZoom: 14, duration: 0 })
+      map.fitBounds(bornes, { padding: { top: 500, bottom: 90, left: 60, right: 60 }, maxZoom: 14, duration: 0 })
     } else if (principal && children) {
       // La fiche se pose au-dessus du repère : le point descend dans le cadre pour lui laisser la place.
-      map.setPadding({ top: 360, bottom: 0, left: 0, right: 0 })
+      map.setPadding({ top: 440, bottom: 0, left: 0, right: 0 })
     }
 
     const marqueurs: Marker[] = []
@@ -315,7 +315,7 @@ function Plan({
     }
     if (!map || !repere.current || principal?.lon == null || principal.lat == null) return
     repere.current.setLngLat([principal.lon, principal.lat])
-    map.flyTo({ center: [principal.lon, principal.lat], zoom: 15, padding: children ? { top: 360, bottom: 0, left: 0, right: 0 } : undefined, speed: 1.1, curve: 1.6, essential: true })
+    map.flyTo({ center: [principal.lon, principal.lat], zoom: 15, padding: children ? { top: 440, bottom: 0, left: 0, right: 0 } : undefined, speed: 1.1, curve: 1.6, essential: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [principal?.lon, principal?.lat])
 

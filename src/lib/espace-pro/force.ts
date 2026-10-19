@@ -55,7 +55,7 @@ export function calculerForce(f: FicheCompletee | null, ctx: Contexte, maintenan
   const items: ItemForce[] = [
     { cle: 'identite', libelle: 'Identité vérifiée', points: ctx.identiteVerifiee ? 30 : 0, max: 30 },
     { cle: 'horaires', libelle: 'Horaires', points: h.points, max: 20, aReconfirmer: h.aReconfirmer },
-    { cle: 'photo', libelle: 'Photo du cabinet', points: f?.photoUrl ? 12 : 0, max: 12 },
+    { cle: 'photo', libelle: 'Photo de profil', points: f?.photoUrl ? 12 : 0, max: 12 },
     { cle: 'presentation', libelle: 'Présentation', points: presentationValide(f?.presentation ?? null) ? 10 : 0, max: 10 },
     { cle: 'soins', libelle: 'Domaines de soins', points: (f?.orientations.length ?? 0) >= 2 ? 8 : 0, max: 8 },
     { cle: 'conventionnement', libelle: 'Secteur et tiers payant', points: (f?.secteur ? 5 : 0) + (f?.tiersPayant ? 5 : 0), max: 10 },
@@ -124,7 +124,7 @@ export function missionsDe(f: FicheCompletee | null): Mission[] {
       faite: (f?.langues.length ?? 0) > 0 && !!f?.accesPmr,
       href: '/espace-pro/onboarding/accueil/',
     },
-    { cle: 'photo', titre: 'Photo du cabinet', detail: 'Image sur la fiche et dans Google', gain: 12, minutes: 2, faite: !!f?.photoUrl, href: '/espace-pro/missions/photo/' },
+    { cle: 'photo', titre: 'Photo de profil', detail: 'Image sur la fiche et dans Google', gain: 12, minutes: 2, faite: !!f?.photoUrl, href: '/espace-pro/missions/photo/' },
     {
       cle: 'presentation',
       titre: 'Présentation',
@@ -202,7 +202,7 @@ const REGLES: Record<CleFraicheur, { libelle: string; validite: number; rappel: 
   conventionnement: { libelle: 'Conventionnement et tiers payant', validite: 365, rappel: 350, regle: 'Reconfirmation annuelle, ou dès qu’il change' },
   accueil: { libelle: 'Langues, accès, enfants', validite: 365, rappel: 350, regle: 'Reconfirmation annuelle' },
   presentation: { libelle: 'Présentation', validite: 365, rappel: 350, regle: 'Reconfirmation annuelle' },
-  photo: { libelle: 'Photo du cabinet', validite: 730, rappel: 715, regle: 'À renouveler tous les deux ans' },
+  photo: { libelle: 'Photo de profil', validite: 730, rappel: 715, regle: 'À renouveler tous les deux ans' },
 }
 
 /** Les blocs renseignés, chacun avec sa date, son échéance et son état. */

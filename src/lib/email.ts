@@ -165,6 +165,40 @@ export async function envoyerInvitation(to: string, fiche: string, invitePar: st
   })
 }
 
+/** Le parrainage : un confrère invite cette adresse à revendiquer sa fiche. `relance` : le rappel, sept jours après. */
+export async function envoyerInvitationParrainage(to: string, parrain: string, code: string, relance = false) {
+  const url = `${SITE}/parrainage/${code}/`
+  await envoyer(to, relance ? `Rappel : ${parrain} vous invite sur DentalMap` : `${parrain} vous invite à prendre la main sur votre fiche DentalMap`, {
+    titre: `${parrain} vous invite sur DentalMap`,
+    blocs: [
+      { type: 'texte', texte: `${parrain} vous invite à revendiquer votre fiche sur DentalMap, l’annuaire des professionnels du dentaire établi à partir des registres officiels.` },
+      { type: 'texte', texte: 'Votre fiche existe déjà. En la revendiquant, vous complétez ce que les patients cherchent : horaires, conventionnement, accueil, photo et présentation.' },
+      { type: 'encart', texte: `Une fois votre identité vérifiée, votre fiche et celle de ${parrain} gagnent chacune un bonus de mise en avant pendant 90 jours.` },
+      { type: 'bouton', libelle: 'Revendiquer ma fiche', url },
+      { type: 'lienBrut', url },
+      { type: 'lien', libelle: 'Ne plus recevoir d’invitation', url: `${SITE}/parrainage/${code}/desinscription/` },
+    ],
+    raison: `Vous recevez cet email parce que ${parrain} a invité cette adresse sur DentalMap. ${relance ? 'C’est le seul rappel.' : 'Vous recevrez au plus un rappel.'}`,
+  })
+}
+
+/** Le parrainage a réussi : le filleul est vérifié, les deux fiches ont leur bonus. */
+export async function envoyerParrainageReussi(to: string, autre: string, role: 'parrain' | 'filleul', jusquau: Date) {
+  const date = jusquau.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' })
+  await envoyer(to, 'Votre bonus de parrainage est actif', {
+    titre: 'Votre bonus de parrainage est actif',
+    blocs: [
+      {
+        type: 'texte',
+        texte: role === 'parrain' ? `${autre} a revendiqué sa fiche et son identité est vérifiée : votre parrainage a réussi.` : `Votre identité est vérifiée : le parrainage de ${autre} a réussi.`,
+      },
+      { type: 'encart', texte: `Votre fiche bénéficie d’un bonus de mise en avant jusqu’au ${date}. ${role === 'parrain' ? 'Chaque nouveau parrainage réussi en ajoute un.' : 'Parrainez à votre tour un confrère pour en gagner un autre.'}` },
+      { type: 'bouton', libelle: 'Parrainer un confrère', url: `${SITE}/espace-pro/partager/` },
+    ],
+    raison: 'Vous recevez cet email parce que vous gérez une fiche sur DentalMap.',
+  })
+}
+
 /** Alerte « fiche créée » : le RPPS attendu a maintenant sa fiche, on peut la revendiquer. */
 export async function envoyerFicheEnLigne(to: string, fiche: string, chemin: string) {
   await envoyer(to, 'Votre fiche est en ligne sur DentalMap', {
@@ -191,6 +225,20 @@ export async function envoyerRappelFraicheur(to: string, fiche: string, slug: st
       { type: 'champs', lignes: blocs },
       { type: 'bouton', libelle: 'Reconfirmer mes informations', url: `${SITE}/espace-pro/fraicheur/?fiche=${encodeURIComponent(slug)}` },
       { type: 'texte', texte: 'Des horaires non confirmés depuis six mois sont signalés aux patients sur la fiche.' },
+      { type: 'lien', libelle: 'Ne plus recevoir ces rappels pour cette fiche', url: `${SITE}/rappels/couper/${jetonCoupure}/` },
+    ],
+    raison: 'Vous recevez cet email parce que vous gérez cette fiche sur DentalMap.',
+  })
+}
+
+/** Plus aucun clic venu de Google depuis 30 jours : le lien a peut-être été retiré de la fiche Google. */
+export async function envoyerLienGoogleInactif(to: string, fiche: string, slug: string, jetonCoupure: string) {
+  await envoyer(to, 'Votre lien DentalMap est-il toujours sur votre fiche Google ?', {
+    titre: 'Votre lien est-il toujours sur Google ?',
+    blocs: [
+      { type: 'texte', texte: `Depuis 30 jours, aucun patient n’est arrivé sur la fiche « ${fiche} » depuis votre fiche Google. Le lien a peut-être été retiré ou remplacé.` },
+      { type: 'texte', texte: 'Vérifiez votre fiche d’établissement Google : le lien DentalMap doit figurer dans « Site web » ou « Lien de prise de rendez-vous ». Il se revalide tout seul au prochain clic.' },
+      { type: 'bouton', libelle: 'Retrouver mon lien', url: `${SITE}/espace-pro/partager/?fiche=${encodeURIComponent(slug)}` },
       { type: 'lien', libelle: 'Ne plus recevoir ces rappels pour cette fiche', url: `${SITE}/rappels/couper/${jetonCoupure}/` },
     ],
     raison: 'Vous recevez cet email parce que vous gérez cette fiche sur DentalMap.',

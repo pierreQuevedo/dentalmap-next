@@ -10,6 +10,7 @@ import { chemin } from '@/lib/navigation'
 import { getFicheRevendication, type FicheRevendication } from '@/lib/espace-pro/parcours'
 import { REVENDIQUER, apresAccord, cheminFiche } from '@/lib/espace-pro/chemins'
 import { exigerConnexion, type Compte } from '@/lib/tunnel/compte'
+import { rattacherFilleul } from '@/lib/espace-pro/parrainage-donnees'
 
 /**
  * Ce que partagent les pages de la revendication d'un soignant.
@@ -20,6 +21,8 @@ import { exigerConnexion, type Compte } from '@/lib/tunnel/compte'
 export async function garde(ici: string, profil: 'dentiste' | 'prothesiste' = 'dentiste'): Promise<Compte> {
   const compte = await exigerConnexion(ici)
   if (!compte.role) redirect(chemin(`/inscription/profil/?role=${profil}&retour=${encodeURIComponent(ici)}`))
+  // Arrivé par un lien de parrainage : le compte devient le filleul.
+  await rattacherFilleul(compte.id)
   return compte
 }
 

@@ -21,9 +21,9 @@ export default async function Page(props: { params: Promise<{ jeton: string }>; 
         <h1 className="text-2xl font-semibold tracking-tight text-fg">{titre}</h1>
         <div className="mt-3 space-y-4 text-sm text-fg-2">
           {sp.fait ? (
-            <p>Vous ne recevrez plus de rappels de fraîcheur ni d’alertes sur les liens pour cette fiche. Vous pouvez les rétablir depuis « Fraîcheur », dans votre espace.</p>
+            <p>Vous ne recevrez plus de rappels de fraîcheur ni d’alertes sur les liens pour cette fiche. Vous pouvez les rétablir depuis « Mises à jour », dans votre espace.</p>
           ) : sp.invalide ? (
-            <p>Ce lien n’est pas reconnu. Ouvrez « Fraîcheur » dans votre espace pour gérer les rappels.</p>
+            <p>Ce lien n’est pas reconnu. Ouvrez « Mises à jour » dans votre espace pour gérer les rappels.</p>
           ) : (
             <>
               <p>Plus de rappels pour reconfirmer vos informations, ni d’alertes quand un lien du cabinet ne répond plus. Les emails liés à votre compte continuent.</p>

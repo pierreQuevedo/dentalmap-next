@@ -135,6 +135,13 @@ export type PraticienResume = {
    * la calcule pas.
    */
   recrute?: boolean
+  /**
+   * Palier de progression de la fiche gérée (`src/lib/espace-pro/progression.ts`) :
+   * la carte de résultat en porte la pastille et l'habillage. Absent hors des listes classées.
+   */
+  palier?: number | null
+  /** Photo de profil déposée par le professionnel, sur une fiche gérée. Absente hors des listes classées. */
+  photo?: string | null
 }
 
 /**

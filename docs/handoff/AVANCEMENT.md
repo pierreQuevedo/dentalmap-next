@@ -139,7 +139,7 @@ Migration `0013_massive_ma_gnuci` appliquée : sur `fiches_completees`, `secteur
 
 Tableau de bord dans `(pro)/espace-pro/` : vue d'ensemble, ma fiche, missions (photo, présentation, soins, liens), fraîcheur (reconfirmation en un clic), registre, distinctions, partager (lien court `/p/<slug>/`, badge HTML), compte et sécurité (mot de passe, appareils). Écarts assumés :
 - distinctions calculées sur l'état présent, pas stockées ; « Toujours à jour » reste à obtenir faute d'historique de reconfirmations ;
-- Emploi, Statistiques, Notifications : « Bientôt » dans la navigation (aucune donnée derrière) ; visuel réseaux et parrainage : « Bientôt » ;
+- Emploi, Notifications : « Bientôt » dans la navigation (aucune donnée derrière) ; Statistiques ouvertes (visites des liens de partage par canal, `/p/<slug>/<code>/`, compteur par jour sans cookie) ; visuels réseaux ouverts (carte de résultat sur le plan, export dans le navigateur) ; « Fraîcheur » renommée « Mises à jour », rangée dans Compte ; progression par points et paliers (carte du menu, encart de gain, passage de palier plein écran, page « Progression » qui remplace Missions et Distinctions (anciennes adresses redirigées ; missions détaillées sous `/espace-pro/missions/<cle>/`), bonus de classement aux paliers 4 et 5) ; en-tête des pages collant ; parrainage ouvert (invitations email, bonus de classement temporaire, voir 06) ;
 - test hebdomadaire des liens du cabinet, rappels par courriel de fraîcheur : faits le 2026-10-15 (voir « Tâches planifiées »).
 
 La fiche publique affiche photo, présentation, liens, secteur, âge minimum et la mention « horaires non confirmés depuis six mois ».

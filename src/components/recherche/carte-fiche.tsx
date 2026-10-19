@@ -9,6 +9,7 @@ import { clePosition } from '@/lib/annuaire/emprise'
 import { illustration } from '@/lib/annuaire/illustration'
 import { nomAffiche, type Profession } from '@/lib/annuaire/types'
 import type { PraticienProche } from '@/lib/annuaire/queries'
+import { PALIERS } from '@/lib/espace-pro/progression'
 
 /**
  * Carte de résultat.
@@ -42,11 +43,43 @@ export function CarteFiche(props: {
   rang?: number
   /** D'où la distance est mesurée, en toutes lettres. Par défaut, le centre de la carte. */
   reference?: string
+  /** Palier de progression : à partir du deuxième, la carte en porte la pastille, et s'habille davantage à chaque palier. */
+  palier?: number
+  /** Les pastilles l'une sous l'autre, à gauche : un visuel pose un sceau sur le coin droit. */
+  pastillesEmpilees?: boolean
 }) {
-  return props.profession === 'prothesiste' ? <CarteLaboratoire {...props} /> : <CarteDentiste {...props} />
+  // Le palier vient de la liste classée, sauf s'il est imposé (aperçu d'un palier dans l'espace pro).
+  const palier = props.palier ?? props.praticien.palier ?? undefined
+  // De même pour la photo de profil : celle de la liste, sauf si l'appelant en fournit une.
+  const photo = props.photo ?? props.praticien.photo ?? undefined
+  return props.profession === 'prothesiste' ? <CarteLaboratoire {...props} palier={palier} photo={photo} /> : <CarteDentiste {...props} palier={palier} photo={photo} />
 }
 
 type Props = Parameters<typeof CarteFiche>[0]
+
+/** L'habillage d'une carte selon le palier : un liseré, puis un halo, de plus en plus marqués. */
+function cadrePalier(palier: number | undefined): string {
+  if (!palier || palier < 3) return ''
+  if (palier === 3) return 'ring-2 ring-[#0B8484]/80'
+  if (palier === 4) return 'ring-2 ring-[#2BB5A8] shadow-[0_0_0_6px_rgba(43,181,168,0.2)]'
+  return 'ring-[3px] ring-[#BFE3D6] shadow-[0_0_0_8px_rgba(191,227,214,0.28),0_20px_50px_rgba(11,132,132,0.35)]'
+}
+
+/** La pastille du palier, à côté de « Gérée » : claire au palier 2, vert forêt ensuite. */
+function BadgePalier({ palier }: { palier: number }) {
+  const nom = PALIERS.find((p) => p.niveau === palier)?.nom
+  if (!nom || palier < 2) return null
+  const fort = palier >= 3
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold backdrop-blur ${fort ? 'bg-[#134E4A]/90 text-[#BFE3D6]' : 'bg-bg/90 text-teal'}`}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-3.5" aria-hidden>
+        <circle cx="12" cy="8" r="6" />
+        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+      </svg>
+      {nom}
+    </span>
+  )
+}
 
 /** Classe et retard de l'entrée d'une carte selon son rang, 40 ms par carte, plafonné à la moitié d'une seconde. */
 function entree(rang: number | undefined) {
@@ -73,7 +106,7 @@ function evenements(cle: string | null, slug: string, onSurvol: Props['onSurvol'
   }
 }
 
-function CarteDentiste({ praticien: p, base, profession, photo, actif, onSurvol, rang, reference = 'du centre de la carte' }: Props) {
+function CarteDentiste({ praticien: p, base, profession, photo, actif, onSurvol, rang, reference = 'du centre de la carte', palier, pastillesEmpilees }: Props) {
   const cle = clePosition(p.lon, p.lat)
   const anim = entree(rang)
   const nom = nomAffiche({ profession, nom: p.nom, prenom: p.prenom, raisonSociale: p.raisonSociale })
@@ -96,7 +129,7 @@ function CarteDentiste({ praticien: p, base, profession, photo, actif, onSurvol,
       {...evenements(cle, p.slug, onSurvol)}
       data-actif={actif ? 'true' : 'false'}
       style={anim.style}
-      className={`squircle-2xl hover-lift group relative isolate flex min-h-[28rem] flex-col justify-end xl:min-h-[25rem] min-[1600px]:min-h-[28rem] overflow-hidden border bg-bg-soft [--lift:5px] hover:shadow-pop data-[actif=true]:-translate-y-[var(--lift)] data-[actif=true]:shadow-pop has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${anim.className} ${
+      className={`squircle-2xl hover-lift group relative isolate flex min-h-[28rem] flex-col justify-end xl:min-h-[25rem] min-[1600px]:min-h-[28rem] overflow-hidden border bg-bg-soft [--lift:5px] hover:shadow-pop data-[actif=true]:-translate-y-[var(--lift)] data-[actif=true]:shadow-pop has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${anim.className} ${cadrePalier(palier)} ${
         actif ? 'border-line-strong' : 'border-line'
       }`}
     >
@@ -153,9 +186,10 @@ function CarteDentiste({ praticien: p, base, profession, photo, actif, onSurvol,
         professionnel qui gère sa fiche peut publier une offre, la seconde ne
         vient donc jamais seule en pratique.
       */}
-      {(p.revendiquee || p.recrute) && (
-        <div className="absolute left-3 right-3 top-3 z-10 flex flex-wrap gap-1.5">
+      {(p.revendiquee || p.recrute || (palier ?? 0) >= 2) && (
+        <div className={`absolute left-3 right-3 top-3 z-10 flex gap-1.5 ${pastillesEmpilees ? 'flex-col items-start' : 'flex-wrap'}`}>
           {p.revendiquee && <BadgeGeree profession={profession} />}
+          {palier && <BadgePalier palier={palier} />}
           {p.recrute && <BadgeRecrute profession={profession} />}
         </div>
       )}
@@ -207,7 +241,7 @@ function CarteDentiste({ praticien: p, base, profession, photo, actif, onSurvol,
  * gérée par le laboratoire ; tant qu'aucun laboratoire ne la complète, la
  * carte s'en tient au registre.
  */
-function CarteLaboratoire({ praticien: p, base, profession, photo, actif, onSurvol, rang }: Props) {
+function CarteLaboratoire({ praticien: p, base, profession, photo, actif, onSurvol, rang, palier, pastillesEmpilees }: Props) {
   const cle = clePosition(p.lon, p.lat)
   const anim = entree(rang)
   const nom = nomAffiche({ profession, nom: p.nom, prenom: p.prenom, raisonSociale: p.raisonSociale })
@@ -218,7 +252,7 @@ function CarteLaboratoire({ praticien: p, base, profession, photo, actif, onSurv
       {...evenements(cle, p.slug, onSurvol)}
       data-actif={actif ? 'true' : 'false'}
       style={anim.style}
-      className={`squircle-2xl hover-lift group relative isolate flex flex-col overflow-hidden border bg-bg-soft [--lift:5px] hover:shadow-pop data-[actif=true]:-translate-y-[var(--lift)] data-[actif=true]:shadow-pop has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${anim.className} ${
+      className={`squircle-2xl hover-lift group relative isolate flex flex-col overflow-hidden border bg-bg-soft [--lift:5px] hover:shadow-pop data-[actif=true]:-translate-y-[var(--lift)] data-[actif=true]:shadow-pop has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${anim.className} ${cadrePalier(palier)} ${
         actif ? 'border-line-strong' : 'border-line'
       }`}
     >
@@ -230,9 +264,10 @@ function CarteLaboratoire({ praticien: p, base, profession, photo, actif, onSurv
           sizes="(min-width: 1280px) 24rem, 90vw"
           className="object-cover transition-transform duration-slow ease-lift group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100 dark:brightness-[0.42]"
         />
-        {(p.revendiquee || p.recrute) && (
-          <div className="absolute left-3 right-3 top-3 flex flex-wrap gap-1.5">
+        {(p.revendiquee || p.recrute || (palier ?? 0) >= 2) && (
+          <div className={`absolute left-3 right-3 top-3 flex gap-1.5 ${pastillesEmpilees ? 'flex-col items-start' : 'flex-wrap'}`}>
             {p.revendiquee && <BadgeGeree profession={profession} />}
+            {palier && <BadgePalier palier={palier} />}
             {p.recrute && <BadgeRecrute profession={profession} />}
           </div>
         )}

@@ -121,7 +121,7 @@ export function FichePersonne({ c }: { c: ContexteFiche }) {
 
           <div className="squircle-2xl shadow-pop overflow-hidden border border-white/10 bg-[#161c21]">
             {photo ? (
-              <Photo src={photo} alt="Le cabinet" className="aspect-[4/3]" sizes="(min-width: 1024px) 22rem, 100vw" />
+              <Photo src={photo} alt="" className="aspect-[4/3] [&_img]:object-[center_26%]" sizes="(min-width: 1024px) 22rem, 100vw" />
             ) : (
               // Pas de photo déposée : le visuel de remplacement des listes, choisi sur la civilité du registre.
               <Photo src={illustration(p.profession, p.civilite)} alt="" className="aspect-[4/3] [&_img]:object-[center_26%] [&_img]:brightness-[0.55]" sizes="(min-width: 1024px) 22rem, 100vw" />

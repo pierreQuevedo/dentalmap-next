@@ -3,7 +3,8 @@ import { revalidateTag } from 'next/cache'
 import { del } from '@vercel/blob'
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
-import { envoyerLienMasque, envoyerRappelFraicheur } from '@/lib/email'
+import { envoyerLienGoogleInactif, envoyerLienMasque, envoyerRappelFraicheur } from '@/lib/email'
+import { VALIDITE_LIEN_GOOGLE_JOURS } from './lien-google'
 import { nomAffiche, type Profession } from '@/lib/annuaire/types'
 import { ECHECS_MASQUE } from './fiche-completee'
 import { COLONNES_FICHE, ficheDepuisLigne, type LigneFiche } from './fiche-lecture'
@@ -73,6 +74,40 @@ export async function envoyerRappelsFraicheur(limite = 200): Promise<{ envoyes: 
     }
   }
   return { envoyes, echecs, examinees: rows.length }
+}
+
+/* ------------------------------------------------------------------ */
+/* Lien de la fiche Google, quotidien                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Plus aucun clic venu de Google depuis la durée de validité : la
+ * vérification a expiré, le praticien est prévenu une fois (la relance
+ * s'efface au prochain clic, voir `/p/<slug>/g/`).
+ */
+export async function relancerLiensGoogle(limite = 200): Promise<{ relances: number }> {
+  const { rows } = await db.execute<LigneGestionnaire>(sql`
+    SELECT ${COLONNES_FICHE}, f.praticien_id, p.slug, p.profession, p.nom, p.prenom, p.raison_sociale, u.email
+    FROM fiches_completees f ${GESTIONNAIRE}
+    WHERE f.lien_google_dernier_le < now() - make_interval(days => ${VALIDITE_LIEN_GOOGLE_JOURS})
+      AND f.lien_google_relance_le IS NULL AND f.rappels_coupes_le IS NULL
+    LIMIT ${limite}
+  `)
+  let relances = 0
+  for (const r of rows) {
+    const { rows: pris } = await db.execute<{ ok: number }>(sql`
+      UPDATE fiches_completees SET lien_google_relance_le = now() WHERE praticien_id = ${r.praticien_id} AND lien_google_relance_le IS NULL RETURNING 1 AS ok
+    `)
+    if (!pris.length) continue
+    try {
+      await envoyerLienGoogleInactif(r.email, nomAffiche({ ...r, raisonSociale: r.raison_sociale }), r.slug, jetonRappels(r.praticien_id))
+      relances++
+    } catch (e) {
+      console.error('[lien-google] relance impossible', r.slug, e)
+      await db.execute(sql`UPDATE fiches_completees SET lien_google_relance_le = NULL WHERE praticien_id = ${r.praticien_id}`)
+    }
+  }
+  return { relances }
 }
 
 /* ------------------------------------------------------------------ */

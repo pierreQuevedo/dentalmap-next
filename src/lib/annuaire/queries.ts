@@ -296,7 +296,7 @@ export async function getPraticiensDeCommune(
   const tous = [...rows]
     .sort(
       (a, b) =>
-        (remplissages.get(b.id) ?? 0) - (remplissages.get(a.id) ?? 0) ||
+        (remplissages.scores.get(b.id) ?? 0) - (remplissages.scores.get(a.id) ?? 0) ||
         a.metres - b.metres ||
         cleDeTri(profession, { ...a, raisonSociale: a.raison_sociale }).localeCompare(cleDeTri(profession, { ...b, raisonSociale: b.raison_sociale }), 'fr'),
     )
@@ -318,6 +318,8 @@ export async function getPraticiensDeCommune(
       departementSlug: r.departement_slug,
       lon: r.lon,
       lat: r.lat,
+      palier: remplissages.paliers.get(r.id) ?? null,
+      photo: remplissages.photos.get(r.id) ?? null,
       metres: r.metres,
     }))
 
@@ -1143,7 +1145,7 @@ export async function getPraticiensDansEmprise(
   const remplissages = await getRemplissages(profession, rows)
   const classes = [...rows].sort(
     (a, b) =>
-      (remplissages.get(b.id) ?? 0) - (remplissages.get(a.id) ?? 0) ||
+      (remplissages.scores.get(b.id) ?? 0) - (remplissages.scores.get(a.id) ?? 0) ||
       a.metres - b.metres ||
       a.nom.localeCompare(b.nom, 'fr') ||
       (a.prenom ?? '').localeCompare(b.prenom ?? '', 'fr'),
@@ -1176,6 +1178,8 @@ export async function getPraticiensDansEmprise(
       departementSlug: r.departement_slug,
       lon: r.lon,
       lat: r.lat,
+      palier: remplissages.paliers.get(r.id) ?? null,
+      photo: remplissages.photos.get(r.id) ?? null,
       metres: r.metres,
     }))),
   }

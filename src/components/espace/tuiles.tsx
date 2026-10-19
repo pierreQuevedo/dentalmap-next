@@ -82,8 +82,8 @@ export function TuileMissions({ missions, q }: { missions: Mission[]; q: string 
   const reco = [...restantes].sort((a, b) => b.gain - a.gain || a.minutes - b.minutes)[0]
   return (
     <Tuile>
-      <TitreTuile i={Sparkles} droite={<span className="squircle-full bg-bg-soft px-2 py-0.5 text-xs text-fg-2">{missions.length - restantes.length} sur {missions.length}</span>}>
-        Missions
+      <TitreTuile i={Sparkles} droite={<Link href={chemin(`/espace-pro/progression/${q}`)} className="text-sm text-fg underline-offset-4 hover:underline">Progression</Link>}>
+        À faire
       </TitreTuile>
       {restantes.length === 0 ? (
         <p className="mt-4 text-sm text-fg-2">Tout est fait. Il reste l’entretien : reconfirmer quand on vous le demande.</p>
@@ -100,7 +100,7 @@ export function TuileMissions({ missions, q }: { missions: Mission[]; q: string 
                     {m.minutes} min
                   </span>
                 </span>
-                <span className={`squircle-full px-2 py-0.5 text-xs font-medium ${m.gain ? 'bg-teal/10 text-teal' : 'bg-bg-soft text-fg-2'}`}>{m.gain ? `+${m.gain} %` : 'Hors barème'}</span>
+                <span className={`squircle-full px-2 py-0.5 text-xs font-medium ${m.gain ? 'bg-teal/10 text-teal' : 'bg-bg-soft text-fg-2'}`}>{m.gain ? `+${m.gain} pts` : 'Hors barème'}</span>
                 <ChevronRight className="size-4 text-fg-2" aria-hidden />
               </Link>
             </li>

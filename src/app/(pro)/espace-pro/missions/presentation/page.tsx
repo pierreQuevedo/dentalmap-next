@@ -17,11 +17,11 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const gardee = await lireSaisie('/espace-pro/missions/presentation/', sp.erreur)
   const gain = espace.labo ? 5 : 10
   return (
-    <CoqueEspace c={coque} actif={espace.labo ? 'fiche' : 'missions'} titre="Missions" sousTitre={`Présentation · +${gain} % · ${espace.labo ? 4 : 5} min`}>
+    <CoqueEspace c={coque} actif={espace.labo ? 'fiche' : 'progression'} titre="Progression" sousTitre={`Présentation · +${gain} pts · ${espace.labo ? 4 : 5} min`}>
       <PanneauMission
         cle="presentation"
         titre="Présentation"
-        meta={`Mission · +${gain} % · ${espace.labo ? 4 : 5} min`}
+        meta={`Mission · +${gain} pts · ${espace.labo ? 4 : 5} min`}
         intro={
           espace.labo
             ? 'Votre laboratoire, ses spécialités, la façon de travailler avec les cabinets. Pas de promesse de résultat ni de comparaison.'

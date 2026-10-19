@@ -282,6 +282,10 @@ export type FicheCompletee = {
   liensEchecs: { site?: number; rdv?: number }
   liensTestesLe: string | null
   rappelsCoupesLe: string | null
+  /** Premier clic venu de Google sur le lien de la fiche Google, et nombre de ces clics. */
+  lienGoogleLe: string | null
+  lienGoogleDernierLe: string | null
+  lienGoogleClics: number
   horairesConfirmesLe: string | null
   conventionnementConfirmeLe: string | null
   accueilConfirmeLe: string | null
@@ -332,6 +336,9 @@ export const FICHE_VIDE: FicheCompletee = {
   liensEchecs: {},
   liensTestesLe: null,
   rappelsCoupesLe: null,
+  lienGoogleLe: null,
+  lienGoogleDernierLe: null,
+  lienGoogleClics: 0,
   horairesConfirmesLe: null,
   conventionnementConfirmeLe: null,
   accueilConfirmeLe: null,

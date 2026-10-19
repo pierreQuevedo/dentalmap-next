@@ -115,14 +115,14 @@ Le barème de 100 points ci-dessus reste inchangé : les nouvelles missions comp
 
 ## Partager et parrainer (tous profils)
 
-Écran « Partager et parrainer » de l'espace pro (rubrique Visibilité). Le partage ne rapporte pas de points de force : il agit sur la présence hors de DentalMap.
+Écran « Partager et parrainer » de l'espace pro (rubrique Visibilité). Le partage ne rapporte pas de points de force, mais des points de progression (`src/lib/espace-pro/progression.ts`) : lien Google vérifié +20, badge du site +15, partage sur les réseaux +10, parrainage réussi +25 (trois au plus), aucune information expirée +10, en plus d'un point par pour cent de force. Paliers : Fiche publiée 30, Fiche complète 70 (visuels réseaux), Fiche exemplaire 100 (visuels aux couleurs du palier), Ambassadeur 160 (+5 au classement, stories repartagées par @dentalmap.fr), Référence locale 220 (+10 au classement, mise en avant dans les contenus de la ville).
 
 | Action | Importance | Effet sur la présence | Où |
 |---|---|---|---|
 | Lien court personnel (`dentalmap.fr/p/…`) dans la fiche Google du cabinet (champ « Site web » ou « Lien de prise de rendez-vous ») | ●●●●● | Visites directes depuis Google Maps et la recherche, la source la plus forte | Pas-à-pas dans l'écran |
 | Badge « Vérifié sur DentalMap » sur le site du cabinet | ●●●●○ | Backlink vers la fiche sur chaque site qui l'affiche, meilleur référencement de la fiche. Code en HTML simple (`<a href>`), sans script, pour que le lien soit suivi par les moteurs | Code à copier |
 | Réseaux sociaux (lien en bio, publication, visuel prêt à poster) | ●●●○○ | Visites directes de patients qui connaissent déjà le cabinet | Visuel généré |
-| Parrainage de confrères | ●●○○○ | Aucun effet direct ; plus de fiches revendiquées et complètes dans l'annuaire | Invitation par nom ou RPPS |
+| Parrainage de confrères | ●●●○○ | Parrainage réussi (filleul vérifié) : +5 points de classement pour les deux fiches pendant 90 jours, cumulables jusqu'à +15. Jamais affiché sur le site public | Invitation par email, 10 par semaine, une relance à 7 jours |
 
 Mesure : visites venues du lien et leur source, sans cookie ni donnée patient (seule l'origine du clic est gardée).
 

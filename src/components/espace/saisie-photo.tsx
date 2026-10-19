@@ -7,18 +7,19 @@ import { upload } from '@vercel/blob/client'
 import { CheckCircle2, Crop, ImagePlus, Trash2, Upload } from 'lucide-react'
 
 /**
- * MIS-1 : la photo du cabinet.
+ * MIS-1 : la photo de profil, au format de la carte de résultat (portrait
+ * 4:5, celui de l'aperçu public).
  *
- * Le navigateur recadre l'image au centre en 16:9, la réduit à 1600 pixels de
+ * Le navigateur recadre l'image au centre en 4:5, la réduit à 1200 pixels de
  * large et la ré-encode en JPEG : les métadonnées (lieu, appareil) ne partent
  * jamais. Elle est ensuite téléversée en stockage public, et le formulaire
  * n'envoie que son adresse.
  */
-const LARGEUR = 1600
+const LARGEUR = 1200
 
 async function recadrer(fichier: File): Promise<Blob> {
   const image = await createImageBitmap(fichier)
-  const ratio = 16 / 9
+  const ratio = 4 / 5
   let sw = image.width
   let sh = sw / ratio
   if (sh > image.height) {
@@ -77,12 +78,12 @@ export function SaisiePhoto({
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
       <input type="hidden" name="photo" value={url} />
       <div>
-        <div className="squircle-2xl relative aspect-video overflow-hidden border border-line bg-bg-soft">
+        <div className="squircle-2xl relative aspect-[4/5] w-full max-w-[19.25rem] overflow-hidden border border-line bg-bg-soft">
           {apercu ? (
             <>
-              <Image src={apercu} alt="Photo du cabinet" fill sizes="50vw" className="object-cover" unoptimized={apercu.startsWith('blob:')} />
+              <Image src={apercu} alt="Photo de profil" fill sizes="50vw" className="object-cover" unoptimized={apercu.startsWith('blob:')} />
               <span className="squircle-full absolute bottom-3 left-3 inline-flex items-center gap-1.5 bg-black/60 px-3 py-1 text-xs text-white">
-                <Crop className="size-3.5" aria-hidden /> Cadrage 16:9 au centre
+                <Crop className="size-3.5" aria-hidden /> Cadrage portrait au centre
               </span>
             </>
           ) : (
@@ -90,12 +91,12 @@ export function SaisiePhoto({
               <span>
                 <ImagePlus className="mx-auto size-7" aria-hidden />
                 <span className="mt-2 block font-medium">Choisir une photo</span>
-                <span className="text-xs">JPG, PNG ou HEIC, au format paysage</span>
+                <span className="text-xs">JPG, PNG ou HEIC, au format portrait</span>
               </span>
             </button>
           )}
         </div>
-        <input ref={entree} type="file" accept="image/*" className="sr-only" onChange={(e) => choisir(e.target.files?.[0])} aria-label="Photo du cabinet" />
+        <input ref={entree} type="file" accept="image/*" className="sr-only" onChange={(e) => choisir(e.target.files?.[0])} aria-label="Photo de profil" />
         <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
           <button type="button" onClick={() => entree.current?.click()} className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line px-4 font-medium text-fg hover:border-line-strong">
             <Upload className="size-4" aria-hidden /> {apercu ? 'Remplacer' : 'Choisir'}
@@ -107,7 +108,7 @@ export function SaisiePhoto({
                 setUrl('')
                 setApercu(null)
               }}
-              className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line px-4 text-fg-2 hover:text-fg"
+              className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-destructive/30 px-4 text-destructive hover:border-destructive/50 hover:bg-destructive/10"
             >
               <Trash2 className="size-4" aria-hidden /> Retirer
             </button>
@@ -119,7 +120,7 @@ export function SaisiePhoto({
       <div className="space-y-4 text-sm">
         <p className="font-semibold text-fg">Ce qui fonctionne</p>
         <ul className="space-y-2 text-fg-2">
-          {['L’entrée du cabinet ou la salle de soins', 'De la lumière naturelle', 'Aucun patient reconnaissable', 'Pas de texte ni de logo ajouté'].map((c) => (
+          {['Vous, de face, le visage dégagé', 'De la lumière naturelle', 'Un fond sobre ou votre cabinet', 'Pas de texte ni de logo ajouté'].map((c) => (
             <li key={c} className="flex gap-2">
               <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-teal" aria-hidden /> {c}
             </li>

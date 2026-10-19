@@ -153,7 +153,7 @@ export async function publierFiche(donnees: FormData): Promise<never> {
 export async function enregistrerPresentation(donnees: FormData): Promise<never> {
   const texte = String(donnees.get('presentation') ?? '').trim()
   if (texte.length > PRESENTATION_MAX) return erreur(donnees, `${PRESENTATION_MAX} caractères au plus.`)
-  return ecrire(donnees, () => ({ presentation: texte || null, presentationConfirmeeLe: new Date() }), '/espace-pro/missions/')
+  return ecrire(donnees, () => ({ presentation: texte || null, presentationConfirmeeLe: new Date() }), '/espace-pro/progression/')
 }
 
 export async function enregistrerSoins(donnees: FormData): Promise<never> {
@@ -162,14 +162,14 @@ export async function enregistrerSoins(donnees: FormData): Promise<never> {
   const permis = new Set(orientationsDe(profession).map((o) => o.code))
   const orientations = donnees.getAll('orientation').map(String).filter((c) => permis.has(c))
   if (!slug) return erreur(donnees, 'Fiche introuvable.')
-  return ecrire(donnees, () => ({ orientations }), '/espace-pro/missions/')
+  return ecrire(donnees, () => ({ orientations }), '/espace-pro/progression/')
 }
 
 export async function enregistrerLiens(donnees: FormData): Promise<never> {
   const site = String(donnees.get('site') ?? '').trim()
   const rdv = String(donnees.get('rdv') ?? '').trim()
   if ((site && !lienValide(site)) || (rdv && !lienValide(rdv))) return erreur(donnees, 'Une adresse ne ressemble pas à un lien web : elle doit commencer par https://')
-  return ecrire(donnees, () => ({ siteWeb: site || null, rdvEnLigne: rdv || null, liensEchecs: {}, liensTestesLe: null }), '/espace-pro/missions/')
+  return ecrire(donnees, () => ({ siteWeb: site || null, rdvEnLigne: rdv || null, liensEchecs: {}, liensTestesLe: null }), '/espace-pro/progression/')
 }
 
 /** MIS-1 : la photo, déjà téléversée en stockage public ; ici, son adresse. Vide : retirer. */
@@ -178,7 +178,7 @@ export async function enregistrerPhoto(donnees: FormData): Promise<never> {
   const droits = donnees.get('droits') === 'on'
   if (url && !droits) return erreur(donnees, 'Confirmez que vous détenez les droits de cette photo.')
   if (url && !/^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/)/.test(url)) return erreur(donnees, 'Photo non reconnue.')
-  return ecrire(donnees, () => ({ photoUrl: url || null, photoConfirmeeLe: url ? new Date() : null }), '/espace-pro/missions/')
+  return ecrire(donnees, () => ({ photoUrl: url || null, photoConfirmeeLe: url ? new Date() : null }), '/espace-pro/progression/')
 }
 
 /* ------------------------------------------------------------------ */

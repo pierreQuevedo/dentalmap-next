@@ -5,7 +5,7 @@ import { etatFraicheur } from '@/components/espace/tuiles'
 import { reconfirmer, retablirRappels } from '@/lib/espace-pro/actions-fiche'
 import { chargerTableau } from '../_commun'
 
-export const metadata: Metadata = { title: 'Fraîcheur', robots: { index: false, follow: false } }
+export const metadata: Metadata = { title: 'Mises à jour', robots: { index: false, follow: false } }
 export const instant = false
 
 const date = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' })
@@ -14,7 +14,7 @@ const date = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: 'nume
 export default async function Page(props: { searchParams: Promise<{ fiche?: string }> }) {
   const { espace, coque, q } = await chargerTableau('fraicheur', (await props.searchParams).fiche)
   return (
-    <CoqueEspace c={coque} actif="fraicheur" titre="Fraîcheur" sousTitre="Une information ancienne trompe le patient : chaque bloc a sa date et son rappel">
+    <CoqueEspace c={coque} actif="fraicheur" titre="Mises à jour" sousTitre="Une information ancienne trompe le patient : chaque bloc a sa date et son rappel">
       {espace.fraicheur.length === 0 ? (
         <p className="text-sm text-fg-2">Aucun bloc renseigné pour l’instant : la fraîcheur se suit dès qu’une information est sur la fiche.</p>
       ) : (

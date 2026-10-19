@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { pgTable, text, boolean, integer, real, timestamp, jsonb, uuid, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, text, boolean, integer, real, timestamp, jsonb, uuid, index, uniqueIndex, date, primaryKey } from 'drizzle-orm/pg-core'
 import { point4326 } from './columns'
 import { user } from './auth-schema'
 
@@ -398,6 +398,15 @@ export const fichesCompletees = pgTable('fiches_completees', {
   rappelFraicheurLe: timestamp('rappel_fraicheur_le', { withTimezone: true }),
   rappelsCoupesLe: timestamp('rappels_coupes_le', { withTimezone: true }),
   liensTestesLe: timestamp('liens_testes_le', { withTimezone: true }),
+  /*
+   * Lien de la fiche Google (`/p/<slug>/g/`) : premier et dernier clic venus
+   * de Google, leur nombre, et la dernière relance quand le lien n'en reçoit
+   * plus (30 jours sans clic : vérification expirée).
+   */
+  lienGoogleLe: timestamp('lien_google_le', { withTimezone: true }),
+  lienGoogleDernierLe: timestamp('lien_google_dernier_le', { withTimezone: true }),
+  lienGoogleClics: integer('lien_google_clics').notNull().default(0),
+  lienGoogleRelanceLe: timestamp('lien_google_relance_le', { withTimezone: true }),
   liensEchecs: jsonb('liens_echecs').$type<{ site?: number; rdv?: number }>().notNull().default({}),
   /** Laboratoire intégré à un cabinet : la fiche du praticien liée (LK1). Les deux fiches restent distinctes. */
   praticienLieId: text('praticien_lie_id').references(() => praticiens.id, { onDelete: 'set null' }),
@@ -509,6 +518,52 @@ export const invitationsFiche = pgTable('invitations_fiche', {
 }, (t) => [
   index('invitations_praticien').on(t.praticienId),
   uniqueIndex('invitations_jeton').on(t.jetonHash),
+])
+
+/**
+ * Les visites arrivées par les liens de partage d'une fiche (`/p/<slug>/…`),
+ * comptées par source et par jour. Un compteur, rien du visiteur : ni
+ * adresse IP, ni cookie, ni appareil. Les robots et aperçus de liens ne
+ * comptent pas.
+ */
+export const visitesPartage = pgTable('visites_partage', {
+  praticienId: text('praticien_id').notNull().references(() => praticiens.id, { onDelete: 'cascade' }),
+  /** Code de `SOURCES` (`src/lib/espace-pro/sources.ts`). */
+  source: text('source').notNull(),
+  jour: date('jour').notNull(),
+  nombre: integer('nombre').notNull().default(0),
+}, (t) => [primaryKey({ columns: [t.praticienId, t.source, t.jour] })])
+
+/**
+ * Le parrainage : un praticien vérifié invite un confrère, par email, à
+ * revendiquer sa fiche.
+ *
+ * Une adresse n'est invitée qu'une fois, tous parrains confondus : le premier
+ * garde le parrainage. Il réussit quand le filleul obtient une revendication
+ * acceptée, après l'invitation, sur une autre fiche que celle du parrain ; les
+ * deux fiches gagnent alors un bonus de mise en avant temporaire, calculé à
+ * la lecture (`src/lib/espace-pro/parrainage.ts`), jamais stocké.
+ */
+export const parrainages = pgTable('parrainages', {
+  id: text('id').primaryKey(),
+  /** Code aléatoire du lien d'invitation : il rattache le filleul et permet la désinscription. */
+  code: text('code').notNull().unique(),
+  parrainId: uuid('parrain_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  parrainPraticienId: text('parrain_praticien_id').notNull().references(() => praticiens.id, { onDelete: 'cascade' }),
+  /** En minuscules. */
+  email: text('email').notNull().unique(),
+  /** Le compte qui a ouvert le lien ; à défaut, celui qui porte l'adresse invitée. */
+  filleulUserId: uuid('filleul_user_id').references(() => user.id, { onDelete: 'set null' }),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  ouverteLe: timestamp('ouverte_le', { withTimezone: true }),
+  relanceLe: timestamp('relance_le', { withTimezone: true }),
+  /** L'adresse ne veut plus rien recevoir : ni relance, ni nouvelle invitation. */
+  desinscritLe: timestamp('desinscrit_le', { withTimezone: true }),
+  /** Les deux côtés ont été prévenus de la réussite. */
+  feliciteLe: timestamp('felicite_le', { withTimezone: true }),
+}, (t) => [
+  index('parrainages_parrain').on(t.parrainId, t.creeLe),
+  index('parrainages_filleul').on(t.filleulUserId),
 ])
 
 /* ------------------------------------------------------------------ */

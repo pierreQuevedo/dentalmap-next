@@ -47,7 +47,7 @@ export function ApercuPatient({
           ) : (
             <span className="flex flex-col items-center gap-1.5">
               <ImageIcon className="size-5" aria-hidden />
-              Photo du cabinet · à compléter
+              Photo de profil · à compléter
             </span>
           )}
         </div>
