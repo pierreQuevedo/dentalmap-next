@@ -177,7 +177,7 @@ export async function enregistrerPhoto(donnees: FormData): Promise<never> {
   const url = String(donnees.get('photo') ?? '').trim()
   const droits = donnees.get('droits') === 'on'
   if (url && !droits) return erreur(donnees, 'Confirmez que vous détenez les droits de cette photo.')
-  if (url && !/^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/)/.test(url)) return erreur(donnees, 'Photo non reconnue.')
+  if (url && !/^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/|\/photos\/[0-9a-f-]{36}\.jpg$)/.test(url)) return erreur(donnees, 'Photo non reconnue.')
   return ecrire(donnees, () => ({ photoUrl: url || null, photoConfirmeeLe: url ? new Date() : null }), '/espace-pro/progression/')
 }
 
@@ -291,7 +291,7 @@ export async function enregistrerRealisations(donnees: FormData): Promise<never>
     return erreur(donnees, 'Photos illisibles.')
   }
   photos = photos
-    .filter((p) => typeof p?.url === 'string' && /^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/)/.test(p.url))
+    .filter((p) => typeof p?.url === 'string' && /^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/|\/photos\/[0-9a-f-]{36}\.jpg$)/.test(p.url))
     .slice(0, REALISATIONS_MAX)
     .map((p) => ({ url: p.url, legende: String(p.legende ?? '').trim().slice(0, 120) }))
   if (photos.length && donnees.get('droits') !== 'on') return erreur(donnees, 'Confirmez que le laboratoire détient les droits de ces photos.')

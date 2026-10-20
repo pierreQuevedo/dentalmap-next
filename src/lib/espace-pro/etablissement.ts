@@ -178,7 +178,7 @@ export const Photo = z.object({
   url: z
     .string()
     .max(500)
-    .regex(/^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/)/),
+    .regex(/^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/|\/photos\/[0-9a-f-]{36}\.jpg$)/),
   legende: texte(120).default(''),
 })
 
