@@ -298,7 +298,7 @@ describe('alerte emploi et candidature', () => {
     expect(CriteresAlerte.safeParse(lireCriteres(f)).success).toBe(false)
   })
 
-  it('Postuler mène à la connexion, avec retour sur l’offre et le tiroir ouvert', () => {
-    expect(cheminPostuler('mon-offre')).toBe('/connexion/?retour=%2Femploi%2Foffre%2Fmon-offre%2F%3Fpostuler%3D1')
+  it('Postuler ouvre le tiroir sur la page de l’offre, qui demande la connexion si besoin', () => {
+    expect(cheminPostuler('mon-offre')).toBe('/emploi/offre/mon-offre/?postuler=1')
   })
 })
