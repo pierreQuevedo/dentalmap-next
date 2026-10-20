@@ -77,7 +77,7 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (u) => {
-          await envoyerBienvenue(u.email, u.name)
+          await envoyerBienvenue(u.email, u.name, (u as { role?: string | null }).role)
         },
       },
     },

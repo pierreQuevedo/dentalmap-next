@@ -51,8 +51,8 @@ type Point = { lon: number | null; lat: number | null }
 
 export type EncartCarte = { icone: IconeEncart; titre: string; texte: string; ton?: 'teal' | 'attention' | 'erreur'; badge?: string }
 
-/** Toute la France métropolitaine, quand aucune fiche n'est encore désignée. */
-const FRANCE = { centre: [2.45, 46.6] as [number, number], zoom: 4.7 }
+/** Toute la France métropolitaine, quand aucune fiche n'est encore désignée : son emprise, cadrée quelle que soit la forme du volet. */
+const FRANCE = { centre: [2.45, 46.6] as [number, number], zoom: 4.7, emprise: [[-5.2, 41.3], [9.6, 51.1]] as [[number, number], [number, number]] }
 
 export function VoletCarte({
   praticiens = [],
@@ -263,6 +263,7 @@ function Plan({
       fadeDuration: 0,
     })
     carte.current = map
+    if (!principal) map.fitBounds(FRANCE.emprise, { padding: 24, duration: 0 })
     // Le cadre change de taille sans que la fenêtre bouge (volet redimensionné, barre d'outils) : le plan suit.
     const suivi = new ResizeObserver(() => map.resize())
     suivi.observe(conteneur.current)

@@ -80,6 +80,9 @@ function couleur(id, propriete, p) {
 
 const positron = await (await fetch(SOURCE)).json()
 
+/** Le libellé des lieux : le nom français, sinon le nom local. */
+const NOM_FR = ['coalesce', ['get', 'name:fr'], ['get', 'name']]
+
 for (const [nom, p] of Object.entries(PALETTES)) {
   const style = structuredClone(positron)
   style.name = `DentalMap ${nom}`
@@ -90,6 +93,8 @@ for (const [nom, p] of Object.entries(PALETTES)) {
   for (const l of style.layers) {
     l.paint = l.paint ?? {}
     if (l.type === 'symbol') {
+      // Les noms en français quand la tuile les porte, sinon le nom local : jamais l'anglais.
+      if (l.layout?.['text-field'] && JSON.stringify(l.layout['text-field']).includes('name_en')) l.layout['text-field'] = NOM_FR
       const eau = l.id.startsWith('water') || l.id.startsWith('waterway')
       const route = l.id.startsWith('highway-name')
       l.paint['text-color'] = eau ? p.texteEau : route ? p.texteSecondaire : p.texte

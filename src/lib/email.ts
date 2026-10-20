@@ -49,15 +49,19 @@ export async function envoyerCode(to: string, code: string, type: keyof typeof O
 }
 
 /** Après la création du compte, quel que soit le rôle choisi ensuite. */
-export async function envoyerBienvenue(to: string, nom?: string | null) {
+/** Le mot d'accueil, selon le profil choisi à l'inscription : une école n'a pas de fiche de soignant à retrouver. */
+export async function envoyerBienvenue(to: string, nom?: string | null, role?: string | null) {
+  const ecole = role === 'organisme'
   await envoyer(to, 'Bienvenue sur DentalMap', {
     titre: 'Bienvenue sur DentalMap',
     salutation: `Bonjour${nom ? ` ${nom}` : ''},`,
     blocs: [
       { type: 'texte', texte: 'Votre compte DentalMap est ouvert. Vous pouvez y revenir à tout moment avec votre adresse et votre mot de passe.' },
       { type: 'lien', libelle: 'Se connecter à DentalMap', url: `${SITE}/connexion/` },
-      { type: 'texte', texte: 'Si vous êtes chirurgien-dentiste ou prothésiste, votre espace professionnel vous attend pour retrouver votre fiche et la compléter.' },
-      ESPACE,
+      ecole
+        ? { type: 'texte', texte: 'Votre espace établissement vous attend pour retrouver votre école ou votre faculté, compléter ses formations et la publier.' }
+        : { type: 'texte', texte: 'Si vous êtes chirurgien-dentiste ou prothésiste, votre espace professionnel vous attend pour retrouver votre fiche et la compléter.' },
+      ecole ? { type: 'bouton', libelle: 'Ouvrir mon espace établissement', url: `${SITE}/espace-pro/organisme/` } : ESPACE,
     ],
     raison: 'Vous recevez cet email parce qu’un compte DentalMap vient d’être créé avec cette adresse.',
   })
