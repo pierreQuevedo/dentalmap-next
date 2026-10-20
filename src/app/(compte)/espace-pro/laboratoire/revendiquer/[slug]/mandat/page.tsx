@@ -31,13 +31,14 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
       <p className="mt-2 text-sm text-fg-2">Joignez l’extrait Kbis et un mandat signé. Le gérant est prévenu par email.</p>
       <div className="mt-6">
         <DepotJustificatif
+          pdfSeul
           action={deposerJustificatif}
           champsCaches={{ fiche: fiche.slug, objet: 'revendication', role: 'mandate', lieux: lieuxDe(sp.lieux).join(',') }}
           dossier={`justificatifs/${fiche.id}`}
           direct={televersementDirect()}
           erreurInitiale={sp.erreur}
           emplacements={[
-            { nom: 'document', titre: 'Extrait Kbis de moins de 3 mois', detail: 'PDF, JPG ou PNG, 10 Mo au plus' },
+            { nom: 'document', titre: 'Extrait Kbis de moins de 3 mois', detail: 'PDF, 10 Mo au plus' },
             { nom: 'mandat', titre: 'Mandat signé par le gérant', detail: 'PDF, 10 Mo au plus · modèle téléchargeable ci-dessous' },
           ]}
           libelle="Envoyer Kbis et mandat"

@@ -51,28 +51,36 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
           adresse={source.adresse ?? source.ville}
           uai={null}
           ligne={`${n} formation${n > 1 ? 's' : ''} active${n > 1 ? 's' : ''}`}
-          verifie={enLigne}
+          verifie={enLigne ? gestion.methode : null}
         />
       </div>
       {enLigne ? (
-        <Link href={chemin(source.lien)} className={`${principal} mt-6`}>
-          <ArrowUpRight className="size-4" aria-hidden />
-          Voir la fiche publique
-        </Link>
+        <>
+          <Link href={chemin(source.lien)} className={`${principal} mt-6`}>
+            <ArrowUpRight className="size-4" aria-hidden />
+            Voir la fiche publique
+          </Link>
+          {/* La suite logique : photos, portes ouvertes, présentation. */}
+          <Link href={chemin(espace)} className={`${secondaire} mt-3`}>
+            <LayoutGrid className="size-4" aria-hidden />
+            Compléter ma page depuis mon espace
+          </Link>
+          <Link href={chemin(modifier)} className={`${discret} mt-1`}>
+            <Pencil className="size-4" aria-hidden />
+            Modifier les formations
+          </Link>
+        </>
       ) : (
-        <Link href={chemin(espace)} className={`${principal} mt-6`}>
-          <LayoutGrid className="size-4" aria-hidden />
-          Aller à mon espace
-        </Link>
-      )}
-      <Link href={chemin(modifier)} className={`${secondaire} mt-3`}>
-        <Pencil className="size-4" aria-hidden />
-        Modifier les formations
-      </Link>
-      {enLigne && (
-        <Link href={chemin(espace)} className={`${discret} mt-1`}>
-          Compléter ma page depuis mon espace
-        </Link>
+        <>
+          <Link href={chemin(espace)} className={`${principal} mt-6`}>
+            <LayoutGrid className="size-4" aria-hidden />
+            Aller à mon espace
+          </Link>
+          <Link href={chemin(modifier)} className={`${secondaire} mt-3`}>
+            <Pencil className="size-4" aria-hidden />
+            Modifier les formations
+          </Link>
+        </>
       )}
     </CoquilleOrganisme>
   )

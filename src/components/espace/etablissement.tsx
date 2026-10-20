@@ -79,7 +79,8 @@ export function ResumeEtablissement({
   uai: string | null
   /** « 2 formations actives », sous l'adresse. */
   ligne?: string
-  verifie?: boolean
+  /** Comment la gestion a été vérifiée : l'adresse sur le domaine, ou l'attestation examinée par l'équipe. Absent : pas encore. */
+  verifie?: 'domaine' | 'attestation' | null
   children?: React.ReactNode
 }) {
   return (
@@ -101,7 +102,7 @@ export function ResumeEtablissement({
         {verifie && (
           <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-teal/15 px-2 py-0.5 text-[10px] font-medium text-teal">
             <Check className="size-3" aria-hidden />
-            Vérifié auprès des registres officiels
+            {verifie === 'attestation' ? 'Vérifié par l’équipe DentalMap' : 'Vérifié par l’adresse de l’établissement'}
           </span>
         )}
       </div>

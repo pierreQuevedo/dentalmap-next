@@ -84,7 +84,8 @@ export async function deposerJustificatif(donnees: FormData): Promise<never> {
     const tailleFichier = Number(donnees.get(`taille_${nom}`) ?? 0)
     if (televerse) {
       if (!televerse.startsWith(`justificatifs/${fiche.id}/`)) redirect(avecErreur('Le document n’a pas pu être rattaché à cette fiche.'))
-      const controle = controlerJustificatif({ type: typeDepuisNom(televerse), size: tailleFichier || 1, name: nomFichier })
+      // Kbis et mandat en PDF seulement, comme le justificatif d'un soignant.
+      const controle = controlerJustificatif({ type: typeDepuisNom(televerse), size: tailleFichier || 1, name: nomFichier }, { pdfSeul: true })
       if (!controle.ok) redirect(avecErreur(controle.erreur))
       return { rangement: `blob:${televerse}`, nom: nomFichier, taille: tailleFichier }
     }
@@ -93,7 +94,7 @@ export async function deposerJustificatif(donnees: FormData): Promise<never> {
       if (requis) redirect(avecErreur('Choisissez un fichier.'))
       return null
     }
-    const controle = controlerJustificatif(fichier)
+    const controle = controlerJustificatif(fichier, { pdfSeul: true })
     if (!controle.ok) redirect(avecErreur(controle.erreur))
     return { rangement: await rangerJustificatif(fichier, fiche.id), nom: fichier.name, taille: fichier.size }
   }
@@ -331,11 +332,13 @@ export async function demanderAjoutLabo(donnees: FormData): Promise<never> {
   let nomFichier = String(donnees.get('nom_document') ?? 'kbis')
   if (televerse) {
     if (!televerse.startsWith(`justificatifs/${dossier}/`)) redirect(avecErreur('Le Kbis n’a pas pu être rattaché à la demande.'))
+    const controle = controlerJustificatif({ type: typeDepuisNom(televerse), size: Number(donnees.get('taille_document') ?? 0) || 1, name: nomFichier }, { pdfSeul: true })
+    if (!controle.ok) redirect(avecErreur(controle.erreur))
     rangement = `blob:${televerse}`
   } else {
     const f = donnees.get('document')
     if (!(f instanceof File) || !f.size) redirect(avecErreur('Joignez un extrait Kbis de moins de trois mois.'))
-    const controle = controlerJustificatif(f)
+    const controle = controlerJustificatif(f, { pdfSeul: true })
     if (!controle.ok) redirect(avecErreur(controle.erreur))
     rangement = await rangerJustificatif(f, dossier)
     nomFichier = f.name

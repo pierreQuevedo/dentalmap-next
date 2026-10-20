@@ -40,12 +40,13 @@ export default async function Page(props: { searchParams: Promise<{ siret?: stri
           <p className="mt-2 text-sm text-fg-2">Décrivez-le : nous vérifions l’activité dans Sirene avant d’ajouter la fiche.</p>
           <div className="mt-6">
             <DepotJustificatif
+              pdfSeul
               action={demanderAjoutLabo}
               champsCaches={{}}
               dossier={`justificatifs/ajout-${compte.id}`}
               direct={televersementDirect()}
               erreurInitiale={sp.erreur}
-              emplacements={[{ nom: 'document', titre: 'Extrait Kbis de moins de 3 mois', detail: 'PDF, JPG ou PNG, 10 Mo au plus' }]}
+              emplacements={[{ nom: 'document', titre: 'Extrait Kbis de moins de 3 mois', detail: 'PDF, 10 Mo au plus' }]}
               libelle="Envoyer la demande"
               avant={
                 <div className="mb-4 space-y-4">

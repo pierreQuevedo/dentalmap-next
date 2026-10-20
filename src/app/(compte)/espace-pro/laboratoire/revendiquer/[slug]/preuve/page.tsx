@@ -37,12 +37,13 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
       </div>
       <div className="mt-4">
         <DepotJustificatif
+          pdfSeul
           action={deposerJustificatif}
           champsCaches={{ fiche: fiche.slug, objet: 'revendication', role: 'gerant', lieux: lieuxDe(sp.lieux).join(',') }}
           dossier={`justificatifs/${fiche.id}`}
           direct={televersementDirect()}
           erreurInitiale={sp.erreur}
-          emplacements={[{ nom: 'document', titre: 'Glissez votre extrait Kbis', detail: 'PDF, JPG ou PNG, 10 Mo au plus', document: 'Extrait Kbis' }]}
+          emplacements={[{ nom: 'document', titre: 'Glissez votre extrait Kbis', detail: 'PDF, 10 Mo au plus', document: 'Extrait Kbis' }]}
           libelle="Envoyer l’extrait Kbis"
           apres={<Encart className="mt-3">L’équipe vérifie la date (moins de trois mois), le SIREN et le nom du gérant. Le document n’est vu que par elle.</Encart>}
         />
