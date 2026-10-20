@@ -26,7 +26,7 @@ export const instant = false
 export default async function Page(props: { searchParams: Promise<{ fiche?: string }> }) {
   const { espace, coque, points, q } = await chargerTableau('progression', (await props.searchParams).fiche)
   const { fiche, completee } = espace
-  const p = progressionDe(points.total)
+  const p = progressionDe(points.total, points.verifiee)
   const historique = (await historiqueDe(espace)).map((h) => ({ ...h, i: h.source === 'identite' ? ShieldCheck : h.source === 'publication' ? Trophy : ICONE_GAIN[h.source] }))
 
   const distinctions = [
@@ -62,7 +62,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 <BarreProgression part={p.part} epaisse claire />
               </div>
               <p className="mt-2 text-sm text-white/85">
-                {p.suivant ? `Plus que ${p.reste} points. À la clé : ${p.suivant.gains[0].charAt(0).toLowerCase()}${p.suivant.gains[0].slice(1)}.` : 'Vous avez tout débloqué : tenez vos paliers à jour pour garder leurs gains.'}
+                {!p.verifiee ? 'Votre fiche sera publiée, et le premier palier atteint, dès que la vérification de votre identité aboutit. Préparez-la en attendant : vos points sont déjà comptés.' : p.suivant ? `Plus que ${p.reste} points. À la clé : ${p.suivant.gains[0].charAt(0).toLowerCase()}${p.suivant.gains[0].slice(1)}.` : 'Vous avez tout débloqué : tenez vos paliers à jour pour garder leurs gains.'}
               </p>
             </div>
           </div>
@@ -149,7 +149,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <Tuile className="mt-4">
         <TitreTuile i={Trophy}>Le chemin</TitreTuile>
         <div className="mt-5">
-          <CheminPaliers points={points.total} />
+          <CheminPaliers points={points.total} verifiee={points.verifiee} />
         </div>
         <p className="mt-4 text-xs text-fg-2">Vos points ordonnent les résultats de recherche ; Ambassadeur et Référence locale y ajoutent un bonus tant qu’ils sont tenus. Les points se recalculent en continu.</p>
       </Tuile>

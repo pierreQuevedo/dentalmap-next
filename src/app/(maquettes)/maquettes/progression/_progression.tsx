@@ -46,7 +46,7 @@ function simuler(total: number): Points {
     return v
   }
   const detail: Record<CleGain, number> = { fiche, google: prendre(20), a_jour: prendre(10), badge: prendre(15), partage: prendre(10), parrainage: prendre(75) }
-  return { total, detail }
+  return { total, detail, verifiee: true }
 }
 
 export function Progression() {

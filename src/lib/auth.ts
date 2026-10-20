@@ -29,7 +29,9 @@ const CHAMP_MOT_DE_PASSE: Record<string, string> = {
 }
 
 const brancheVercel = process.env.VERCEL_BRANCH_URL && `https://${process.env.VERCEL_BRANCH_URL}`
-const origines = [SITE_URL, process.env.BETTER_AUTH_URL, process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`, brancheVercel]
+// En développement, `test.localhost` : une seconde adresse locale, aux cookies séparés, pour tester un autre compte.
+const essaiLocal = process.env.NODE_ENV === 'development' && 'http://test.localhost:3000'
+const origines = [SITE_URL, process.env.BETTER_AUTH_URL, process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`, brancheVercel, essaiLocal]
   .filter((v): v is string => Boolean(v))
   .map((v) => v.replace(/\/$/, ''))
 

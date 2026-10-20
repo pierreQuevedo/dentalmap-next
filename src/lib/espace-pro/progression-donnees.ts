@@ -38,12 +38,14 @@ export async function pointsDeLEspace(espace: {
   force: { total: number }
   completee: { lienGoogleDernierLe: string | null; lienGoogleClics: number } | null
   fraicheur: { etat: string }[]
+  ctx: { identiteVerifiee: boolean }
 }): Promise<Points> {
   const d = (await diffusionDesFiches([espace.fiche.id])).get(espace.fiche.id)!
   return pointsDe({
     force: espace.force.total,
     google: etatLienGoogle(espace.completee).etat === 'actif',
     aJour: espace.fraicheur.every((f) => f.etat !== 'expire'),
+    verifiee: espace.ctx.identiteVerifiee,
     ...d,
   })
 }

@@ -69,7 +69,7 @@ export function lienDeGain(cle: CleGain, q: string): string {
  * menant droit à l'endroit où on les gagne.
  */
 export function CarteProgression({ points, distinctions, q }: { points: Points; distinctions: string; q: string }) {
-  const p = progressionDe(points.total)
+  const p = progressionDe(points.total, points.verifiee)
   const sources = BAREME.filter((b) => b.cle !== 'fiche' && b.cle !== 'a_jour')
   return (
     <div className="squircle-xl overflow-hidden bg-gradient-to-br from-[#134E4A] to-[#0B1F1D] text-white shadow-pop ring-1 ring-white/10">
@@ -77,8 +77,8 @@ export function CarteProgression({ points, distinctions, q }: { points: Points; 
         <div className="flex items-center gap-3">
           <span className={`grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold ${p.actuel ? 'bg-[#BFE3D6] text-[#0B1F1D]' : 'text-[#BFE3D6] ring-2 ring-[#BFE3D6]'}`}>{p.actuel?.niveau ?? 0}</span>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#BFE3D6]/80">Palier {p.actuel?.niveau ?? 0}</p>
-            <p className="line-clamp-2 text-sm font-semibold leading-tight">{p.actuel?.nom ?? 'En route'}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#BFE3D6]/80">{p.verifiee ? `Palier ${p.actuel?.niveau ?? 0}` : 'En vérification'}</p>
+            <p className="line-clamp-2 text-sm font-semibold leading-tight">{p.actuel?.nom ?? (p.verifiee ? 'En route' : 'Fiche en préparation')}</p>
           </div>
           <p className="text-right">
             <span className="block text-base font-bold leading-none">{points.total}</span>
@@ -88,7 +88,9 @@ export function CarteProgression({ points, distinctions, q }: { points: Points; 
         <div className="mt-3">
           <BarreProgression part={p.part} claire />
           <p className="mt-1.5 text-[11px] text-white/70">
-            {p.suivant ? (
+            {!p.verifiee ? (
+              'Publiée et au palier 1 dès la vérification'
+            ) : p.suivant ? (
               <>
                 Plus que <b className="text-white">{p.reste} pts</b> avant {p.suivant.nom}
               </>
@@ -123,7 +125,7 @@ export function CarteProgression({ points, distinctions, q }: { points: Points; 
 }
 
 /** Le retour d'un gain : la coche, les points qui montent, la barre qui avance. Se ferme seul après cinq secondes. */
-export function ToastGain({ de, a, titre, fermer, statique = false }: { de: number; a: number; titre: string; fermer?: () => void; statique?: boolean }) {
+export function ToastGain({ de, a, titre, fermer, statique = false, verifiee = true }: { de: number; a: number; titre: string; fermer?: () => void; statique?: boolean; verifiee?: boolean }) {
   const [affiche, setAffiche] = useState(statique ? a : de)
   // La fermeture passe par une référence : une fonction neuve à chaque rendu relancerait l'animation.
   const fermeture = useRef(fermer)
@@ -146,8 +148,8 @@ export function ToastGain({ de, a, titre, fermer, statique = false }: { de: numb
       clearTimeout(fin)
     }
   }, [de, a, statique])
-  const p = progressionDe(affiche)
-  const passe = (progressionDe(de).actuel?.niveau ?? 0) !== (progressionDe(a).actuel?.niveau ?? 0)
+  const p = progressionDe(affiche, verifiee)
+  const passe = (progressionDe(de, verifiee).actuel?.niveau ?? 0) !== (progressionDe(a, verifiee).actuel?.niveau ?? 0)
   return (
     <div
       role="status"
@@ -173,10 +175,8 @@ export function ToastGain({ de, a, titre, fermer, statique = false }: { de: numb
       </div>
       <div className="bg-bg-soft px-4 py-3">
         <div className="flex items-center justify-between gap-3 text-[11px] text-fg-2">
-          <span>
-            Palier {p.actuel?.niveau ?? 0} · {p.actuel?.nom ?? 'En route'}
-          </span>
-          <span>{p.suivant ? `${p.reste} pts avant ${p.suivant.nom}` : 'Sommet atteint'}</span>
+          <span>{p.verifiee ? `Palier ${p.actuel?.niveau ?? 0} · ${p.actuel?.nom ?? 'En route'}` : 'Fiche en préparation'}</span>
+          <span>{!p.verifiee ? 'Publiée dès la vérification' : p.suivant ? `${p.reste} pts avant ${p.suivant.nom}` : 'Sommet atteint'}</span>
         </div>
         <div className="mt-2">
           <BarreProgression part={p.part} epaisse />
@@ -343,43 +343,57 @@ type Memoire = { total: number; detail: Record<CleGain, number>; niveau: number 
 export function SuiviProgression({ slug, points, lon, lat, partager, distinctions, carte }: { slug: string; points: Points; lon: number | null; lat: number | null; partager: string; distinctions: string; carte?: CarteAMontrer }) {
   const [gain, setGain] = useState<{ de: number; a: number; titre: string } | null>(null)
   const [palier, setPalier] = useState<Palier | null>(null)
-  const niveau = progressionDe(points.total).actuel?.niveau ?? 0
+  const niveau = progressionDe(points.total, points.verifiee).actuel?.niveau ?? 0
+
+  // Ce qui reste à montrer, gardé pour l'onglet : un rendu recréé (rechargement, page en flux) ne perd pas la célébration.
+  const cleAMontrer = `dm-progression-a-montrer:${slug}`
+  const oublier = (quoi: 'gain' | 'palier') => {
+    try {
+      const reste = { ...JSON.parse(sessionStorage.getItem(cleAMontrer) ?? '{}'), [quoi]: undefined }
+      if (!reste.gain && !reste.palier) sessionStorage.removeItem(cleAMontrer)
+      else sessionStorage.setItem(cleAMontrer, JSON.stringify(reste))
+    } catch {}
+    if (quoi === 'gain') setGain(null)
+    else setPalier(null)
+  }
 
   useEffect(() => {
     const cle = `dm-progression:${slug}`
-    let avant: Memoire | null = null
-    try {
-      avant = JSON.parse(localStorage.getItem(cle) ?? 'null')
-      localStorage.setItem(cle, JSON.stringify({ total: points.total, detail: points.detail, niveau } satisfies Memoire))
-    } catch {
-      return
-    }
-    if (!avant || points.total <= avant.total) return
-    const precedent = avant
-    const plus = (Object.keys(points.detail) as CleGain[]).sort((x, y) => points.detail[y] - (precedent.detail?.[y] ?? 0) - (points.detail[x] - (precedent.detail?.[x] ?? 0)))[0]
-    const image = requestAnimationFrame(() => {
-      setGain({ de: precedent.total, a: points.total, titre: TITRE_GAIN[plus] })
-      if (niveau > (precedent.niveau ?? 0)) setPalier(PALIERS.find((p) => p.niveau === niveau) ?? null)
-    })
-    return () => cancelAnimationFrame(image)
-  }, [slug, points.total, points.detail, niveau])
+    const minuterie = setTimeout(() => {
+      try {
+        const avant: Memoire | null = JSON.parse(localStorage.getItem(cle) ?? 'null')
+        localStorage.setItem(cle, JSON.stringify({ total: points.total, detail: points.detail, niveau } satisfies Memoire))
+        if (avant && points.total > avant.total) {
+          const plus = (Object.keys(points.detail) as CleGain[]).sort((x, y) => points.detail[y] - (avant.detail?.[y] ?? 0) - (points.detail[x] - (avant.detail?.[x] ?? 0)))[0]
+          sessionStorage.setItem(
+            cleAMontrer,
+            JSON.stringify({ gain: { de: avant.total, a: points.total, titre: TITRE_GAIN[plus] }, palier: niveau > (avant.niveau ?? 0) ? niveau : undefined }),
+          )
+        }
+        const aMontrer: { gain?: { de: number; a: number; titre: string }; palier?: number } = JSON.parse(sessionStorage.getItem(cleAMontrer) ?? '{}')
+        if (aMontrer.gain) setGain(aMontrer.gain)
+        if (aMontrer.palier) setPalier(PALIERS.find((p) => p.niveau === aMontrer.palier) ?? null)
+      } catch {}
+    }, 0)
+    return () => clearTimeout(minuterie)
+  }, [slug, points.total, points.detail, niveau, cleAMontrer])
 
   return (
     <>
       {(gain || palier) && <StylesProgression />}
-      {gain && <ToastGain de={gain.de} a={gain.a} titre={gain.titre} fermer={() => setGain(null)} />}
-      {palier && <PassagePalier palier={palier} fermer={() => setPalier(null)} lon={lon} lat={lat} partager={partager} distinctions={distinctions} carte={carte} />}
+      {gain && <ToastGain de={gain.de} a={gain.a} titre={gain.titre} fermer={() => oublier('gain')} verifiee={points.verifiee} />}
+      {palier && <PassagePalier palier={palier} fermer={() => oublier('palier')} lon={lon} lat={lat} partager={partager} distinctions={distinctions} carte={carte} />}
     </>
   )
 }
 
 /** Le chemin des paliers : atteints, le prochain, les verrouillés, et ce que chacun débloque. */
-export function CheminPaliers({ points }: { points: number }) {
-  const prochain = progressionDe(points).suivant?.niveau
+export function CheminPaliers({ points, verifiee = true }: { points: number; verifiee?: boolean }) {
+  const prochain = progressionDe(points, verifiee).suivant?.niveau
   return (
     <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {PALIERS.map((p) => {
-        const etat = points >= p.seuil ? 'atteint' : prochain === p.niveau ? 'encours' : 'verrouille'
+        const etat = verifiee && points >= p.seuil ? 'atteint' : prochain === p.niveau ? 'encours' : 'verrouille'
         return (
           <li key={p.niveau} className={`squircle-2xl relative flex flex-col border p-4 ${etat === 'atteint' ? 'border-[#0B8484]/40 bg-bg' : etat === 'encours' ? 'border-teal bg-bg shadow-pop' : 'border-dashed border-line bg-bg-soft'}`}>
             {etat === 'encours' && <span className="squircle-full absolute -top-2.5 left-4 bg-teal px-2 py-0.5 text-[10px] font-semibold text-white">Prochain · {p.seuil - points} pts</span>}

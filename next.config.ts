@@ -2,6 +2,8 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  // En développement, une seconde adresse locale (cookies séparés) pour tester un autre compte à côté du sien.
+  allowedDevOrigins: ['test.localhost'],
   cacheLife: {
     editorial: { stale: 3600, revalidate: 3600, expire: 86400 },
     praticien: { stale: 86400, revalidate: 86400, expire: 604800 },

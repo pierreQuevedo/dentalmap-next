@@ -39,7 +39,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const sp = await props.searchParams
   const { espace, coque, compte, q, points } = await chargerTableau('partager', sp.fiche)
   // Les visuels sont le gain du palier 2 ; à partir du 3, ils portent le nom du palier.
-  const progression = progressionDe(points.total)
+  const progression = progressionDe(points.total, points.verifiee)
   const palierVisuels = PALIERS[1]
   const visuelsOuverts = ouvertVisuels(espace.ctx.identiteVerifiee, points.total)
   const parrainage = await getParrainage(compte.id, espace.fiche.id)

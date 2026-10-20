@@ -38,7 +38,7 @@ export async function chargerTableau(page: CleNav, slug?: string, sousPage?: str
   const plusieursFiches = espace.autres.length > 0
   const points = await pointsDeLEspace(espace)
   // L'aperçu de la carte, partout dans l'espace, porte le palier tenu comme dans les résultats publics.
-  fiche.resume.palier = progressionDe(points.total).actuel?.niveau ?? null
+  fiche.resume.palier = progressionDe(points.total, points.verifiee).actuel?.niveau ?? null
   const coque: InfosCoque = {
     mono: initiales,
     photo: completee?.photoUrl ?? null,

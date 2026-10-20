@@ -23,7 +23,8 @@ export function actionsAFaire(espace: Espace, points: Points, q: string): { aFai
   const missions: Action[] = espace.missions
     .filter((m) => !m.faite)
     .map((m) => ({ cle: m.cle, source: 'fiche', titre: m.titre, detail: m.detail, points: m.gain, minutes: m.minutes, href: `${m.href}${q}` }))
-  const diffusion: Action[] = BAREME.filter((b) => b.cle !== 'fiche' && points.detail[b.cle] < b.max).map((b) => ({
+  // Faire connaître la fiche n'a de sens qu'une fois publiée : avant la vérification, la fiche d'abord.
+  const diffusion: Action[] = BAREME.filter((b) => points.verifiee && b.cle !== 'fiche' && points.detail[b.cle] < b.max).map((b) => ({
     cle: b.cle,
     source: b.cle,
     titre: b.libelle,

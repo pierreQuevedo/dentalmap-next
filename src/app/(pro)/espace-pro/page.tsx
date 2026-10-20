@@ -31,13 +31,13 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { espace, coque, compte, q, points } = await chargerTableau('vue', sp.fiche)
   const { fiche, completee, filtres, fraicheur } = espace
   const [chiffres, parrainage, stats, historique] = await Promise.all([getChiffresCles(), getParrainage(compte.id, fiche.id), getStatistiques(fiche.id, 30), historiqueDe(espace, 6)])
-  const p = progressionDe(points.total)
+  const p = progressionDe(points.total, points.verifiee)
   const { aFaire } = actionsAFaire(espace, points, q)
   const prochaine = aFaire[0]
   const enAttente = fiche.demande?.statut === 'en_attente'
   const publics = espace.labo ? 'cabinets' : 'patients'
 
-  const titre = sp.publiee ? `Votre fiche est en ligne, ${coque.nom}` : `Bon retour, ${coque.nom}`
+  const titre = enAttente ? `Votre fiche est prête, ${coque.nom}` : sp.publiee ? `Votre fiche est en ligne, ${coque.nom}` : `Bon retour, ${coque.nom}`
   const texte = enAttente
     ? 'Votre fiche est prête. Elle sera publiée dès que la vérification de votre identité aboutit ; vous pouvez la compléter en attendant.'
     : p.suivant
@@ -67,7 +67,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             </span>
             <h2 className="mt-4 max-w-xl text-3xl font-extrabold tracking-tight">{titre}</h2>
             <p className="mt-2 max-w-xl text-white/80">{texte}</p>
-            {p.suivant && (
+            {p.verifiee && p.suivant && (
               <div className="mt-5 max-w-md">
                 <BarreProgression part={p.part} epaisse claire />
                 <div className="mt-1.5 flex justify-between text-xs text-white/65">

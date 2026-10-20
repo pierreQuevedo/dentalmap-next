@@ -35,10 +35,16 @@ export const PALIERS: Palier[] = [
   { niveau: 5, nom: 'Référence locale', seuil: 220, gains: ['+10 points de mise en avant tant que le palier est tenu', 'Mise en avant dans les contenus DentalMap de votre ville'], bonus: 10 },
 ]
 
-export type Progression = { points: number; actuel: Palier | null; suivant: Palier | null; reste: number; part: number }
+export type Progression = { points: number; actuel: Palier | null; suivant: Palier | null; reste: number; part: number; /** Identité vérifiée : sans elle, aucun palier n'est tenu, la fiche n'étant pas publiée. */ verifiee: boolean }
 
-/** Où en est une fiche : le palier tenu, le suivant, et la part du chemin parcourue entre les deux. */
-export function progressionDe(points: number): Progression {
+/**
+ * Où en est une fiche : le palier tenu, le suivant, et la part du chemin
+ * parcourue entre les deux. Tant que l'identité n'est pas vérifiée, la fiche
+ * n'est pas publiée : aucun palier n'est tenu, le premier attend la
+ * vérification.
+ */
+export function progressionDe(points: number, verifiee = true): Progression {
+  if (!verifiee) return { points, actuel: null, suivant: PALIERS[0], reste: Math.max(0, PALIERS[0].seuil - points), part: Math.min(1, points / PALIERS[0].seuil), verifiee }
   const actuel = [...PALIERS].reverse().find((p) => points >= p.seuil) ?? null
   const suivant = PALIERS.find((p) => points < p.seuil) ?? null
   const depart = actuel?.seuil ?? 0
@@ -48,6 +54,7 @@ export function progressionDe(points: number): Progression {
     suivant,
     reste: suivant ? suivant.seuil - points : 0,
     part: suivant ? (points - depart) / (suivant.seuil - depart) : 1,
+    verifiee,
   }
 }
 
@@ -63,9 +70,11 @@ export type Activite = {
   parrainages: number
   /** Aucune information expirée. */
   aJour: boolean
+  /** Identité vérifiée ; absente, vraie. */
+  verifiee?: boolean
 }
 
-export type Points = { total: number; detail: Record<CleGain, number> }
+export type Points = { total: number; detail: Record<CleGain, number>; verifiee: boolean }
 
 export function pointsDe(a: Activite): Points {
   const detail: Record<CleGain, number> = {
@@ -76,7 +85,7 @@ export function pointsDe(a: Activite): Points {
     parrainage: Math.min(3, Math.max(0, a.parrainages)) * 25,
     a_jour: a.aJour ? 10 : 0,
   }
-  return { total: Object.values(detail).reduce((t, v) => t + v, 0), detail }
+  return { total: Object.values(detail).reduce((t, v) => t + v, 0), detail, verifiee: a.verifiee ?? true }
 }
 
 /** Le bonus de classement d'un total de points : celui du palier tenu. */
