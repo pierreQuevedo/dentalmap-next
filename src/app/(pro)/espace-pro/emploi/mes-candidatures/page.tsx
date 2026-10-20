@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CalendarClock, Check, ExternalLink, FileText, Phone, Send } from 'lucide-react'
 import { CoqueEspace } from '@/components/espace/coque'
-import { OngletsEmploi } from '@/components/emploi/espace-offres'
+import { OngletsEmploi, SousOngletsCandidat } from '@/components/emploi/espace-offres'
 import { ReponseEchange } from '@/components/emploi/reponse-echange'
 import { chemin } from '@/lib/navigation'
 import { STATUT_CANDIDAT, STATUT_RECRUTEUR, libelleCreneau } from '@/lib/emploi/candidature'
@@ -41,6 +41,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       sousTitre={candidatures.length === 0 ? 'Les offres auxquelles vous postulez, avec la réponse des recruteurs' : `${candidatures.length} candidature${candidatures.length > 1 ? 's' : ''} envoyée${candidatures.length > 1 ? 's' : ''}`}
     >
       <OngletsEmploi actif="mes" q={q} />
+      <SousOngletsCandidat actif="candidatures" q={q} />
       {!profil?.termine && (
         <div className="squircle-2xl mb-4 flex flex-wrap items-center justify-between gap-4 border border-teal/30 bg-teal/[0.06] p-5">
           <p className="text-sm text-fg">
@@ -51,15 +52,6 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             Compléter mon profil
           </Link>
         </div>
-      )}
-      {profil?.termine && (
-        <p className="mb-4 text-sm text-fg-2">
-          Votre profil candidat accompagne chaque candidature :{' '}
-          <Link href={chemin('/espace-candidat/profil/')} className="font-medium text-fg underline underline-offset-2">
-            le modifier
-          </Link>
-          .
-        </p>
       )}
       {sp.fait && MESSAGES[sp.fait] && (
         <p role="status" className="squircle-xl mb-4 flex items-center gap-2 bg-teal/10 px-4 py-3 text-sm text-teal">

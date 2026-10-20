@@ -131,7 +131,11 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           <ArrowRight className="size-4" aria-hidden />
         </Link>
       ) : (
-        <Link href={chemin('/espace-pro/')} className={`${principal} mt-6`}>
+        // La fiche nommée : un compte qui en gère plusieurs retomberait sinon sur la première.
+        <Link
+          href={chemin(retrait ? '/espace-pro/' : labo ? `/espace-pro/laboratoire/onboarding/?fiche=${encodeURIComponent(fiche.slug)}` : `/espace-pro/?fiche=${encodeURIComponent(fiche.slug)}`)}
+          className={`${principal} mt-6`}
+        >
           {retrait ? 'Retour à mon espace' : labo ? 'Préparer la fiche' : 'Préparer ma fiche'}
           <ArrowRight className="size-4" aria-hidden />
         </Link>

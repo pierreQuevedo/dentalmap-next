@@ -378,7 +378,7 @@ export function CoqueEspace({
           </Link>
         )}
         <div className="mt-3">
-          {c.enVerification && <EnVerification className="mb-6" />}
+          {c.enVerification && <EnVerification labo={c.labo} className="mb-6" />}
           {/* L'espace établissement a son propre retour, bloc par bloc. */}
           {!c.etablissement && (
             <Suspense fallback={null}>

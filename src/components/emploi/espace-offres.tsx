@@ -87,3 +87,26 @@ export function OngletsEmploi({ actif, q }: { actif: 'creer' | 'rechercher' | 'm
     </nav>
   )
 }
+
+/** Sous « Mes candidatures » : les candidatures envoyées, le profil candidat, sa visibilité. */
+export function SousOngletsCandidat({ actif, q }: { actif: 'candidatures' | 'profil' | 'visibilite'; q: string }) {
+  const liens = [
+    { cle: 'candidatures', libelle: 'Candidatures envoyées', href: `/espace-pro/emploi/mes-candidatures/${q}` },
+    { cle: 'profil', libelle: 'Mon profil candidat', href: `/espace-pro/emploi/profil-candidat/${q}` },
+    { cle: 'visibilite', libelle: 'Visibilité', href: `/espace-pro/emploi/visibilite/${q}` },
+  ] as const
+  return (
+    <nav aria-label="Mes candidatures" className="-mt-1 mb-4 flex flex-wrap gap-x-5 gap-y-1 border-b border-line">
+      {liens.map((l) => (
+        <Link
+          key={l.cle}
+          href={chemin(l.href)}
+          aria-current={actif === l.cle ? 'page' : undefined}
+          className={`-mb-px border-b-2 pb-2.5 text-sm font-medium ${actif === l.cle ? 'border-fg text-fg' : 'border-transparent text-fg-2 hover:text-fg'}`}
+        >
+          {l.libelle}
+        </Link>
+      ))}
+    </nav>
+  )
+}

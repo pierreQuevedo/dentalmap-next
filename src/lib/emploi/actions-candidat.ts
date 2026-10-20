@@ -27,7 +27,8 @@ import {
 
 /**
  * Le profil candidat : parcours de bienvenue (SE1 à SE5), page « Mon
- * profil » (CAND-PROFIL) et visibilité (CAND-VISI). Un compte connecté
+ * profil » (CAND-PROFIL) et visibilité (CAND-VISI), ces deux-là dans
+ * l'espace pro, sous « Mes candidatures ». Un compte connecté
  * suffit, quel qu'il soit. Aucun document de vérification n'est conservé ;
  * seul le CV, facultatif, l'est, en stockage privé.
  */
@@ -35,7 +36,8 @@ import {
 export type EtatProfil = { erreur?: string; champ?: string } | null
 
 const BIENVENUE = '/espace-candidat/bienvenue/'
-const PROFIL = '/espace-candidat/profil/'
+const PROFIL = '/espace-pro/emploi/profil-candidat/'
+const VISIBILITE = '/espace-pro/emploi/visibilite/'
 
 async function compteOuConnexion(retour: string) {
   const compte = await getCompte()
@@ -187,17 +189,17 @@ export async function enregistrerProfil(_: EtatProfil, donnees: FormData): Promi
 
 /** CAND-VISI : visible, anonymisé ou discret. */
 export async function enregistrerVisibilite(donnees: FormData): Promise<never> {
-  const compte = await compteOuConnexion('/espace-candidat/visibilite/')
+  const compte = await compteOuConnexion(VISIBILITE)
   const v = String(donnees.get('visibilite') ?? '')
   if (v === 'visible' || v === 'anonyme' || v === 'discret') {
     await db.execute(sql`UPDATE candidats SET visibilite = ${v}, maj_le = now() WHERE user_id = ${compte.id}::uuid`)
   }
-  redirect(chemin('/espace-candidat/visibilite/?fait=visibilite'))
+  redirect(chemin(`${VISIBILITE}?fait=visibilite`))
 }
 
 /** OUV-C-MASQUER : masquer une structure, ou la retirer de la liste. */
 export async function masquerStructure(donnees: FormData): Promise<never> {
-  const compte = await compteOuConnexion('/espace-candidat/visibilite/')
+  const compte = await compteOuConnexion(VISIBILITE)
   const slug = String(donnees.get('structure') ?? '')
   const retirer = donnees.get('geste') === 'retirer'
   if (/^[a-z0-9-]{3,200}$/.test(slug)) {
@@ -208,5 +210,5 @@ export async function masquerStructure(donnees: FormData): Promise<never> {
               WHERE user_id = ${compte.id}::uuid AND EXISTS (SELECT 1 FROM praticiens WHERE slug = ${slug})`,
     )
   }
-  redirect(chemin(`/espace-candidat/visibilite/?fait=${retirer ? 'retiree' : 'masquee'}`))
+  redirect(chemin(`${VISIBILITE}?fait=${retirer ? 'retiree' : 'masquee'}`))
 }
