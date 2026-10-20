@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { CalendarClock, Check, ExternalLink, Phone, Send } from 'lucide-react'
+import { CalendarClock, Check, ExternalLink, FileText, Phone, Send } from 'lucide-react'
 import { FilAriane } from '@/components/annuaire/primitives'
 import { ReponseEchange } from '@/components/emploi/reponse-echange'
 import { chemin } from '@/lib/navigation'
@@ -91,10 +91,19 @@ export default async function Page(props: { searchParams: Promise<{ fait?: strin
                   </div>
                 )}
 
-                {k.offre.enLigne && (
-                  <Link href={chemin(cheminOffre(k.offre.slug))} className="mt-4 inline-flex items-center gap-1 text-sm text-fg-2 hover:text-fg">
-                    <ExternalLink className="size-4" aria-hidden /> Revoir l’offre
-                  </Link>
+                {(k.offre.enLigne || k.cvNom) && (
+                  <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+                    {k.offre.enLigne && (
+                      <Link href={chemin(cheminOffre(k.offre.slug))} className="inline-flex items-center gap-1 text-sm text-fg-2 hover:text-fg">
+                        <ExternalLink className="size-4" aria-hidden /> Revoir l’offre
+                      </Link>
+                    )}
+                    {k.cvNom && (
+                      <a href={`/espace-pro/emploi/candidatures/${k.id}/cv/`} target="_blank" rel="noopener" className="inline-flex min-w-0 items-center gap-1 text-sm text-fg-2 hover:text-fg">
+                        <FileText className="size-4 shrink-0" aria-hidden /> <span className="truncate">Mon CV · {k.cvNom}</span>
+                      </a>
+                    )}
+                  </div>
                 )}
               </li>
             )
