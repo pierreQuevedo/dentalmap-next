@@ -42,7 +42,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
       <p className="mt-2 text-sm text-fg-2">
         {retrait
           ? 'Le retrait n’est appliqué qu’une fois votre identité vérifiée : personne d’autre ne peut retirer votre fiche.'
-          : 'Seul le titulaire de la fiche peut la gérer. Choisissez comment prouver votre identité : aucun document ne vous est demandé.'}
+          : 'Seul le titulaire de la fiche peut la gérer. Choisissez comment prouver votre identité.'}
       </p>
       <div className="mt-6">
         <ChoixVoies defaut={psc ? 'psc' : 'equipe'} voies={voiesIdentite(fiche, { psc, retrait })} />

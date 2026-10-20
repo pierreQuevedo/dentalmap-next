@@ -108,7 +108,7 @@ export const CATEGORIES: Categorie[] = [
         ordre: 1,
         question: 'Comment revendiquer ma fiche ?',
         reponse:
-          'Avec Pro Santé Connect (carte CPS ou e-CPS), en une minute. Sans carte, l’équipe vérifie votre identité avec vous. Bientôt, la carte d’identité par l’application France Identité. Aucun document ne vous est demandé.',
+          'Avec Pro Santé Connect (carte CPS ou e-CPS), en une minute. Sans carte, l’équipe vérifie votre identité avec vous. Il vous demande alors un justificatif en PDF, qu’il contrôle sous 48 heures ouvrées. Bientôt, la carte d’identité par l’application France Identité.',
         lien: { texte: 'Revendiquer ma fiche', href: '/espace-pro/revendiquer' },
       },
       {

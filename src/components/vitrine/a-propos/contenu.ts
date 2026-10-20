@@ -52,7 +52,7 @@ export const ETAPES: Etape[] = [
   },
   {
     titre: 'Une identité prouvée',
-    texte: 'Pour compléter sa fiche, le professionnel la revendique. Son identité est confirmée à la source, sans document à envoyer.',
+    texte: 'Pour compléter sa fiche, le professionnel la revendique. Son identité est confirmée par Pro Santé Connect, ou par l’équipe sur justificatif.',
     visuel: 'identite',
   },
   {
@@ -77,7 +77,7 @@ export const PROFILS: Profil[] = [
     cle: 'praticien',
     onglet: 'Praticien',
     titre: 'Chirurgien-dentiste ou spécialiste',
-    texte: 'Votre identité est confirmée à la source. Aucun document ne vous est demandé.',
+    texte: 'Votre identité est confirmée par Pro Santé Connect, ou par l’équipe sur justificatif PDF.',
     image: '/images/demo/pexels-6627471.jpg',
     methodes: [
       { nom: 'Pro Santé Connect', delai: 'Immédiat' },

@@ -68,7 +68,7 @@ export async function envoyerBienvenue(to: string, nom?: string | null) {
 /* ------------------------------------------------------------------ */
 
 /** Accusé de réception d'une demande examinée par l'équipe : revendication, ou retrait de la fiche. */
-export async function envoyerRevendicationRecue(to: string, fiche: string, objet: 'revendication' | 'retrait' = 'revendication') {
+export async function envoyerRevendicationRecue(to: string, fiche: string, objet: 'revendication' | 'retrait' = 'revendication', contestation = false) {
   const retrait = objet === 'retrait'
   await envoyer(to, 'Votre demande a bien été reçue', {
     titre: 'Votre demande a bien été reçue',
@@ -80,7 +80,12 @@ export async function envoyerRevendicationRecue(to: string, fiche: string, objet
         ]
       : [
           { type: 'texte', texte: `Nous avons bien reçu votre demande pour la fiche « ${fiche} ». Nous la vérifions sous 48 heures ouvrées et vous écrivons dès qu’elle est traitée.` },
-          { type: 'texte', texte: 'En attendant, vous pouvez déjà préparer vos horaires, vos langues et l’accessibilité de vos locaux.' },
+          {
+            type: 'texte',
+            texte: contestation
+              ? 'Cette fiche est déjà gérée par un autre compte : l’équipe examine votre justificatif et vous écrit dès sa décision. Vous ne pouvez pas la modifier d’ici là.'
+              : 'En attendant, vous pouvez déjà préparer vos horaires, vos langues et l’accessibilité de vos locaux.',
+          },
           ESPACE,
         ],
     raison: 'Vous recevez cet email parce que vous avez demandé à gérer ou à retirer une fiche sur DentalMap.',

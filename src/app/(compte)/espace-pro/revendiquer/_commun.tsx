@@ -81,7 +81,7 @@ export function pageFiche(fiche: FicheRevendication): string {
  * habilitation à obtenir), ou une demande à l'équipe, qui vérifie à la main
  * pour un praticien sans carte CPS ni e-CPS.
  */
-export function voiesIdentite(fiche: { slug: string }, o: { psc: boolean; retrait?: boolean; boutonPsc?: string; detailPsc?: string }): Voie[] {
+export function voiesIdentite(fiche: { slug: string; gereeParUnAutre?: boolean }, o: { psc: boolean; retrait?: boolean; boutonPsc?: string; detailPsc?: string }): Voie[] {
   return [
     {
       valeur: 'psc',
@@ -106,7 +106,10 @@ export function voiesIdentite(fiche: { slug: string }, o: { psc: boolean; retrai
     {
       valeur: 'equipe',
       titre: 'Demander à l’équipe',
-      detail: 'Sans carte CPS ni e-CPS : un justificatif PDF, vérifié par l’équipe. Vous prenez la main sur votre fiche sans attendre.',
+      // Une contestation ne se prépare pas : la fiche reste à son titulaire jusqu'à la décision.
+      detail: fiche.gereeParUnAutre || o.retrait
+        ? 'Sans carte CPS ni e-CPS : un justificatif PDF, vérifié par l’équipe sous 48 heures ouvrées.'
+        : 'Sans carte CPS ni e-CPS : un justificatif PDF, vérifié par l’équipe. Vous prenez la main sur votre fiche sans attendre.',
       icone: 'equipe',
       badge: '48 h',
       bouton: 'Demander à l’équipe',

@@ -10,7 +10,7 @@ import { chemin } from '@/lib/navigation'
 import { pscConfigure } from '@/lib/psc/config'
 import { REVENDIQUER, apresAccord, dateLongue, echeanceOuvree } from '@/lib/espace-pro/chemins'
 import { getFicheRevendication } from '@/lib/espace-pro/parcours'
-import { CoquilleParcours, garde, versFiche, voiesIdentite } from '../_commun'
+import { CoquilleParcours, garde, pageFiche, versFiche, voiesIdentite } from '../_commun'
 
 export const metadata: Metadata = { title: 'Suivi de votre demande', robots: { index: false, follow: false } }
 export const instant = false
@@ -40,6 +40,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   if (d.statut === 'acceptee') redirect(chemin(d.objet === 'retrait' ? versFiche(fiche, 'retrait/confirme') : apresAccord(fiche.slug, fiche.lieux.length)))
 
   const retrait = d.objet === 'retrait'
+  // Une contestation (la fiche a déjà un titulaire) ne se prépare pas : rien ne se modifie avant la décision.
+  const contestation = !retrait && fiche.gereeParUnAutre
   const document = d.methode === 'justificatif'
   // Un laboratoire prouve par Kbis, et n'a pas Pro Santé Connect.
   const labo = fiche.profession === 'prothesiste'
@@ -57,7 +59,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       >
         <Pictogramme icone={TriangleAlert} ton="erreur" />
         <h1 className={titre}>Nous n’avons pas pu valider {document ? `ce ${piece}` : 'votre demande'}</h1>
-        <p className="mt-2 text-sm text-fg-2">Rien de grave : choisissez une autre preuve, la revendication reste ouverte.{labo ? '' : ' Aucun document ne vous est demandé.'}</p>
+        <p className="mt-2 text-sm text-fg-2">Rien de grave : choisissez une autre preuve, la revendication reste ouverte.</p>
         {(d.motifRefus || d.commentaireRefus) && (
           <Encart ton="erreur" titre={d.motifRefus ? `Motif : ${d.motifRefus.toLowerCase()}` : undefined} className="mt-6">
             {d.commentaireRefus ? `Commentaire de l’équipe : « ${d.commentaireRefus} »` : 'Un nouveau document lisible suffira.'}
@@ -86,7 +88,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const etapes = [
     { titre: document ? `${labo ? 'Kbis' : 'Justificatif'} reçu` : 'Demande reçue', detail: dateLongue(recu), etat: 'fait' as const },
     { titre: 'Examen par l’équipe', detail: `Réponse avant ${dateLongue(echeance)}`, etat: 'encours' as const },
-    { titre: retrait ? 'Fiche retirée' : 'Fiche publiée', detail: 'Dès la validation', etat: 'avenir' as const },
+    { titre: retrait ? 'Fiche retirée' : contestation ? 'Fiche transférée' : 'Fiche publiée', detail: 'Dès la validation', etat: 'avenir' as const },
   ]
 
   return (
@@ -100,7 +102,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         {retrait ? 'Votre demande de retrait est en cours d’examen' : document ? `Votre ${piece} est en cours d’examen` : 'Votre demande est en cours d’examen'}
       </h1>
       <p className="mt-2 text-sm text-fg-2">
-        Réponse sous 48 heures ouvrées.{retrait ? '' : ' En attendant, vous pouvez préparer votre fiche : elle sera publiée dès la validation.'}
+        Réponse sous 48 heures ouvrées.
+        {retrait ? '' : contestation ? ' Cette fiche est déjà gérée par un autre compte : vous ne pouvez pas la modifier avant la décision de l’équipe.' : ' En attendant, vous pouvez préparer votre fiche : elle sera publiée dès la validation.'}
       </p>
       <ol className="mt-6 space-y-3">
         {etapes.map((e, i) => (
@@ -121,10 +124,17 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           </li>
         ))}
       </ol>
-      <Link href={chemin('/espace-pro/')} className={`${principal} mt-6`}>
-        {retrait ? 'Retour à mon espace' : labo ? 'Préparer la fiche' : 'Préparer ma fiche'}
-        <ArrowRight className="size-4" aria-hidden />
-      </Link>
+      {contestation ? (
+        <Link href={chemin(pageFiche(fiche))} className={`${principal} mt-6`}>
+          Voir la fiche publique
+          <ArrowRight className="size-4" aria-hidden />
+        </Link>
+      ) : (
+        <Link href={chemin('/espace-pro/')} className={`${principal} mt-6`}>
+          {retrait ? 'Retour à mon espace' : labo ? 'Préparer la fiche' : 'Préparer ma fiche'}
+          <ArrowRight className="size-4" aria-hidden />
+        </Link>
+      )}
       {document && labo && (
         <Link href={chemin(versDocument)} className={`${discret} mt-1`}>
           Remplacer le document

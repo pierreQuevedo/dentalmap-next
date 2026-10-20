@@ -124,7 +124,7 @@ export async function deposerJustificatif(donnees: FormData): Promise<never> {
   `)
   const nom = nomAffiche(fiche)
   await Promise.all([
-    envoyerRevendicationRecue(compte.email, nom, objet),
+    envoyerRevendicationRecue(compte.email, nom, objet, fiche.gereeParUnAutre),
     ...(gerantEmail ? [envoyerMandatAuGerant(gerantEmail, nom, compte.nom || compte.email)] : []),
     envoyerAModerer(
       `${objet === 'retrait' ? 'retrait' : 'justificatif'} pour ${nom}`,
@@ -186,7 +186,7 @@ export async function demanderEquipe(donnees: FormData): Promise<never> {
   const nom = nomAffiche(fiche)
   try {
     await Promise.all([
-      envoyerRevendicationRecue(compte.email, nom, objet),
+      envoyerRevendicationRecue(compte.email, nom, objet, fiche.gereeParUnAutre),
       envoyerAModerer(
         `${objet === 'retrait' ? 'retrait' : 'revendication'} sans carte pour ${nom}`,
         `Le compte ${compte.email} demande à ${objet === 'retrait' ? 'retirer' : 'gérer'} la fiche ${nom} (RPPS ${fiche.rpps ?? 'aucun'}), sans carte CPS ni e-CPS, justificatif PDF joint (${nomFichier}), à examiner dans « Demandes à valider » du back-office. Identité à vérifier avec lui${telephone ? `, joignable au ${telephone}` : ''}.${fiche.gereeParUnAutre ? ' Fiche déjà gérée par un autre compte (contestation, 7 jours).' : ''}${mot ? ` Son message : « ${mot} »` : ''}`,

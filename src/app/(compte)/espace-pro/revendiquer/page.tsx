@@ -85,8 +85,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
               valeur: 'recherche',
               titre: fiche ? 'Confirmer ma fiche' : 'Rechercher ma fiche',
               detail: fiche
-                ? 'Vérifiez les données du registre, puis prouvez que c’est vous, sans document à envoyer.'
-                : 'Par numéro RPPS ou par nom, puis vérification de votre identité, sans document à envoyer.',
+                ? 'Vérifiez les données du registre, puis prouvez que c’est vous : Pro Santé Connect ou un justificatif PDF.'
+                : 'Par numéro RPPS ou par nom, puis vérification de votre identité, par Pro Santé Connect ou sur justificatif.',
               icone: 'recherche',
               badge: '1 min à 2 jours',
               bouton: fiche ? 'Confirmer ma fiche' : 'Rechercher ma fiche',
