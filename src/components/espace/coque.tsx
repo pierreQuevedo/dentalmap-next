@@ -32,6 +32,7 @@ import {
 import { chemin } from '@/lib/navigation'
 import { Enregistre } from './enregistre'
 import { MenuMobile } from './menu-mobile'
+import { Deconnexion } from './deconnexion'
 import { CarteProgression, SuiviProgression, type CarteAMontrer } from './progression'
 import type { Points } from '@/lib/espace-pro/progression'
 import { Logo } from '@/components/site/logo'
@@ -332,6 +333,9 @@ export function CoqueEspace({
         <div className="mt-6">{identite}</div>
         <div className="mt-5 flex-1">
           <Nav c={c} actif={actif} />
+          <div className="mt-0.5">
+            <Deconnexion />
+          </div>
         </div>
         <div className="mt-6">{carteMenu}</div>
       </aside>
@@ -347,6 +351,7 @@ export function CoqueEspace({
           </summary>
           <div className="space-y-4 px-4 pb-5">
             <Nav c={c} actif={actif} />
+            <Deconnexion />
             {carteMenu}
           </div>
         </MenuMobile>
