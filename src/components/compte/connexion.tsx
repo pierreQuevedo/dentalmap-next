@@ -157,10 +157,9 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
         )
         return
       }
-      // Le code de confirmation part avec l'inscription.
+      // Le code de confirmation part avec l'inscription ; l'écran suivant le dit déjà dans son texte.
       aller('verifier')
       setTypeCode('email-verification')
-      setInfo(`Un code à six chiffres vient de partir à ${email}.`)
     })
   }
 
@@ -241,8 +240,9 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
         return
       }
       const connexion = await signIn.email({ email, password: motDePasse })
+      // Même suite qu'une connexion : la proposition de clé d'accès, puis la page visée (l'espace pro pour un professionnel).
       if (connexion.error) aller('connexion')
-      else window.location.assign(chemin(retour))
+      else window.location.assign(chemin(`/connexion/cle-d-acces/?retour=${encodeURIComponent(retour)}`))
     })
   }
 

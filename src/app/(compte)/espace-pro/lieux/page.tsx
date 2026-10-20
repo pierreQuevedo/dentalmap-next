@@ -1,3 +1,4 @@
+import { formaterAdresse } from '@/lib/annuaire/nom'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { ChoixLieux } from '@/components/compte/choix'
@@ -38,7 +39,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           fiche={fiche.slug}
           lieux={fiche.lieux.map((l) => ({
             id: l.id,
-            titre: l.adresseLigne ?? l.communeNom ?? 'Adresse inconnue',
+            titre: l.adresseLigne ? formaterAdresse(l.adresseLigne) : (l.communeNom ?? 'Adresse inconnue'),
             detail: [l.codePostal, l.communeNom].filter(Boolean).join(' '),
             principal: l.principal,
           }))}
