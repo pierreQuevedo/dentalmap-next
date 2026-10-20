@@ -320,10 +320,20 @@ function Composition({ format, message, praticien, profession, photo, liens, lab
         )}
       </div>
 
-      {/* La carte de résultat, le composant même de la recherche */}
-      <ul className="absolute w-[19.25rem] origin-top-left text-fg [&_li]:min-h-[24rem] [&_li]:shadow-pop" style={{ left: f.carte.x, top: f.carte.y, transform: `scale(${f.echelle})` }}>
-        <CarteFixe praticien={praticien} profession={profession} photo={photo} palier={palier?.niveau} pastillesEmpilees={annonce} />
-      </ul>
+      {/*
+        La carte de résultat, le composant même de la recherche. Safari ignore
+        les coins arrondis et les ombres de la carte quand il fabrique l'image :
+        le cadre extérieur porte ici le liseré et le halo du palier, le cadre
+        intérieur découpe les coins (masque pour Safari), et la carte, dedans,
+        perd ses propres effets.
+      */}
+      <div className="absolute origin-top-left" style={{ left: f.carte.x, top: f.carte.y, transform: `scale(${f.echelle})` }}>
+        <CadreCarte niveau={palier?.niveau}>
+          <ul className="w-[19.25rem] text-fg [&_li]:min-h-[24rem] [&_li]:!rounded-none [&_li]:!border-0 [&_li]:!shadow-none [&_li]:!ring-0">
+            <CarteFixe praticien={praticien} profession={profession} photo={photo} palier={palier?.niveau} pastillesEmpilees={annonce} />
+          </ul>
+        </CadreCarte>
+      </div>
 
       {/* Le palier atteint : un sceau posé en coin de la carte, comme un cachet. */}
       {annonce && <Sceau niveau={palier.niveau} nom={palier.nom} taille={story ? 230 : 170} x={story ? 760 : 900} y={story ? 520 : 76} />}
@@ -388,4 +398,27 @@ function Sceau({ niveau, nom, taille, x, y }: { niveau: number; nom: string; tai
       </text>
     </svg>
   )
+}
+
+/**
+ * Le cadre de la carte dans un visuel, en couches pleines plutôt qu'en ombres
+ * (que Safari rend carrées à l'export) : le halo du palier, le liseré, puis la
+ * découpe des coins, masquée pour que Safari la respecte.
+ */
+function CadreCarte({ niveau = 0, children }: { niveau?: number; children: React.ReactNode }) {
+  const halo = niveau >= 5 ? { epaisseur: 8, couleur: 'rgba(191,227,214,0.28)' } : niveau === 4 ? { epaisseur: 6, couleur: 'rgba(43,181,168,0.22)' } : null
+  const lisere = niveau >= 5 ? { epaisseur: 3, couleur: '#BFE3D6' } : niveau === 4 ? { epaisseur: 2, couleur: '#2BB5A8' } : niveau === 3 ? { epaisseur: 2, couleur: '#0B8484' } : null
+  const decoupe = 22
+  const carte = (
+    <div className="overflow-hidden" style={{ borderRadius: decoupe, WebkitMaskImage: '-webkit-radial-gradient(white, black)', isolation: 'isolate' }}>
+      {children}
+    </div>
+  )
+  const avecLisere = lisere ? (
+    <div style={{ padding: lisere.epaisseur, background: lisere.couleur, borderRadius: decoupe + lisere.epaisseur }}>{carte}</div>
+  ) : (
+    carte
+  )
+  if (!halo) return avecLisere
+  return <div style={{ padding: halo.epaisseur, background: halo.couleur, borderRadius: decoupe + (lisere?.epaisseur ?? 0) + halo.epaisseur, margin: -halo.epaisseur }}>{avecLisere}</div>
 }
