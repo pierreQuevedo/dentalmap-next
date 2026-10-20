@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 import { Enregistre } from './enregistre'
+import { MenuMobile } from './menu-mobile'
 import { CarteProgression, SuiviProgression, type CarteAMontrer } from './progression'
 import type { Points } from '@/lib/espace-pro/progression'
 import { Logo } from '@/components/site/logo'
@@ -335,7 +336,7 @@ export function CoqueEspace({
         <div className="mt-6">{carteMenu}</div>
       </aside>
       <main className="min-w-0 flex-1 px-4 pb-24 pt-3 sm:px-8 sm:pb-10">
-        <details className="group -mx-4 -mt-3 mb-3 border-b border-line bg-bg-soft lg:hidden">
+        <MenuMobile className="group -mx-4 -mt-3 mb-3 border-b border-line bg-bg-soft lg:hidden">
           <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3">
             <Pastille c={c} taille="size-8 text-[10px]" />
             <span className="min-w-0 flex-1 truncate text-sm font-semibold text-fg">{c.nom}</span>
@@ -348,7 +349,7 @@ export function CoqueEspace({
             <Nav c={c} actif={actif} />
             {carteMenu}
           </div>
-        </details>
+        </MenuMobile>
         {/* L'en-tête reste visible au défilement : où l'on est, et la fiche publique à un clic. */}
         <header className="sticky top-0 z-30 -mx-4 flex flex-wrap items-center justify-between gap-4 border-b border-transparent bg-bg/85 px-4 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-bg/75 sm:-mx-8 sm:px-8">
           <div className="min-w-0">
