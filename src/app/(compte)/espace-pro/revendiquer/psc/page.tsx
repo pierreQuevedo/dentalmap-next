@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { ExternalLink } from 'lucide-react'
 import { Etapes, Pictogramme, Puce, discret, principal, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
-import { pscConfigure } from '@/lib/psc/config'
+import { pscOuvert } from '@/lib/psc/config'
 import { REVENDIQUER } from '@/lib/espace-pro/chemins'
 import { getFicheRevendication } from '@/lib/espace-pro/parcours'
 import { CoquilleParcours, garde } from '../_commun'
@@ -25,7 +25,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const retrait = objet === 'retrait'
   const requete = new URLSearchParams({ ...(slug ? { fiche: slug } : {}), ...(retrait ? { objet: 'retrait' } : {}) }).toString()
   const compte = await garde(`${REVENDIQUER}/psc/${requete ? `?${requete}` : ''}`)
-  if (!pscConfigure()) redirect(chemin(`${REVENDIQUER}/psc/erreur/?code=indisponible${slug ? `&fiche=${encodeURIComponent(slug)}` : ''}`))
+  if (!pscOuvert()) redirect(chemin(`${REVENDIQUER}/psc/erreur/?code=indisponible${slug ? `&fiche=${encodeURIComponent(slug)}` : ''}`))
   const fiche = slug ? await getFicheRevendication(slug, compte.id) : null
   const annuler = retrait && fiche ? `${REVENDIQUER}/${encodeURIComponent(fiche.slug)}/retrait/` : `${REVENDIQUER}/${slug ? `?fiche=${encodeURIComponent(slug)}` : ''}`
 

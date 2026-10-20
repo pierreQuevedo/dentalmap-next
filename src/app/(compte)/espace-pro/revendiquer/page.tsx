@@ -6,7 +6,7 @@ import { db } from '@/db'
 import { ChoixVoies } from '@/components/compte/choix'
 import { Etapes, FicheResume, cadre, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
-import { pscConfigure } from '@/lib/psc/config'
+import { pscOuvert } from '@/lib/psc/config'
 import { COOKIE_FICHE, REVENDIQUER } from '@/lib/espace-pro/chemins'
 import { getFicheRevendication } from '@/lib/espace-pro/parcours'
 import { CoquilleParcours, adresseDe, dejaEngage, garde, libelleProfession, nomDe, pageFiche, versFiche } from './_commun'
@@ -45,7 +45,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   if (deja) redirect(chemin(deja))
 
   // Pro Santé Connect ne connaît que le RPPS : rien à faire pour une fiche de laboratoire.
-  const psc = pscConfigure() && (!fiche || fiche.rpps !== null)
+  const psc = pscOuvert() && (!fiche || fiche.rpps !== null)
   const versRecherche = fiche ? versFiche(fiche) : `${REVENDIQUER}/recherche/`
   const versPsc = `${REVENDIQUER}/psc/${fiche ? `?fiche=${encodeURIComponent(fiche.slug)}` : ''}`
 

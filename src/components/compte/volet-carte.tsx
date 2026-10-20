@@ -330,7 +330,8 @@ function Plan({
   return (
     <>
       {/* MapLibre pose `position: relative` sur son conteneur : le cadre absolu est porté par un parent. */}
-      <div className="absolute inset-0 [&_.maplibregl-ctrl-attrib]:!bg-bg/70 [&_.maplibregl-ctrl-attrib]:text-[10px]">
+      {/* La mention des sources en blanc, son « i » aussi : sur le plan sombre, le gris par défaut ne se lit pas. */}
+      <div className="absolute inset-0 [&_.maplibregl-ctrl-attrib]:!bg-black/45 [&_.maplibregl-ctrl-attrib]:!text-white [&_.maplibregl-ctrl-attrib]:text-[10px] [&_.maplibregl-ctrl-attrib_a]:!text-white [&_.maplibregl-ctrl-attrib-button]:invert">
         <div ref={conteneur} className="size-full" />
       </div>
       {hote &&

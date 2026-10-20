@@ -7,7 +7,7 @@ import { ChoixVoies } from '@/components/compte/choix'
 import { Encart, Pictogramme, discret, principal, titre } from '@/components/compte/ui'
 import { db } from '@/db'
 import { chemin } from '@/lib/navigation'
-import { pscConfigure } from '@/lib/psc/config'
+import { pscOuvert } from '@/lib/psc/config'
 import { REVENDIQUER, apresAccord, dateLongue, echeanceOuvree } from '@/lib/espace-pro/chemins'
 import { getFicheRevendication } from '@/lib/espace-pro/parcours'
 import { CoquilleParcours, garde, pageFiche, versFiche, voiesIdentite } from '../_commun'
@@ -51,7 +51,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const versDocument = `/espace-pro/laboratoire/revendiquer/${encodeURIComponent(fiche.slug)}/${d.roleLabo === 'mandate' ? 'mandat' : 'preuve'}/`
 
   if (d.statut === 'refusee') {
-    const psc = pscConfigure() && fiche.rpps !== null && !labo
+    const psc = pscOuvert() && fiche.rpps !== null && !labo
     return (
       <CoquilleParcours
         fiche={fiche}

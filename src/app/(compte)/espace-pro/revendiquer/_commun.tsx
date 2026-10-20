@@ -77,9 +77,9 @@ export function pageFiche(fiche: FicheRevendication): string {
 /** Les adresses de la fiche, pour les liens des pages. */
 /**
  * Les preuves d'identité d'un soignant (S3b, C1, L). Aucun document n'est
- * reçu : Pro Santé Connect, la carte d'identité par FranceConnect+ (annoncée,
- * habilitation à obtenir), ou une demande à l'équipe, qui vérifie à la main
- * pour un praticien sans carte CPS ni e-CPS.
+ * reçu : Pro Santé Connect (annoncé « Bientôt » tant qu'il n'est pas ouvert,
+ * voir `pscOuvert`), ou une demande à l'équipe, qui vérifie à la main sur
+ * justificatif PDF.
  */
 export function voiesIdentite(fiche: { slug: string; gereeParUnAutre?: boolean }, o: { psc: boolean; retrait?: boolean; boutonPsc?: string; detailPsc?: string }): Voie[] {
   return [
@@ -92,16 +92,6 @@ export function voiesIdentite(fiche: { slug: string; gereeParUnAutre?: boolean }
       desactivee: !o.psc,
       bouton: o.boutonPsc ?? 'Continuer avec Pro Santé Connect',
       href: `${REVENDIQUER}/psc/?fiche=${encodeURIComponent(fiche.slug)}${o.retrait ? '&objet=retrait' : ''}`,
-    },
-    {
-      valeur: 'identite',
-      titre: 'Carte d’identité',
-      detail: 'Avec l’application France Identité et FranceConnect+. Votre nom est confirmé par l’État, aucun document n’est transmis.',
-      icone: 'identite',
-      badge: 'Bientôt',
-      desactivee: true,
-      bouton: 'Continuer avec FranceConnect+',
-      href: '#',
     },
     {
       valeur: 'equipe',

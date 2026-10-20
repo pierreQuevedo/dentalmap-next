@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { CircleX, RefreshCw } from 'lucide-react'
 import { Encart, Pictogramme, principal, secondaire, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
-import { pscConfigure } from '@/lib/psc/config'
+import { pscOuvert } from '@/lib/psc/config'
 import { REVENDIQUER } from '@/lib/espace-pro/chemins'
 import { getFicheRevendication } from '@/lib/espace-pro/parcours'
 import { CoquilleParcours, garde } from '../../_commun'
@@ -31,7 +31,7 @@ export default async function Page(props: { searchParams: Promise<{ code?: strin
   const { code = 'technique', fiche: slug } = await props.searchParams
   const compte = await garde(`${REVENDIQUER}/psc/erreur/?code=${encodeURIComponent(code)}`)
   const fiche = slug ? await getFicheRevendication(slug, compte.id) : null
-  const reessayer = pscConfigure() && code !== 'indisponible' && code !== 'profession'
+  const reessayer = pscOuvert() && code !== 'indisponible' && code !== 'profession'
   const versRecherche = fiche && code !== 'rpps' ? `${REVENDIQUER}/${encodeURIComponent(fiche.slug)}/` : `${REVENDIQUER}/recherche/`
 
   return (

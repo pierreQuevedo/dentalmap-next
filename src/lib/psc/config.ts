@@ -73,3 +73,13 @@ export function configPsc(): ConfigPsc | null {
 export function pscConfigure(): boolean {
   return configPsc() !== null
 }
+
+/**
+ * Pro Santé Connect proposé aux praticiens : configuré, et ouvert par
+ * `PSC_OUVERT=1` une fois l'habilitation de l'ANS obtenue. D'ici là, le
+ * parcours l'annonce « Bientôt » et passe par la demande à l'équipe, même là
+ * où le simulateur local est branché.
+ */
+export function pscOuvert(): boolean {
+  return process.env.PSC_OUVERT === '1' && pscConfigure()
+}

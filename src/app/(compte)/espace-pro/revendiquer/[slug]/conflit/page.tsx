@@ -4,7 +4,7 @@ import { ShieldCheck } from 'lucide-react'
 import { ChoixVoies } from '@/components/compte/choix'
 import { Etapes, FicheResume, Pictogramme, cadre, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
-import { pscConfigure } from '@/lib/psc/config'
+import { pscOuvert } from '@/lib/psc/config'
 import { REVENDIQUER } from '@/lib/espace-pro/chemins'
 import { CoquilleParcours, adresseDe, dejaEngage, ficheOu404, garde, libelleProfession, nomDe, versFiche, voiesIdentite } from '../../_commun'
 
@@ -25,7 +25,7 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
   const deja = dejaEngage(fiche)
   if (deja) redirect(chemin(deja))
   if (!fiche.gereeParUnAutre) redirect(chemin(versFiche(fiche, 'methode')))
-  const psc = pscConfigure() && fiche.rpps !== null
+  const psc = pscOuvert() && fiche.rpps !== null
 
   return (
     <CoquilleParcours fiche={fiche} etiquette="Gérée par un autre compte" retour={versFiche(fiche)} libelleRetour="Retour">

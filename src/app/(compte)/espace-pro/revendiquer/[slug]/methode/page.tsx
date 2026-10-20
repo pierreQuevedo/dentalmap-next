@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { ChoixVoies } from '@/components/compte/choix'
 import { Etapes, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
-import { pscConfigure } from '@/lib/psc/config'
+import { pscOuvert } from '@/lib/psc/config'
 import { REVENDIQUER } from '@/lib/espace-pro/chemins'
 import { CoquilleParcours, dejaEngage, ficheOu404, garde, versFiche, voiesIdentite } from '../../_commun'
 
@@ -28,7 +28,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
     if (deja) redirect(chemin(deja))
     if (fiche.gereeParUnAutre) redirect(chemin(versFiche(fiche, 'conflit')))
   }
-  const psc = pscConfigure() && fiche.rpps !== null
+  const psc = pscOuvert() && fiche.rpps !== null
 
   return (
     <CoquilleParcours
