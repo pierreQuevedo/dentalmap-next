@@ -146,9 +146,14 @@ export const JOURS_CENTRE = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 
 const texte = (max: number) => z.string().trim().max(max)
 const ident = z.string().trim().min(1).max(40)
 
+/** L'intitulé d'un diplôme tel qu'on l'affiche : « Bac+3 » devient « Bac + 3 », comme le niveau. */
+export function intituleDiplome(intitule: string): string {
+  return intitule.replace(/\b(bac)\s*\+\s*(\d)/gi, (_, bac: string, n: string) => `${bac} + ${n}`)
+}
+
 export const FormationDeclaree = z.object({
   id: ident,
-  intitule: texte(140).min(2),
+  intitule: texte(140).min(2).transform(intituleDiplome),
   niveau: texte(20).nullable().default(null),
   duree: texte(40).nullable().default(null),
   voies: z.array(z.enum(['initiale', 'apprentissage', 'continue'])).max(3).default([]),
@@ -254,7 +259,7 @@ export function formationsDepuisDiplomes(diplomes: DiplomeEcole[]): FormationDec
     const modalite = (d.modalite ?? '').toLowerCase()
     const voies = VOIES_PAR_MOT.filter(([re]) => re.test(modalite)).map(([, v]) => v)
     const niveau = d.niveau?.trim() ? d.niveau.trim().replace(/\s*\+\s*/, ' + ') : (repere?.[1] ?? null)
-    return [{ id, intitule: d.intitule.trim().slice(0, 140), niveau, duree: d.duree?.replace(/\s*\(.*\)$/, '') || null, voies, acces: repere?.[2] ?? null, places: null, active: true }]
+    return [{ id, intitule: intituleDiplome(d.intitule.trim()).slice(0, 140), niveau, duree: d.duree?.replace(/\s*\(.*\)$/, '') || null, voies, acces: repere?.[2] ?? null, places: null, active: true }]
   })
 }
 

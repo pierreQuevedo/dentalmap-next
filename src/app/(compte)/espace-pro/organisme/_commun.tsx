@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { Coquille } from '@/components/compte/coquille'
 import { Marque } from '@/components/compte/ui'
+import { intituleDiplome } from '@/lib/espace-pro/etablissement'
 import { VignetteCarte, VoletCarte, type EncartCarte } from '@/components/compte/volet-carte'
 import { CarteEtablissement, type LigneCarte } from '@/components/espace/etablissement'
 import { chemin } from '@/lib/navigation'
@@ -29,7 +30,7 @@ export async function etablissementOu404(slug: string | undefined, compte: Compt
 
 /** Les diplômes affichés sur la carte : ceux d'O3a s'ils sont déclarés, sinon ceux du contenu. */
 export function lignesDe(formations: { intitule: string; duree: string | null; active: boolean }[]): LigneCarte[] {
-  return formations.map((f) => ({ nom: f.intitule, duree: f.duree?.split(/\s*\(/)[0] ?? null, desactivee: !f.active }))
+  return formations.map((f) => ({ nom: intituleDiplome(f.intitule), duree: f.duree?.split(/\s*\(/)[0] ?? null, desactivee: !f.active }))
 }
 
 /**
