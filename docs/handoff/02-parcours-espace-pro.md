@@ -817,8 +817,9 @@ Lecture : **Objectif** dit pourquoi l'écran existe, **Règles** ce qui doit êt
 - Règles : Kbis : date de moins de 3 mois, SIREN identique, gérant nommé.
 - Données : Écrit : Kbis (Blob privé), revendications (méthode document ou courrier).
 - Sorties :
-  - → **KL** : Kbis envoyé
-  - → **LCODE** : courrier au siège
+  - → **LO0** : Kbis envoyé, avec accusé de réception (comme le dentiste depuis le 2026-10-18 : rien ne bloque, tout reste en brouillon jusqu'à l'accord)
+  - → **KL** : contestation (laboratoire déjà géré) ou retrait
+  - → **LCODE** : courrier au siège (« Bientôt »)
 
 ### KL
 
@@ -926,17 +927,17 @@ Lecture : **Objectif** dit pourquoi l'écran existe, **Règles** ce qui doit êt
 
 ### LINFO
 
-**Prothésiste salarié** · titre affiché : « Pas de fiche individuelle pour l'instant »
+**Prothésiste salarié** · titre affiché : « Créez votre compte de prothésiste »
 
 - Route : `/espace-pro/laboratoire/revendiquer/[praticienId]/salarie`
 - Figma : [desktop](https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-4408) · [mobile](https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=79-4454)
-- Action principale : « Continuer »
+- Action principale : « Créer mon compte »
 - Action secondaire : « Retour »
-- Objectif : Ne pas laisser sans issue un salarié non habilité.
-- Règles : Aucune revendication créée.
-- Données : Écrit : liste d'intérêt.
+- Objectif : Inviter le salarié à créer son propre compte de prothésiste salarié.
+- Règles : Aucune revendication, aucun lien avec l'espace du laboratoire. La page ne dit ni qu'il apparaîtra dans l'annuaire, ni qu'il pourra postuler (décision du 2026-10-21).
+- Données : aucune écriture.
 - Sorties :
-  - → **Accueil** : continuer
+  - → **Emploi de l’espace pro** (`/espace-pro/emploi/bienvenue/situation/`) : créer mon compte
   - → **L2** : retour
 
 ### LC1

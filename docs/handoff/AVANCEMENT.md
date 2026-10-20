@@ -51,8 +51,8 @@ Tenu à jour par Claude Code. Statuts : à faire, en cours, fait, bloqué, retir
 | REMP | Remplaçant ou collaborateur | C | fait | fait | 2/2 | Alerte `remplacant`. |
 | L1 | Retrouver le laboratoire | G | fait | fait | 3/3 | `/espace-pro/laboratoire/revendiquer/`. SIREN, SIRET (ramené au SIREN) ou raison sociale. Depuis une fiche, droit au rôle. |
 | L2 | Votre laboratoire et votre rôle | G | fait | fait | 5/5 | Gérant → L3, mandaté → MAN, salarié → LINFO, déjà géré → LC1. |
-| L3 | Kbis ou courrier au siège | G | fait | fait | 1/2 | Kbis (Blob privé). Code au siège « Bientôt » (pas de prestataire postal). |
-| KL | Kbis en examen | G | fait | fait | 3/3 | Suivi commun `/espace-pro/revendiquer/suivi/`, libellés « Kbis ». |
+| L3 | Kbis ou courrier au siège | G | fait | fait | 1/2 | Kbis (Blob privé). Code au siège « Bientôt » (pas de prestataire postal). Depuis le 2026-10-21, l'envoi mène à LO0 avec accusé (KL seulement pour une contestation ou un retrait). |
+| KL | Kbis en examen | G | fait | fait | 3/3 | Suivi commun `/espace-pro/revendiquer/suivi/`, libellés « Kbis ». « Préparer la fiche » nomme la fiche (onboarding labo). |
 | LK1 | Lier à une fiche praticien | G | fait | fait | 2/2 | `/espace-pro/laboratoire/liaison/` : proposé si un dentiste porte le nom du compte au même code postal. `praticien_lie_id`. |
 | LO0 | Ce que nous savons du laboratoire | G | fait | fait | 1/1 | `/espace-pro/laboratoire/onboarding/recuperation/`. |
 | LO1 | Savoir-faire et matériaux | G | fait | fait | 1/1 | Listes fermées, usinage, STL, 3D. |
@@ -65,8 +65,8 @@ Tenu à jour par Claude Code. Statuts : à faire, en cours, fait, bloqué, retir
 | LCODE | Code reçu au siège | G | bloqué | bloqué | 0/3 | Pas de prestataire d'envoi postal. |
 | LREF | Kbis refusé | G | fait | fait | 1/1 | Suivi commun, motif en liste fermée. |
 | LA1 | Demande d'ajout | G | fait | fait | 2/2 | `/espace-pro/laboratoire/ajout/` : contrôle Sirene par l'API Recherche d'entreprises (actif, NAF 32.50A), Kbis joint. |
-| LINFO | Prothésiste salarié | G | fait | fait | 2/2 | Alerte `prothesiste_salarie`. |
-| LC1 | Laboratoire déjà revendiqué | G | fait | fait | 2/2 | Kbis (contestation) ou demande d'invitation transmise au titulaire. |
+| LINFO | Prothésiste salarié | G | fait | fait | 2/2 | 2026-10-21 : « Créez votre compte de prothésiste », vers la bienvenue candidat de l'Emploi (`/espace-pro/emploi/bienvenue/situation/`). Plus d'alerte ni d'invitation d'équipe. |
+| LC1 | Laboratoire déjà revendiqué | G | fait | fait | 2/2 | Kbis (contestation) ou demande d'invitation transmise au titulaire. Sans titulaire, renvoie à L2 (comme C1). |
 | O1 | Type d'organisme | H | fait | fait | 3/3 | `/espace-pro/organisme/`. Un compte sans profil devient « organisme ». « Assistanat » retiré du détail : aucune école d'assistant n'est recensée. |
 | O2a | Retrouver l'établissement | H | fait | fait | 3/3 | Nom, ville, UAI (lu dans l'adresse académique quand le contenu la porte). `?fiche=` depuis la page publique : la recherche est faite et pointe sur l'établissement. |
 | O3a | Compléter les formations | H | fait | fait | 1/1 | Préremplies depuis le contenu WordPress (diplômes balisés ; diplôme d'État pour une faculté). Stockées dans Neon (`fiches_etablissement`). Écriture WordPress codée mais coupée (`WP_ECRITURE`). |
@@ -237,3 +237,12 @@ Migration `0018_large_kingpin` appliquée : sur `fiches_completees`, `rappel_fra
 - Comparaison texte par texte des maquettes desktop (S0, PSC1, PSC2, PSC-E, PSC-0, M1, S1, S2, H1, S1-0, C1, S3b, R1, R2, L, REMP, B0, B0S, B1, B2, B3, B7, J, DASH-1 à 3) avec le code : aucun écart de libellé, hors chaînes construites à partir des données (nom, nombre de lieux, RPPS).
 - Figma remis au niveau du code après B0S : B7 liste les domaines de soins parmi les réponses, deux missions restantes (photo, présentation), aperçu à jour ; B0 affiche « Avant de commencer · 4 questions » sans numéro d’étape, quatre segments vides ; notes de B7 et R1 corrigées.
 - Non vérifié à l’écran : ces pages demandent une session (pas de compte de test sur la base partagée).
+
+## Repasse du couloir laboratoire (2026-10-21)
+
+- Écrans passés un par un à 1440 et 375 sur localhost avec une vraie session, et validés : L1 (formulaire, plusieurs résultats, aucun résultat), LA1, L2, MAN, LINFO, LC1, L3, KL, LREF, LK1, LO0 (avec accusé), LO1, LO2, LO4 (étapes passées, rempli à 45 %, Kbis validé à 75 %). LCODE non construit.
+- Retours dentiste reportés : volet carte et pastille au labo (« SIREN ou raison sociale », relance L1), liste L1 comme H1 (survol qui déplace le repère, hauteur bornée, « Étape précédente » et « Aucun n'est le mien »), visuel de remplacement labo (`fiche-laboratoire.png`) dans `FicheResume` et sur la carte, parcours sans blocage après le Kbis, bandeau « Kbis en cours d'examen » (`EnVerification labo`) sur l'onboarding et le tableau de bord labo.
+- Corrections communes : boutons radio masqués qui allongeaient la page (H1 et L1), carte centrée sur le repère quand plusieurs points sont cadrés, coquille en `grid-cols-1` (débordement horizontal sur mobile), marge de la coquille réduite sur grand écran, aperçu de l'onboarding labo centré.
+- Pages tenues sans défilement à 1440 × 900 : LO2 (phrase en double retirée, resserré) et LO4 (encart Kbis en double retiré).
+- Données de test (base de dev du serveur parcours) : `laboratoire-test-dentalmap` (compte Dr Test Dentalmap, revendication acceptée, LO1 et LO2 remplis) et `laboratoire-test-dentalmap-2` (géré par un autre compte, pour LC1).
+- Restent à arbitrer : phrase de jauge quand tout est passé, « Intermédiaire » coupé dans l'anneau mobile, STL absent du résumé, Kbis en PDF seulement ou non, « Écrire à l'équipe » sur LREF, invitation sur LC1.
