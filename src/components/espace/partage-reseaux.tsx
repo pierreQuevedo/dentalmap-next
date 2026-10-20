@@ -89,7 +89,7 @@ export function PartageReseaux(props: {
   const echelleApercu = (f.apercu * 16) / f.l
 
   return (
-    <div className="grid gap-6 md:grid-cols-[auto_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-[auto_minmax(0,1fr)]">
       <div className="flex flex-col items-center gap-3">
         <div className="squircle-full inline-flex bg-bg-soft p-1 text-sm" role="tablist" aria-label="Format du visuel">
           {(

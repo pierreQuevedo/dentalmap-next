@@ -334,7 +334,7 @@ export function CoqueEspace({
         </div>
         <div className="mt-6">{carteMenu}</div>
       </aside>
-      <main className="min-w-0 flex-1 px-4 pb-10 pt-3 sm:px-8">
+      <main className="min-w-0 flex-1 px-4 pb-24 pt-3 sm:px-8 sm:pb-10">
         <details className="group -mx-4 -mt-3 mb-3 border-b border-line bg-bg-soft lg:hidden">
           <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3">
             <Pastille c={c} taille="size-8 text-[10px]" />
@@ -356,11 +356,20 @@ export function CoqueEspace({
             <p className="truncate text-sm text-fg-2">{sousTitre}</p>
           </div>
           {c.pagePublique && (
-            <Link href={chemin(c.pagePublique)} className="inline-flex h-10 items-center gap-2 rounded-full border border-line bg-bg px-4 text-sm font-medium text-fg shadow-sm hover:border-line-strong">
+            <Link href={chemin(c.pagePublique)} className="hidden h-10 items-center gap-2 rounded-full border border-line bg-bg px-4 text-sm font-medium text-fg shadow-sm hover:border-line-strong sm:inline-flex">
               <ExternalLink className="size-4" aria-hidden /> {c.etablissement ? 'Voir ma page' : 'Voir ma fiche'}
             </Link>
           )}
         </header>
+        {/* Sur mobile, le lien vers la fiche publique flotte en bas, centré, sous le pouce. */}
+        {c.pagePublique && (
+          <Link
+            href={chemin(c.pagePublique)}
+            className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-40 inline-flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-fg px-5 text-sm font-semibold text-bg shadow-pop sm:hidden"
+          >
+            <ExternalLink className="size-4" aria-hidden /> {c.etablissement ? 'Voir ma page' : 'Voir ma fiche'}
+          </Link>
+        )}
         <div className="mt-3">
           {c.enVerification && <EnVerification className="mb-6" />}
           {/* L'espace établissement a son propre retour, bloc par bloc. */}
@@ -379,7 +388,7 @@ export function CoqueEspace({
 
 export function Tuile({ className = '', id, children }: { className?: string; id?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className={`squircle-2xl border border-line bg-bg p-5 ${className}`}>
+    <section id={id} className={`squircle-2xl min-w-0 border border-line bg-bg p-5 ${className}`}>
       {children}
     </section>
   )

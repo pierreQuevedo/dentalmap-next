@@ -61,7 +61,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   return (
     <CoqueEspace c={coque} actif="partager" titre="Partager et parrainer" sousTitre="Faire connaître la fiche, et gagner en visibilité en parrainant vos confrères.">
       <section id="parrainage" className="squircle-2xl relative mb-4 scroll-mt-24 overflow-hidden border border-teal/25 bg-gradient-to-br from-teal/10 via-bg to-bg p-6 sm:p-8">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div>
             <span className="squircle-full inline-flex items-center gap-1.5 bg-teal/15 px-2.5 py-0.5 text-xs font-semibold text-teal ring-1 ring-inset ring-teal/30">
               <Sparkles className="size-3.5" aria-hidden /> +{BONUS_PARRAINAGE} points chacun
@@ -158,7 +158,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           </div>
         </div>
       </Tuile>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Tuile id="google" className="scroll-mt-24">
           <TitreTuile i={Link2} droite={<span className="squircle-full bg-teal/10 px-2 py-0.5 text-xs font-medium text-teal">Le plus efficace</span>}>
             Votre lien pour la fiche Google
@@ -204,7 +204,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           <div className="mt-3">
             <Copier texte={badge} />
           </div>
-          <p className="mt-2 text-xs text-fg-2">Un lien HTML simple, sans script : il compte comme un lien vers votre fiche pour les moteurs. Votre lien court, à partager partout ailleurs : {court.replace(/^https?:\/\//, '')}</p>
+          <p className="mt-2 break-words text-xs text-fg-2 [overflow-wrap:anywhere]">Un lien HTML simple, sans script : il compte comme un lien vers votre fiche pour les moteurs. Votre lien court, à partager partout ailleurs : {court.replace(/^https?:\/\//, '')}</p>
         </Tuile>
       </div>
     </CoqueEspace>
