@@ -9,6 +9,8 @@ import { db } from '@/db'
 import { chemin } from '@/lib/navigation'
 import { getCompte } from '@/lib/tunnel/compte'
 import { getEspace } from '@/lib/espace-pro/espace'
+import { pointsDeLEspace } from '@/lib/espace-pro/progression-donnees'
+import { PALIER_EMPLOI, progressionDe } from '@/lib/espace-pro/progression'
 import { CODES_CONTRAT, CODES_METIER, metierDepuisCode } from './metiers'
 import { AVANTAGES, DUREE_OFFRE_JOURS, enPourcentage, modeDuContrat, slugOffre } from './offre-pro'
 
@@ -21,12 +23,16 @@ import { AVANTAGES, DUREE_OFFRE_JOURS, enPourcentage, modeDuContrat, slugOffre }
 
 export type EtatFormulaireOffre = { erreur?: string; champ?: string } | null
 
-/** Le titulaire vérifié de la fiche ; `null` sinon. */
-async function recruteur(slug: string) {
+/** Le titulaire vérifié de la fiche ; `null` sinon. `publier` : il tient en plus le palier Ambassadeur, qui ouvre la publication. */
+async function recruteur(slug: string, publier = false) {
   const compte = await getCompte()
   if (!compte) return null
   const espace = await getEspace(compte, slug || null)
   if (!espace || !espace.ctx.identiteVerifiee || espace.fiche.demande?.statut !== 'acceptee') return null
+  if (publier) {
+    const points = await pointsDeLEspace(espace)
+    if ((progressionDe(points.total, points.verifiee).actuel?.niveau ?? 0) < PALIER_EMPLOI) return null
+  }
   return { compte, espace }
 }
 
@@ -48,14 +54,16 @@ const Offre = z.object({
   min: z.coerce.number({ message: 'Indiquez une rémunération minimum.' }).int().min(0),
   max: z.coerce.number({ message: 'Indiquez une rémunération maximum.' }).int().min(0),
   lieu: z.string().min(1, 'Choisissez le lieu du poste.'),
-  description: z.string().trim().max(1500, 'La description dépasse 1 500 caractères.'),
+  presentation: z.string().trim().max(700, 'La présentation dépasse 700 caractères.'),
+  missions: z.string().trim().max(800, 'Les missions dépassent 800 caractères.').optional(),
   profil: z.string().trim().max(800).optional(),
 })
 
 /** Publier ou enregistrer en brouillon une offre, nouvelle ou existante. */
 export async function enregistrerOffre(_: EtatFormulaireOffre, donnees: FormData): Promise<EtatFormulaireOffre> {
-  const r = await recruteur(String(donnees.get('fiche') ?? ''))
-  if (!r) return { erreur: 'Publier une offre demande une fiche à l’identité vérifiée.' }
+  const brouillonDemande = donnees.get('intention') === 'brouillon'
+  const r = await recruteur(String(donnees.get('fiche') ?? ''), !brouillonDemande)
+  if (!r) return { erreur: brouillonDemande ? 'Une offre demande une fiche à l’identité vérifiée.' : 'Publier une offre demande une fiche vérifiée au palier Ambassadeur.' }
   const { compte, espace } = r
   const brouillon = donnees.get('intention') === 'brouillon'
   const lu = Offre.safeParse(Object.fromEntries(donnees))
@@ -67,7 +75,7 @@ export async function enregistrerOffre(_: EtatFormulaireOffre, donnees: FormData
   const pourcent = enPourcentage(v.contrat)
   const mode = modeDuContrat(v.contrat)
   if (!brouillon) {
-    if (v.description.length < 100) return { erreur: 'Une description de 100 caractères au moins pour publier.', champ: 'description' }
+    if (v.presentation.length < 80) return { erreur: 'Une présentation du poste de 80 caractères au moins pour publier.', champ: 'presentation' }
     if (mode !== 'gratification' && (v.min <= 0 || v.max <= 0)) return { erreur: 'La rémunération est obligatoire : indiquez une fourchette.', champ: 'min' }
     if (v.max < v.min) return { erreur: 'Le maximum doit être au moins égal au minimum.', champ: 'max' }
     if (pourcent && v.max > 100) return { erreur: 'Un pourcentage des honoraires ne dépasse pas 100.', champ: 'max' }
@@ -94,7 +102,8 @@ export async function enregistrerOffre(_: EtatFormulaireOffre, donnees: FormData
     mode,
     min: v.min,
     max: v.max,
-    description: v.description,
+    // La description publique : la présentation, puis une mission par ligne (`decouperDescription`).
+    description: [v.presentation.replace(/\s*\n\s*/g, ' '), (v.missions ?? '').split('\n').map((l) => l.trim()).filter(Boolean).join('\n')].filter(Boolean).join('\n\n'),
     profil: v.profil || null,
   }
 
@@ -132,13 +141,16 @@ export async function enregistrerOffre(_: EtatFormulaireOffre, donnees: FormData
   }
   invalider(slug, espace.fiche.slug)
   const q = espace.autres.length ? `?fiche=${encodeURIComponent(espace.fiche.slug)}&` : '?'
-  redirect(chemin(`/espace-pro/emploi/${q}${brouillon ? 'brouillon=1' : 'publiee=1'}`))
+  // Une offre modifiée revient sur sa page ; une nouvelle, sur la liste.
+  redirect(chemin(`/espace-pro/emploi/${id ? `${id}/` : ''}${q}${brouillon ? 'brouillon=1' : 'publiee=1'}`))
 }
 
 /** Les gestes sur une offre existante : confirmer (15 jours), pourvue, retirer, republier (30 jours). */
 export async function agirSurOffre(donnees: FormData): Promise<never> {
   const ficheSlug = String(donnees.get('fiche') ?? '')
-  const r = await recruteur(ficheSlug)
+  const geste0 = String(donnees.get('geste') ?? '')
+  // Remettre une offre en ligne demande le palier Ambassadeur ; la confirmer, la clore ou la retirer, non.
+  const r = await recruteur(ficheSlug, geste0 === 'republier')
   const q = r?.espace.autres.length ? `?fiche=${encodeURIComponent(r.espace.fiche.slug)}` : ''
   if (!r) redirect(chemin('/espace-pro/'))
   const id = String(donnees.get('offre') ?? '')
@@ -157,5 +169,8 @@ export async function agirSurOffre(donnees: FormData): Promise<never> {
   if (!requete) redirect(chemin(`/espace-pro/emploi/${q}`))
   const { rows } = await db.execute<{ slug: string }>(requete)
   if (rows[0]) invalider(rows[0].slug, r.espace.fiche.slug)
-  redirect(chemin(`/espace-pro/emploi/${q}${q ? '&' : '?'}fait=${encodeURIComponent(geste)}`))
+  // Depuis la page d'une offre, on y revient ; sinon, la liste.
+  const retour = String(donnees.get('retour') ?? '')
+  const page = /^\/espace-pro\/emploi\/[\w-]+\/$/.test(retour) ? retour : '/espace-pro/emploi/'
+  redirect(chemin(`${page}${q}${q ? '&' : '?'}fait=${encodeURIComponent(geste)}`))
 }

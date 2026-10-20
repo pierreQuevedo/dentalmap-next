@@ -22,7 +22,10 @@ export type ValeursOffre = {
   min: number | null
   max: number | null
   lieuId: string | null
-  description: string
+  /** Le premier paragraphe de la description, en tête de « Le poste ». */
+  presentation: string
+  /** Les missions, une par ligne : la liste numérotée de la page publique. */
+  missions: string
   profil: string | null
   avantages: string[]
 }
@@ -42,7 +45,7 @@ export function FormulaireOffre({ fiche, fermer, lieux, valeurs }: { fiche: stri
   const [tempsPlein, setTempsPlein] = useState(valeurs.tempsPlein)
   const [metier, setMetier] = useState<CodeMetier>(valeurs.metier)
   const [titre, setTitre] = useState(valeurs.titre)
-  const [description, setDescription] = useState(valeurs.description)
+  const [presentation, setPresentation] = useState(valeurs.presentation)
   const pourcent = enPourcentage(contrat)
   const stage = modeDuContrat(contrat) === 'gratification'
   const avecFin = contrat === 'cdd' || contrat === 'remplacement' || contrat === 'stage'
@@ -180,22 +183,36 @@ export function FormulaireOffre({ fiche, fermer, lieux, valeurs }: { fiche: stri
         </label>
 
         <label className="block">
-          <span className={etiquette}>Description</span>
+          <span className={etiquette}>Présentation du poste</span>
           <textarea
-            name="description"
-            rows={6}
-            maxLength={1500}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Le cabinet, l’équipe, les missions du poste…"
-            className={`${champ} resize-y ${invalide('description')}`}
+            name="presentation"
+            rows={4}
+            maxLength={700}
+            value={presentation}
+            onChange={(e) => setPresentation(e.target.value)}
+            placeholder="Le cabinet, l’équipe, l’ambiance : ce qui donne envie de postuler."
+            className={`${champ} resize-y ${invalide('presentation')}`}
           />
-          <span className={`mt-1 block text-right text-xs ${description.trim().length < 100 ? 'text-fg-2' : 'text-teal'}`}>{description.trim().length} / 1 500 caractères, 100 au moins</span>
+          <span className={`mt-1 block text-right text-xs ${presentation.trim().length < 80 ? 'text-fg-2' : 'text-teal'}`}>{presentation.trim().length} / 700 caractères, 80 au moins</span>
+        </label>
+
+        <label className="block">
+          <span className={etiquette}>Missions</span>
+          <textarea
+            name="missions"
+            rows={4}
+            maxLength={800}
+            defaultValue={valeurs.missions}
+            placeholder={'Une mission par ligne :\nAssistance au fauteuil\nStérilisation et hygiène\nAccueil des patients'}
+            className={`${champ} resize-y ${invalide('missions')}`}
+          />
+          <span className="mt-1 block text-xs text-fg-2">Une par ligne : la page de l’offre en fait une liste numérotée.</span>
         </label>
 
         <label className="block">
           <span className={etiquette}>Profil recherché</span>
-          <textarea name="profil" rows={3} maxLength={800} defaultValue={valeurs.profil ?? ''} placeholder="Facultatif : diplôme, expérience, qualités…" className={`${champ} resize-y`} />
+          <textarea name="profil" rows={3} maxLength={800} defaultValue={valeurs.profil ?? ''} placeholder={'Un point par ligne :\nDiplôme d’assistant(e) dentaire\nDeux ans d’expérience\nSens du contact'} className={`${champ} resize-y`} />
+          <span className="mt-1 block text-xs text-fg-2">Un point par ligne. Facultatif.</span>
         </label>
 
         <fieldset>

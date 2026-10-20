@@ -31,7 +31,7 @@ export const PALIERS: Palier[] = [
   { niveau: 1, nom: 'Fiche publiée', seuil: 30, gains: ['Visible dans l’annuaire et sur Google', 'Pastille « Gérée par le praticien »'], bonus: 0 },
   { niveau: 2, nom: 'Fiche complète', seuil: 70, gains: ['Tous les filtres patients ouverts', 'Visuels pour les réseaux'], bonus: 0 },
   { niveau: 3, nom: 'Fiche exemplaire', seuil: 100, gains: ['Distinction « Fiche exemplaire »', 'Visuels aux couleurs Exemplaire'], bonus: 0 },
-  { niveau: 4, nom: 'Ambassadeur', seuil: 160, gains: ['+5 points de mise en avant tant que le palier est tenu', 'Vos stories repartagées par @dentalmap.fr'], bonus: 5 },
+  { niveau: 4, nom: 'Ambassadeur', seuil: 160, gains: ['+5 points de mise en avant tant que le palier est tenu', 'Publier des offres d’emploi'], bonus: 5 },
   { niveau: 5, nom: 'Référence locale', seuil: 220, gains: ['+10 points de mise en avant tant que le palier est tenu', 'Mise en avant dans les contenus DentalMap de votre ville'], bonus: 10 },
 ]
 
@@ -87,6 +87,9 @@ export function pointsDe(a: Activite): Points {
   }
   return { total: Object.values(detail).reduce((t, v) => t + v, 0), detail, verifiee: a.verifiee ?? true }
 }
+
+/** Publier des offres d'emploi : le gain du palier Ambassadeur. */
+export const PALIER_EMPLOI = 4
 
 /** Le bonus de classement d'un total de points : celui du palier tenu. */
 export function bonusPalier(points: number): number {

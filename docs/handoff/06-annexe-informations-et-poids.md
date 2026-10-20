@@ -115,7 +115,7 @@ Le barème de 100 points ci-dessus reste inchangé : les nouvelles missions comp
 
 ## Partager et parrainer (tous profils)
 
-Écran « Partager et parrainer » de l'espace pro (rubrique Visibilité). Le partage ne rapporte pas de points de force, mais des points de progression (`src/lib/espace-pro/progression.ts`) : lien Google vérifié +20, badge du site +15, partage sur les réseaux +10, parrainage réussi +25 (trois au plus), aucune information expirée +10, en plus d'un point par pour cent de force. Paliers : Fiche publiée 30, Fiche complète 70 (visuels réseaux), Fiche exemplaire 100 (visuels aux couleurs du palier), Ambassadeur 160 (+5 au classement, stories repartagées par @dentalmap.fr), Référence locale 220 (+10 au classement, mise en avant dans les contenus de la ville).
+Écran « Partager et parrainer » de l'espace pro (rubrique Visibilité). Le partage ne rapporte pas de points de force, mais des points de progression (`src/lib/espace-pro/progression.ts`) : lien Google vérifié +20, badge du site +15, partage sur les réseaux +10, parrainage réussi +25 (trois au plus), aucune information expirée +10, en plus d'un point par pour cent de force. Paliers : Fiche publiée 30, Fiche complète 70 (visuels réseaux), Fiche exemplaire 100 (visuels aux couleurs du palier), Ambassadeur 160 (+5 au classement, publication d'offres d'emploi), Référence locale 220 (+10 au classement, mise en avant dans les contenus de la ville).
 
 | Action | Importance | Effet sur la présence | Où |
 |---|---|---|---|
