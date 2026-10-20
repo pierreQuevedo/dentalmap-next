@@ -52,6 +52,7 @@ export type CleNav =
   | 'partager'
   | 'statistiques'
   | 'progression'
+  | 'emploi'
   | 'registre'
   | 'distinctions'
   | 'compte'
@@ -164,7 +165,7 @@ function navigation(c: InfosCoque): { groupe: string | null; items: Entree[] }[]
           { cle: 'zone', libelle: 'Zone et logistique', i: Route, href: h('zone') },
           { cle: 'realisations', libelle: 'Réalisations', i: Images, href: h('realisations') },
           { cle: 'conformite', libelle: 'Conformité', i: FileCheck2, href: h('conformite') },
-          { cle: 'emploi', libelle: 'Emploi', i: Briefcase, bientot: true },
+          { cle: 'emploi', libelle: 'Emploi', i: Briefcase, href: h('emploi') },
         ],
       },
       {
@@ -191,7 +192,7 @@ function navigation(c: InfosCoque): { groupe: string | null; items: Entree[] }[]
         { cle: 'vue', libelle: 'Vue d’ensemble', i: LayoutGrid, href: h('') },
         { cle: 'fiche', libelle: 'Ma fiche', i: FileText, href: h('fiche') },
         { cle: 'progression', libelle: 'Progression', i: Sparkles, href: h('progression'), badge: c.missionsRestantes },
-        { cle: 'emploi', libelle: 'Emploi', i: Briefcase, bientot: true },
+        { cle: 'emploi', libelle: 'Emploi', i: Briefcase, href: h('emploi') },
       ],
     },
     {
