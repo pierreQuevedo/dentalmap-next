@@ -23,7 +23,7 @@ import { recruteur } from './recruteur'
 export type EtatCandidature = { erreur?: string; champ?: string } | null
 
 const PAGE_RECRUTEUR = '/espace-pro/emploi/candidatures/'
-const PAGE_CANDIDAT = '/espace-candidat/candidatures/'
+const PAGE_CANDIDAT = '/espace-pro/emploi/mes-candidatures/'
 
 /* ------------------------------------------------------------------ */
 /* Candidat                                                             */

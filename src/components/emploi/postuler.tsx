@@ -60,7 +60,7 @@ export async function TiroirPostuler({ o, etat }: { o: OffreDetail; etat: string
                   recevez un email s’il vous propose un échange.
                 </p>
               </div>
-              <Link href={chemin('/espace-candidat/candidatures/')} className="inline-flex h-11 items-center rounded-full bg-fg px-5 text-sm font-semibold text-bg">
+              <Link href={chemin('/espace-pro/emploi/mes-candidatures/')} className="inline-flex h-11 items-center rounded-full bg-fg px-5 text-sm font-semibold text-bg">
                 Voir mes candidatures
               </Link>
             </div>

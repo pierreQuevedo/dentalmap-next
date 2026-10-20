@@ -5,7 +5,8 @@ import { chemin } from '@/lib/navigation'
 export const instant = false
 
 /** L'entrée de l'onboarding laboratoire : LO0, la fiche gardée. */
-export default async function Page(props: { searchParams: Promise<{ fiche?: string }> }) {
-  const { fiche } = await props.searchParams
-  redirect(chemin(`/espace-pro/laboratoire/onboarding/recuperation/${fiche ? `?fiche=${encodeURIComponent(fiche)}` : ''}`))
+export default async function Page(props: { searchParams: Promise<{ fiche?: string; demande?: string }> }) {
+  const { fiche, demande } = await props.searchParams
+  const q = new URLSearchParams({ ...(fiche ? { fiche } : {}), ...(demande ? { demande: '1' } : {}) }).toString()
+  redirect(chemin(`/espace-pro/laboratoire/onboarding/recuperation/${q ? `?${q}` : ''}`))
 }

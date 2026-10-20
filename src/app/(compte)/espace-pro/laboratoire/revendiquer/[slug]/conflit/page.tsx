@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { ShieldCheck } from 'lucide-react'
 import { ChoixVoies } from '@/components/compte/choix'
 import { Encart, Etapes, FicheResume, Pictogramme, cadre, discret, titre } from '@/components/compte/ui'
+import { chemin } from '@/lib/navigation'
 import { demanderInvitation } from '@/lib/espace-pro/actions-revendication'
 import { sirenDe } from '@/lib/espace-pro/parcours'
-import { CoquilleParcours, adresseDe, ficheOu404, garde, nomDe } from '@/app/(compte)/espace-pro/revendiquer/_commun'
+import { CoquilleParcours, adresseDe, dejaEngage, ficheOu404, garde, nomDe } from '@/app/(compte)/espace-pro/revendiquer/_commun'
 import { LABO, libelleSiren, versLabo } from '@/app/(compte)/espace-pro/laboratoire/_commun'
 
 export const metadata: Metadata = { title: 'Ce laboratoire est déjà géré', robots: { index: false, follow: false } }
@@ -20,6 +22,10 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   const { invitation } = await props.searchParams
   const compte = await garde(`${LABO}/${slug}/conflit/`, 'prothesiste')
   const fiche = await ficheOu404(slug, compte)
+  const deja = dejaEngage(fiche)
+  if (deja) redirect(chemin(deja))
+  // Comme C1 côté dentiste : sans titulaire, il n'y a pas de conflit, on revient au rôle.
+  if (!fiche.gereeParUnAutre) redirect(chemin(versLabo(fiche.slug)))
   const siren = await sirenDe(fiche.id)
   return (
     <CoquilleParcours profession="prothesiste" fiche={fiche} etiquette="Gérée par un autre compte" retour={`${LABO}/`} libelleRetour="Retour">

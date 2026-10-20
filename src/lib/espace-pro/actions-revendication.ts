@@ -123,15 +123,22 @@ export async function deposerJustificatif(donnees: FormData): Promise<never> {
       motif_refus = NULL, commentaire_refus = NULL, traite_le = NULL, demande_le = now()
   `)
   const nom = nomAffiche(fiche)
-  await Promise.all([
-    envoyerRevendicationRecue(compte.email, nom, objet, fiche.gereeParUnAutre),
-    ...(gerantEmail ? [envoyerMandatAuGerant(gerantEmail, nom, compte.nom || compte.email)] : []),
-    envoyerAModerer(
-      `${objet === 'retrait' ? 'retrait' : 'justificatif'} pour ${nom}`,
-      `Le compte ${compte.email} a déposé ${role === 'mandate' ? 'un Kbis et un mandat' : role === 'gerant' ? 'un Kbis' : 'un justificatif'} (${nomFichier}) pour ${objet === 'retrait' ? 'retirer' : 'revendiquer'} la fiche ${nom}${fiche.gereeParUnAutre ? ', déjà gérée par un autre compte (contestation, 7 jours)' : ''}. À examiner sous 48 heures ouvrées.`,
-    ),
-  ])
-  redirect(chemin(`${REVENDIQUER}/suivi/?fiche=${encodeURIComponent(fiche.slug)}`))
+  try {
+    await Promise.all([
+      envoyerRevendicationRecue(compte.email, nom, objet, fiche.gereeParUnAutre),
+      ...(gerantEmail ? [envoyerMandatAuGerant(gerantEmail, nom, compte.nom || compte.email)] : []),
+      envoyerAModerer(
+        `${objet === 'retrait' ? 'retrait' : 'justificatif'} pour ${nom}`,
+        `Le compte ${compte.email} a déposé ${role === 'mandate' ? 'un Kbis et un mandat' : role === 'gerant' ? 'un Kbis' : 'un justificatif'} (${nomFichier}) pour ${objet === 'retrait' ? 'retirer' : 'revendiquer'} la fiche ${nom}${fiche.gereeParUnAutre ? ', déjà gérée par un autre compte (contestation, 7 jours)' : ''}. À examiner sous 48 heures ouvrées.`,
+      ),
+    ])
+  } catch (e) {
+    console.error('[revendication] courriel du Kbis', e)
+  }
+  // Comme côté dentiste, rien ne bloque : le laboratoire enchaîne sur sa fiche, en brouillon jusqu'à l'accord.
+  // Un retrait, ou une contestation (la fiche a déjà un titulaire), attend la décision.
+  const attendre = objet === 'retrait' || fiche.gereeParUnAutre
+  redirect(chemin(attendre ? `${REVENDIQUER}/suivi/?fiche=${encodeURIComponent(fiche.slug)}` : `/espace-pro/laboratoire/onboarding/?fiche=${encodeURIComponent(fiche.slug)}&demande=1`))
 }
 
 /* ------------------------------------------------------------------ */

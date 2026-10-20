@@ -609,7 +609,7 @@ export async function envoyerEchangePropose(to: string, recruteur: string, offre
       { type: 'texte', texte: `${recruteur} a lu votre candidature à l’offre « ${offre} » et vous écrit :` },
       { type: 'encart', texte: message },
       { type: 'champs', lignes: creneaux.map((c, i): [string, string] => [`Créneau ${i + 1}`, c]) },
-      { type: 'bouton', libelle: 'Choisir un créneau', url: `${SITE}/espace-candidat/candidatures/` },
+      { type: 'bouton', libelle: 'Choisir un créneau', url: `${SITE}/espace-pro/emploi/mes-candidatures/` },
       { type: 'texte', texte: 'Vos coordonnées ne sont partagées que si vous acceptez. Sans réponse ou en cas de refus, rien n’est transmis.' },
     ],
     raison: 'Vous recevez cet email parce que vous avez postulé à une offre d’emploi sur DentalMap.',

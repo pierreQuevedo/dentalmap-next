@@ -1,14 +1,13 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { Eye, GraduationCap, Inbox, UserRound } from 'lucide-react'
+import { Eye, GraduationCap, UserRound } from 'lucide-react'
 import { FilAriane } from '@/components/annuaire/primitives'
 import { chemin } from '@/lib/navigation'
 import { EMPLOI } from '@/lib/emploi/chemins'
 
-export type CleCandidat = 'candidatures' | 'profil' | 'formation' | 'visibilite'
+export type CleCandidat = 'profil' | 'formation' | 'visibilite'
 
-const ONGLETS: { cle: CleCandidat; libelle: string; href: string; I: typeof Inbox; etudiant?: true }[] = [
-  { cle: 'candidatures', libelle: 'Candidatures', href: '/espace-candidat/candidatures/', I: Inbox },
+const ONGLETS: { cle: CleCandidat; libelle: string; href: string; I: typeof Eye; etudiant?: true }[] = [
   { cle: 'profil', libelle: 'Mon profil', href: '/espace-candidat/profil/', I: UserRound },
   { cle: 'formation', libelle: 'Ma formation', href: '/espace-candidat/profil/#formation', I: GraduationCap, etudiant: true },
   { cle: 'visibilite', libelle: 'Visibilité', href: '/espace-candidat/visibilite/', I: Eye },

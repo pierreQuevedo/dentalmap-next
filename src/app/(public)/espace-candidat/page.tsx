@@ -5,9 +5,9 @@ import { exigerConnexion } from '@/lib/tunnel/compte'
 
 export const instant = false
 
-/** L'entrée de l'espace candidat : le parcours de bienvenue la première fois, les candidatures ensuite. */
+/** L'entrée de l'espace candidat : le parcours de bienvenue la première fois, le profil ensuite. */
 export default async function Page() {
   const compte = await exigerConnexion('/espace-candidat/')
   const profil = await getProfilCandidat(compte.id)
-  redirect(chemin(profil?.termine ? '/espace-candidat/candidatures/' : '/espace-candidat/bienvenue/situation/'))
+  redirect(chemin(profil?.termine ? '/espace-candidat/profil/' : '/espace-candidat/bienvenue/situation/'))
 }
