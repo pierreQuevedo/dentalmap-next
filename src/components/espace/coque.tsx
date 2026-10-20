@@ -96,11 +96,14 @@ export type InfosCoque = {
   etablissement?: 'ecole_prothese' | 'faculte'
   /** Identité pas encore vérifiée : bandeau « brouillon » en tête de chaque page. */
   enVerification?: boolean
+  /** Un compte sans fiche (salarié, étudiant, patient) : l'espace se réduit à l'Emploi, côté candidat. */
+  candidat?: boolean
   /** Points et palier de la fiche (dentiste, laboratoire) : la carte du menu, l'encart de gain, le passage de palier. */
   progression?: { points: Points; lon: number | null; lat: number | null; carte: CarteAMontrer }
 }
 
 function navigation(c: InfosCoque): { groupe: string | null; items: Entree[] }[] {
+  if (c.candidat) return [{ groupe: null, items: [{ cle: 'emploi', libelle: 'Emploi', i: Briefcase, href: '/espace-pro/emploi/mes-candidatures/' }] }]
   const q = c.plusieursFiches ? `?fiche=${encodeURIComponent(c.slug)}` : ''
   const h = (p: string) => `/espace-pro/${p}${p ? '/' : ''}${q}`
   const compte: Entree[] = [
@@ -306,7 +309,7 @@ export function CoqueEspace({
   )
   // Dentiste et laboratoire : la progression remplace l'état de la fiche (la mise en ligne est annoncée par email).
   const q = c.plusieursFiches ? `?fiche=${encodeURIComponent(c.slug)}` : ''
-  const carteMenu = c.progression ? (
+  const carteMenu = c.candidat ? null : c.progression ? (
     <CarteProgression points={c.progression.points} distinctions={`/espace-pro/progression/${q}`} q={q} />
   ) : (
     carteEnLigne
@@ -338,7 +341,7 @@ export function CoqueEspace({
             <Deconnexion />
           </div>
         </div>
-        <div className="mt-6">{carteMenu}</div>
+        {carteMenu && <div className="mt-6">{carteMenu}</div>}
       </aside>
       <main className="min-w-0 flex-1 px-4 pb-24 pt-3 sm:px-8 sm:pb-10">
         <MenuMobile className="group -mx-4 -mt-3 mb-3 border-b border-line bg-bg-soft lg:hidden">

@@ -9,8 +9,7 @@ import { STATUT_CANDIDAT, STATUT_RECRUTEUR, libelleCreneau } from '@/lib/emploi/
 import { getCandidaturesEnvoyees } from '@/lib/emploi/candidatures-donnees'
 import { getProfilCandidat } from '@/lib/emploi/candidat-donnees'
 import { cheminOffre } from '@/lib/emploi/chemins'
-import { getCompte } from '@/lib/tunnel/compte'
-import { chargerTableau } from '../../_commun'
+import { chargerEmploi } from '../../_commun'
 
 export const metadata: Metadata = { title: 'Mes candidatures', robots: { index: false, follow: false } }
 export const instant = false
@@ -29,8 +28,7 @@ const MESSAGES: Record<string, string> = {
  */
 export default async function Page(props: { searchParams: Promise<{ fiche?: string; fait?: string }> }) {
   const sp = await props.searchParams
-  const { coque, q } = await chargerTableau('emploi', sp.fiche, 'mes-candidatures')
-  const compte = (await getCompte())!
+  const { compte, coque, q, espace } = await chargerEmploi('mes-candidatures', sp.fiche)
   const [candidatures, profil] = await Promise.all([getCandidaturesEnvoyees(compte.id), getProfilCandidat(compte.id)])
 
   return (
@@ -40,7 +38,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       titre="Emploi"
       sousTitre={candidatures.length === 0 ? 'Les offres auxquelles vous postulez, avec la réponse des recruteurs' : `${candidatures.length} candidature${candidatures.length > 1 ? 's' : ''} envoyée${candidatures.length > 1 ? 's' : ''}`}
     >
-      <OngletsEmploi actif="mes" q={q} />
+      <OngletsEmploi actif="mes" q={q} sansFiche={!espace} />
       <SousOngletsCandidat actif="candidatures" q={q} />
       {!profil?.termine && (
         <div className="squircle-2xl mb-4 flex flex-wrap items-center justify-between gap-4 border border-teal/30 bg-teal/[0.06] p-5">

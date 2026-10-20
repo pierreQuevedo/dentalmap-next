@@ -65,8 +65,8 @@ export function EmploiVerrouille({ reste, q }: { reste: number; q: string }) {
   )
 }
 
-/** Les usages de l'onglet Emploi : créer un poste (ses offres), en rechercher un, suivre ses candidatures. */
-export function OngletsEmploi({ actif, q }: { actif: 'creer' | 'rechercher' | 'mes'; q: string }) {
+/** Les usages de l'onglet Emploi : créer un poste (ses offres), en rechercher un, suivre ses candidatures. Sans fiche, pas de « Créer un poste ». */
+export function OngletsEmploi({ actif, q, sansFiche = false }: { actif: 'creer' | 'rechercher' | 'mes'; q: string; sansFiche?: boolean }) {
   const onglets = [
     { cle: 'creer', libelle: 'Créer un poste', href: `/espace-pro/emploi/${q}`, I: Megaphone },
     { cle: 'rechercher', libelle: 'Rechercher un poste', href: `/espace-pro/emploi/recherche/${q}`, I: Search },
@@ -74,7 +74,7 @@ export function OngletsEmploi({ actif, q }: { actif: 'creer' | 'rechercher' | 'm
   ] as const
   return (
     <nav aria-label="Emploi" className="squircle-full mb-4 flex w-full bg-bg-soft p-1 sm:inline-flex sm:w-auto">
-      {onglets.map(({ cle, libelle, href, I }) => (
+      {onglets.filter((o) => !sansFiche || o.cle !== 'creer').map(({ cle, libelle, href, I }) => (
         <Link
           key={cle}
           href={chemin(href)}

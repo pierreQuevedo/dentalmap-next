@@ -10,7 +10,8 @@ import { empriseOffres } from '@/lib/emploi/carte'
 import { filtrerOffres, lireFiltres, urlFiltres, type RechercheEmploi } from '@/lib/emploi/filtres'
 import { METIERS, metierDepuisSlug, type CodeContrat } from '@/lib/emploi/metiers'
 import { getOffresRayon } from '@/lib/emploi/queries'
-import { chargerTableau } from '../../_commun'
+import { getProfilCandidat } from '@/lib/emploi/candidat-donnees'
+import { chargerEmploi } from '../../_commun'
 
 export const metadata: Metadata = { title: 'Rechercher un poste', robots: { index: false, follow: false } }
 export const instant = false
@@ -27,13 +28,15 @@ const ACTION = '/espace-pro/emploi/recherche/'
  */
 export default async function Page(props: { searchParams: Promise<RechercheEmploi & { fiche?: string; metier?: string; commune?: string; rayon?: string }> }) {
   const sp = await props.searchParams
-  const { espace, coque, q } = await chargerTableau('emploi', sp.fiche, 'recherche')
-  const { fiche } = espace
+  const { compte, espace, coque, q } = await chargerEmploi('recherche', sp.fiche)
   const f = lireFiltres(sp)
   const metier = sp.metier ? metierDepuisSlug(sp.metier) : null
   const rayonKm = RAYONS.find((r) => String(r) === sp.rayon) ?? 20
-  const lieu = fiche.lieux.find((l) => l.principal && l.lon != null) ?? fiche.lieux.find((l) => l.lon != null)
-  const commune = sp.commune && /^\w{5}$/.test(sp.commune) ? await getCommuneParCode(sp.commune) : null
+  const lieux = espace?.fiche.lieux ?? []
+  const lieu = lieux.find((l) => l.principal && l.lon != null) ?? lieux.find((l) => l.lon != null)
+  // Sans fiche, la ville du profil candidat sert de point de départ.
+  const codeCommune = sp.commune && /^\w{5}$/.test(sp.commune) ? sp.commune : !lieu ? (await getProfilCandidat(compte.id))?.criteres.commune : undefined
+  const commune = codeCommune ? await getCommuneParCode(codeCommune) : null
   const centre = commune?.lon != null && commune.lat != null ? { lon: commune.lon, lat: commune.lat } : lieu?.lon != null && lieu.lat != null ? { lon: lieu.lon, lat: lieu.lat } : null
   const ici = commune ? commune.nom : lieu?.communeNom ? `Mon cabinet, ${lieu.communeNom}` : 'Mon cabinet'
 
@@ -52,7 +55,7 @@ export default async function Page(props: { searchParams: Promise<RechercheEmplo
 
   return (
     <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Rechercher un poste près de chez vous, ou ailleurs">
-      <OngletsEmploi actif="rechercher" q={q} />
+      <OngletsEmploi actif="rechercher" q={q} sansFiche={!espace} />
 
       <Tuile>
         <form action={chemin(ACTION)} method="get" className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_8rem_auto] md:items-end">
@@ -71,7 +74,7 @@ export default async function Page(props: { searchParams: Promise<RechercheEmplo
           </label>
           <div>
             <span className="mb-1.5 block text-sm font-medium text-fg">Autour de</span>
-            <ChampCommune code={commune?.codeInsee ?? null} libelle={commune?.nom ?? ''} cabinet={lieu?.communeNom ? `Mon cabinet, ${lieu.communeNom}` : 'Mon cabinet'} />
+            <ChampCommune code={commune?.codeInsee ?? null} libelle={commune?.nom ?? ''} cabinet={lieu ? (lieu.communeNom ? `Mon cabinet, ${lieu.communeNom}` : 'Mon cabinet') : undefined} />
           </div>
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-fg">Rayon</span>

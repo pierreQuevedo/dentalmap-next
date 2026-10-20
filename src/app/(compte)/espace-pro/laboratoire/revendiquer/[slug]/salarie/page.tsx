@@ -12,7 +12,7 @@ export const instant = false
 /**
  * LINFO : le prothésiste salarié ne gère pas la fiche du laboratoire. Aucune
  * revendication, aucun lien avec l'espace du laboratoire : il est invité à
- * créer son propre compte (l'espace candidat).
+ * créer son profil candidat, dans l'Emploi de l'espace pro.
  */
 export default async function Page(props: { params: Promise<{ slug: string }> }) {
   const { slug } = await props.params
@@ -25,7 +25,7 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
       <p className="mt-2 text-sm text-fg-2">
         La fiche est celle du laboratoire : c’est le gérant, ou un salarié qu’il mandate, qui la gère. Vous pouvez créer votre propre compte de prothésiste salarié.
       </p>
-      <Link href={chemin('/espace-candidat/')} className={`${principal} mt-6`}>
+      <Link href={chemin('/espace-pro/emploi/bienvenue/situation/')} className={`${principal} mt-6`}>
         Créer mon compte
         <ArrowRight className="size-4" aria-hidden />
       </Link>

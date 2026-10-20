@@ -75,3 +75,39 @@ export function quand(date: string | Date | null): string {
   if (jours < 7) return `Il y a ${jours} jours`
   return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', timeZone: 'Europe/Paris' })
 }
+
+/**
+ * Les pages candidat de l'Emploi (candidatures envoyées, profil candidat,
+ * visibilité, bienvenue, recherche) : ouvertes à tout compte connecté, avec
+ * ou sans fiche. Une fiche prête donne l'espace complet ; sinon, un espace
+ * réduit à l'Emploi, sans revendication ni onboarding imposés.
+ */
+export type TableauEmploi = { compte: Compte; espace: Espace | null; coque: InfosCoque; q: string }
+
+export async function chargerEmploi(sousPage: string, slug?: string): Promise<TableauEmploi> {
+  const ici = `/espace-pro/emploi/${sousPage}/${slug ? `?fiche=${encodeURIComponent(slug)}` : ''}`
+  const compte = await getCompte()
+  if (!compte) redirect(chemin(`/connexion/?retour=${encodeURIComponent(ici)}`))
+  const espace = compte.role === 'dentiste' || compte.role === 'prothesiste' ? await getEspace(compte, slug) : null
+  if (espace && (espace.completee?.termineLe || espace.fiche.demande?.statut === 'refusee')) {
+    const t = await chargerTableau('emploi', slug, sousPage)
+    return { compte: t.compte, espace: t.espace, coque: t.coque, q: t.q }
+  }
+  const mots = (compte.nom ?? '').split(/\s+/).filter(Boolean)
+  const coque: InfosCoque = {
+    mono: ((mots[0]?.[0] ?? '') + (mots.length > 1 ? mots[mots.length - 1][0] : '')).toUpperCase() || 'DM',
+    nom: compte.nom || compte.email,
+    ligne2: 'Espace candidat',
+    pagePublique: null,
+    enLigne: false,
+    missionsRestantes: 0,
+    aReconfirmer: 0,
+    moderateur: estModerateur(compte.email),
+    slug: '',
+    plusieursFiches: false,
+    labo: false,
+    delaisAReconfirmer: false,
+    candidat: true,
+  }
+  return { compte, espace: null, coque, q: '' }
+}

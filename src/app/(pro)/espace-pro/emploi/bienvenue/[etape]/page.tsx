@@ -8,8 +8,7 @@ import { getProfilCandidat } from '@/lib/emploi/candidat-donnees'
 import { getEcoles } from '@/lib/emploi/ecoles'
 import { LIBELLE_CONTRAT } from '@/lib/emploi/metiers'
 import { TITRES_ETAPE, VISIBILITES, etapesBienvenue, libelleQualification, lireCriteres, mobilite, situationDe } from '@/lib/emploi/profil-candidat'
-import { getCompte } from '@/lib/tunnel/compte'
-import { chargerTableau } from '../../../_commun'
+import { chargerEmploi } from '../../../_commun'
 
 export const metadata: Metadata = { title: 'Votre profil candidat', robots: { index: false, follow: false } }
 export const instant = false
@@ -30,9 +29,8 @@ const INTRO: Record<string, string> = {
 export default async function Page(props: { params: Promise<{ etape: string }>; searchParams: Promise<{ fiche?: string; retour?: string }> }) {
   const { etape } = await props.params
   const { retour: r, fiche } = await props.searchParams
-  const { coque, q } = await chargerTableau('emploi', fiche, `bienvenue/${etape}`)
+  const { compte, coque, q, espace } = await chargerEmploi(`bienvenue/${etape}`, fiche)
   const retour = r && /^\/[\w\-/]*(\?[\w=&%-]*)?$/.test(r) && !r.startsWith('//') ? r : null
-  const compte = (await getCompte())!
   const profil = await getProfilCandidat(compte.id)
   const etapes = etapesBienvenue(profil?.situation ?? null)
   if (!(etapes as string[]).includes(etape)) notFound()
@@ -44,7 +42,7 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
 
   return (
     <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Votre profil candidat, en cinq étapes">
-      <OngletsEmploi actif="mes" q={q} />
+      <OngletsEmploi actif="mes" q={q} sansFiche={!espace} />
       <div className="max-w-2xl">
       <div className="mt-2 flex items-center gap-1.5" aria-hidden>
         {etapes.map((x, i) => (

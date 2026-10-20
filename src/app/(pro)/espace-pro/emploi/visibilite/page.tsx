@@ -10,8 +10,7 @@ import { nomAffiche, type Profession } from '@/lib/annuaire/types'
 import { enregistrerVisibilite, masquerStructure } from '@/lib/emploi/actions-candidat'
 import { getProfilCandidat } from '@/lib/emploi/candidat-donnees'
 import { VISIBILITES } from '@/lib/emploi/profil-candidat'
-import { getCompte } from '@/lib/tunnel/compte'
-import { chargerTableau } from '../../_commun'
+import { chargerEmploi } from '../../_commun'
 
 export const metadata: Metadata = { title: 'Visibilité', robots: { index: false, follow: false } }
 export const instant = false
@@ -46,8 +45,7 @@ async function chercherStructures(q: string) {
  */
 export default async function Page(props: { searchParams: Promise<{ fiche?: string; fait?: string; q?: string }> }) {
   const sp = await props.searchParams
-  const { coque, q } = await chargerTableau('emploi', sp.fiche, 'visibilite')
-  const compte = (await getCompte())!
+  const { compte, coque, q, espace } = await chargerEmploi('visibilite', sp.fiche)
   const profil = await getProfilCandidat(compte.id)
   if (!profil) redirect(chemin('/espace-pro/emploi/bienvenue/situation/'))
   const resultats = sp.q ? await chercherStructures(sp.q) : []
@@ -55,7 +53,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
 
   return (
     <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Visibilité de votre profil candidat : qui peut vous trouver et vous proposer un échange">
-      <OngletsEmploi actif="mes" q={q} />
+      <OngletsEmploi actif="mes" q={q} sansFiche={!espace} />
       <SousOngletsCandidat actif="visibilite" q={q} />
       {sp.fait && MESSAGES[sp.fait] && (
         <p role="status" className="squircle-xl mb-4 flex items-center gap-2 bg-teal/10 px-4 py-3 text-sm text-teal">
