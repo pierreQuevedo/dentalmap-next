@@ -947,13 +947,12 @@ Lecture : **Objectif** dit pourquoi l'écran existe, **Règles** ce qui doit êt
 - Route : `/espace-pro/laboratoire/revendiquer/[praticienId]/conflit`
 - Figma : [desktop](https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4408) · [mobile](https://www.figma.com/design/oxe3W5vGaT9QEYH6ur6Z3p/Dentalmaps?node-id=80-4450)
 - Action principale : « Envoyer un extrait Kbis »
-- Action secondaire : « Demander une invitation »
+- Action secondaire : aucune (« Demander une invitation » retirée le 2026-10-21 : pas de lien avec l'espace du laboratoire, comme LINFO)
 - Objectif : Résoudre un conflit sur une fiche laboratoire.
-- Règles : Kbis obligatoire, délai de réponse de 7 jours.
+- Règles : Kbis obligatoire (PDF), délai de réponse de 7 jours.
 - Données : Écrit : contestation.
 - Sorties :
   - → **KL** : Kbis envoyé
-  - → **Invitation** : demande transmise au titulaire
 
 
 ## Onboarding de complétion, laboratoire

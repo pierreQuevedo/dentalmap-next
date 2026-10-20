@@ -9,8 +9,8 @@ import { db } from '@/db'
 import { chemin } from '@/lib/navigation'
 import { pscOuvert } from '@/lib/psc/config'
 import { REVENDIQUER, apresAccord, dateLongue, echeanceOuvree } from '@/lib/espace-pro/chemins'
-import { getFicheRevendication } from '@/lib/espace-pro/parcours'
-import { CoquilleParcours, garde, pageFiche, versFiche, voiesIdentite } from '../_commun'
+import { getFicheRevendication, sirenDe } from '@/lib/espace-pro/parcours'
+import { CoquilleParcours, garde, nomDe, pageFiche, versFiche, voiesIdentite } from '../_commun'
 
 export const metadata: Metadata = { title: 'Suivi de votre demande', robots: { index: false, follow: false } }
 export const instant = false
@@ -52,6 +52,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
 
   if (d.statut === 'refusee') {
     const psc = pscOuvert() && fiche.rpps !== null && !labo
+    // « Écrire à l'équipe » ouvre « Mon laboratoire » avec le nom et le SIREN déjà saisis.
+    const siren = labo ? await sirenDe(fiche.id) : null
     return (
       <CoquilleParcours
         fiche={fiche}
@@ -77,7 +79,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                   ]
                 : voiesIdentite(fiche, { psc, retrait })
             }
-            secondaire={labo ? { libelle: 'Écrire à l’équipe', href: '/contact/?objet=laboratoire' } : undefined}
+            secondaire={labo ? { libelle: 'Écrire à l’équipe', href: `/contact/?${new URLSearchParams({ objet: 'laboratoire', laboratoire: nomDe(fiche), ...(siren ? { siren } : {}) })}` } : undefined}
           />
         </div>
       </CoquilleParcours>

@@ -112,7 +112,8 @@ export function VoletCarte({
           </div>
         )}
         {fiche && (
-          <div className="pointer-events-none w-[19.25rem] [&>div>ul>li]:min-h-[24rem]">
+          // La carte d'un laboratoire, sans horaires ni conventionnement, est plus courte : pas de hauteur imposée, pas de vide en bas.
+          <div className={`pointer-events-none w-[19.25rem] ${profession === 'prothesiste' ? '' : '[&>div>ul>li]:min-h-[24rem]'}`}>
             <div className="relative">
               {etiquette && (
                 <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1 rounded-full bg-bg/90 px-2 py-0.5 text-xs font-medium text-fg shadow-pill backdrop-blur">

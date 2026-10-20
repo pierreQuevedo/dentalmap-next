@@ -66,7 +66,7 @@ Tenu à jour par Claude Code. Statuts : à faire, en cours, fait, bloqué, retir
 | LREF | Kbis refusé | G | fait | fait | 1/1 | Suivi commun, motif en liste fermée. |
 | LA1 | Demande d'ajout | G | fait | fait | 2/2 | `/espace-pro/laboratoire/ajout/` : contrôle Sirene par l'API Recherche d'entreprises (actif, NAF 32.50A), Kbis joint. |
 | LINFO | Prothésiste salarié | G | fait | fait | 2/2 | 2026-10-21 : « Créez votre compte de prothésiste », vers la bienvenue candidat de l'Emploi (`/espace-pro/emploi/bienvenue/situation/`). Plus d'alerte ni d'invitation d'équipe. |
-| LC1 | Laboratoire déjà revendiqué | G | fait | fait | 2/2 | Kbis (contestation) ou demande d'invitation transmise au titulaire. Sans titulaire, renvoie à L2 (comme C1). |
+| LC1 | Laboratoire déjà revendiqué | G | fait | fait | 1/1 | Kbis (contestation) seulement, invitation retirée le 2026-10-21. Sans titulaire, renvoie à L2 (comme C1). |
 | O1 | Type d'organisme | H | fait | fait | 3/3 | `/espace-pro/organisme/`. Un compte sans profil devient « organisme ». « Assistanat » retiré du détail : aucune école d'assistant n'est recensée. |
 | O2a | Retrouver l'établissement | H | fait | fait | 3/3 | Nom, ville, UAI (lu dans l'adresse académique quand le contenu la porte). `?fiche=` depuis la page publique : la recherche est faite et pointe sur l'établissement. |
 | O3a | Compléter les formations | H | fait | fait | 1/1 | Préremplies depuis le contenu WordPress (diplômes balisés ; diplôme d'État pour une faculté). Stockées dans Neon (`fiches_etablissement`). Écriture WordPress codée mais coupée (`WP_ECRITURE`). |
@@ -245,4 +245,5 @@ Migration `0018_large_kingpin` appliquée : sur `fiches_completees`, `rappel_fra
 - Corrections communes : boutons radio masqués qui allongeaient la page (H1 et L1), carte centrée sur le repère quand plusieurs points sont cadrés, coquille en `grid-cols-1` (débordement horizontal sur mobile), marge de la coquille réduite sur grand écran, aperçu de l'onboarding labo centré.
 - Pages tenues sans défilement à 1440 × 900 : LO2 (phrase en double retirée, resserré) et LO4 (encart Kbis en double retiré).
 - Données de test (base de dev du serveur parcours) : `laboratoire-test-dentalmap` (compte Dr Test Dentalmap, revendication acceptée, LO1 et LO2 remplis) et `laboratoire-test-dentalmap-2` (géré par un autre compte, pour LC1).
-- Restent à arbitrer : phrase de jauge quand tout est passé, « Intermédiaire » coupé dans l'anneau mobile, STL absent du résumé, Kbis en PDF seulement ou non, « Écrire à l'équipe » sur LREF, invitation sur LC1.
+- Arbitré le 2026-10-21 : LO4 tout passé dit « Complétez savoir-faire, délais et zone pour apparaître dans les recherches des cabinets » ; l'anneau de LO4 n'a plus de libellé de palier ; résumé « Matériaux et CFAO » inchangé (sans STL ni 3D) ; Kbis et mandat en PDF seulement (L3, MAN, LA1, contrôlé aussi côté serveur) ; « Écrire à l'équipe » de LREF préremplit « Mon laboratoire » (`?laboratoire=…&siren=…` sur `/contact/`) ; LC1 sans « Demander une invitation » (action et email retirés).
+- Carte du volet : la fiche d'un laboratoire n'a plus la hauteur minimale de 24rem (plus de vide en bas).

@@ -144,20 +144,6 @@ export async function envoyerMandatAuGerant(to: string, fiche: string, demandeur
   )
 }
 
-/** LC1 : quelqu'un demande à rejoindre l'équipe d'une fiche ; le titulaire décide. */
-export async function envoyerDemandeInvitation(to: string, fiche: string, demandeur: string, adresseDemandeur: string) {
-  await envoyer(to, `${demandeur} demande à rejoindre « ${fiche} »`, {
-    titre: `${demandeur} demande à rejoindre « ${fiche} »`,
-    blocs: [
-      { type: 'texte', texte: `${demandeur} (${adresseDemandeur}) souhaite gérer la fiche « ${fiche} » avec vous sur DentalMap.` },
-      { type: 'texte', texte: 'Si vous connaissez cette personne, invitez son adresse depuis votre espace, rubrique Équipe.' },
-      { type: 'bouton', libelle: 'Ouvrir la rubrique Équipe', url: `${SITE}/espace-pro/equipe/` },
-      { type: 'texte', texte: 'Sinon, ignorez ce message : rien ne change sur votre fiche.' },
-    ],
-    raison: 'Vous recevez cet email parce que vous gérez cette fiche sur DentalMap.',
-  })
-}
-
 /** U-COL : une invitation à gérer une fiche. Le lien est à usage unique, trente jours. */
 export async function envoyerInvitation(to: string, fiche: string, invitePar: string, jeton: string) {
   const url = `${SITE}/espace-pro/invitation/${jeton}/`

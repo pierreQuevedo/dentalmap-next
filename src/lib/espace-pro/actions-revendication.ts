@@ -8,7 +8,7 @@ import { sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '@/db'
 import { chemin } from '@/lib/navigation'
-import { envoyerAModerer, envoyerDemandeInvitation, envoyerMandatAuGerant, envoyerRevendicationRecue } from '@/lib/email'
+import { envoyerAModerer, envoyerMandatAuGerant, envoyerRevendicationRecue } from '@/lib/email'
 import { nomAffiche } from '@/lib/annuaire/types'
 import { exigerConnexion } from '@/lib/tunnel/compte'
 import { COOKIE_IDENTITE, descellerIdentite } from '@/lib/psc/etat'
@@ -291,23 +291,8 @@ export async function ouvrirFiche(donnees: FormData): Promise<never> {
 }
 
 /* ------------------------------------------------------------------ */
-/* Laboratoire : LC1, LA1                                               */
+/* Laboratoire : LA1                                                   */
 /* ------------------------------------------------------------------ */
-
-/** LC1 : demander au titulaire de la fiche une invitation dans son équipe. Il n'est jamais nommé au demandeur. */
-export async function demanderInvitation(donnees: FormData): Promise<never> {
-  const slug = String(donnees.get('fiche') ?? '')
-  const ici = `/espace-pro/laboratoire/revendiquer/${encodeURIComponent(slug)}/conflit/`
-  const compte = await exigerConnexion(ici)
-  const fiche = await getFicheRevendication(slug, compte.id)
-  if (!fiche) redirect(chemin('/espace-pro/laboratoire/revendiquer/'))
-  const { rows } = await db.execute<{ email: string }>(sql`
-    SELECT u.email FROM revendications r JOIN "user" u ON u.id = r.user_id
-    WHERE r.praticien_id = ${fiche.id} AND r.statut = 'acceptee' AND r.objet = 'revendication'
-  `)
-  await Promise.all(rows.map((r) => envoyerDemandeInvitation(r.email, nomAffiche(fiche), compte.nom || compte.email, compte.email)))
-  redirect(chemin(`${ici}?invitation=1`))
-}
 
 /**
  * LA1 : un laboratoire absent de l'annuaire. Le SIRET est contrôlé dans
