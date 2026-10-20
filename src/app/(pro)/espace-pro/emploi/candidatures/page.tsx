@@ -150,7 +150,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 <span className="squircle-xl grid size-14 shrink-0 place-items-center bg-bg-soft text-base font-bold text-fg ring-1 ring-line">{initiales(ouverte.nom)}</span>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-fg-2">
-                    Candidature reçue le {ouverte.creeLe.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} à{' '}
+                    {ouverte.origine === 'recruteur' ? 'Profil contacté le' : 'Candidature reçue le'} {ouverte.creeLe.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} à{' '}
                     {ouverte.creeLe.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h')}
                     {!sp.offre && (
                       <>
@@ -247,7 +247,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 )}
                 <div>
                   <p className="text-sm font-semibold text-fg">Message de motivation</p>
-                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-fg">{ouverte.message || <span className="text-fg-2">Pas de message.</span>}</p>
+                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-fg">{ouverte.message || <span className="text-fg-2">{ouverte.origine === 'recruteur' ? 'Vous avez contacté ce profil depuis les profils disponibles.' : 'Pas de message.'}</span>}</p>
                 </div>
                 {ouverte.cv && (
                   <a href={`/espace-pro/emploi/candidatures/${ouverte.id}/cv/`} target="_blank" rel="noopener" className="squircle-xl flex items-center gap-3 border border-line p-3 hover:border-line-strong">

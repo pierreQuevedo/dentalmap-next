@@ -185,3 +185,65 @@ export async function deciderCandidature(donnees: FormData): Promise<never> {
   }
   redirect(retourListe(r.espace.autres.length ? r.espace.fiche.slug : null, id, decision))
 }
+
+const EchangeProfil = z.object({
+  fiche: z.string(),
+  profil: z.string().uuid(),
+  offre: z.string().min(1, 'Choisissez l’offre concernée.'),
+  message: z.string().trim().min(10, 'Un message de quelques mots au moins.').max(MESSAGE_MAX, `${MESSAGE_MAX.toLocaleString('fr-FR')} caractères au plus.`),
+  telephone: z.string().trim(),
+  contact: z.string().trim().max(80).optional(),
+})
+
+/**
+ * Proposer un échange à un profil disponible, depuis `/emploi/profils/` :
+ * recruteur vérifié, rattaché à l'une de ses offres en ligne. La proposition
+ * devient une candidature d'origine « recruteur », au statut « Échange
+ * proposé », que la personne retrouve dans ses candidatures. Rien n'est
+ * transmis tant qu'elle n'accepte pas.
+ */
+export async function proposerEchangeProfil(_: EtatCandidature, donnees: FormData): Promise<EtatCandidature> {
+  const lu = EchangeProfil.safeParse(Object.fromEntries(donnees))
+  if (!lu.success) {
+    const p = lu.error.issues[0]
+    return { erreur: p.message.startsWith('Invalid') ? 'Un champ est incomplet.' : p.message, champ: String(p.path[0] ?? '') }
+  }
+  const v = lu.data
+  const r = await recruteur(v.fiche)
+  if (!r) return { erreur: 'Réservé aux recruteurs à la fiche vérifiée.' }
+  const creneaux = creneauxValides(donnees.getAll('creneaux').map(String))
+  if (!creneaux.ok) return { erreur: creneaux.erreur, champ: 'creneaux' }
+  if (!telephoneValide(v.telephone)) return { erreur: 'Indiquez le téléphone du cabinet.', champ: 'telephone' }
+  const { rows: offres } = await db.execute<{ titre: string }>(sql`
+    SELECT titre FROM offres WHERE id = ${v.offre} AND praticien_id = ${r.espace.fiche.id} AND statut = 'en_ligne' AND (expire_le IS NULL OR expire_le > now())
+  `)
+  if (!offres[0]) return { erreur: 'Choisissez l’une de vos offres en ligne.', champ: 'offre' }
+  const { rows: profils } = await db.execute<{ email: string }>(sql`
+    SELECT u.email FROM candidats k JOIN "user" u ON u.id = k.user_id
+    WHERE k.user_id = ${v.profil}::uuid AND k.termine_le IS NOT NULL AND k.visibilite IN ('visible', 'anonyme')
+      AND NOT (${r.espace.fiche.slug} = ANY(k.structures_masquees))
+  `)
+  if (!profils[0]) return { erreur: 'Ce profil n’est plus disponible.' }
+  if (v.profil === r.compte.id) return { erreur: 'C’est votre propre profil.' }
+
+  const { rows: existante } = await db.execute<{ id: string; statut: string }>(sql`
+    SELECT id, statut FROM candidatures WHERE offre_id = ${v.offre} AND candidat_user_id = ${v.profil}::uuid
+  `)
+  if (existante[0] && (existante[0].statut === 'echange_accepte' || existante[0].statut === 'non_retenue')) return { erreur: 'Cette personne a déjà une candidature close ou un échange accepté sur cette offre.' }
+  const id = existante[0]?.id ?? randomUUID()
+  if (!existante[0]) {
+    await db.execute(sql`
+      INSERT INTO candidatures (id, offre_id, candidat_user_id, statut, origine, vue_le) VALUES (${id}, ${v.offre}, ${v.profil}::uuid, 'echange_propose', 'recruteur', now())
+    `)
+  }
+  await db.execute(sql`
+    INSERT INTO echanges_candidature (candidature_id, message, creneaux, telephone_recruteur, contact_recruteur, statut)
+    VALUES (${id}, ${v.message}, ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(creneaux.creneaux)}::jsonb))::text[], ${v.telephone}, ${v.contact || null}, 'en_attente')
+    ON CONFLICT (candidature_id) DO UPDATE SET message = excluded.message, creneaux = excluded.creneaux, telephone_recruteur = excluded.telephone_recruteur,
+      contact_recruteur = excluded.contact_recruteur, statut = 'en_attente', creneau_choisi = NULL, telephone_candidat = NULL, cree_le = now(), repondu_le = NULL
+  `)
+  await db.execute(sql`UPDATE candidatures SET statut = 'echange_propose', maj_le = now() WHERE id = ${id}`)
+  const f = r.espace.fiche
+  await envoyerEchangePropose(profils[0].email, nomAffiche({ profession: f.profession as Profession, nom: f.nom, prenom: f.prenom, raisonSociale: f.raisonSociale }), offres[0].titre, v.message, creneaux.creneaux.map(libelleCreneau), true)
+  redirect(chemin('/emploi/profils/?fait=echange'))
+}

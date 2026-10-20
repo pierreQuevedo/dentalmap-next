@@ -39,7 +39,7 @@ export async function Coquille({
 }) {
   if (volet) {
     return (
-      <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+      <div className="grid min-h-dvh grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         <aside className="sticky top-0 hidden h-dvh lg:block">{volet}</aside>
         <Droite retour={retour} libelleRetour={libelleRetour} fermer={fermer}>
           {children}
@@ -52,7 +52,7 @@ export async function Coquille({
   const communes = chiffres?.communes.toLocaleString('fr-FR') ?? ''
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+    <div className="grid min-h-dvh grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
       <aside className="relative isolate hidden min-h-dvh overflow-hidden bg-muted text-fg lg:block">
         <CarteFrance className="absolute inset-0 -z-20 size-full" />
         {/* Le voile : la couleur du fond, transparente au centre, pleine aux bords, adoucie par un flou. */}

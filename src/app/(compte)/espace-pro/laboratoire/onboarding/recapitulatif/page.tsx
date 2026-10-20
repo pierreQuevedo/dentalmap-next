@@ -28,7 +28,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   return (
     <CoquilleOnboardingLabo espace={espace}>
       <h1 className={titre}>Voici ce que verront les cabinets</h1>
-      <p className="mt-2 text-sm text-fg-2">Vérifiez l’aperçu, puis publiez. Réalisations, déclaration ANSM et présentation se complètent ensuite depuis votre espace.</p>
+      <p className="mt-2 text-sm text-fg-2">{verifiee ? 'Vérifiez l’aperçu, puis publiez.' : 'Vérifiez l’aperçu : la fiche sera publiée à la validation du Kbis.'}</p>
       <div className="mt-5 flex items-center gap-4">
         <Anneau pct={force.total} taille={72} legende={LIBELLE_PALIER[palier]} />
         <p className="text-sm text-fg-2">

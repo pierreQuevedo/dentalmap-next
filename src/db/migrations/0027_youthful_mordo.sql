@@ -1,0 +1,1 @@
+ALTER TABLE "candidatures" ADD COLUMN "origine" text DEFAULT 'candidat' NOT NULL;

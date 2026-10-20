@@ -134,6 +134,7 @@ export const mainNav: NavEntry[] = [
       { label: 'Assistant(e) dentaire', href: '/emploi/assistant-dentaire' },
       { label: 'Alternance et stages', href: '/emploi/alternance' },
       { label: 'Remplacements et collaborations', href: '/emploi/remplacements' },
+      { label: 'Profils disponibles', href: '/emploi/profils' },
       { label: 'Recruter', href: '/emploi/recruter' },
     ],
   },

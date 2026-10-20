@@ -77,7 +77,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                   <div className="min-w-0">
                     <p className="text-xs text-fg-2">
                       {k.offre.recruteur}
-                      {k.offre.commune ? ` · ${k.offre.commune}` : ''} · envoyée le {k.creeLe.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+                      {k.offre.commune ? ` · ${k.offre.commune}` : ''} · {k.origine === 'recruteur' ? 'vous a contacté le' : 'envoyée le'} {k.creeLe.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
                     </p>
                     <p className="mt-1 font-semibold text-fg">{k.offre.titre}</p>
                   </div>

@@ -25,6 +25,7 @@ export type Echange = {
 
 export type CandidatureRecue = {
   id: string
+  origine: 'candidat' | 'recruteur'
   offreId: string
   offreTitre: string
   offreSlug: string
@@ -82,6 +83,7 @@ export async function getCandidaturesRecues(praticienId: string): Promise<Candid
       offre_titre: string
       offre_slug: string
       statut: StatutCandidature
+      origine: 'candidat' | 'recruteur'
       message: string | null
       cv_nom: string | null
       cv_taille: number | null
@@ -99,7 +101,7 @@ export async function getCandidaturesRecues(praticienId: string): Promise<Candid
       visibilite: string | null
     }
   >(sql`
-    SELECT k.id, k.offre_id, o.titre AS offre_titre, o.slug AS offre_slug, k.statut, k.message,
+    SELECT k.id, k.offre_id, o.titre AS offre_titre, o.slug AS offre_slug, k.statut, k.origine, k.message,
            k.cv_nom, k.cv_taille, k.cv_chemin, k.cree_le, u.name AS nom, u.email,
            c.situation, c.qualification, c.titre_verifie, c.criteres, c.formation, c.experiences, c.competences, c.visibilite,
            ${COLONNES_ECHANGE}
@@ -116,6 +118,7 @@ export async function getCandidaturesRecues(praticienId: string): Promise<Candid
     const accepte = echange?.statut === 'acceptee'
     return {
       id: r.id,
+      origine: r.origine,
       offreId: r.offre_id,
       offreTitre: r.offre_titre,
       offreSlug: r.offre_slug,
@@ -144,6 +147,8 @@ export async function getCandidaturesRecues(praticienId: string): Promise<Candid
 export type CandidatureEnvoyee = {
   id: string
   statut: StatutCandidature
+  /** `recruteur` : une proposition reçue depuis les profils disponibles, sans candidature de la personne. */
+  origine: 'candidat' | 'recruteur'
   message: string | null
   cvNom: string | null
   creeLe: Date
@@ -157,6 +162,7 @@ export async function getCandidaturesEnvoyees(userId: string): Promise<Candidatu
     LigneEchange & {
       id: string
       statut: StatutCandidature
+      origine: 'candidat' | 'recruteur'
       message: string | null
       cv_nom: string | null
       cree_le: string
@@ -171,7 +177,7 @@ export async function getCandidaturesEnvoyees(userId: string): Promise<Candidatu
       raison_sociale: string | null
     }
   >(sql`
-    SELECT k.id, k.statut, k.message, k.cv_nom, k.cree_le,
+    SELECT k.id, k.statut, k.origine, k.message, k.cv_nom, k.cree_le,
            o.id AS offre_id, o.slug AS offre_slug, o.titre AS offre_titre,
            (o.statut = 'en_ligne' AND (o.expire_le IS NULL OR o.expire_le > now())) AS en_ligne,
            cm.nom AS commune_nom, p.profession, p.nom, p.prenom, p.raison_sociale,
@@ -187,6 +193,7 @@ export async function getCandidaturesEnvoyees(userId: string): Promise<Candidatu
   return rows.map((r) => ({
     id: r.id,
     statut: r.statut,
+    origine: r.origine,
     message: r.message,
     cvNom: r.cv_nom,
     creeLe: new Date(r.cree_le),

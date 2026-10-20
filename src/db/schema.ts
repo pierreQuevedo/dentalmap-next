@@ -795,6 +795,8 @@ export const candidatures = pgTable('candidatures', {
   candidatUserId: uuid('candidat_user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   message: text('message'),
   statut: text('statut', { enum: ['nouvelle', 'vue', 'echange_propose', 'echange_accepte', 'retenue', 'non_retenue'] }).notNull().default('nouvelle'),
+  /** Qui a fait le premier pas : la personne a postulé, ou un recruteur l'a contactée depuis les profils disponibles. */
+  origine: text('origine', { enum: ['candidat', 'recruteur'] }).notNull().default('candidat'),
   /** CV joint, facultatif : chemin dans le stockage privé (`blob:` ou `local:`), servi après contrôle du compte. */
   cvChemin: text('cv_chemin'),
   cvNom: text('cv_nom'),

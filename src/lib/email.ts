@@ -602,17 +602,24 @@ export async function envoyerNouvelleCandidature(to: string, offre: string, cand
 }
 
 /** Au candidat : le recruteur propose un échange et des créneaux. */
-export async function envoyerEchangePropose(to: string, recruteur: string, offre: string, message: string, creneaux: string[]) {
+export async function envoyerEchangePropose(to: string, recruteur: string, offre: string, message: string, creneaux: string[], depuisProfil = false) {
   await envoyer(to, `${recruteur} vous propose un échange`, {
     titre: 'Un recruteur vous propose un échange',
     blocs: [
-      { type: 'texte', texte: `${recruteur} a lu votre candidature à l’offre « ${offre} » et vous écrit :` },
+      {
+        type: 'texte',
+        texte: depuisProfil
+          ? `${recruteur} a vu votre profil parmi les profils disponibles et vous propose son offre « ${offre} » :`
+          : `${recruteur} a lu votre candidature à l’offre « ${offre} » et vous écrit :`,
+      },
       { type: 'encart', texte: message },
       { type: 'champs', lignes: creneaux.map((c, i): [string, string] => [`Créneau ${i + 1}`, c]) },
       { type: 'bouton', libelle: 'Choisir un créneau', url: `${SITE}/espace-pro/emploi/mes-candidatures/` },
       { type: 'texte', texte: 'Vos coordonnées ne sont partagées que si vous acceptez. Sans réponse ou en cas de refus, rien n’est transmis.' },
     ],
-    raison: 'Vous recevez cet email parce que vous avez postulé à une offre d’emploi sur DentalMap.',
+    raison: depuisProfil
+      ? 'Vous recevez cet email parce que votre profil candidat est visible des recruteurs vérifiés sur DentalMap. Vous pouvez le rendre discret à tout moment.'
+      : 'Vous recevez cet email parce que vous avez postulé à une offre d’emploi sur DentalMap.',
   })
 }
 
