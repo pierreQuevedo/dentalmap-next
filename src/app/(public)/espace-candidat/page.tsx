@@ -9,5 +9,5 @@ export const instant = false
 export default async function Page() {
   const compte = await exigerConnexion('/espace-candidat/')
   const profil = await getProfilCandidat(compte.id)
-  redirect(chemin(profil?.termine ? '/espace-pro/emploi/profil-candidat/' : '/espace-candidat/bienvenue/situation/'))
+  redirect(chemin(profil?.termine ? '/espace-pro/emploi/profil-candidat/' : '/espace-pro/emploi/bienvenue/situation/'))
 }

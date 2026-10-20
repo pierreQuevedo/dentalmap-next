@@ -35,7 +35,7 @@ import {
 
 export type EtatProfil = { erreur?: string; champ?: string } | null
 
-const BIENVENUE = '/espace-candidat/bienvenue/'
+const BIENVENUE = '/espace-pro/emploi/bienvenue/'
 const PROFIL = '/espace-pro/emploi/profil-candidat/'
 const VISIBILITE = '/espace-pro/emploi/visibilite/'
 

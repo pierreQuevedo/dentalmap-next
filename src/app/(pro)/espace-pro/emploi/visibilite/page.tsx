@@ -49,7 +49,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { coque, q } = await chargerTableau('emploi', sp.fiche, 'visibilite')
   const compte = (await getCompte())!
   const profil = await getProfilCandidat(compte.id)
-  if (!profil) redirect(chemin('/espace-candidat/bienvenue/situation/'))
+  if (!profil) redirect(chemin('/espace-pro/emploi/bienvenue/situation/'))
   const resultats = sp.q ? await chercherStructures(sp.q) : []
   const masquees = new Set(profil.structuresMasquees.map((s) => s.slug))
 

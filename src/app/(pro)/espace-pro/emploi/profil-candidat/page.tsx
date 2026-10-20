@@ -22,7 +22,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { coque, q } = await chargerTableau('emploi', sp.fiche, 'profil-candidat')
   const compte = (await getCompte())!
   const profil = await getProfilCandidat(compte.id)
-  if (!profil) redirect(chemin('/espace-candidat/bienvenue/situation/'))
+  if (!profil) redirect(chemin('/espace-pro/emploi/bienvenue/situation/'))
   const ecoles = profil.situation === 'etudiant' ? await getEcoles() : []
   const nom = compte.nom ?? ''
 

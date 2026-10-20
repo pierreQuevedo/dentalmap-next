@@ -48,7 +48,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             <span className="block font-semibold">Complétez votre profil candidat</span>
             <span className="text-fg-2">Une minute : situation, recherche, qualification. Il accompagne chacune de vos candidatures.</span>
           </p>
-          <Link href={chemin('/espace-candidat/bienvenue/situation/')} className="inline-flex h-10 items-center rounded-full bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">
+          <Link href={chemin(`/espace-pro/emploi/bienvenue/situation/${q}`)} className="inline-flex h-10 items-center rounded-full bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">
             Compléter mon profil
           </Link>
         </div>
