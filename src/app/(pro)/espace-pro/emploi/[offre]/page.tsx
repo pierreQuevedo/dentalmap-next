@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { CalendarDays, Check, ChevronLeft, Clock, Euro, ExternalLink, MapPin, Pencil, RefreshCw, Sparkles, Users } from 'lucide-react'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
-import { EmploiVerrouille, GesteOffre, PastilleOffre, TiroirOffre, libelleLieu, valeursOffre } from '@/components/emploi/espace-offres'
+import { EmploiVerrouille, GesteOffre, PastilleOffre } from '@/components/emploi/espace-offres'
 import { chemin } from '@/lib/navigation'
 import { formaterAdresse } from '@/lib/annuaire/nom'
 import { cheminOffre } from '@/lib/emploi/chemins'
@@ -19,9 +19,9 @@ export const instant = false
 /**
  * La page d'une offre dans l'espace pro : son état et ses échéances, ce
  * qu'elle annonce, les gestes (confirmer, modifier, pourvue, retirer,
- * republier), puis ses candidatures. `?modifier=1` ouvre le tiroir.
+ * republier), puis ses candidatures. « Modifier » mène aux pages de « Créer un poste ».
  */
-export default async function Page(props: { params: Promise<{ offre: string }>; searchParams: Promise<{ fiche?: string; modifier?: string; publiee?: string; brouillon?: string; fait?: string }> }) {
+export default async function Page(props: { params: Promise<{ offre: string }>; searchParams: Promise<{ fiche?: string; publiee?: string; modifiee?: string; brouillon?: string; fait?: string }> }) {
   const { offre: id } = await props.params
   const sp = await props.searchParams
   const { espace, coque, q, points } = await chargerTableau('emploi', sp.fiche, id)
@@ -32,9 +32,7 @@ export default async function Page(props: { params: Promise<{ offre: string }>; 
   const p = progressionDe(points.total, points.verifiee)
   const ouvert = espace.ctx.identiteVerifiee && (p.actuel?.niveau ?? 0) >= PALIER_EMPLOI
   const ici = `/espace-pro/emploi/${o.id}/`
-  const base = `${ici}${q}`
   const r = remuneration({ mode: o.mode, min: o.min, max: o.max })
-  const lieux = fiche.lieux.map((l) => ({ id: l.id, libelle: libelleLieu(l) }))
 
   const echeance =
     e.etat === 'en_ligne'
@@ -46,7 +44,9 @@ export default async function Page(props: { params: Promise<{ offre: string }>; 
           }`
   const message =
     sp.publiee
-      ? 'Modifications publiées.'
+      ? 'Offre publiée : elle est en ligne pour 30 jours, sur votre fiche et dans la recherche d’emploi.'
+      : sp.modifiee
+        ? 'Modifications enregistrées.'
       : sp.brouillon
         ? 'Brouillon enregistré.'
         : sp.fait === 'confirmer'
@@ -130,7 +130,7 @@ export default async function Page(props: { params: Promise<{ offre: string }>; 
                     </Link>
                   )}
                   {(e.etat === 'en_ligne' || e.etat === 'brouillon') && (
-                    <Link href={chemin(`${base}${q ? '&' : '?'}modifier=1`)} className="inline-flex items-center gap-1 text-sm font-medium text-fg hover:underline">
+                    <Link href={chemin(`/espace-pro/emploi/creer/${e.etat === 'brouillon' ? 'poste' : 'publication'}/${q}${q ? '&' : '?'}offre=${o.id}`)} className="inline-flex items-center gap-1 text-sm font-medium text-fg hover:underline">
                       <Pencil className="size-4" aria-hidden /> {e.etat === 'brouillon' ? 'Reprendre le brouillon' : 'Modifier'}
                     </Link>
                   )}
@@ -188,7 +188,6 @@ export default async function Page(props: { params: Promise<{ offre: string }>; 
         </Tuile>
       </div>
 
-      {sp.modifier && (e.etat === 'en_ligne' || e.etat === 'brouillon') && <TiroirOffre fiche={fiche.slug} fermer={base} lieux={lieux} valeurs={valeursOffre(o, o.lieuId)} />}
     </CoqueEspace>
   )
 }

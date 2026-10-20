@@ -50,5 +50,5 @@ export function urlFiltres(base: string, f: FiltresEmploi, vue: 'liste' | 'carte
   if (f.min !== null) p.set('min', String(f.min))
   if (vue === 'carte') p.set('vue', 'carte')
   const q = p.toString()
-  return q ? `${base}?${q}` : base
+  return q ? `${base}${base.includes('?') ? '&' : '?'}${q}` : base
 }

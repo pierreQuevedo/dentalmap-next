@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { enPourcentage, etatOffre, modeDuContrat, slugOffre } from '../src/lib/emploi/offre-pro'
+import { enPourcentage, etapePrecedente, etapeSuivante, etatOffre, manquesOffre, modeDuContrat, slugOffre } from '../src/lib/emploi/offre-pro'
 
 const JOUR = 86_400_000
 const maintenant = new Date('2026-10-20T12:00:00Z')
@@ -25,5 +25,29 @@ describe('offres côté recruteur', () => {
   })
   it('slug lisible', () => {
     expect(slugOffre('assistant-dentaire', 'bordeaux', 'x7k2')).toBe('assistant-dentaire-bordeaux-x7k2')
+  })
+})
+
+describe('créer un poste', () => {
+  it('enchaîne les étapes, du cabinet à la publication', () => {
+    expect(etapeSuivante('cabinet')).toBe('poste')
+    expect(etapeSuivante('publication')).toBeNull()
+    expect(etapePrecedente('cabinet')).toBeNull()
+    expect(etapePrecedente('annonce')).toBe('remuneration')
+  })
+  const complete = { contrat: 'cdi' as const, min: 2000, max: 2300, titre: 'Assistant(e) dentaire', presentation: 'x'.repeat(80) }
+  it('une offre complète ne manque de rien', () => {
+    expect(manquesOffre(complete)).toEqual([])
+  })
+  it('rémunération obligatoire, sauf gratification', () => {
+    expect(manquesOffre({ ...complete, min: 0, max: 0 }).map((m) => m.etape)).toEqual(['remuneration'])
+    expect(manquesOffre({ ...complete, contrat: 'stage', min: 0, max: 0 })).toEqual([])
+  })
+  it('pourcentage plafonné à 100, salaire en euros mensuels', () => {
+    expect(manquesOffre({ ...complete, contrat: 'remplacement', min: 60, max: 120 })).toHaveLength(1)
+    expect(manquesOffre({ ...complete, min: 15, max: 20 })).toHaveLength(1)
+  })
+  it('présentation du poste de 80 caractères', () => {
+    expect(manquesOffre({ ...complete, presentation: 'court' }).map((m) => m.etape)).toEqual(['annonce'])
   })
 })

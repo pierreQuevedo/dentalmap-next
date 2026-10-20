@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { CalendarClock, Check, CheckCircle2, ChevronRight, Clock, Euro, FileText, MapPin, Megaphone, Plus, Users } from 'lucide-react'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
 import { Encart } from '@/components/compte/ui'
-import { EmploiVerrouille, PastilleOffre, TiroirOffre, libelleLieu, valeursOffre } from '@/components/emploi/espace-offres'
+import { EmploiVerrouille, OngletsEmploi, PastilleOffre } from '@/components/emploi/espace-offres'
 import { chemin } from '@/lib/navigation'
 import { contratTexte, dateCourte, tempsTexte } from '@/lib/emploi/format'
 import { CONSERVATION_CANDIDATURES_MOIS, DUREE_OFFRE_JOURS, etatOffre } from '@/lib/emploi/offre-pro'
@@ -18,11 +18,11 @@ type Vue = 'toutes' | 'en_ligne' | 'archives'
 
 /**
  * D-EMPLOI : la liste des offres de la fiche, courte, une ligne par offre
- * menant à sa page (détail, gestes, candidatures), et le tiroir « Publier une
- * offre » (`?offre=nouvelle`). Publier demande une identité vérifiée et le
+ * menant à sa page (détail, gestes, candidatures), et l'entrée de « Créer un
+ * poste » (`/espace-pro/emploi/creer/`). Publier demande une identité vérifiée et le
  * palier Ambassadeur.
  */
-export default async function Page(props: { searchParams: Promise<{ fiche?: string; vue?: string; offre?: string; publiee?: string; brouillon?: string; fait?: string }> }) {
+export default async function Page(props: { searchParams: Promise<{ fiche?: string; vue?: string; publiee?: string; brouillon?: string; fait?: string; cabinet?: string }> }) {
   const sp = await props.searchParams
   const { espace, coque, q, points } = await chargerTableau('emploi', sp.fiche)
   const { fiche } = espace
@@ -42,8 +42,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   })
   const base = `/espace-pro/emploi/${q}`
   const avec = (x: string) => `${base}${q ? '&' : '?'}${x}`
-  const lieux = fiche.lieux.map((l) => ({ id: l.id, libelle: libelleLieu(l) }))
-  const lieuParDefaut = fiche.lieux.find((l) => l.principal)?.id ?? fiche.lieux[0]?.id ?? null
+  const creer = `/espace-pro/emploi/creer/${q}`
 
   const message = sp.publiee
     ? 'Offre publiée : elle est en ligne pour 30 jours, sur votre fiche et dans la recherche d’emploi.'
@@ -51,7 +50,9 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       ? 'Brouillon enregistré. Reprenez-le quand vous voulez.'
       : sp.fait === 'retirer'
         ? 'Offre retirée.'
-        : null
+        : sp.cabinet
+          ? 'Informations du cabinet enregistrées : elles seront reprises pour chaque offre.'
+          : null
 
   return (
     <CoqueEspace
@@ -60,6 +61,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       titre="Emploi"
       sousTitre={`${enLigne.length} offre${enLigne.length > 1 ? 's' : ''} en ligne${nouvelles ? ` · ${nouvelles} nouvelle${nouvelles > 1 ? 's' : ''} candidature${nouvelles > 1 ? 's' : ''}` : ''}`}
     >
+      <OngletsEmploi actif="creer" q={q} />
       {message && (
         <p role="status" className="squircle-xl mb-4 flex items-center gap-2 bg-teal/10 px-4 py-3 text-sm text-teal">
           <Check className="size-4 shrink-0" aria-hidden /> {message}
@@ -89,8 +91,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 ))}
               </nav>
               {ouvert && (
-                <Link href={chemin(avec('offre=nouvelle'))} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">
-                  <Plus className="size-4" aria-hidden /> Publier une offre
+                <Link href={chemin(creer)} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">
+                  <Plus className="size-4" aria-hidden /> Créer un poste
                 </Link>
               )}
             </div>
@@ -110,8 +112,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 {vue === 'archives' ? 'Les offres pourvues, retirées ou expirées apparaîtront ici.' : 'Publiez une offre : elle apparaît sur votre fiche, dans la recherche d’emploi et dans les alertes des candidats de votre zone.'}
               </p>
               {vue !== 'archives' && ouvert && (
-                <Link href={chemin(avec('offre=nouvelle'))} className="mt-5 inline-flex h-10 items-center gap-1.5 rounded-full bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">
-                  <Plus className="size-4" aria-hidden /> Publier une offre
+                <Link href={chemin(creer)} className="mt-5 inline-flex h-10 items-center gap-1.5 rounded-full bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">
+                  <Plus className="size-4" aria-hidden /> Créer un poste
                 </Link>
               )}
             </div>
@@ -184,7 +186,6 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         </div>
       </div>
 
-      {ouvert && sp.offre === 'nouvelle' && <TiroirOffre fiche={fiche.slug} fermer={base} lieux={lieux} valeurs={valeursOffre(undefined, lieuParDefaut)} />}
     </CoqueEspace>
   )
 }

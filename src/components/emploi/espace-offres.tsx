@@ -1,12 +1,9 @@
 import Link from 'next/link'
-import { Lock } from 'lucide-react'
-import { FormulaireOffre, type ValeursOffre } from './formulaire-offre'
+import { Lock, Megaphone, Search } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 import { formaterAdresse } from '@/lib/annuaire/nom'
 import { agirSurOffre } from '@/lib/emploi/actions-offres'
-import { decouperDescription } from '@/lib/emploi/format'
 import type { etatOffre } from '@/lib/emploi/offre-pro'
-import type { OffreRecruteur } from '@/lib/emploi/offres-pro'
 import { PALIERS } from '@/lib/espace-pro/progression'
 import type { LieuRevendication } from '@/lib/espace-pro/parcours'
 
@@ -49,27 +46,6 @@ export function libelleLieu(l: Pick<LieuRevendication, 'adresseLigne' | 'codePos
   return [l.adresseLigne && formaterAdresse(l.adresseLigne), l.codePostal, l.communeNom].filter(Boolean).join(', ')
 }
 
-/** Les valeurs du formulaire : une offre existante, ou une nouvelle offre au lieu principal. */
-export function valeursOffre(o: OffreRecruteur | undefined, lieuParDefaut: string | null): ValeursOffre {
-  if (!o) {
-    return { metier: 'assistant_dentaire', titre: 'Assistant(e) dentaire', contrat: 'cdi', tempsPlein: true, heuresHebdo: null, debut: null, fin: null, min: null, max: null, lieuId: lieuParDefaut, presentation: '', missions: '', profil: null, avantages: [] }
-  }
-  const { resume, points } = decouperDescription(o.description)
-  return { id: o.id, metier: o.metier, titre: o.titre, contrat: o.contrat, tempsPlein: o.tempsPlein, heuresHebdo: o.heuresHebdo, debut: o.debut, fin: o.fin, min: o.min, max: o.max, lieuId: o.lieuId, presentation: resume, missions: points.join('\n'), profil: o.profil, avantages: o.avantages }
-}
-
-/** Le tiroir du formulaire, par-dessus la page ; fermer revient à `fermer`. */
-export function TiroirOffre({ fiche, fermer, lieux, valeurs }: { fiche: string; fermer: string; lieux: { id: string; libelle: string }[]; valeurs: ValeursOffre }) {
-  return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      <Link href={chemin(fermer)} aria-label="Fermer" className="absolute inset-0 bg-[#0e1317]/50 backdrop-blur-[2px]" />
-      <div role="dialog" aria-modal="true" aria-label={valeurs.id ? 'Modifier l’offre' : 'Publier une offre'} className="relative h-full w-full max-w-xl bg-bg shadow-pop">
-        <FormulaireOffre fiche={fiche} fermer={fermer} lieux={lieux} valeurs={valeurs} />
-      </div>
-    </div>
-  )
-}
-
 /** Sous le palier Ambassadeur : la publication est fermée, ce qu'il reste à gagner. */
 export function EmploiVerrouille({ reste, q }: { reste: number; q: string }) {
   const palier = PALIERS[3]
@@ -86,5 +62,27 @@ export function EmploiVerrouille({ reste, q }: { reste: number; q: string }) {
         Voir ma progression
       </Link>
     </div>
+  )
+}
+
+/** Les deux usages de l'onglet Emploi : créer un poste (ses offres) ou en rechercher un. */
+export function OngletsEmploi({ actif, q }: { actif: 'creer' | 'rechercher'; q: string }) {
+  const onglets = [
+    { cle: 'creer', libelle: 'Créer un poste', href: `/espace-pro/emploi/${q}`, I: Megaphone },
+    { cle: 'rechercher', libelle: 'Rechercher un poste', href: `/espace-pro/emploi/recherche/${q}`, I: Search },
+  ] as const
+  return (
+    <nav aria-label="Emploi" className="squircle-full mb-4 flex w-full bg-bg-soft p-1 sm:inline-flex sm:w-auto">
+      {onglets.map(({ cle, libelle, href, I }) => (
+        <Link
+          key={cle}
+          href={chemin(href)}
+          aria-current={actif === cle ? 'page' : undefined}
+          className={`squircle-full inline-flex h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap px-3 text-sm font-semibold sm:flex-none sm:px-5 ${actif === cle ? 'bg-fg text-bg shadow-sm' : 'text-fg-2 hover:text-fg'}`}
+        >
+          <I className="size-4" aria-hidden /> {libelle}
+        </Link>
+      ))}
+    </nav>
   )
 }

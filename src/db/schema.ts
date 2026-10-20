@@ -744,6 +744,19 @@ export const offres = pgTable('offres', {
   index('offres_position_gist').using('gist', t.position),
 ])
 
+/**
+ * Les informations du cabinet communes à toutes ses offres : présentation,
+ * avantages et lieu proposés par défaut. Saisies une fois, à la première
+ * étape de « Créer un poste », reprises ensuite pour chaque offre.
+ */
+export const recrutementCabinets = pgTable('recrutement_cabinets', {
+  praticienId: text('praticien_id').primaryKey().references(() => praticiens.id, { onDelete: 'cascade' }),
+  presentation: text('presentation'),
+  avantages: text('avantages').array().notNull().default([]),
+  lieuId: text('lieu_id').references(() => lieuxExercice.id, { onDelete: 'set null' }),
+  majLe: timestamp('maj_le', { withTimezone: true }).defaultNow().notNull(),
+})
+
 /** Profil d'un salarié ou d'un étudiant qui cherche un poste. */
 export const candidats = pgTable('candidats', {
   userId: uuid('user_id').primaryKey().references(() => user.id, { onDelete: 'cascade' }),

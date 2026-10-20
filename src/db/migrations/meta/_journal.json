@@ -162,6 +162,13 @@
       "when": 1792439115876,
       "tag": "0022_reflective_madame_masque",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792528750122,
+      "tag": "0023_next_living_tribunal",
+      "breakpoints": true
     }
   ]
 }

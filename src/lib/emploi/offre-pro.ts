@@ -62,3 +62,56 @@ export function etatOffre(
 export function slugOffre(metierSlug: string, communeSlug: string, aleatoire: string): string {
   return `${metierSlug}-${communeSlug}-${aleatoire}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-')
 }
+
+/* ------------------------------------------------------------------ */
+/* Créer un poste : les étapes                                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Les pages enfant de « Créer un poste ». La première porte les informations
+ * du cabinet, communes à toutes ses offres ; les suivantes, celles du poste.
+ */
+export const ETAPES_OFFRE = [
+  { cle: 'cabinet', titre: 'Le cabinet', detail: 'Commun à toutes vos offres' },
+  { cle: 'poste', titre: 'Le poste', detail: 'Métier, contrat, temps, lieu' },
+  { cle: 'remuneration', titre: 'Rémunération', detail: 'Fourchette obligatoire' },
+  { cle: 'annonce', titre: 'L’annonce', detail: 'Présentation, missions, profil' },
+  { cle: 'publication', titre: 'Publication', detail: 'Relire et publier' },
+] as const
+
+export type EtapeOffre = (typeof ETAPES_OFFRE)[number]['cle']
+
+export function estEtapeOffre(v: string): v is EtapeOffre {
+  return ETAPES_OFFRE.some((e) => e.cle === v)
+}
+
+export function etapeSuivante(e: EtapeOffre): EtapeOffre | null {
+  const i = ETAPES_OFFRE.findIndex((x) => x.cle === e)
+  return ETAPES_OFFRE[i + 1]?.cle ?? null
+}
+
+export function etapePrecedente(e: EtapeOffre): EtapeOffre | null {
+  const i = ETAPES_OFFRE.findIndex((x) => x.cle === e)
+  return i > 0 ? ETAPES_OFFRE[i - 1].cle : null
+}
+
+/** Présentation du poste : 80 caractères au moins pour publier. */
+export const PRESENTATION_MIN = 80
+
+/**
+ * Ce qui manque à une offre pour être publiée, étape par étape ; vide quand
+ * elle peut l'être. Les mêmes règles servent à chaque étape d'une offre déjà
+ * en ligne, qui ne doit jamais redevenir incomplète.
+ */
+export function manquesOffre(o: { contrat: CodeContrat; min: number; max: number; titre: string; presentation: string }): { etape: EtapeOffre; message: string }[] {
+  const m: { etape: EtapeOffre; message: string }[] = []
+  const mode = modeDuContrat(o.contrat)
+  const pourcent = enPourcentage(o.contrat)
+  if (o.titre.trim().length < 5) m.push({ etape: 'poste', message: 'Un intitulé de 5 caractères au moins.' })
+  if (mode !== 'gratification' && (o.min <= 0 || o.max <= 0)) m.push({ etape: 'remuneration', message: 'La rémunération est obligatoire : indiquez une fourchette.' })
+  else if (o.max < o.min) m.push({ etape: 'remuneration', message: 'Le maximum doit être au moins égal au minimum.' })
+  else if (pourcent && o.max > 100) m.push({ etape: 'remuneration', message: 'Un pourcentage des honoraires ne dépasse pas 100.' })
+  else if (mode === 'salaire' && o.min < 500) m.push({ etape: 'remuneration', message: 'La rémunération se saisit en euros bruts par mois.' })
+  if (o.presentation.trim().length < PRESENTATION_MIN) m.push({ etape: 'annonce', message: `Une présentation du poste de ${PRESENTATION_MIN} caractères au moins.` })
+  return m
+}

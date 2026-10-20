@@ -50,12 +50,29 @@ const ANCRE_ALERTE = 'alerte'
  * par contrat portent sur toutes les offres de la commune, filtres compris
  * ou non : ils disent ce qu'un clic donnerait.
  */
-function FiltresPanneau({ f, comptes, action }: { f: FiltresEmploi; comptes: Partial<Record<CodeContrat, number>>; action: string }) {
+type PropsFiltres = {
+  f: FiltresEmploi
+  comptes: Partial<Record<CodeContrat, number>>
+  action: string
+  /** Critères portés par la page en plus des filtres (recherche de l'espace pro : métier, lieu, rayon). */
+  caches?: Record<string, string>
+}
+
+/** L'adresse de la page avec ses critères, sans les filtres. */
+export function baseAvecCaches(action: string, caches?: Record<string, string>): string {
+  const q = new URLSearchParams(caches).toString()
+  return q ? `${action}?${q}` : action
+}
+
+function FiltresPanneau({ f, comptes, action, caches }: PropsFiltres) {
   const groupe = 'border-b border-line py-5 first:pt-0'
   const titre = 'text-sm font-semibold text-fg'
   const contrats = CONTRATS_FILTRE.filter((c) => (comptes[c] ?? 0) > 0 || f.contrats.includes(c))
   return (
-    <form action={action} method="get" className="text-sm">
+    <form action={chemin(action)} method="get" className="text-sm">
+      {Object.entries(caches ?? {}).map(([k, v]) => (
+        <input key={k} type="hidden" name={k} value={v} />
+      ))}
       {f.vue === 'carte' && <input type="hidden" name="vue" value="carte" />}
       {contrats.length > 0 && (
         <fieldset className={groupe}>
@@ -115,7 +132,7 @@ function FiltresPanneau({ f, comptes, action }: { f: FiltresEmploi; comptes: Par
           Appliquer
         </button>
         {estFiltree(f) && (
-          <Link href={chemin(urlFiltres(action, { ...f, contrats: [], temps: 'tous', min: null }))} className="text-sm font-medium text-fg underline underline-offset-4">
+          <Link href={chemin(urlFiltres(baseAvecCaches(action, caches), { ...f, contrats: [], temps: 'tous', min: null }))} className="text-sm font-medium text-fg underline underline-offset-4">
             Effacer les filtres
           </Link>
         )}
@@ -125,7 +142,8 @@ function FiltresPanneau({ f, comptes, action }: { f: FiltresEmploi; comptes: Par
 }
 
 /** Mobile et vue carte : les filtres repliés derrière un bouton, le nombre de filtres actifs en pastille. */
-function FiltresBarre({ f, comptes, action }: { f: FiltresEmploi; comptes: Partial<Record<CodeContrat, number>>; action: string }) {
+function FiltresBarre(props: PropsFiltres) {
+  const { f } = props
   const actifs = f.contrats.length + (f.temps !== 'tous' ? 1 : 0) + (f.min !== null ? 1 : 0)
   return (
     <details className="group">
@@ -134,14 +152,14 @@ function FiltresBarre({ f, comptes, action }: { f: FiltresEmploi; comptes: Parti
         {actifs > 0 && <span className="grid size-5 place-items-center rounded-full bg-fg text-[11px] text-bg">{actifs}</span>}
       </summary>
       <div className="squircle-2xl mt-3 max-w-sm border border-line bg-bg p-5 shadow-pop">
-        <FiltresPanneau f={f} comptes={comptes} action={action} />
+        <FiltresPanneau {...props} />
       </div>
     </details>
   )
 }
 
 /** Le sélecteur de vue, bien visible dans l'en-tête. */
-function Vues({ mode, liens }: { mode: 'liste' | 'carte'; liens: { liste: string; carte: string } }) {
+export function Vues({ mode, liens }: { mode: 'liste' | 'carte'; liens: { liste: string; carte: string } }) {
   const b = (actif: boolean) =>
     `inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold sm:flex-none ${actif ? 'bg-fg text-bg shadow-sm' : 'text-fg'}`
   return (
@@ -190,7 +208,7 @@ function empriseMobile(e: Emprise): Emprise {
 const points = (offres: OffreResume[]): PointOffre[] =>
   offres.flatMap((o) => (o.lon != null && o.lat != null ? [{ id: o.id, lon: o.lon, lat: o.lat, etiquette: etiquetteCarte(o) }] : []))
 
-type Gabarit = {
+export type Gabarit = {
   ariane: Ariane
   titre: string
   intro: string
@@ -200,7 +218,9 @@ type Gabarit = {
   emprise: Emprise
   rayon?: { lon: number; lat: number; metres: number }
   /** Filtres et sélecteur de vue : pages commune seulement. */
-  filtres?: { f: FiltresEmploi; comptes: Partial<Record<CodeContrat, number>>; action: string }
+  filtres?: PropsFiltres
+  /** Gabarit des colonnes : `container` sur le site, rien dans l'espace pro, qui a sa propre marge. */
+  cadre?: string
   /** En tête de la colonne de résultats : message et alerte d'une page vide. */
   avant?: ReactNode
   /** Sous les résultats, dans la colonne. */
@@ -228,12 +248,14 @@ function EnTete({ g }: { g: Gabarit }) {
   )
 }
 
-function Resultats({ g }: { g: Gabarit }) {
+/** Les résultats en liste ou en carte ; repris par la recherche de poste de l'espace pro. */
+export function Resultats({ g }: { g: Gabarit }) {
+  const cadre = g.cadre ?? 'container'
   const pts = points(g.offres)
   const cle = g.offres.map((o) => o.id).join('|')
   if (g.mode === 'liste' || g.offres.length === 0) {
     return (
-      <div className={`container grid gap-10 py-8 lg:gap-12 lg:py-10 ${g.filtres ? 'lg:grid-cols-[16rem_minmax(0,1fr)]' : ''}`}>
+      <div className={`${cadre} grid gap-10 py-8 lg:gap-12 lg:py-10 ${g.filtres ? 'lg:grid-cols-[16rem_minmax(0,1fr)]' : ''}`}>
         {g.filtres && (
           <aside className="hidden lg:block">
             <FiltresPanneau {...g.filtres} />
@@ -266,7 +288,7 @@ function Resultats({ g }: { g: Gabarit }) {
     <>
       {g.filtres && (
         <div className="border-b border-line">
-          <div className="container py-4">
+          <div className={`${cadre} py-4`}>
             <FiltresBarre {...g.filtres} />
           </div>
         </div>
@@ -298,7 +320,7 @@ function Resultats({ g }: { g: Gabarit }) {
           </ul>
           {g.filtres && (
             <Link
-              href={chemin(urlFiltres(g.filtres.action, g.filtres.f, 'liste'))}
+              href={chemin(urlFiltres(baseAvecCaches(g.filtres.action, g.filtres.caches), g.filtres.f, 'liste'))}
               className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-line text-sm font-medium text-fg"
             >
               <List className="size-4" aria-hidden /> Voir {g.total > 1 ? `les ${g.total} offres` : 'l’offre'} en liste

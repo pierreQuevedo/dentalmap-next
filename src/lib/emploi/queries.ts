@@ -97,11 +97,14 @@ export async function getOffre(slug: string): Promise<OffreDetail | null> {
            d.nom AS departement_nom, d.code AS departement_code, r.nom AS region_nom, c.code_insee AS commune_code,
            p.slug AS praticien_slug,
            fc.slug AS fiche_commune_slug, fd.slug AS fiche_departement_slug,
-           (SELECT f.presentation FROM fiches_completees f WHERE f.praticien_id = p.id
-              AND EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = p.id AND v.statut = 'acceptee' AND v.objet = 'revendication')) AS presentation,
-           (SELECT f.presentation_confirmee_le FROM fiches_completees f WHERE f.praticien_id = p.id) AS presentation_confirmee_le
+           -- « Le cabinet » : la présentation commune aux offres (« Créer un poste »), sinon celle de la fiche.
+           coalesce(nullif(rc.presentation, ''), (SELECT f.presentation FROM fiches_completees f WHERE f.praticien_id = p.id
+              AND EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = p.id AND v.statut = 'acceptee' AND v.objet = 'revendication'))) AS presentation,
+           CASE WHEN nullif(rc.presentation, '') IS NOT NULL THEN rc.maj_le
+                ELSE (SELECT f.presentation_confirmee_le FROM fiches_completees f WHERE f.praticien_id = p.id) END AS presentation_confirmee_le
     ${JOINTURES}
     JOIN regions r ON r.code = d.region_code
+    LEFT JOIN recrutement_cabinets rc ON rc.praticien_id = p.id
     -- La fiche publique du recruteur : la commune du lieu de l'offre, sinon celle de son lieu principal.
     LEFT JOIN LATERAL (
       SELECT x.code_insee FROM lieux_exercice x
@@ -393,4 +396,26 @@ export async function getCommunesVoisinesAvecOffres(
     LIMIT ${limite}
   `)
   return rows.map((r) => ({ nom: r.nom, slug: r.slug, departementSlug: r.departement_slug, km: r.km, total: r.total }))
+}
+
+/**
+ * La recherche de poste de l'espace pro : les offres visibles dans un rayon
+ * autour d'un point (le lieu du cabinet, ou une commune choisie), un métier
+ * ou tous, par distance puis par titre. Les filtres de contrat, de temps et de
+ * rémunération s'appliquent ensuite sur la liste, comme sur une page commune.
+ */
+export async function getOffresRayon(options: { metier: CodeMetier | null; lon: number; lat: number; rayonMetres: number; limite?: number }): Promise<OffreResume[]> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('emploi')
+  const origine = sql`ST_SetSRID(ST_MakePoint(${options.lon}, ${options.lat}), 4326)`
+  const { rows } = await db.execute<LigneOffre>(sql`
+    SELECT ${colonnes(origine)}
+    ${JOINTURES}
+    WHERE ${VISIBLE} ${filtreMetier(options.metier)}
+      AND ST_DWithin(o.position::geography, ${origine}::geography, ${options.rayonMetres})
+    ORDER BY metres, o.titre, o.id
+    LIMIT ${options.limite ?? 100}
+  `)
+  return rows.map(resumeDepuisLigne)
 }
