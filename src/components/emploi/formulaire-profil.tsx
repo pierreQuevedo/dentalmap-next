@@ -86,6 +86,7 @@ export function FormulaireProfil(p: Props) {
 
       <Bloc
         i={Briefcase}
+        id="experiences"
         titre={etudiant ? 'Parcours' : 'Expériences'}
         droite={
           experiences.length < EXPERIENCES_MAX && (
@@ -115,7 +116,7 @@ export function FormulaireProfil(p: Props) {
         <span className={aide}>Cinq au plus, les plus récentes d’abord. Le nom des structures n’est montré qu’au recruteur auquel vous postulez.</span>
       </Bloc>
 
-      <Bloc i={Wrench} titre="Compétences">
+      <Bloc i={Wrench} titre="Compétences" id="competences">
         <div className="flex flex-wrap gap-2">
           {COMPETENCES[situation].map((c) => (
             <Puce key={`${situation}-${c}`} name="competences" value={c} coche={p.competences.includes(c)}>
@@ -125,11 +126,11 @@ export function FormulaireProfil(p: Props) {
         </div>
       </Bloc>
 
-      <Bloc i={Navigation} titre="Ce que vous cherchez">
+      <Bloc i={Navigation} titre="Ce que vous cherchez" id="recherche">
         <ChampsRecherche c={p.criteres} invalide={invalide} etudiant={etudiant} />
       </Bloc>
 
-      <Bloc i={FileText} titre="CV" droite={<span className="text-xs text-fg-2">Facultatif</span>}>
+      <Bloc i={FileText} titre="CV" id="cv" droite={<span className="text-xs text-fg-2">Facultatif</span>}>
         {p.cv && !retirerCv && !cv && (
           <div className="squircle-xl flex items-center gap-3 border border-line p-3">
             <span className="squircle-lg grid size-10 shrink-0 place-items-center bg-red-50 text-red-600 dark:bg-red-400/10 dark:text-red-300">

@@ -103,7 +103,7 @@ export type InfosCoque = {
 }
 
 function navigation(c: InfosCoque): { groupe: string | null; items: Entree[] }[] {
-  if (c.candidat) return [{ groupe: null, items: [{ cle: 'emploi', libelle: 'Emploi', i: Briefcase, href: '/espace-pro/emploi/mes-candidatures/' }] }]
+  if (c.candidat) return [{ groupe: null, items: [{ cle: 'emploi', libelle: 'Emploi', i: Briefcase, href: '/espace-pro/emploi/candidat/' }] }]
   const q = c.plusieursFiches ? `?fiche=${encodeURIComponent(c.slug)}` : ''
   const h = (p: string) => `/espace-pro/${p}${p ? '/' : ''}${q}`
   const compte: Entree[] = [

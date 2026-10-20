@@ -24,3 +24,19 @@ describe('profil candidat', () => {
     expect(lireVisibilite('bidon')).toBe('visible')
   })
 })
+
+import { completudeProfil, etapeFrise } from '../src/lib/emploi/profil-candidat'
+
+describe('vue d’ensemble candidat', () => {
+  const vide = { situation: 'assistant' as const, qualification: null, criteres: lireCriteres({}), formation: null, experiences: [], competences: [], cv: null }
+  it('complétude et prochaine étape', () => {
+    expect(completudeProfil(vide)).toEqual({ pct: 15, prochaine: { titre: 'Indiquer votre ville et les contrats recherchés', gain: 25, ancre: '#recherche' } })
+    const plein = { ...vide, qualification: 'titre', criteres: lireCriteres({ contrats: ['cdi'], commune: '33063', disponibilite: 'Dès maintenant' }), experiences: [{ poste: 'A', structure: '', periode: '' }], competences: ['x'], cv: { nom: 'cv.pdf' } }
+    expect(completudeProfil(plein)).toEqual({ pct: 100, prochaine: null })
+  })
+  it('frise', () => {
+    expect(etapeFrise('nouvelle')).toEqual({ etape: 0, issue: null })
+    expect(etapeFrise('echange_accepte').etape).toBe(2)
+    expect(etapeFrise('non_retenue').issue).toBe('non')
+  })
+})

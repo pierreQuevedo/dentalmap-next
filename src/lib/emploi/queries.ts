@@ -404,7 +404,16 @@ export async function getCommunesVoisinesAvecOffres(
  * ou tous, par distance puis par titre. Les filtres de contrat, de temps et de
  * rémunération s'appliquent ensuite sur la liste, comme sur une page commune.
  */
-export async function getOffresRayon(options: { metier: CodeMetier | null; lon: number; lat: number; rayonMetres: number; limite?: number }): Promise<OffreResume[]> {
+export async function getOffresRayon(options: {
+  metier: CodeMetier | null
+  lon: number
+  lat: number
+  rayonMetres: number
+  limite?: number
+  /** « Offres pour vous » : les contrats du profil, et les structures masquées par la personne. */
+  contrats?: CodeContrat[]
+  exclure?: string[]
+}): Promise<OffreResume[]> {
   'use cache'
   cacheLife('listing')
   cacheTag('emploi')
@@ -412,7 +421,8 @@ export async function getOffresRayon(options: { metier: CodeMetier | null; lon: 
   const { rows } = await db.execute<LigneOffre>(sql`
     SELECT ${colonnes(origine)}
     ${JOINTURES}
-    WHERE ${VISIBLE} ${filtreMetier(options.metier)}
+    WHERE ${VISIBLE} ${filtreMetier(options.metier)} ${filtreContrats(options.contrats ?? null)}
+      ${options.exclure?.length ? sql`AND p.slug NOT IN (${sql.join(options.exclure.map((x) => sql`${x}`), sql`, `)})` : sql``}
       AND ST_DWithin(o.position::geography, ${origine}::geography, ${options.rayonMetres})
     ORDER BY metres, o.titre, o.id
     LIMIT ${options.limite ?? 100}

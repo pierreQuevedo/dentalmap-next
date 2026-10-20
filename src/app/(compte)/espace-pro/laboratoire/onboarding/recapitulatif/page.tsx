@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, CircleCheck, Sparkles } from 'lucide-react'
-import { Encart, discret, principal, titre } from '@/components/compte/ui'
+import { discret, principal, titre } from '@/components/compte/ui'
 import { Anneau } from '@/components/espace/apercu'
 import { chemin } from '@/lib/navigation'
 import { publierFiche } from '@/lib/espace-pro/actions-fiche'
@@ -29,16 +29,16 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
     <CoquilleOnboardingLabo espace={espace}>
       <h1 className={titre}>Voici ce que verront les cabinets</h1>
       <p className="mt-2 text-sm text-fg-2">Vérifiez l’aperçu, puis publiez. Réalisations, déclaration ANSM et présentation se complètent ensuite depuis votre espace.</p>
-      <div className="mt-6 flex items-center gap-4">
+      <div className="mt-5 flex items-center gap-4">
         <Anneau pct={force.total} taille={72} legende={LIBELLE_PALIER[palier]} />
         <p className="text-sm text-fg-2">
           Fiche {LIBELLE_PALIER[palier].toLowerCase()} : les cabinets vous trouvent par technique, matériau et zone.
           {plusTard.length > 0 && ` ${plusTard.length === 1 ? 'Une mission vous attend' : `${plusTard.length} missions vous attendent`} dans votre espace.`}
         </p>
       </div>
-      <ul className="mt-6 divide-y divide-line border-y border-line">
+      <ul className="mt-5 divide-y divide-line border-y border-line">
         {reponses.map((x) => (
-          <li key={x.titre} className="flex items-center gap-3 py-3">
+          <li key={x.titre} className="flex items-center gap-3 py-2.5">
             <CircleCheck className={`size-5 shrink-0 ${x.valeur ? 'text-teal' : 'text-fg-2/50'}`} aria-hidden />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-fg">{x.titre}</span>
@@ -50,7 +50,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           </li>
         ))}
         {plusTard.map((m) => (
-          <li key={m.cle} className="flex items-center gap-3 py-3">
+          <li key={m.cle} className="flex items-center gap-3 py-2.5">
             <Sparkles className="size-5 shrink-0 text-amber-600" aria-hidden />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-fg">{m.titre}</span>
@@ -60,12 +60,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           </li>
         ))}
       </ul>
-      {!verifiee && (
-        <Encart titre="Votre Kbis est en cours d’examen" className="mt-5">
-          La fiche est prête : elle sera publiée dès que l’examen aboutit, sans rien refaire.
-        </Encart>
-      )}
-      <form action={publierFiche} className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-1">
+      <form action={publierFiche} className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-1">
         <input type="hidden" name="fiche" value={fiche.slug} />
         {/* Deux sorties pour la même publication : le tableau de bord, ou la présentation tout de suite. */}
         <button type="submit" name="suite" value={`/espace-pro/?fiche=${encodeURIComponent(fiche.slug)}&publiee=1`} className={`${principal} sm:w-auto sm:px-8`}>

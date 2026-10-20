@@ -70,7 +70,7 @@ export function OngletsEmploi({ actif, q, sansFiche = false }: { actif: 'creer' 
   const onglets = [
     { cle: 'creer', libelle: 'Créer un poste', href: `/espace-pro/emploi/${q}`, I: Megaphone },
     { cle: 'rechercher', libelle: 'Rechercher un poste', href: `/espace-pro/emploi/recherche/${q}`, I: Search },
-    { cle: 'mes', libelle: 'Mes candidatures', href: `/espace-pro/emploi/mes-candidatures/${q}`, I: Send },
+    { cle: 'mes', libelle: 'Mes candidatures', href: `/espace-pro/emploi/candidat/${q}`, I: Send },
   ] as const
   return (
     <nav aria-label="Emploi" className="squircle-full mb-4 flex w-full bg-bg-soft p-1 sm:inline-flex sm:w-auto">
@@ -88,22 +88,24 @@ export function OngletsEmploi({ actif, q, sansFiche = false }: { actif: 'creer' 
   )
 }
 
-/** Sous « Mes candidatures » : les candidatures envoyées, le profil candidat, les alertes, la visibilité. */
-export function SousOngletsCandidat({ actif, q }: { actif: 'candidatures' | 'profil' | 'alertes' | 'visibilite'; q: string }) {
+/** Sous « Mes candidatures » : la vue d'ensemble, les offres pour vous, les candidatures envoyées, le profil candidat, les alertes, la visibilité. */
+export function SousOngletsCandidat({ actif, q }: { actif: 'vue' | 'pour-vous' | 'candidatures' | 'profil' | 'alertes' | 'visibilite'; q: string }) {
   const liens = [
-    { cle: 'candidatures', libelle: 'Candidatures envoyées', href: `/espace-pro/emploi/mes-candidatures/${q}` },
+    { cle: 'vue', libelle: 'Vue d’ensemble', href: `/espace-pro/emploi/candidat/${q}` },
+    { cle: 'pour-vous', libelle: 'Offres pour vous', href: `/espace-pro/emploi/pour-vous/${q}` },
+    { cle: 'candidatures', libelle: 'Candidatures', href: `/espace-pro/emploi/mes-candidatures/${q}` },
     { cle: 'profil', libelle: 'Mon profil candidat', href: `/espace-pro/emploi/profil-candidat/${q}` },
     { cle: 'alertes', libelle: 'Alertes', href: `/espace-pro/emploi/alertes/${q}` },
     { cle: 'visibilite', libelle: 'Visibilité', href: `/espace-pro/emploi/visibilite/${q}` },
   ] as const
   return (
-    <nav aria-label="Mes candidatures" className="-mt-1 mb-4 flex flex-wrap gap-x-5 gap-y-1 border-b border-line">
+    <nav aria-label="Mes candidatures" className="-mt-1 mb-4 flex gap-x-5 overflow-x-auto border-b border-line [scrollbar-width:none]">
       {liens.map((l) => (
         <Link
           key={l.cle}
           href={chemin(l.href)}
           aria-current={actif === l.cle ? 'page' : undefined}
-          className={`-mb-px border-b-2 pb-2.5 text-sm font-medium ${actif === l.cle ? 'border-fg text-fg' : 'border-transparent text-fg-2 hover:text-fg'}`}
+          className={`-mb-px shrink-0 whitespace-nowrap border-b-2 pb-2.5 text-sm font-medium ${actif === l.cle ? 'border-fg text-fg' : 'border-transparent text-fg-2 hover:text-fg'}`}
         >
           {l.libelle}
         </Link>

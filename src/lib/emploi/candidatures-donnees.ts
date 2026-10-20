@@ -147,7 +147,7 @@ export type CandidatureEnvoyee = {
   message: string | null
   cvNom: string | null
   creeLe: Date
-  offre: { id: string; slug: string; titre: string; enLigne: boolean; commune: string | null; recruteur: string }
+  offre: { id: string; slug: string; titre: string; enLigne: boolean; commune: string | null; recruteur: string; laboratoire: boolean }
   echange: Echange | null
 }
 
@@ -197,6 +197,7 @@ export async function getCandidaturesEnvoyees(userId: string): Promise<Candidatu
       enLigne: r.en_ligne,
       commune: r.commune_nom,
       recruteur: nomAffiche({ profession: r.profession, nom: r.nom, prenom: r.prenom, raisonSociale: r.raison_sociale }),
+      laboratoire: r.profession === 'prothesiste',
     },
     echange: echangeDe(r),
   }))

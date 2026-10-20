@@ -19,7 +19,7 @@ export function SaisieDelais({ initiaux }: { initiaux: Record<string, number> | 
     <div>
       <ul className="divide-y divide-line border-y border-line">
         {PIECES.filter((p) => p.code in delais).map((p) => (
-          <li key={p.code} className="flex items-center gap-3 py-2.5">
+          <li key={p.code} className="flex items-center gap-3 py-2">
             <input type="hidden" name={`delai_${p.code}`} value={delais[p.code]} />
             <span className="min-w-0 flex-1 text-sm text-fg">{p.libelle}</span>
             <span className="squircle-full flex items-center gap-1 border border-line p-1">
@@ -59,7 +59,7 @@ export function SaisieDelais({ initiaux }: { initiaux: Record<string, number> | 
           ))}
         </div>
       )}
-      <p className="mt-2 text-xs text-fg-2">Délais moyens en jours ouvrés, de la réception de l’empreinte à l’expédition. Un délai moyen, pas un engagement : la fiche le dit aux cabinets.</p>
+      <p className="mt-2 text-xs text-fg-2">Un délai moyen, pas un engagement : la fiche le dit aux cabinets.</p>
     </div>
   )
 }
@@ -94,7 +94,7 @@ export function SaisieZone({
         <span>{RAYON_MIN} km</span>
         <span>{RAYON_MAX} km</span>
       </div>
-      <label className="mt-4 flex cursor-pointer items-center gap-2.5 text-sm text-fg">
+      <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-sm text-fg">
         <input type="checkbox" name="ramassage" checked={passe} onChange={() => setPasse((p) => !p)} className="peer sr-only" />
         <span aria-hidden className="relative h-5 w-9 shrink-0 rounded-full bg-line transition-colors peer-checked:bg-teal peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-action after:absolute after:left-0.5 after:top-0.5 after:size-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4" />
         Ramassage des empreintes au cabinet

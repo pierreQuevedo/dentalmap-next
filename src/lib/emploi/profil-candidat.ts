@@ -144,3 +144,42 @@ export function pucesCriteres(c: Criteres): string[] {
 export function mobilite(c: Criteres): string | null {
   return c.communeNom ? `${c.communeNom} et ${c.rayonKm} km autour` : null
 }
+
+/* ------------------------------------------------------------------ */
+/* Vue d'ensemble : complétude du profil et frise des candidatures     */
+/* ------------------------------------------------------------------ */
+
+type PourCompletude = { situation: Situation; qualification: string | null; criteres: Criteres; formation: Formation | null; experiences: Experience[]; competences: string[]; cv: unknown }
+
+/**
+ * La complétude du profil, en pour cent, et la prochaine chose à faire, avec
+ * ce qu'elle apporte. Calculée, jamais stockée.
+ */
+export function completudeProfil(p: PourCompletude): { pct: number; prochaine: { titre: string; gain: number; ancre: string } | null } {
+  const etudiant = p.situation === 'etudiant'
+  const blocs: { fait: boolean; gain: number; titre: string; ancre: string }[] = [
+    { fait: true, gain: 15, titre: 'Indiquer votre situation', ancre: '' },
+    { fait: Boolean(p.criteres.commune && p.criteres.contrats.length), gain: 25, titre: 'Indiquer votre ville et les contrats recherchés', ancre: '#recherche' },
+    {
+      fait: etudiant ? Boolean(p.formation?.ecole || p.formation?.cursus) : Boolean(p.qualification),
+      gain: 15,
+      titre: etudiant ? 'Indiquer votre école et votre formation' : 'Indiquer votre qualification',
+      ancre: etudiant ? '#formation' : '',
+    },
+    { fait: p.experiences.length > 0, gain: 15, titre: etudiant ? 'Ajouter votre parcours' : 'Ajouter vos expériences', ancre: '#experiences' },
+    { fait: p.competences.length > 0, gain: 10, titre: 'Cocher vos compétences', ancre: '#competences' },
+    { fait: Boolean(p.criteres.disponibilite), gain: 10, titre: 'Indiquer votre disponibilité', ancre: '#recherche' },
+    { fait: Boolean(p.cv), gain: 10, titre: 'Joindre votre CV', ancre: '#cv' },
+  ]
+  const pct = blocs.reduce((t, b) => t + (b.fait ? b.gain : 0), 0)
+  const suivant = blocs.find((b) => !b.fait)
+  return { pct, prochaine: suivant ? { titre: suivant.titre, gain: suivant.gain, ancre: suivant.ancre } : null }
+}
+
+/** La frise d'une candidature, vue du candidat : Envoyée, Vue, Échange proposé, Retenue. */
+export function etapeFrise(statut: 'nouvelle' | 'vue' | 'echange_propose' | 'echange_accepte' | 'retenue' | 'non_retenue'): { etape: number; issue: 'retenue' | 'non' | null } {
+  if (statut === 'non_retenue') return { etape: 1, issue: 'non' }
+  if (statut === 'retenue') return { etape: 3, issue: 'retenue' }
+  if (statut === 'echange_propose' || statut === 'echange_accepte') return { etape: 2, issue: null }
+  return { etape: statut === 'vue' ? 1 : 0, issue: null }
+}

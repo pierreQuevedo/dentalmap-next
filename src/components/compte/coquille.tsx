@@ -110,7 +110,8 @@ function Droite({ children, retour, libelleRetour, fermer = false }: { children:
         {fermer ? <X className="size-4" aria-hidden /> : <ArrowLeft className="size-4" aria-hidden />}
         {libelleRetour}
       </Link>
-      <div className="flex flex-1 items-center py-10">
+      {/* Le contenu est centré : cette marge ne compte que pour un écran qui déborde, réduite sur grand écran pour que tout tienne. */}
+      <div className="flex flex-1 items-center py-10 lg:py-4">
         {/* Tablette : l'encart. Mobile et desktop : le formulaire nu. */}
         <div className="mx-auto w-full max-w-md md:rounded-3xl md:border md:border-line md:bg-bg md:p-8 md:shadow-pop lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
           {children}

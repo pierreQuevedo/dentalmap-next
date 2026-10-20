@@ -21,18 +21,18 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
     <CoquilleOnboardingLabo espace={espace} enCours={['delais', 'zone']}>
       <Etapes etape={3} total={3} libelle="Délais et zone" />
       <h1 className={titre}>Délais et zone desservie</h1>
-      <p className="mt-2 text-sm text-fg-2">Délais moyens en jours ouvrés, de la réception de l’empreinte à l’expédition.</p>
+      <p className="mt-2 text-sm text-fg-2">En jours ouvrés, de la réception de l’empreinte à l’expédition.</p>
       <Gain points={gain} texte="délais affichés et zone de recherche" />
       {sp.erreur && <Encart ton="erreur" className="mt-4">{sp.erreur}</Encart>}
-      <form action={enregistrerDelaisEtZone} className="mt-6">
+      <form action={enregistrerDelaisEtZone} className="mt-5">
         <input type="hidden" name="fiche" value={fiche.slug} />
         <input type="hidden" name="suite" value={sp.suite?.startsWith('/espace-pro/') ? sp.suite : suivanteLabo('delais', fiche.slug)} />
         <input type="hidden" name="ici" value={versEtapeLabo('delais', fiche.slug)} />
         <SaisieDelais initiaux={c?.delais ?? null} />
-        <div className="mt-6">
+        <div className="mt-5">
           <SaisieZone rayon={c?.rayonKm ?? null} ramassage={c?.ramassage ?? null} jours={c?.joursRamassage ?? []} transporteur={c?.transporteur ?? null} />
         </div>
-        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-1">
+        <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-1">
           <button type="submit" className={`${principal} sm:w-auto sm:px-8`}>
             Valider{gain > 0 ? ` · +${gain} %` : ''}
             <ArrowRight className="size-4" aria-hidden />
