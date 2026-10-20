@@ -34,7 +34,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
     slug = rows[0]?.slug
     if (!slug) redirect(chemin(`${REVENDIQUER}/`))
   }
-  const fiche = await getFicheRevendication(slug, compte.id)
+  // Retirées comprises : un retrait accepté mène à sa confirmation, où il s'annule pendant 30 jours.
+  const fiche = await getFicheRevendication(slug, compte.id, { retirees: true })
   const d = fiche?.demande
   if (!fiche || !d) redirect(chemin(`${REVENDIQUER}/`))
   if (d.statut === 'acceptee') redirect(chemin(d.objet === 'retrait' ? versFiche(fiche, 'retrait/confirme') : apresAccord(fiche.slug, fiche.lieux.length)))
