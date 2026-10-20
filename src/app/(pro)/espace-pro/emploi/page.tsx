@@ -90,6 +90,12 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                   </Link>
                 ))}
               </nav>
+              {offres.some((o) => o.candidatures > 0) && (
+                <Link href={chemin(`/espace-pro/emploi/candidatures/${q}`)} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-4 text-sm font-medium text-fg hover:border-line-strong">
+                  <Users className="size-4" aria-hidden /> Candidatures
+                  {nouvelles > 0 && <span className="squircle-full bg-teal/10 px-1.5 text-xs font-semibold text-teal">{nouvelles}</span>}
+                </Link>
+              )}
               {ouvert && (
                 <Link href={chemin(creer)} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">
                   <Plus className="size-4" aria-hidden /> Créer un poste

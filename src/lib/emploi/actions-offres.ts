@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { chemin } from '@/lib/navigation'
+import { nomAffiche } from '@/lib/annuaire/types'
+import { envoyerCandidatureNonRetenue } from '@/lib/email'
 import { invalider, recruteur } from './recruteur'
 import { DUREE_OFFRE_JOURS } from './offre-pro'
 
@@ -39,6 +41,19 @@ export async function agirSurOffre(donnees: FormData): Promise<never> {
   if (!requete) redirect(chemin(`/espace-pro/emploi/${q}`))
   const { rows } = await db.execute<{ slug: string }>(requete)
   if (rows[0]) invalider(rows[0].slug, r.espace.fiche.slug)
+  // Offre pourvue : les candidatures encore ouvertes sont closes, et leurs candidats prévenus.
+  if (rows[0] && geste === 'pourvue') {
+    const { rows: closes } = await db.execute<{ email: string; titre: string }>(sql`
+      WITH closes AS (
+        UPDATE candidatures SET statut = 'non_retenue', maj_le = now()
+        WHERE offre_id = ${id} AND statut NOT IN ('retenue', 'non_retenue')
+        RETURNING candidat_user_id
+      )
+      SELECT u.email, (SELECT titre FROM offres WHERE id = ${id}) AS titre FROM closes JOIN "user" u ON u.id = closes.candidat_user_id
+    `)
+    const nom = nomAffiche({ profession: r.espace.fiche.profession, nom: r.espace.fiche.nom, prenom: r.espace.fiche.prenom, raisonSociale: r.espace.fiche.raisonSociale })
+    for (const c of closes) await envoyerCandidatureNonRetenue(c.email, nom, c.titre)
+  }
   // Depuis la page d'une offre, on y revient ; sinon, la liste.
   const retour = String(donnees.get('retour') ?? '')
   const page = /^\/espace-pro\/emploi\/[\w-]+\/$/.test(retour) ? retour : '/espace-pro/emploi/'

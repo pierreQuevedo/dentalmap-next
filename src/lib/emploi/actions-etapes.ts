@@ -54,8 +54,8 @@ const Poste = z.object({
 })
 
 const Remuneration = z.object({
-  min: z.coerce.number({ message: 'Indiquez une rémunération minimum.' }).int().min(0),
-  max: z.coerce.number({ message: 'Indiquez une rémunération maximum.' }).int().min(0),
+  min: z.coerce.number({ message: 'Indiquez la fourchette basse.' }).int().min(0),
+  max: z.coerce.number({ message: 'Indiquez la fourchette haute.' }).int().min(0),
 })
 
 const Annonce = z.object({

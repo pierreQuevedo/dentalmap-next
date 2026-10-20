@@ -50,8 +50,11 @@ export function CoquilleOnboardingLabo({ espace, enCours, children }: { espace: 
               <Logo />
             </Link>
           </div>
-          <p className="mb-3 mt-4 text-[11px] font-medium uppercase tracking-[0.08em] text-fg-2">Aperçu · ce que voient les cabinets</p>
-          <div className="max-w-md">{apercu}</div>
+          {/* L'aperçu centré dans le volet, sous le logo. */}
+          <div className="my-auto w-full max-w-md self-center py-8">
+            <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.08em] text-fg-2">Aperçu · ce que voient les cabinets</p>
+            {apercu}
+          </div>
         </div>
       }
     >

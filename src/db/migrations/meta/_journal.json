@@ -169,6 +169,13 @@
       "when": 1792528750122,
       "tag": "0023_next_living_tribunal",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792530247862,
+      "tag": "0024_nice_the_hunter",
+      "breakpoints": true
     }
   ]
 }

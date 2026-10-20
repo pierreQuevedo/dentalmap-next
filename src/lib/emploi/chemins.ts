@@ -24,8 +24,8 @@ export const cheminRemplacementsDepartement = (departement: string) => `/emploi/
 export const cheminFicheMetier = (metier: string) => `/conseils/metiers/${metier}/`
 
 /**
- * Postuler exige un compte : la connexion ramène sur l'offre avec le tiroir
- * de candidature ouvert (`?postuler=1`), tiroir codé par la session de
- * l'espace candidat.
+ * Le tiroir « Postuler » de la page de l'offre (`?postuler=1`). Postuler
+ * exige un compte connecté, sans palier : sans session, le tiroir mène à la
+ * connexion, qui ramène sur l'offre avec le tiroir ouvert.
  */
-export const cheminPostuler = (slug: string) => `/connexion/?retour=${encodeURIComponent(`${cheminOffre(slug)}?postuler=1`)}`
+export const cheminPostuler = (slug: string) => `${cheminOffre(slug)}?postuler=1`

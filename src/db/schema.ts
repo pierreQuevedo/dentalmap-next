@@ -787,12 +787,39 @@ export const candidatures = pgTable('candidatures', {
   candidatUserId: uuid('candidat_user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   message: text('message'),
   statut: text('statut', { enum: ['nouvelle', 'vue', 'echange_propose', 'echange_accepte', 'retenue', 'non_retenue'] }).notNull().default('nouvelle'),
+  /** CV joint, facultatif : chemin dans le stockage privé (`blob:` ou `local:`), servi après contrôle du compte. */
+  cvChemin: text('cv_chemin'),
+  cvNom: text('cv_nom'),
+  cvTaille: integer('cv_taille'),
+  /** Première ouverture par le recruteur : la candidature passe de « Nouvelle » à « Vue ». */
+  vueLe: timestamp('vue_le', { withTimezone: true }),
   creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
   majLe: timestamp('maj_le', { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [
   uniqueIndex('candidatures_offre_candidat').on(t.offreId, t.candidatUserId),
   index('candidatures_candidat').on(t.candidatUserId),
 ])
+
+/**
+ * Proposition d'échange du recruteur sur une candidature : un message, deux ou
+ * trois créneaux, le téléphone du cabinet et la personne qui appellera. Les
+ * coordonnées ne passent d'un côté à l'autre que si le candidat accepte, en
+ * choisissant un créneau ; sans réponse ou en cas de refus, rien n'est
+ * transmis. Une seule proposition par candidature, remplacée si le recruteur
+ * en refait une.
+ */
+export const echangesCandidature = pgTable('echanges_candidature', {
+  candidatureId: text('candidature_id').primaryKey().references(() => candidatures.id, { onDelete: 'cascade' }),
+  message: text('message').notNull(),
+  creneaux: text('creneaux').array().notNull(),
+  telephoneRecruteur: text('telephone_recruteur').notNull(),
+  contactRecruteur: text('contact_recruteur'),
+  statut: text('statut', { enum: ['en_attente', 'acceptee', 'refusee'] }).notNull().default('en_attente'),
+  creneauChoisi: text('creneau_choisi'),
+  telephoneCandidat: text('telephone_candidat'),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  reponduLe: timestamp('repondu_le', { withTimezone: true }),
+})
 
 /**
  * Alerte emploi : avec un compte (critères du profil) ou sans, par une adresse

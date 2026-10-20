@@ -109,7 +109,7 @@ export function manquesOffre(o: { contrat: CodeContrat; min: number; max: number
   const pourcent = enPourcentage(o.contrat)
   if (o.titre.trim().length < 5) m.push({ etape: 'poste', message: 'Un intitulé de 5 caractères au moins.' })
   if (mode !== 'gratification' && (o.min <= 0 || o.max <= 0)) m.push({ etape: 'remuneration', message: 'La rémunération est obligatoire : indiquez une fourchette.' })
-  else if (o.max < o.min) m.push({ etape: 'remuneration', message: 'Le maximum doit être au moins égal au minimum.' })
+  else if (o.max < o.min) m.push({ etape: 'remuneration', message: 'La fourchette haute doit être au moins égale à la fourchette basse.' })
   else if (pourcent && o.max > 100) m.push({ etape: 'remuneration', message: 'Un pourcentage des honoraires ne dépasse pas 100.' })
   else if (mode === 'salaire' && o.min < 500) m.push({ etape: 'remuneration', message: 'La rémunération se saisit en euros bruts par mois.' })
   if (o.presentation.trim().length < PRESENTATION_MIN) m.push({ etape: 'annonce', message: `Une présentation du poste de ${PRESENTATION_MIN} caractères au moins.` })

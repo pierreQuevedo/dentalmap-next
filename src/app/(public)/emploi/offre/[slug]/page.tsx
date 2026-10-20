@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { HeaderTransparent } from '@/components/home/HeaderTransparent'
 import { PageOffre } from '@/components/emploi/offre'
+import { TiroirPostuler } from '@/components/emploi/postuler'
 import { cheminOffre } from '@/lib/emploi/chemins'
 import { offreJobPosting } from '@/lib/emploi/jsonld'
 import { decouperDescription, remuneration } from '@/lib/emploi/format'
@@ -29,7 +31,7 @@ export async function generateMetadata(props: { params: Promise<Params> }): Prom
   }
 }
 
-export default async function Page(props: { params: Promise<Params> }) {
+export default async function Page(props: { params: Promise<Params>; searchParams: Promise<{ postuler?: string }> }) {
   const { slug } = await props.params
   const o = await getOffre(slug)
   if (!o || !o.visible) notFound()
@@ -39,6 +41,15 @@ export default async function Page(props: { params: Promise<Params> }) {
       <Balisage donnees={offreJobPosting(o)} />
       <HeaderTransparent />
       <PageOffre o={o} proches={proches} />
+      <Suspense fallback={null}>
+        <Tiroir o={o} searchParams={props.searchParams} />
+      </Suspense>
     </>
   )
+}
+
+/** Le tiroir « Postuler », hors du rendu en cache de l'offre : il lit la session. */
+async function Tiroir({ o, searchParams }: { o: NonNullable<Awaited<ReturnType<typeof getOffre>>>; searchParams: Promise<{ postuler?: string }> }) {
+  const { postuler } = await searchParams
+  return <TiroirPostuler o={o} etat={postuler} />
 }

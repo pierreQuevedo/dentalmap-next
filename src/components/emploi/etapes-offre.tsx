@@ -289,7 +289,7 @@ function ChampsRemuneration({ v, contrat, invalide }: { v: ValeursEtapes['remune
       <div className="grid gap-4 sm:grid-cols-2">
         {(['min', 'max'] as const).map((c) => (
           <label key={c} className="block">
-            <span className={etiquette}>{c === 'min' ? 'Minimum' : 'Maximum'}</span>
+            <span className={etiquette}>{c === 'min' ? 'Fourchette basse' : 'Fourchette haute'}</span>
             <span className={`squircle-xl flex items-center gap-2 border bg-bg px-3.5 focus-within:border-line-strong ${invalide(c) || 'border-line'}`}>
               <input name={c} type="number" min={0} max={pourcent ? 100 : 20000} defaultValue={v[c] || ''} required={!stage} className="min-w-0 flex-1 bg-transparent py-2.5 text-sm text-fg outline-none" />
               <Unite className="size-4 text-fg-2" aria-hidden />

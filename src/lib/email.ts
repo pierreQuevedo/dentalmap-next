@@ -583,3 +583,80 @@ export async function envoyerConfirmationAlerteEmploi(to: string, jeton: string)
     raison: 'Vous recevez cet email parce que cette adresse a été inscrite à une alerte emploi de DentalMap.',
   })
 }
+
+/* ------------------------------------------------------------------ */
+/* Candidatures                                                         */
+/* ------------------------------------------------------------------ */
+
+/** Au recruteur : une candidature arrive sur l'une de ses offres. */
+export async function envoyerNouvelleCandidature(to: string, offre: string, candidat: string, url: string) {
+  await envoyer(to, `Nouvelle candidature : ${offre}`, {
+    titre: 'Une nouvelle candidature',
+    blocs: [
+      { type: 'texte', texte: `${candidat} a postulé à votre offre « ${offre} ».` },
+      { type: 'bouton', libelle: 'Voir la candidature', url: `${SITE}${url}` },
+      { type: 'texte', texte: 'Ses coordonnées vous sont transmises si la personne accepte votre proposition d’échange.' },
+    ],
+    raison: 'Vous recevez cet email parce que vous avez publié une offre d’emploi sur DentalMap.',
+  })
+}
+
+/** Au candidat : le recruteur propose un échange et des créneaux. */
+export async function envoyerEchangePropose(to: string, recruteur: string, offre: string, message: string, creneaux: string[]) {
+  await envoyer(to, `${recruteur} vous propose un échange`, {
+    titre: 'Un recruteur vous propose un échange',
+    blocs: [
+      { type: 'texte', texte: `${recruteur} a lu votre candidature à l’offre « ${offre} » et vous écrit :` },
+      { type: 'encart', texte: message },
+      { type: 'champs', lignes: creneaux.map((c, i): [string, string] => [`Créneau ${i + 1}`, c]) },
+      { type: 'bouton', libelle: 'Choisir un créneau', url: `${SITE}/espace-candidat/candidatures/` },
+      { type: 'texte', texte: 'Vos coordonnées ne sont partagées que si vous acceptez. Sans réponse ou en cas de refus, rien n’est transmis.' },
+    ],
+    raison: 'Vous recevez cet email parce que vous avez postulé à une offre d’emploi sur DentalMap.',
+  })
+}
+
+/** Au recruteur : le candidat accepte l'échange, ses coordonnées et le créneau. */
+export async function envoyerEchangeAccepte(to: string, d: { candidat: string; offre: string; creneau: string; telephone: string; email: string; url: string }) {
+  await envoyer(to, `Échange accepté : ${d.candidat}`, {
+    titre: 'Votre proposition d’échange est acceptée',
+    blocs: [
+      { type: 'texte', texte: `${d.candidat} accepte un échange pour l’offre « ${d.offre} ».` },
+      {
+        type: 'champs',
+        lignes: [
+          ['Créneau', d.creneau],
+          ['Téléphone', d.telephone],
+          ['Email', d.email],
+        ],
+      },
+      { type: 'bouton', libelle: 'Voir la candidature', url: `${SITE}${d.url}` },
+    ],
+    raison: 'Vous recevez cet email parce que vous avez proposé un échange à un candidat sur DentalMap.',
+  })
+}
+
+/** Au recruteur : le candidat décline l'échange. Rien n'est transmis. */
+export async function envoyerEchangeDecline(to: string, candidat: string, offre: string, url: string) {
+  await envoyer(to, `Échange décliné : ${offre}`, {
+    titre: 'Proposition d’échange déclinée',
+    blocs: [
+      { type: 'texte', texte: `${candidat} ne donne pas suite à votre proposition d’échange pour l’offre « ${offre} ». Ses coordonnées ne vous sont pas transmises.` },
+      { type: 'lien', libelle: 'Voir les candidatures', url: `${SITE}${url}` },
+    ],
+    raison: 'Vous recevez cet email parce que vous avez proposé un échange à un candidat sur DentalMap.',
+  })
+}
+
+/** Au candidat : sa candidature n'est pas retenue, ou l'offre est pourvue. */
+export async function envoyerCandidatureNonRetenue(to: string, recruteur: string, offre: string) {
+  await envoyer(to, `Votre candidature : ${offre}`, {
+    titre: 'Votre candidature n’a pas été retenue',
+    blocs: [
+      { type: 'texte', texte: `${recruteur} vous remercie pour votre candidature à l’offre « ${offre} », qui n’a pas été retenue.` },
+      { type: 'bouton', libelle: 'Voir d’autres offres', url: `${SITE}/emploi/` },
+      { type: 'texte', texte: 'Votre candidature et votre CV sont supprimés 6 mois après la clôture de l’offre.' },
+    ],
+    raison: 'Vous recevez cet email parce que vous avez postulé à une offre d’emploi sur DentalMap.',
+  })
+}
