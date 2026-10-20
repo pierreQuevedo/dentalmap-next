@@ -37,7 +37,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
       retour={`${ORGANISME}/etablissement/`}
       libelleRetour="Retour au site"
     >
-      <Etapes etape={3} total={3} libelle="Vérification" />
+      <Etapes etape={2} total={3} libelle="Vérification" />
       <Pictogramme icone={Mail} ton="attention" />
       <h1 className={titre}>Votre email n’est pas sur le domaine de l’établissement</h1>
       <p className="mt-2 text-sm text-fg-2">

@@ -30,9 +30,12 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <h1 className={titre}>Voici ce que verront les cabinets</h1>
       <p className="mt-2 text-sm text-fg-2">{verifiee ? 'Vérifiez l’aperçu, puis publiez.' : 'Vérifiez l’aperçu : la fiche sera publiée à la validation du Kbis.'}</p>
       <div className="mt-5 flex items-center gap-4">
-        <Anneau pct={force.total} taille={72} legende={LIBELLE_PALIER[palier]} />
+        <Anneau pct={force.total} taille={72} />
         <p className="text-sm text-fg-2">
-          Fiche {LIBELLE_PALIER[palier].toLowerCase()} : les cabinets vous trouvent par technique, matériau et zone.
+          {/* Tout passé : rien ne fait encore trouver la fiche, on le dit plutôt que d'annoncer la recherche. */}
+          {reponses.some((x) => x.valeur)
+            ? `Fiche ${LIBELLE_PALIER[palier].toLowerCase()} : les cabinets vous trouvent par technique, matériau et zone.`
+            : 'Complétez savoir-faire, délais et zone pour apparaître dans les recherches des cabinets.'}
           {plusTard.length > 0 && ` ${plusTard.length === 1 ? 'Une mission vous attend' : `${plusTard.length} missions vous attendent`} dans votre espace.`}
         </p>
       </div>
