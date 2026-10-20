@@ -22,7 +22,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   const fiche = await ficheOu404(slug, compte)
   const siren = await sirenDe(fiche.id)
   return (
-    <CoquilleParcours fiche={fiche} etiquette="Gérée par un autre compte" retour={`${LABO}/`} libelleRetour="Retour">
+    <CoquilleParcours profession="prothesiste" fiche={fiche} etiquette="Gérée par un autre compte" retour={`${LABO}/`} libelleRetour="Retour">
       <Etapes etape={3} libelle="Vérification" />
       <Pictogramme icone={ShieldCheck} ton="attention" />
       <h1 className={titre}>Ce laboratoire est déjà géré par un autre compte</h1>

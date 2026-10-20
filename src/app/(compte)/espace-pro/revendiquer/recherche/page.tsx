@@ -121,7 +121,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
               {resultats.map((r, i) => (
                 <SurvolFiche key={r.slug} index={i}>
                 <label
-                  className="group squircle-xl flex cursor-pointer items-center border border-line bg-bg px-[18px] py-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:checked]:ring-[0.5px] has-[:checked]:ring-fg has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action"
+                  className="group squircle-xl relative flex cursor-pointer items-center border border-line bg-bg px-[18px] py-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:checked]:ring-[0.5px] has-[:checked]:ring-fg has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action"
                 >
                   <input type="radio" name="fiche" value={r.slug} defaultChecked={i === 0} required className="sr-only" />
                   <FicheResume profession={LIBELLE[r.profession].singulier.replace(/^./, (c) => c.toUpperCase())} nom={nomAffiche({ ...r, profession: r.profession })} adresse={adresseDe(r)} rpps={rppsMasque(r.rpps)}>

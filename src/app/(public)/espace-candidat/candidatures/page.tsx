@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CalendarClock, Check, ExternalLink, FileText, Phone, Send } from 'lucide-react'
-import { FilAriane } from '@/components/annuaire/primitives'
+import { CoqueCandidat } from '@/components/emploi/coque-candidat'
 import { ReponseEchange } from '@/components/emploi/reponse-echange'
 import { chemin } from '@/lib/navigation'
 import { STATUT_CANDIDAT, STATUT_RECRUTEUR, libelleCreneau } from '@/lib/emploi/candidature'
 import { getCandidaturesEnvoyees } from '@/lib/emploi/candidatures-donnees'
+import { getProfilCandidat } from '@/lib/emploi/candidat-donnees'
 import { cheminOffre, EMPLOI } from '@/lib/emploi/chemins'
 import { exigerConnexion } from '@/lib/tunnel/compte'
 
@@ -25,25 +26,34 @@ const MESSAGES: Record<string, string> = {
 export default async function Page(props: { searchParams: Promise<{ fait?: string }> }) {
   const sp = await props.searchParams
   const compte = await exigerConnexion('/espace-candidat/candidatures/')
-  const candidatures = await getCandidaturesEnvoyees(compte.id)
+  const [candidatures, profil] = await Promise.all([getCandidaturesEnvoyees(compte.id), getProfilCandidat(compte.id)])
 
   return (
-    <main className="container max-w-4xl pb-20 pt-8">
-      <FilAriane segments={[{ libelle: 'Accueil', href: '/' }, { libelle: 'Emploi', href: EMPLOI }, { libelle: 'Mes candidatures' }]} />
-      <header className="mt-8">
-        <h1 className="text-4xl font-semibold tracking-tight text-fg md:text-5xl">Mes candidatures</h1>
-        <p className="mt-3 text-fg-2">
-          {candidatures.length === 0 ? 'Les offres auxquelles vous postulez se retrouvent ici, avec la réponse des recruteurs.' : `${candidatures.length} candidature${candidatures.length > 1 ? 's' : ''}.`}
-        </p>
-      </header>
+    <CoqueCandidat
+      actif="candidatures"
+      titre="Mes candidatures"
+      sousTitre={candidatures.length === 0 ? 'Les offres auxquelles vous postulez se retrouvent ici, avec la réponse des recruteurs.' : `${candidatures.length} candidature${candidatures.length > 1 ? 's' : ''}.`}
+      etudiant={profil?.situation === 'etudiant'}
+    >
+      {!profil?.termine && (
+        <div className="squircle-2xl mb-6 flex flex-wrap items-center justify-between gap-4 border border-teal/30 bg-teal/[0.06] p-5">
+          <p className="text-sm text-fg">
+            <span className="block font-semibold">Complétez votre profil candidat</span>
+            <span className="text-fg-2">Une minute : situation, recherche, qualification. Il accompagne chacune de vos candidatures.</span>
+          </p>
+          <Link href={chemin('/espace-candidat/bienvenue/situation/')} className="inline-flex h-10 items-center rounded-full bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">
+            Compléter mon profil
+          </Link>
+        </div>
+      )}
       {sp.fait && MESSAGES[sp.fait] && (
-        <p role="status" className="squircle-xl mt-6 flex items-center gap-2 bg-teal/10 px-4 py-3 text-sm text-teal">
+        <p role="status" className="squircle-xl mb-6 flex items-center gap-2 bg-teal/10 px-4 py-3 text-sm text-teal">
           <Check className="size-4 shrink-0" aria-hidden /> {MESSAGES[sp.fait]}
         </p>
       )}
 
       {candidatures.length === 0 ? (
-        <div className="squircle-2xl mt-10 flex flex-col items-start gap-4 border border-dashed border-line p-8">
+        <div className="squircle-2xl flex flex-col items-start gap-4 border border-dashed border-line p-8">
           <span className="grid size-12 place-items-center rounded-full bg-bg-soft text-teal">
             <Send className="size-5" aria-hidden />
           </span>
@@ -53,7 +63,7 @@ export default async function Page(props: { searchParams: Promise<{ fait?: strin
           </Link>
         </div>
       ) : (
-        <ul className="mt-8 space-y-4">
+        <ul className="space-y-4">
           {candidatures.map((k) => {
             const e = k.echange
             return (
@@ -110,6 +120,6 @@ export default async function Page(props: { searchParams: Promise<{ fait?: strin
           })}
         </ul>
       )}
-    </main>
+    </CoqueCandidat>
   )
 }

@@ -21,7 +21,7 @@ export default async function Page(props: { searchParams: Promise<{ siret?: stri
   const sp = await props.searchParams
   const compte = await garde('/espace-pro/laboratoire/ajout/', 'prothesiste')
   return (
-    <CoquilleParcours recherche={sp.siret ?? ''} encart={{ icone: 'sablier', ton: 'attention', titre: 'Absent de l’annuaire', texte: 'Contrôle Sirene avant toute création.' }} retour={`${LABO}/`} libelleRetour="Retour">
+    <CoquilleParcours profession="prothesiste" recherche={sp.siret ?? ''} encart={{ icone: 'sablier', ton: 'attention', titre: 'Absent de l’annuaire', texte: 'Contrôle Sirene avant toute création.' }} retour={`${LABO}/`} libelleRetour="Retour">
       <Etapes etape={1} libelle="Laboratoire" />
       <Pictogramme icone={FlaskConical} />
       <h1 className={titre}>Votre laboratoire n’est pas listé</h1>

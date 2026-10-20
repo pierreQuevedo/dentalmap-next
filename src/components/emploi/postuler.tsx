@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { CheckCircle2, LogIn, X } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 import { getMaCandidature } from '@/lib/emploi/candidatures-donnees'
+import { getProfilCandidat } from '@/lib/emploi/candidat-donnees'
+import { libelleQualification, mobilite } from '@/lib/emploi/profil-candidat'
 import { cheminOffre, cheminPostuler } from '@/lib/emploi/chemins'
 import type { OffreDetail } from '@/lib/emploi/types'
 import { getCompte } from '@/lib/tunnel/compte'
@@ -15,7 +17,7 @@ import { FormulairePostuler } from './formulaire-postuler'
 export async function TiroirPostuler({ o, etat }: { o: OffreDetail; etat: string | undefined }) {
   if (etat !== '1' && etat !== 'envoyee') return null
   const compte = await getCompte()
-  const deja = compte ? await getMaCandidature(compte.id, o.id) : null
+  const [deja, profil] = compte ? await Promise.all([getMaCandidature(compte.id, o.id), getProfilCandidat(compte.id)]) : [null, null]
   const fermer = cheminOffre(o.slug)
 
   return (
@@ -63,7 +65,25 @@ export async function TiroirPostuler({ o, etat }: { o: OffreDetail; etat: string
               </Link>
             </div>
           ) : (
-            <FormulairePostuler slug={o.slug} />
+            <div className="space-y-5">
+              {!profil && (
+                <div className="squircle-xl border border-teal/30 bg-teal/[0.06] p-4 text-sm">
+                  <p className="font-semibold text-fg">Ajoutez votre profil candidat</p>
+                  <p className="mt-1 text-fg-2">Une minute : il accompagne votre candidature, et vous recevez les offres qui vous correspondent. Facultatif.</p>
+                  <Link
+                    href={chemin(`/espace-candidat/bienvenue/situation/?retour=${encodeURIComponent(cheminPostuler(o.slug))}`)}
+                    className="mt-3 inline-flex h-9 items-center rounded-full bg-fg px-4 text-xs font-semibold text-bg"
+                  >
+                    Créer mon profil
+                  </Link>
+                </div>
+              )}
+              <FormulairePostuler
+                slug={o.slug}
+                profil={profil ? [libelleQualification(profil), profil.experiences.length ? `${profil.experiences.length} expérience${profil.experiences.length > 1 ? 's' : ''}` : null, profil.criteres.disponibilite, mobilite(profil.criteres)].filter(Boolean).join(' · ') : null}
+                cvProfil={profil?.cv?.nom ?? null}
+              />
+            </div>
           )}
         </div>
       </div>

@@ -73,7 +73,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             <div className="-mx-1 grid max-h-[min(46dvh,26rem)] gap-2.5 overflow-y-auto overscroll-contain px-1 py-1">
               {resultats.map((r, i) => (
                 <SurvolFiche key={r.slug} index={i}>
-                  <label className="group squircle-xl flex cursor-pointer items-center border border-line bg-bg px-[18px] py-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:checked]:ring-[0.5px] has-[:checked]:ring-fg has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action">
+                  <label className="group squircle-xl relative flex cursor-pointer items-center border border-line bg-bg px-[18px] py-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:checked]:ring-[0.5px] has-[:checked]:ring-fg has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action">
                     <input type="radio" name="fiche" value={r.slug} defaultChecked={i === 0} required className="sr-only" />
                     <FicheResume profession="Laboratoire de prothèse" nom={nomAffiche({ ...r, profession: 'prothesiste' })} adresse={adresseDe(r)} rpps={null}>
                       <span aria-hidden className="size-5 shrink-0 rounded-full border border-line-strong bg-bg transition-[border-width,border-color] group-has-[:checked]:border-[6px] group-has-[:checked]:border-fg" />

@@ -48,11 +48,18 @@ export async function postuler(_: EtatCandidature, donnees: FormData): Promise<E
   const avecCv = cv instanceof File && cv.size > 0
   if (avecCv && (cv.type !== 'application/pdf' || cv.size > CV_MAX_OCTETS)) return { erreur: 'Le CV doit être un PDF de 5 Mo au plus.', champ: 'cv' }
 
+  // Sans nouveau fichier, le CV du profil, si la personne le joint.
+  const duProfil =
+    !avecCv && donnees.get('cvProfil') === 'oui'
+      ? ((await db.execute<{ cv_chemin: string | null; cv_nom: string | null; cv_taille: number | null }>(sql`SELECT cv_chemin, cv_nom, cv_taille FROM candidats WHERE user_id = ${compte.id}::uuid`)).rows[0] ?? null)
+      : null
   const id = randomUUID()
-  const cvChemin = avecCv ? await rangerCv(cv, compte.id) : null
+  const cvChemin = avecCv ? await rangerCv(cv, compte.id) : (duProfil?.cv_chemin ?? null)
+  const cvNom = avecCv ? cv.name.slice(0, 120) : cvChemin ? (duProfil?.cv_nom ?? 'CV.pdf') : null
+  const cvTaille = avecCv ? cv.size : cvChemin ? (duProfil?.cv_taille ?? null) : null
   const { rows: inseres } = await db.execute<{ id: string }>(sql`
     INSERT INTO candidatures (id, offre_id, candidat_user_id, message, cv_chemin, cv_nom, cv_taille)
-    VALUES (${id}, ${o.id}, ${compte.id}::uuid, ${message || null}, ${cvChemin}, ${avecCv ? cv.name.slice(0, 120) : null}, ${avecCv ? cv.size : null})
+    VALUES (${id}, ${o.id}, ${compte.id}::uuid, ${message || null}, ${cvChemin}, ${cvNom}, ${cvTaille})
     ON CONFLICT (offre_id, candidat_user_id) DO NOTHING
     RETURNING id
   `)

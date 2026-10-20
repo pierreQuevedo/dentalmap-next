@@ -18,7 +18,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   const compte = await garde(ici, 'prothesiste')
   const fiche = await ficheOu404(slug, compte)
   return (
-    <CoquilleParcours fiche={fiche} retour={versLabo(fiche.slug)} libelleRetour="Retour">
+    <CoquilleParcours profession="prothesiste" fiche={fiche} retour={versLabo(fiche.slug)} libelleRetour="Retour">
       <Pictogramme icone={Users} />
       <h1 className={titre}>Pas de fiche individuelle pour l’instant</h1>
       <p className="mt-2 text-sm text-fg-2">

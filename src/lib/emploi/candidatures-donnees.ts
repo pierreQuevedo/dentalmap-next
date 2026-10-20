@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { nomAffiche, type Profession } from '@/lib/annuaire/types'
 import type { StatutCandidature } from './candidature'
+import { libelleQualification, lireCriteres, lireExperiences, lireFormation, lireVisibilite, situationDe, type Criteres, type Experience, type Situation, type Visibilite } from './profil-candidat'
 
 /**
  * Les candidatures en base, côté recruteur et côté candidat. Lecture
@@ -35,7 +36,8 @@ export type CandidatureRecue = {
   nom: string
   /** Remplis seulement après l'échange accepté. */
   coordonnees: { email: string; telephone: string | null } | null
-  profil: { situation: string; qualification: string | null; titreVerifie: boolean } | null
+  /** Le profil candidat, s'il existe : ce que le recruteur en lit. */
+  profil: { qualification: string; titreVerifie: boolean; experiences: Experience[]; competences: string[]; criteres: Criteres; visibilite: Visibilite } | null
   echange: Echange | null
 }
 
@@ -90,11 +92,16 @@ export async function getCandidaturesRecues(praticienId: string): Promise<Candid
       situation: string | null
       qualification: string | null
       titre_verifie: boolean | null
+      criteres: unknown
+      formation: unknown
+      experiences: unknown
+      competences: string[] | null
+      visibilite: string | null
     }
   >(sql`
     SELECT k.id, k.offre_id, o.titre AS offre_titre, o.slug AS offre_slug, k.statut, k.message,
            k.cv_nom, k.cv_taille, k.cv_chemin, k.cree_le, u.name AS nom, u.email,
-           c.situation, c.qualification, c.titre_verifie,
+           c.situation, c.qualification, c.titre_verifie, c.criteres, c.formation, c.experiences, c.competences, c.visibilite,
            ${COLONNES_ECHANGE}
     FROM candidatures k
     JOIN offres o ON o.id = k.offre_id
@@ -118,7 +125,17 @@ export async function getCandidaturesRecues(praticienId: string): Promise<Candid
       creeLe: new Date(r.cree_le),
       nom: r.nom,
       coordonnees: accepte ? { email: r.email, telephone: echange.telephoneCandidat } : null,
-      profil: r.situation ? { situation: r.situation, qualification: r.qualification, titreVerifie: Boolean(r.titre_verifie) } : null,
+      profil:
+        r.situation && situationDe(r.situation)
+          ? {
+              qualification: libelleQualification({ situation: r.situation as Situation, qualification: r.qualification, formation: lireFormation(r.formation) }),
+              titreVerifie: Boolean(r.titre_verifie),
+              experiences: lireExperiences(r.experiences),
+              competences: r.competences ?? [],
+              criteres: lireCriteres(r.criteres),
+              visibilite: lireVisibilite(r.visibilite),
+            }
+          : null,
       echange,
     }
   })

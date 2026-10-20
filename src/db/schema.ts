@@ -768,10 +768,18 @@ export const candidats = pgTable('candidats', {
   titreVerifie: boolean('titre_verifie').notNull().default(false),
   formation: jsonb('formation'),
   scolariteVerifiee: boolean('scolarite_verifiee').notNull().default(false),
-  visibilite: text('visibilite', { enum: ['visible', 'discret'] }).notNull().default('visible'),
+  /** Visible des recruteurs vérifiés, anonymisé (ni nom ni photo), ou discret (aucun recruteur ne voit le profil). */
+  visibilite: text('visibilite', { enum: ['visible', 'anonyme', 'discret'] }).notNull().default('visible'),
   structuresMasquees: text('structures_masquees').array().notNull().default([]),
-  /** CV facultatif, chemin dans le stockage privé, jamais une URL publique. */
+  /** Expériences déclarées : `{ poste, structure, periode }[]`, cinq au plus. */
+  experiences: jsonb('experiences').notNull().default(sql`'[]'::jsonb`),
+  competences: text('competences').array().notNull().default([]),
+  /** CV facultatif, chemin dans le stockage privé, jamais une URL publique. Joint d'office aux candidatures. */
   cvChemin: text('cv_chemin'),
+  cvNom: text('cv_nom'),
+  cvTaille: integer('cv_taille'),
+  /** Fin du parcours de bienvenue (SE5) : le profil est prêt. */
+  termineLe: timestamp('termine_le', { withTimezone: true }),
   creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
   majLe: timestamp('maj_le', { withTimezone: true }).defaultNow().notNull(),
 })

@@ -6,11 +6,12 @@ import { LocateFixed, MapPin } from 'lucide-react'
 type Suggestion = { type: string; nom: string; code_insee?: string; code_postal?: string | null; departement_nom?: string }
 
 /**
- * Le lieu de la recherche de poste : une commune choisie dans les
- * suggestions (`/api/geo/autocomplete`), ou, champ vide, le lieu du cabinet.
- * Le formulaire reçoit le code INSEE dans `commune`.
+ * Une commune choisie dans les suggestions (`/api/geo/autocomplete`). Le
+ * formulaire reçoit le code INSEE dans `commune` et le nom dans `communeNom`.
+ * Avec `cabinet` (recherche de l'espace pro), le champ vide vaut le lieu du
+ * cabinet.
  */
-export function ChampCommune({ code, libelle, cabinet }: { code: string | null; libelle: string; cabinet: string }) {
+export function ChampCommune({ code, libelle, cabinet, invalide }: { code: string | null; libelle: string; cabinet?: string; invalide?: boolean }) {
   const [texte, setTexte] = useState(code ? libelle : '')
   const [choisi, setChoisi] = useState(code ?? '')
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
@@ -44,10 +45,18 @@ export function ChampCommune({ code, libelle, cabinet }: { code: string | null; 
     return () => document.removeEventListener('mousedown', fermer)
   }, [])
 
+  const vider = () => {
+    setTexte('')
+    setChoisi('')
+    setSuggestions([])
+    setOuvert(false)
+  }
+
   return (
     <div ref={boite} className="relative">
       <input type="hidden" name="commune" value={choisi} />
-      <span className="squircle-xl flex h-11 items-center gap-2 border border-line bg-bg px-3.5 focus-within:border-line-strong">
+      <input type="hidden" name="communeNom" value={choisi ? texte : ''} />
+      <span className={`squircle-xl flex h-11 items-center gap-2 border bg-bg px-3.5 focus-within:border-line-strong ${invalide ? 'border-destructive' : 'border-line'}`}>
         <MapPin className="size-4 shrink-0 text-fg-2" aria-hidden />
         <input
           value={texte}
@@ -56,40 +65,26 @@ export function ChampCommune({ code, libelle, cabinet }: { code: string | null; 
             setChoisi('')
           }}
           onFocus={() => suggestions.length && setOuvert(true)}
-          placeholder={cabinet}
+          placeholder={cabinet ?? 'Votre ville'}
           aria-label="Commune"
           autoComplete="off"
-          className="min-w-0 flex-1 bg-transparent text-sm text-fg outline-none placeholder:text-fg"
+          className={`min-w-0 flex-1 bg-transparent text-sm text-fg outline-none ${cabinet ? 'placeholder:text-fg' : 'placeholder:text-fg-2'}`}
         />
-        {texte && (
-          <button
-            type="button"
-            onClick={() => {
-              setTexte('')
-              setChoisi('')
-              setSuggestions([])
-            }}
-            className="shrink-0 cursor-pointer text-xs font-medium text-fg-2 hover:text-fg"
-          >
+        {texte && cabinet && (
+          <button type="button" onClick={vider} className="shrink-0 cursor-pointer text-xs font-medium text-fg-2 hover:text-fg">
             Mon cabinet
           </button>
         )}
       </span>
       {ouvert && (
         <ul className="squircle-xl absolute inset-x-0 top-full z-20 mt-1 overflow-hidden border border-line bg-bg py-1 shadow-pop">
-          <li>
-            <button
-              type="button"
-              onClick={() => {
-                setTexte('')
-                setChoisi('')
-                setOuvert(false)
-              }}
-              className="flex w-full cursor-pointer items-center gap-2 px-3.5 py-2 text-left text-sm text-fg hover:bg-bg-soft"
-            >
-              <LocateFixed className="size-4 text-teal" aria-hidden /> Autour de mon cabinet
-            </button>
-          </li>
+          {cabinet && (
+            <li>
+              <button type="button" onClick={vider} className="flex w-full cursor-pointer items-center gap-2 px-3.5 py-2 text-left text-sm text-fg hover:bg-bg-soft">
+                <LocateFixed className="size-4 text-teal" aria-hidden /> Autour de mon cabinet
+              </button>
+            </li>
+          )}
           {suggestions.map((s) => (
             <li key={s.code_insee}>
               <button

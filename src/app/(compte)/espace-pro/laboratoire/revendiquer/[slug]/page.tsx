@@ -30,7 +30,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   const siren = await sirenDe(fiche.id)
 
   return (
-    <CoquilleParcours fiche={fiche} etiquette="Fiche non revendiquée" recherche={siren ?? nomDe(fiche)} retour={pageFiche(fiche)}>
+    <CoquilleParcours profession="prothesiste" fiche={fiche} etiquette="Fiche non revendiquée" recherche={siren ?? nomDe(fiche)} retour={pageFiche(fiche)}>
       <Etapes etape={2} libelle="Rôle" />
       <h1 className={titre}>C’est bien votre laboratoire ?</h1>
       <p className="mt-2 text-sm text-fg-2">Indiquez aussi votre rôle : il détermine la preuve demandée.</p>

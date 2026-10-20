@@ -21,7 +21,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   const compte = await garde(`${LABO}/${slug}/preuve/`, 'prothesiste')
   const fiche = await ficheOu404(slug, compte)
   return (
-    <CoquilleParcours
+    <CoquilleParcours profession="prothesiste"
       fiche={fiche}
       etiquette="Vérification en cours"
       encart={{ icone: 'document', ton: 'attention', titre: 'Extrait Kbis', texte: 'Examiné par l’équipe sous 48 heures ouvrées.' }}

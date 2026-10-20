@@ -176,6 +176,13 @@
       "when": 1792530247862,
       "tag": "0024_nice_the_hunter",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792531768786,
+      "tag": "0025_crazy_slyde",
+      "breakpoints": true
     }
   ]
 }

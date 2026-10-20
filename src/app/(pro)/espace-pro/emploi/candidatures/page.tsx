@@ -1,16 +1,18 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { sql } from 'drizzle-orm'
-import { BadgeCheck, CalendarClock, Check, ChevronLeft, FileText, Info, Mail, MessageSquare, Phone, Users } from 'lucide-react'
+import { BadgeCheck, Briefcase, CalendarClock, Check, ChevronLeft, FileText, Info, Mail, MapPin, MessageSquare, Phone, Users } from 'lucide-react'
 import { db } from '@/db'
 import { CoqueEspace, Tuile } from '@/components/espace/coque'
 import { OngletsEmploi } from '@/components/emploi/espace-offres'
 import { FormulaireEchange } from '@/components/emploi/formulaire-echange'
+import { nomVuParRecruteur } from '@/components/emploi/apercu-candidat'
+import { mobilite } from '@/lib/emploi/profil-candidat'
 import { chemin } from '@/lib/navigation'
 import { tailleLisible } from '@/lib/espace-pro/justificatif'
 import { dateCourte } from '@/lib/emploi/format'
 import { deciderCandidature } from '@/lib/emploi/actions-candidatures'
-import { FILTRES_CANDIDATURES, STATUT_RECRUTEUR, dansFiltre, initiales, libelleCreneau, lireFiltre, nomCandidat, type StatutCandidature } from '@/lib/emploi/candidature'
+import { FILTRES_CANDIDATURES, STATUT_RECRUTEUR, dansFiltre, initiales, libelleCreneau, lireFiltre, type StatutCandidature } from '@/lib/emploi/candidature'
 import { getCandidaturesRecues } from '@/lib/emploi/candidatures-donnees'
 import { CONSERVATION_CANDIDATURES_MOIS } from '@/lib/emploi/offre-pro'
 import { chargerTableau } from '../../_commun'
@@ -18,13 +20,6 @@ import { chargerTableau } from '../../_commun'
 export const metadata: Metadata = { title: 'Candidatures reçues', robots: { index: false, follow: false } }
 export const instant = false
 
-const SITUATION: Record<string, string> = {
-  assistant: 'Assistant(e) dentaire',
-  secretaire: 'Secrétaire médical(e)',
-  prothesiste: 'Prothésiste dentaire',
-  aide: 'Aide dentaire',
-  etudiant: 'Étudiant(e)',
-}
 
 const MESSAGES: Record<string, string> = {
   echange: 'Proposition d’échange envoyée. La personne reçoit vos créneaux par email.',
@@ -75,8 +70,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const offreTitre = sp.offre ? deLOffre[0]?.offreTitre : null
   const nouvelles = deLOffre.filter((k) => k.statut === 'nouvelle' && k.id !== ouverte?.id).length
   const accepte = ouverte?.echange?.statut === 'acceptee'
-  const nom = ouverte ? nomCandidat(ouverte.nom, accepte) : ''
-  const qualif = ouverte?.profil ? (ouverte.profil.qualification ?? SITUATION[ouverte.profil.situation] ?? 'Profil candidat') : 'Profil non renseigné'
+  const nom = ouverte ? nomVuParRecruteur(ouverte.nom, ouverte.profil?.visibilite ?? 'visible', accepte) : ''
+  const qualif = ouverte?.profil?.qualification ?? 'Profil non renseigné'
   const ici = ouverte ? params({ c: ouverte.id }) : params({})
   const close = ouverte?.statut === 'non_retenue'
 
@@ -134,8 +129,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                       <Link href={chemin(params({ c: k.id }))} aria-current={actif ? 'true' : undefined} className={`flex items-center gap-3 px-4 py-3 hover:bg-bg-soft ${actif ? 'bg-bg-soft' : ''} ${k.statut === 'non_retenue' ? 'opacity-60' : ''}`}>
                         <span className={`squircle-lg grid size-9 shrink-0 place-items-center bg-bg text-xs font-bold text-fg ring-1 ${actif ? 'ring-fg' : 'ring-line'}`}>{initiales(k.nom)}</span>
                         <span className="min-w-0 flex-1">
-                          <span className={`block truncate text-sm text-fg ${k.statut === 'nouvelle' ? 'font-semibold' : 'font-medium'}`}>{nomCandidat(k.nom, k.echange?.statut === 'acceptee')}</span>
-                          <span className="block truncate text-xs text-fg-2">{sp.offre ? (k.profil?.qualification ?? (k.profil ? SITUATION[k.profil.situation] : 'Profil non renseigné')) : k.offreTitre}</span>
+                          <span className={`block truncate text-sm text-fg ${k.statut === 'nouvelle' ? 'font-semibold' : 'font-medium'}`}>{nomVuParRecruteur(k.nom, k.profil?.visibilite ?? 'visible', k.echange?.statut === 'acceptee')}</span>
+                          <span className="block truncate text-xs text-fg-2">{sp.offre ? (k.profil?.qualification ?? 'Profil non renseigné') : k.offreTitre}</span>
                         </span>
                         <span className="flex shrink-0 flex-col items-end gap-1">
                           <Pastille s={statut} />
@@ -210,6 +205,46 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 )}
                 {ouverte.echange?.statut === 'refusee' && <p className="squircle-xl bg-bg-soft p-4 text-sm text-fg-2">La personne n’a pas donné suite à votre proposition d’échange. Ses coordonnées ne vous sont pas transmises.</p>}
 
+                {ouverte.profil && (
+                  <dl className="grid gap-3 sm:grid-cols-3">
+                    {(
+                      [
+                        [Briefcase, 'Expérience', ouverte.profil.experiences[0] ? [ouverte.profil.experiences[0].poste, ouverte.profil.experiences[0].periode].filter(Boolean).join(', ') + (ouverte.profil.experiences.length > 1 ? ` (+${ouverte.profil.experiences.length - 1})` : '') : 'Non renseignée'],
+                        [CalendarClock, 'Disponibilité', ouverte.profil.criteres.disponibilite ?? 'Non renseignée'],
+                        [MapPin, 'Mobilité', mobilite(ouverte.profil.criteres) ?? 'Non renseignée'],
+                      ] as const
+                    ).map(([I, l, v]) => (
+                      <div key={l} className="squircle-xl bg-bg-soft p-3">
+                        <dt className="flex items-center gap-1.5 text-xs text-fg-2">
+                          <I className="size-3.5" aria-hidden /> {l}
+                        </dt>
+                        <dd className="mt-1 text-sm text-fg">{v}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+                {ouverte.profil && ouverte.profil.experiences.length > 1 && (
+                  <ul className="space-y-1 text-sm">
+                    {ouverte.profil.experiences.map((x) => (
+                      <li key={`${x.poste}-${x.periode}`} className="flex flex-wrap justify-between gap-x-4">
+                        <span className="text-fg">
+                          {x.poste}
+                          {x.structure && <span className="text-fg-2"> · {x.structure}</span>}
+                        </span>
+                        <span className="text-xs text-fg-2">{x.periode}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {ouverte.profil && ouverte.profil.competences.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {ouverte.profil.competences.map((c) => (
+                      <span key={c} className="squircle-full bg-bg-soft px-2.5 py-1 text-xs text-fg">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div>
                   <p className="text-sm font-semibold text-fg">Message de motivation</p>
                   <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-fg">{ouverte.message || <span className="text-fg-2">Pas de message.</span>}</p>

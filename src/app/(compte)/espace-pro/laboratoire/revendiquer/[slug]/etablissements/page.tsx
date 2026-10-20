@@ -19,7 +19,7 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
   const compte = await garde(`${LABO}/${slug}/etablissements/`, 'prothesiste')
   const fiche = await ficheOu404(slug, compte)
   return (
-    <CoquilleParcours fiche={fiche} etiquette={`${fiche.lieux.length} établissements`} lieux={fiche.lieux.slice(1)} retour={`${LABO}/`} libelleRetour="Retour">
+    <CoquilleParcours profession="prothesiste" fiche={fiche} etiquette={`${fiche.lieux.length} établissements`} lieux={fiche.lieux.slice(1)} retour={`${LABO}/`} libelleRetour="Retour">
       <Etapes etape={1} libelle="Laboratoire" />
       <h1 className={titre}>Ce laboratoire a {fiche.lieux.length} établissements</h1>
       <p className="mt-2 text-sm text-fg-2">Choisissez ceux que vous gérez.</p>
