@@ -139,7 +139,7 @@ export function PartageReseaux(props: {
         )}
         <div className="squircle-2xl relative overflow-hidden shadow-pop ring-1 ring-line" style={{ width: f.l * echelleApercu, height: f.h * echelleApercu }}>
           <div className="pointer-events-none absolute left-0 top-0 origin-top-left" style={{ transform: `scale(${echelleApercu})` }}>
-            <Composition key={`${format}-${message}`} format={format} message={message} {...props} onPret={(fichier) => setImage({ format, message, fichier })} />
+            <Composition key={`${format}-${message}`} {...props} format={format} message={message} onPret={(fichier) => setImage({ format, message, fichier })} />
           </div>
           {!fichier && (
             <span className="squircle-full absolute bottom-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 bg-black/60 px-3 py-1 text-xs text-white">
