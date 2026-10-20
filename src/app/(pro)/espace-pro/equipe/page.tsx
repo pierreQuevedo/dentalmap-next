@@ -24,7 +24,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   )
   return (
     <CoqueEspace c={coque} actif="equipe" titre="Équipe" sousTitre="Les personnes qui gèrent la fiche, et ce que chacune peut faire">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-4">
           <Tuile className="p-0">
             {membres.map((m) => (
@@ -82,7 +82,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
               <TitreTuile i={UserPlus}>Inviter quelqu’un</TitreTuile>
               {sp.erreur && <Encart ton="erreur" className="mt-4">{sp.erreur}</Encart>}
               {sp.invitee && <Encart className="mt-4">Invitation envoyée. Le lien vaut trente jours.</Encart>}
-              <form action={inviter} className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem_auto]">
+              <form action={inviter} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_12rem_auto]">
                 {caches}
                 <div className={pastille}>
                   <Mail className="size-4 shrink-0 text-fg-2" aria-hidden />

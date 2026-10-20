@@ -31,7 +31,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const n = c?.realisations.length ?? 0
   return (
     <CoqueEspace c={t.coque} actif="realisations" titre="Réalisations" sousTitre={n ? `${n} photo${n > 1 ? 's' : ''} sur 8 · elles s’affichent sur la fiche` : 'Mission · +10 % · 3 min'}>
-      <form action={enregistrerRealisations} className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <form action={enregistrerRealisations} className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <Caches t={t} page="realisations" />
         <div>
           {sp.erreur && <Encart ton="erreur" className="mb-4">{sp.erreur}</Encart>}

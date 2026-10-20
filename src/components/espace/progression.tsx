@@ -377,7 +377,7 @@ export function SuiviProgression({ slug, points, lon, lat, partager, distinction
 export function CheminPaliers({ points }: { points: number }) {
   const prochain = progressionDe(points).suivant?.niveau
   return (
-    <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+    <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {PALIERS.map((p) => {
         const etat = points >= p.seuil ? 'atteint' : prochain === p.niveau ? 'encours' : 'verrouille'
         return (

@@ -41,7 +41,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           </form>
         </div>
       )}
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_26rem]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_26rem]">
         <form action={enregistrerDelais} className="squircle-2xl border border-line bg-bg p-5">
           <Caches t={t} page="delais" />
           {sp.erreur && <Encart ton="erreur" className="mb-4">{sp.erreur}</Encart>}

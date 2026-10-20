@@ -28,7 +28,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <div className="mb-4">
         <Retour erreur={sp.erreur} enregistre={sp.enregistre} bloc="galerie" />
       </div>
-      <form action={enregistrerBloc} className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <form action={enregistrerBloc} className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <input type="hidden" name="fiche" value={source.slug} />
         <input type="hidden" name="bloc" value="galerie" />
         <input type="hidden" name="retour" value={versEtab(t, 'galerie')} />

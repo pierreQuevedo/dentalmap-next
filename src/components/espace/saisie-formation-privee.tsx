@@ -73,7 +73,7 @@ export function SaisieFormationPrivee({ organismeParDefaut }: { organismeParDefa
       <input type="hidden" name="proposition" value={json} />
 
       <Bloc titre="L’organisme" aide="Le SIREN est facultatif ; s’il est donné, nous le contrôlons au répertoire Sirene.">
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
           <div>
             <label htmlFor="fp-organisme" className={libelle}>Nom de l’organisme</label>
             <input id="fp-organisme" value={organisme} onChange={(e) => setOrganisme(e.target.value)} required maxLength={160} placeholder="Atelier Implanto Formation" className={champ} />
@@ -110,7 +110,7 @@ export function SaisieFormationPrivee({ organismeParDefaut }: { organismeParDefa
           <label htmlFor="fp-resume" className={libelle}>En quelques mots (facultatif)</label>
           <textarea id="fp-resume" value={resume} onChange={(e) => setResume(e.target.value)} rows={3} maxLength={400} className={`${champ} h-auto py-2`} />
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <fieldset>
             <legend className={libelle}>Public</legend>
             <div className="flex flex-wrap gap-2">
@@ -136,7 +136,7 @@ export function SaisieFormationPrivee({ organismeParDefaut }: { organismeParDefa
             </div>
           </fieldset>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label htmlFor="fp-duree" className={libelle}>Durée</label>
             <input id="fp-duree" value={duree} onChange={(e) => setDuree(e.target.value)} required maxLength={60} placeholder="4 jours, 7 heures…" className={champ} />
@@ -150,7 +150,7 @@ export function SaisieFormationPrivee({ organismeParDefaut }: { organismeParDefa
 
       <Bloc titre="Sessions" aide="Une ligne par session. « En ligne » vaut pour toutes les régions dans les alertes des praticiens.">
         {sessions.map((s, i) => (
-          <div key={i} className="squircle-xl grid gap-3 border border-line p-3 sm:grid-cols-[minmax(0,1.4fr)_9.5rem_minmax(0,1fr)] sm:items-end">
+          <div key={i} className="squircle-xl grid grid-cols-1 gap-3 border border-line p-3 sm:grid-cols-[minmax(0,1.4fr)_9.5rem_minmax(0,1fr)] sm:items-end">
             <div>
               <label htmlFor={`fp-s${i}-dates`} className={libelle}>Dates</label>
               <input id={`fp-s${i}-dates`} value={s.dates} onChange={(e) => majSession(i, { dates: e.target.value })} required maxLength={80} placeholder="14 et 15 novembre 2026" className={champ} />
@@ -195,7 +195,7 @@ export function SaisieFormationPrivee({ organismeParDefaut }: { organismeParDefa
 
       <Bloc titre="Programme et prérequis" aide="Facultatifs, mais ils aident les praticiens à choisir.">
         {programme.map((e, i) => (
-          <div key={i} className="squircle-xl grid gap-3 border border-line p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_8rem_auto] sm:items-end">
+          <div key={i} className="squircle-xl grid grid-cols-1 gap-3 border border-line p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_8rem_auto] sm:items-end">
             <div>
               <label htmlFor={`fp-p${i}-titre`} className={libelle}>Étape {i + 1}</label>
               <input id={`fp-p${i}-titre`} value={e.titre} onChange={(ev) => majEtape(i, { titre: ev.target.value })} maxLength={100} placeholder="Planification" className={champ} />

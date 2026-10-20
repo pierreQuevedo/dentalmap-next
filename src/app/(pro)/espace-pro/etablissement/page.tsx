@@ -81,7 +81,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           </button>
         </form>
       )}
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <TuileSombre
           etiquette={!verifie ? 'Vérification en cours' : enLigne ? 'Page en ligne' : 'Page en préparation'}
           titre={`Bonjour, ${source.titre}`}
@@ -114,7 +114,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         </Tuile>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Tuile>
           <TitreTuile i={ListChecks} droite={<span className="squircle-full bg-bg-soft px-2 py-0.5 text-xs text-fg-2">{missions.filter((m) => m.faite).length} sur {missions.length}</span>}>
             Missions

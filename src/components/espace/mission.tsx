@@ -41,7 +41,7 @@ export function PanneauMission({
 }) {
   const ici = `/espace-pro/missions/${cle}/${q}`
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
       <form action={action} className="squircle-2xl border border-line bg-bg">
         <input type="hidden" name="fiche" value={fiche} />
         <input type="hidden" name="avant" value={avant} />

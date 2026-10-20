@@ -29,7 +29,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
 
   return (
     <CoqueEspace c={coque} actif="ma-page" titre="Ma page" sousTitre="Les sections de la page publique, dans l’ordre où les candidats les lisent">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-4">
           {sp.erreur && <Retour erreur={sp.erreur} bloc="" />}
           <ol className="space-y-2">

@@ -43,7 +43,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
 
   return (
     <CoqueEspace c={coque} actif="statistiques" titre="Statistiques" sousTitre="Les visites arrivées par vos liens de partage, sur les 30 derniers jours">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Tuile>
           <p className="text-sm text-fg-2">Visites par vos liens</p>
           <p className="mt-2 flex items-baseline gap-2">

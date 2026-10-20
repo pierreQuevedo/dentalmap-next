@@ -23,7 +23,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       : 'Attestation en cours d’examen'
   return (
     <CoqueEspace c={coque} actif="compte" titre="Compte et sécurité" sousTitre="Votre connexion à l’espace pro">
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Tuile>
           <TitreTuile i={Mail}>Adresse électronique</TitreTuile>
           <p className="mt-4 text-sm text-fg">{compte.email}</p>

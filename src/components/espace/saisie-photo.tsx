@@ -75,7 +75,7 @@ export function SaisiePhoto({
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
       <input type="hidden" name="photo" value={url} />
       <div>
         <div className="squircle-2xl relative aspect-[4/5] w-full max-w-[19.25rem] overflow-hidden border border-line bg-bg-soft">

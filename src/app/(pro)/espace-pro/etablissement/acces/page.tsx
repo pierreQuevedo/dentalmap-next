@@ -27,7 +27,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <div className="mb-4">
         <Retour erreur={sp.erreur} enregistre={sp.enregistre} bloc="voiesAcces" />
       </div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <form action={enregistrerBloc}>
           <input type="hidden" name="fiche" value={source.slug} />
           <input type="hidden" name="bloc" value="voiesAcces" />

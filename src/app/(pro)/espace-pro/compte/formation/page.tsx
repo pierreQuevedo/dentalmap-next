@@ -52,7 +52,7 @@ export default async function Page(props: { searchParams: Promise<{ envoye?: str
   const retourCompte = c?.etablissement ? '/espace-pro/etablissement/compte/' : c ? '/espace-pro/compte/' : '/'
 
   const contenu = (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
       <div className="space-y-4">
         {sp.envoye && (
           <p role="status" className="squircle-xl flex items-center gap-2 bg-teal/10 px-4 py-3 text-sm text-teal">

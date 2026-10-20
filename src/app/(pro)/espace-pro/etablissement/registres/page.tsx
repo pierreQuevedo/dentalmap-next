@@ -24,7 +24,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const sources = source.faculte?.sources ?? []
   return (
     <CoqueEspace c={coque} actif="registre" titre="Registres" sousTitre="Ce que la page lit aux sources publiques, en lecture seule">
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Tuile>
           <TitreTuile i={ShieldCheck}>Identité de l’établissement</TitreTuile>
           <dl className="mt-3 divide-y divide-line">

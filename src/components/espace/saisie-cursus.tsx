@@ -26,7 +26,7 @@ export function CursusClient({ cycles: c0, autres: a0 }: { cycles: Cycle[]; autr
         <h2 className="flex items-center gap-2 text-sm font-semibold text-fg">
           <Plan className="size-4 text-fg-2" aria-hidden /> Cycles
         </h2>
-        <ol className="mt-4 grid gap-3 md:grid-cols-3">
+        <ol className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
           {cycles.map((c) => (
             <li key={c.id} className="squircle-xl space-y-2 border border-line p-3">
               <input aria-label="Années" value={c.annees} maxLength={60} onChange={(e) => maj(c.id, { annees: e.target.value })} placeholder="2e et 3e années" className={`${champ} h-8 text-xs`} />

@@ -21,7 +21,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <form action={enregistrerSavoirFaire}>
         <Caches t={t} page="savoir-faire" />
         {sp.erreur && <Encart ton="erreur" className="mb-4">{sp.erreur}</Encart>}
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Tuile>
             <TitreTuile i={Wrench} droite={<span className="text-xs text-fg-2">{tech.size} choisies · trois au moins</span>}>
               Techniques
@@ -48,7 +48,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           </Tuile>
           <Tuile className="lg:col-span-2">
             <TitreTuile i={Cpu}>Numérique</TitreTuile>
-            <ul className="mt-4 grid gap-3 md:grid-cols-3">
+            <ul className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
               {[
                 ['stl', 'Empreintes numériques', 'Fichiers STL des scanners intra-oraux', c?.empreintesStl],
                 ['usinage', 'Usinage sur place', 'Fraiseuse au laboratoire, zircone et titane', c?.usinage],

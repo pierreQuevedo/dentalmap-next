@@ -77,7 +77,7 @@ export function SaisieListe({
                 </button>
               </div>
               {edition && (
-                <div className="grid gap-3 border-t border-line p-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 border-t border-line p-4 sm:grid-cols-2">
                   {champs.map((c) =>
                     c.type === 'texte' ? (
                       <div key={c.cle} className={c.large ? 'sm:col-span-2' : ''}>

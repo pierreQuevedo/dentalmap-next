@@ -20,7 +20,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const garde = gardee.texte('rayon') !== undefined
   return (
     <CoqueEspace c={t.coque} actif="zone" titre="Zone et logistique" sousTitre="Les cabinets de la zone vous voient dans leurs recherches">
-      <form action={enregistrerZone} className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      <form action={enregistrerZone} className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <Caches t={t} page="zone" />
         <div className="squircle-2xl relative h-[30rem] overflow-hidden border border-line">
           <VoletCarte praticiens={[t.espace.fiche.resume]} profession="prothesiste" sansMarque />

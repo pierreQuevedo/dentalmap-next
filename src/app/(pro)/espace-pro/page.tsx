@@ -56,7 +56,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
 
   return (
     <CoqueEspace c={coque} actif="vue" titre="Vue d’ensemble" sousTitre={`${aujourdhui()}${completee?.publieeLe ? ` · fiche publiée ${quand(completee.publieeLe).toLowerCase()}` : ''}`}>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <section className="squircle-2xl relative overflow-hidden text-white">
           <FondCarte lon={fiche.resume.lon} lat={fiche.resume.lat} zoom={14.2} decalage={{ x: 220, y: -40 }} />
           <div aria-hidden className="absolute inset-0 bg-gradient-to-tr from-[#0B1F1D] via-[#0B1F1D]/60 to-transparent" />
@@ -114,7 +114,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <ApercuPublic praticien={{ ...fiche.resume, revendiquee: !enAttente }} profession={fiche.profession} photo={completee?.photoUrl} />
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Tuile>
           <TitreTuile i={Sparkles} droite={<Link href={chemin(`/espace-pro/progression/${q}`)} className="text-sm text-fg underline-offset-4 hover:underline">Progression</Link>}>
             À faire
@@ -168,7 +168,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <TuileFraicheur fraicheur={fraicheur} href={`/espace-pro/fraicheur/${q}`} note="Reconfirmer prend un clic, sans ressaisie." />
       </div>
 
-      <div className="mt-4 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         {espace.ctx.identiteVerifiee && (
           <Link href={chemin(`/espace-pro/partager/${q}#parrainage`)} className="squircle-2xl group relative flex flex-col justify-between gap-5 overflow-hidden bg-gradient-to-br from-[#134E4A] to-[#0B1F1D] p-6 text-white">
             <div className="flex items-start gap-4">

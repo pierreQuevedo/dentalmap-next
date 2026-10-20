@@ -17,7 +17,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const gardee = await lireSaisie('/espace-pro/conformite/', sp.erreur)
   return (
     <CoqueEspace c={t.coque} actif="conformite" titre="Conformité" sousTitre={`Déclaration ANSM · +10 % · 2 min${c?.ansmNumero ? ' · faite' : ''}`}>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <form action={enregistrerAnsm} className="squircle-2xl border border-line bg-bg p-6">
           <Caches t={t} page="conformite" />
           <p className="text-xs text-fg-2">Mission · +10 % · 2 min</p>

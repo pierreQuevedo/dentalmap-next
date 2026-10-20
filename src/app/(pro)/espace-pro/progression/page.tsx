@@ -116,7 +116,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
 
       <Tuile className="mt-4">
         <TitreTuile i={Eye}>Votre carte dans les résultats</TitreTuile>
-        <div className="mt-5 grid items-start gap-6 md:grid-cols-[auto_auto_minmax(0,1fr)]">
+        <div className="mt-5 grid grid-cols-1 items-start gap-6 md:grid-cols-[auto_auto_minmax(0,1fr)]">
           <figure className="space-y-2">
             <ul className="w-[17rem] [&_li]:min-h-[21rem]">
               <CarteFixe praticien={fiche.resume} profession={fiche.profession} photo={completee?.photoUrl} />
@@ -154,7 +154,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <p className="mt-4 text-xs text-fg-2">Vos points ordonnent les résultats de recherche ; Ambassadeur et Référence locale y ajoutent un bonus tant qu’ils sont tenus. Les points se recalculent en continu.</p>
       </Tuile>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-4">
           <Tuile>
             <TitreTuile i={Award} droite={<span className="squircle-full bg-bg-soft px-2 py-0.5 text-xs text-fg-2">{obtenues} sur {distinctions.length}</span>}>

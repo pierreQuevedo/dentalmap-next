@@ -23,13 +23,13 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const siren = espace.labo ? await sirenDe(fiche.id) : null
   return (
     <CoqueEspace c={coque} actif="registre" titre="Registre" sousTitre={`Ce que ${sourceNom} dit de vous, synchronisé chaque semaine`}>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-4">
           <Tuile>
             <TitreTuile i={ShieldCheck} droite={<span className="squircle-full inline-flex items-center gap-1 bg-bg-soft px-2 py-0.5 text-xs text-fg-2"><Lock className="size-3" aria-hidden /> Lecture seule</span>}>
               Identité professionnelle
             </TitreTuile>
-            <dl className="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-[auto_minmax(0,1fr)]">
+            <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-[auto_minmax(0,1fr)]">
               {[
                 ['Nom', nomDe(fiche)],
                 ['Profession', espace.labo ? 'Laboratoire de prothèse dentaire' : libelleProfession(fiche)],

@@ -51,7 +51,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
 
   return (
     <CoqueEspace c={coque} actif="fiche" titre="Ma fiche" sousTitre={`Les blocs de la fiche publique, dans l’ordre où les ${labo ? 'cabinets' : 'patients'} les lisent`}>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <ol className="space-y-2">
           {blocs.map((b, k) => (
             <li key={b.n} className={`squircle-2xl flex flex-wrap items-center gap-4 border bg-bg p-4 ${b.s === 'vide' ? 'border-dashed border-line' : 'border-line'}`}>

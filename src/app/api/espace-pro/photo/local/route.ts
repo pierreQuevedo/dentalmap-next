@@ -9,8 +9,9 @@ import { getCompte } from '@/lib/tunnel/compte'
 /**
  * Envoi d'une photo (profil, réalisations) par le serveur, quand le navigateur
  * ne peut pas téléverser lui-même (pas de jeton client) : vers le stockage
- * Vercel Blob public s'il est branché (jeton ou identifiant de stockage), sinon,
- * hors production, dans `public/uploads/` pour tester de bout en bout.
+ * Vercel Blob s'il est branché (jeton ou identifiant de stockage), en privé
+ * puisque le stockage l'est, servie ensuite par `/photos/<nom>` ; sinon, hors
+ * production, dans `public/uploads/` pour tester de bout en bout.
  */
 export async function POST(request: NextRequest) {
   const blob = stockageBlob()
@@ -20,8 +21,9 @@ export async function POST(request: NextRequest) {
   if (!(fichier instanceof File) || fichier.type !== 'image/jpeg' || fichier.size > 5 * 1024 * 1024) return new NextResponse('Photo refusée.', { status: 400 })
   const nom = `${randomUUID()}.jpg`
   if (blob) {
-    const envoye = await put(`cabinets/${nom}`, fichier, { access: 'public', contentType: 'image/jpeg', addRandomSuffix: false })
-    return NextResponse.json({ url: envoye.url })
+    // Le stockage est privé : la photo y est rangée en privé, et le site la sert par `/photos/<nom>`.
+    await put(`photos/${nom}`, fichier, { access: 'private', contentType: 'image/jpeg', addRandomSuffix: false })
+    return NextResponse.json({ url: `/photos/${nom}` })
   }
   const dossier = join(process.cwd(), 'public', 'uploads', 'cabinets')
   await mkdir(dossier, { recursive: true })
