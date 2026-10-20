@@ -38,6 +38,7 @@ const PROFILS: { role: Role; titre: string; detail: string }[] = [
   { role: 'dentiste', titre: 'Dentiste', detail: 'Chirurgien-dentiste, je gère ma fiche.' },
   { role: 'prothesiste', titre: 'Laboratoire', detail: 'Laboratoire de prothèse dentaire.' },
   { role: 'medecin', titre: 'Médecin', detail: 'Chirurgien maxillo-facial, stomatologue ou ORL.' },
+  { role: 'organisme', titre: 'École', detail: 'École ou faculté : je gère la page de l’établissement.' },
 ]
 
 /** Essais par code, comme `allowedAttempts` dans `src/lib/auth.ts`. */
@@ -59,7 +60,14 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
   const [codeEnvoye, setCodeEnvoye] = useState(false)
   // Le profil demandé par le lien, sinon soignant quand on vient de l'espace pro.
   const [role, setRole] = useState<Role>(
-    profil && PROFILS.some((p) => p.role === profil) ? profil : retour.startsWith('/espace-pro') ? 'dentiste' : 'patient',
+    profil && PROFILS.some((p) => p.role === profil)
+      ? profil
+      : // Depuis le parcours d'un établissement (O1, page publique d'une école), l'école est choisie d'office.
+        retour.startsWith('/espace-pro/organisme') || retour.startsWith('/espace-pro/etablissement')
+        ? 'organisme'
+        : retour.startsWith('/espace-pro')
+          ? 'dentiste'
+          : 'patient',
   )
   const [nom, setNom] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
@@ -145,7 +153,7 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
         password: motDePasse,
         name: nom.trim(),
         role,
-        etapeTunnel: role === 'patient' ? 'tableau-de-bord' : 'fiche',
+        etapeTunnel: role === 'patient' || role === 'organisme' ? 'tableau-de-bord' : 'fiche',
       })
       if (error) {
         setErreur(
@@ -349,17 +357,17 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
               </button>
             </p>
             {/*
-              Le profil : un sélecteur à quatre segments sur toute la largeur
+              Le profil : un sélecteur à cinq segments sur toute la largeur
               des champs, comme celui de la recherche de l'accueil. Le
               surligneur glisse sous le segment choisi ; une ligne dessous dit
               ce qu'il recouvre.
             */}
             <fieldset className="mt-6">
               <legend className="mb-2.5 text-sm font-medium text-fg">Vous êtes</legend>
-              <div className="relative grid grid-cols-4 rounded-full border border-line bg-bg-soft p-1">
+              <div className="relative grid grid-cols-5 rounded-full border border-line bg-bg-soft p-1">
                 <span
                   aria-hidden
-                  className="absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/4)] rounded-full bg-bg shadow-pill transition-transform duration-moderate ease-spring motion-reduce:transition-none"
+                  className="absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/5)] rounded-full bg-bg shadow-pill transition-transform duration-moderate ease-spring motion-reduce:transition-none"
                   style={{ transform: `translateX(${PROFILS.findIndex((p) => p.role === role) * 100}%)` }}
                 />
                 {PROFILS.map((p) => {
@@ -367,7 +375,7 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
                   return (
                     <label
                       key={p.role}
-                      className={`relative z-10 flex h-9 cursor-pointer items-center justify-center whitespace-nowrap rounded-full px-1 text-[13px] font-medium transition-colors duration-fast has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${
+                      className={`relative z-10 flex h-9 cursor-pointer items-center justify-center whitespace-nowrap rounded-full px-0.5 text-[12px] font-medium sm:px-1 sm:text-[13px] transition-colors duration-fast has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action ${
                         choisi ? 'text-fg' : 'text-fg-2 hover:text-fg'
                       }`}
                     >
