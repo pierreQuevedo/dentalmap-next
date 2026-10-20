@@ -88,11 +88,12 @@ export function OngletsEmploi({ actif, q, sansFiche = false }: { actif: 'creer' 
   )
 }
 
-/** Sous « Mes candidatures » : les candidatures envoyées, le profil candidat, sa visibilité. */
-export function SousOngletsCandidat({ actif, q }: { actif: 'candidatures' | 'profil' | 'visibilite'; q: string }) {
+/** Sous « Mes candidatures » : les candidatures envoyées, le profil candidat, les alertes, la visibilité. */
+export function SousOngletsCandidat({ actif, q }: { actif: 'candidatures' | 'profil' | 'alertes' | 'visibilite'; q: string }) {
   const liens = [
     { cle: 'candidatures', libelle: 'Candidatures envoyées', href: `/espace-pro/emploi/mes-candidatures/${q}` },
     { cle: 'profil', libelle: 'Mon profil candidat', href: `/espace-pro/emploi/profil-candidat/${q}` },
+    { cle: 'alertes', libelle: 'Alertes', href: `/espace-pro/emploi/alertes/${q}` },
     { cle: 'visibilite', libelle: 'Visibilité', href: `/espace-pro/emploi/visibilite/${q}` },
   ] as const
   return (

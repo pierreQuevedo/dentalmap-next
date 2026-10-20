@@ -6,6 +6,7 @@
     { "path": "/api/cron/alertes/", "schedule": "0 6 * * *" },
     { "path": "/api/cron/alertes-formation/", "schedule": "0 7 * * *" },
     { "path": "/api/cron/alertes-cession/", "schedule": "30 7 * * *" },
+    { "path": "/api/cron/alertes-emploi/", "schedule": "15 7 * * *" },
     { "path": "/api/cron/rappels-fraicheur/", "schedule": "0 8 * * *" }
   ]
 }

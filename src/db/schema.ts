@@ -843,6 +843,9 @@ export const alertesEmploi = pgTable('alertes_emploi', {
   jetonHash: text('jeton_hash'),
   confirmeeLe: timestamp('confirmee_le', { withTimezone: true }),
   active: boolean('active').notNull().default(true),
+  /** Alerte d'un compte : un nom donné par la personne, et chaque jour ou chaque semaine. Sans compte : chaque semaine. */
+  titre: text('titre'),
+  frequence: text('frequence', { enum: ['quotidienne', 'hebdomadaire'] }).notNull().default('hebdomadaire'),
   dernierEnvoiLe: timestamp('dernier_envoi_le', { withTimezone: true }),
   creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [

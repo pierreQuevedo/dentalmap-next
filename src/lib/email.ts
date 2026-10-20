@@ -660,3 +660,21 @@ export async function envoyerCandidatureNonRetenue(to: string, recruteur: string
     raison: 'Vous recevez cet email parce que vous avez postulé à une offre d’emploi sur DentalMap.',
   })
 }
+
+/** L'alerte emploi : les nouvelles offres qui répondent aux critères, par distance. */
+export async function envoyerAlerteEmploi(to: string, d: { titre: string; offres: { titre: string; detail: string; lien: string }[]; gerer: { libelle: string; url: string } }) {
+  const plusieurs = d.offres.length > 1
+  const objet = plusieurs ? `${d.offres.length} nouvelles offres : ${d.titre}` : `Une nouvelle offre : ${d.titre}`
+  await envoyer(to, objet, {
+    titre: plusieurs ? `${d.offres.length} nouvelles offres d’emploi` : 'Une nouvelle offre d’emploi',
+    blocs: [
+      { type: 'texte', texte: `Ces offres viennent d’être publiées et répondent à votre alerte « ${d.titre} ». La rémunération est toujours affichée.` },
+      ...d.offres.flatMap((o) => [
+        { type: 'champs' as const, lignes: [['Offre', o.titre], ['Repères', o.detail]] as [string, string][] },
+        { type: 'lien' as const, libelle: 'Voir l’offre', url: `${SITE}${o.lien}` },
+      ]),
+      { type: 'lien', libelle: d.gerer.libelle, url: `${SITE}${d.gerer.url}` },
+    ],
+    raison: 'Vous recevez cet email parce que vous avez créé une alerte emploi sur DentalMap. Vous pouvez la mettre en pause ou l’arrêter à tout moment.',
+  })
+}
