@@ -135,6 +135,7 @@ export const mainNav: NavEntry[] = [
       { label: 'Alternance et stages', href: '/emploi/alternance' },
       { label: 'Remplacements et collaborations', href: '/emploi/remplacements' },
       { label: 'Recruter', href: '/emploi/recruter' },
+      { label: 'Mes candidatures', href: '/espace-candidat/candidatures' },
     ],
   },
   {

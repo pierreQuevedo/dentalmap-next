@@ -1,4 +1,6 @@
+import Image from 'next/image'
 import { Logo } from '@/components/site/logo'
+import { illustration } from '@/lib/annuaire/illustration'
 import { Check, CircleX, Info, Lock, MapPin, UserRound, type LucideIcon } from 'lucide-react'
 
 /**
@@ -121,9 +123,14 @@ export function FicheResume({
 }) {
   return (
     <div className="flex w-full items-center gap-3.5">
-      <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-xl bg-bg-soft text-fg-2">
-        <UserRound className="size-[18px]" />
-      </span>
+      {/* Un laboratoire est une structure : son visuel de remplacement, l'établi, plutôt qu'une silhouette. */}
+      {libelleIdentifiant === 'SIREN' || profession.startsWith('Laboratoire') ? (
+        <Image src={illustration('prothesiste', null)} alt="" width={80} height={80} className="size-10 shrink-0 rounded-xl object-cover" />
+      ) : (
+        <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-xl bg-bg-soft text-fg-2">
+          <UserRound className="size-[18px]" />
+        </span>
+      )}
       <div className="min-w-0 flex-1">
         <span className="inline-block rounded-full bg-teal/15 px-2 py-0.5 text-[10px] font-medium text-teal">{profession}</span>
         <p className="mt-1 text-[15px] font-semibold leading-snug text-fg">{nom}</p>

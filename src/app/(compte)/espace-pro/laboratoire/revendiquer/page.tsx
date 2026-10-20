@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowRight, Search } from 'lucide-react'
-import { Encart, Etapes, FicheResume, discret, pastille, pastilleInvalide, principal, saisie, titre } from '@/components/compte/ui'
+import { ArrowLeft, ArrowRight, Search } from 'lucide-react'
+import { Encart, Etapes, FicheResume, Pictogramme, discret, pastille, pastilleInvalide, principal, saisie, titre } from '@/components/compte/ui'
+import { SurvolFiche } from '@/components/compte/survol-fiche'
 import { chemin } from '@/lib/navigation'
 import { nomAffiche } from '@/lib/annuaire/types'
 import { ouvrirFicheLabo } from '@/lib/espace-pro/actions-revendication'
@@ -38,8 +39,9 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
 
   if (q && !cleFausse && resultats.length === 0) {
     return (
-      <CoquilleParcours recherche={q} encart={{ icone: 'sablier', ton: 'attention', titre: 'Absent de l’annuaire', texte: 'Contrôle Sirene avant toute création.' }} retour={LABO + '/'} libelleRetour="Modifier ma recherche">
+      <CoquilleParcours profession="prothesiste" recherche={q} encart={{ icone: 'sablier', ton: 'attention', titre: 'Absent de l’annuaire', texte: 'Contrôle Sirene avant toute création.' }} retour={LABO + '/'} libelleRetour="Modifier ma recherche">
         <Etapes etape={1} libelle="Laboratoire" />
+        <Pictogramme icone={Search} />
         <h1 className={titre}>Aucun laboratoire ne correspond</h1>
         <p className="mt-2 text-sm text-fg-2">
           Rien pour « <span className="font-medium text-fg">{q}</span> ». Un laboratoire créé récemment n’apparaît qu’après la synchronisation de la base Sirene.
@@ -55,40 +57,52 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
     )
   }
 
+  // Plusieurs laboratoires : le choix, comme H1 côté dentiste. Vingt au plus : au-delà, mieux vaut le SIREN.
   if (resultats.length > 1) {
+    const plafond = resultats.length >= 20
+    const titreListe = plafond ? 'Au moins 20 laboratoires correspondent' : `${resultats.length} laboratoires correspondent`
     return (
-      <CoquilleParcours praticiens={resultats} etiquette={`${resultats.length >= 20 ? 'Au moins 20' : resultats.length} laboratoires`} recherche={q} retour={`${LABO}/`} libelleRetour="Nouvelle recherche">
+      <CoquilleParcours profession="prothesiste" praticiens={resultats} etiquette={titreListe} recherche={q} retour={`${LABO}/?q=${encodeURIComponent(q)}`} libelleRetour="Nouvelle recherche">
         <Etapes etape={1} libelle="Laboratoire" />
-        <h1 className={titre}>{resultats.length >= 20 ? 'Au moins 20 laboratoires' : `${resultats.length} laboratoires`} correspondent</h1>
-        <p className="mt-2 text-sm text-fg-2">Choisissez le vôtre{resultats.length >= 20 ? ', ou cherchez par SIREN : il est sur votre extrait Kbis.' : '.'}</p>
+        <h1 className={titre}>{titreListe}</h1>
+        <p className="mt-2 text-sm text-fg-2">Choisissez le vôtre{plafond ? ', ou cherchez par SIREN : il est sur votre extrait Kbis.' : '.'}</p>
         <form action={ouvrirFicheLabo} className="mt-6">
-          <div className="grid gap-2.5">
-            {resultats.map((r, i) => (
-              <label
-                key={r.slug}
-                className="group squircle-xl flex cursor-pointer items-center border border-line bg-bg px-[18px] py-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:checked]:ring-[0.5px] has-[:checked]:ring-fg has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action"
-              >
-                <input type="radio" name="fiche" value={r.slug} defaultChecked={i === 0} required className="sr-only" />
-                <FicheResume profession="Laboratoire de prothèse" nom={nomAffiche({ ...r, profession: 'prothesiste' })} adresse={adresseDe(r)} rpps={null}>
-                  <span aria-hidden className="size-5 shrink-0 rounded-full border border-line-strong bg-bg transition-[border-width,border-color] group-has-[:checked]:border-[6px] group-has-[:checked]:border-fg" />
-                </FicheResume>
-              </label>
-            ))}
-          </div>
+          <fieldset>
+            <legend className="sr-only">Votre laboratoire</legend>
+            {/* Hauteur bornée : le haut de la page et les boutons restent visibles, la liste défile. */}
+            <div className="-mx-1 grid max-h-[min(46dvh,26rem)] gap-2.5 overflow-y-auto overscroll-contain px-1 py-1">
+              {resultats.map((r, i) => (
+                <SurvolFiche key={r.slug} index={i}>
+                  <label className="group squircle-xl flex cursor-pointer items-center border border-line bg-bg px-[18px] py-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:checked]:ring-[0.5px] has-[:checked]:ring-fg has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action">
+                    <input type="radio" name="fiche" value={r.slug} defaultChecked={i === 0} required className="sr-only" />
+                    <FicheResume profession="Laboratoire de prothèse" nom={nomAffiche({ ...r, profession: 'prothesiste' })} adresse={adresseDe(r)} rpps={null}>
+                      <span aria-hidden className="size-5 shrink-0 rounded-full border border-line-strong bg-bg transition-[border-width,border-color] group-has-[:checked]:border-[6px] group-has-[:checked]:border-fg" />
+                    </FicheResume>
+                  </label>
+                </SurvolFiche>
+              ))}
+            </div>
+          </fieldset>
           <button type="submit" className={`${principal} mt-4`}>
             C’est mon laboratoire
             <ArrowRight className="size-4" aria-hidden />
           </button>
         </form>
-        <Link href={chemin('/espace-pro/laboratoire/ajout/')} className={`${discret} mt-1`}>
-          Aucun n’est le mien
-        </Link>
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <Link href={chemin(`${LABO}/?q=${encodeURIComponent(q)}`)} className="inline-flex h-11 items-center gap-1.5 text-sm font-medium text-fg-2 hover:text-fg">
+            <ArrowLeft className="size-4" aria-hidden />
+            Étape précédente
+          </Link>
+          <Link href={chemin('/espace-pro/laboratoire/ajout/')} className="inline-flex h-11 items-center text-sm font-medium text-fg underline underline-offset-4 hover:no-underline">
+            Aucun n’est le mien
+          </Link>
+        </div>
       </CoquilleParcours>
     )
   }
 
   return (
-    <CoquilleParcours recherche={q} encart={{ icone: 'document', titre: 'Votre SIREN', texte: 'Sur l’extrait Kbis, ou sur annuaire-entreprises.data.gouv.fr.' }} retour="/">
+    <CoquilleParcours profession="prothesiste" recherche={q} encart={{ icone: 'document', titre: 'Votre SIREN', texte: 'Sur l’extrait Kbis, ou sur annuaire-entreprises.data.gouv.fr.' }} retour="/">
       <Etapes etape={1} libelle="Laboratoire" />
       <h1 className={titre}>Retrouvons votre laboratoire</h1>
       <p className="mt-2 text-sm text-fg-2">Votre SIREN ou SIRET est le plus sûr. La raison sociale marche aussi.</p>

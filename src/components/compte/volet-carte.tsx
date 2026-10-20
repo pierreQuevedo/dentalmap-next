@@ -64,7 +64,7 @@ export function VoletCarte({
   sansMarque = false,
   position,
   contenu,
-  invite = 'Numéro RPPS ou nom',
+  invite,
 }: {
   /** Les fiches à montrer : la première porte la carte, les autres un simple point. */
   praticiens?: PraticienProche[]
@@ -81,7 +81,7 @@ export function VoletCarte({
   /** Hors annuaire des soignants (établissement de formation) : le point et la carte posée dessus. */
   position?: Point | null
   contenu?: React.ReactNode
-  /** Texte d'invite de la pastille vide. */
+  /** Texte d'invite de la pastille vide ; par défaut, celui de la profession. */
   invite?: string
 }) {
   // H1 : la fiche choisie ou survolée à droite devient la fiche de la carte.
@@ -147,16 +147,19 @@ export function VoletCarte({
 
 /**
  * La pastille de recherche du volet : un vrai champ, qui relance la recherche
- * de sa fiche (S1) avec ce qu'on y tape. « RPPS : » devant un numéro.
+ * de sa fiche (S1) avec ce qu'on y tape. « RPPS : » devant un numéro. Côté
+ * laboratoire, elle relance L1 : « SIREN : » ou « SIRET : » devant un numéro.
  */
-function PastilleRecherche({ valeur, invite, profession }: { valeur: string; invite: string; profession: Profession }) {
+function PastilleRecherche({ valeur, invite, profession }: { valeur: string; invite?: string; profession: Profession }) {
   const [texte, setTexte] = useState(valeur)
-  const numero = /^\d{11}$/.test(texte.replace(/\s/g, ''))
+  const labo = profession === 'prothesiste'
+  const chiffres = texte.replace(/\s/g, '')
+  const numero = labo ? (/^\d{9}$/.test(chiffres) ? 'SIREN' : /^\d{14}$/.test(chiffres) ? 'SIRET' : null) : /^\d{11}$/.test(chiffres) ? 'RPPS' : null
   return (
-    <form method="get" action="/espace-pro/revendiquer/recherche/" role="search" className="squircle-full pointer-events-auto flex h-11 max-w-md items-center gap-2.5 border border-line bg-bg pl-4 pr-1.5 shadow-pill focus-within:border-line-strong">
-      <input type="hidden" name="profession" value={profession === 'prothesiste' ? 'dentiste' : profession} />
-      {numero ? <span className="shrink-0 text-sm font-medium text-fg-2">RPPS :</span> : <Search className="size-4 shrink-0 text-fg-2" aria-hidden />}
-      <label htmlFor="volet-recherche" className="sr-only">Rechercher une fiche par numéro RPPS ou par nom</label>
+    <form method="get" action={labo ? '/espace-pro/laboratoire/revendiquer/' : '/espace-pro/revendiquer/recherche/'} role="search" className="squircle-full pointer-events-auto flex h-11 max-w-md items-center gap-2.5 border border-line bg-bg pl-4 pr-1.5 shadow-pill focus-within:border-line-strong">
+      {!labo && <input type="hidden" name="profession" value={profession} />}
+      {numero ? <span className="shrink-0 text-sm font-medium text-fg-2">{numero} :</span> : <Search className="size-4 shrink-0 text-fg-2" aria-hidden />}
+      <label htmlFor="volet-recherche" className="sr-only">{labo ? 'Rechercher un laboratoire par SIREN, SIRET ou raison sociale' : 'Rechercher une fiche par numéro RPPS ou par nom'}</label>
       <input
         id="volet-recherche"
         name="q"
@@ -164,7 +167,7 @@ function PastilleRecherche({ valeur, invite, profession }: { valeur: string; inv
         minLength={2}
         value={texte}
         onChange={(e) => setTexte(e.target.value)}
-        placeholder={invite}
+        placeholder={invite ?? (labo ? 'SIREN ou raison sociale' : 'Numéro RPPS ou nom')}
         className={`min-w-0 flex-1 bg-transparent text-sm text-fg outline-none placeholder:text-fg-2 ${numero ? 'font-mono' : ''}`}
       />
       <button type="submit" aria-label="Rechercher" className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full bg-action text-action-foreground hover:bg-action-hover">
@@ -271,6 +274,9 @@ function Plan({
       const bornes = new LngLatBounds()
       for (const p of points) bornes.extend([p.lon, p.lat])
       map.fitBounds(bornes, { padding: { top: 500, bottom: 90, left: 60, right: 60 }, maxZoom: 14, duration: 0 })
+      // La fiche posée sur le repère ne doit pas sortir du cadre : le plan garde ce zoom, mais centré sur le repère.
+      if (principal?.lon != null && principal.lat != null && children)
+        map.jumpTo({ center: [principal.lon, principal.lat], padding: { top: 440, bottom: 0, left: 0, right: 0 } })
     } else if (principal && children) {
       // La fiche se pose au-dessus du repère : le point descend dans le cadre pour lui laisser la place.
       map.setPadding({ top: 440, bottom: 0, left: 0, right: 0 })

@@ -123,6 +123,7 @@ export async function CoquilleParcours({
   retour = '/',
   libelleRetour,
   lieux,
+  profession,
   children,
 }: {
   fiche?: FicheRevendication | null
@@ -134,6 +135,8 @@ export async function CoquilleParcours({
   retour?: string
   libelleRetour?: string
   lieux?: { lon: number | null; lat: number | null }[]
+  /** Sans fiche désignée (L1 et sa liste), le parcours laboratoire le dit : la pastille et la carte sont alors celles d'un laboratoire. */
+  profession?: Profession
   children: React.ReactNode
 }) {
   const montres = praticiens ?? (fiche ? [fiche.resume] : [])
@@ -144,7 +147,7 @@ export async function CoquilleParcours({
       volet={
         <VoletCarte
           praticiens={montres}
-          profession={fiche?.profession ?? 'dentiste'}
+          profession={fiche?.profession ?? profession ?? 'dentiste'}
           etiquette={etiquette}
           recherche={recherche}
           encart={encart}
