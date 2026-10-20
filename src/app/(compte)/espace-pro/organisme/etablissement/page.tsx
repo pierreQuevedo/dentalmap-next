@@ -32,7 +32,6 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
   return (
     <CoquilleOrganisme
       source={premier}
-      recherche={q}
       encart={q && !resultats.length ? { icone: 'recherche', ton: 'attention', titre: 'Aucun établissement', texte: 'Vous pouvez demander son ajout : nous vérifions le numéro UAI.' } : undefined}
       retour={`${ORGANISME}/`}
       libelleRetour="Retour au site"

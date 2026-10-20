@@ -34,15 +34,13 @@ export function lignesDe(formations: { intitule: string; duree: string | null; a
 
 /**
  * La coquille du couloir : à gauche le plan avec la carte de l'établissement
- * posée sur son point, ou la France pointillée et une accroche ; à droite le
+ * posée sur son point (sans pastille de recherche : la recherche se fait à droite), ou la France pointillée et une accroche ; à droite le
  * formulaire.
  */
 export async function CoquilleOrganisme({
   source,
   lignes,
   etiquette,
-  recherche,
-  invite = 'Nom, ville ou numéro UAI',
   encart,
   accroche,
   retour = '/',
@@ -52,8 +50,6 @@ export async function CoquilleOrganisme({
   source?: SourceEtablissement | null
   lignes?: LigneCarte[]
   etiquette?: string
-  recherche?: string
-  invite?: string
   encart?: EncartCarte
   /** Sans établissement ni plan : la France pointillée et cette accroche (W1, O2b, O3b). */
   accroche?: { titre: string; texte: string }
@@ -90,8 +86,6 @@ export async function CoquilleOrganisme({
             ) : undefined
           }
           etiquette={etiquette}
-          recherche={recherche}
-          invite={invite}
           encart={encart}
         />
       }

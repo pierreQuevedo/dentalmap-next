@@ -42,7 +42,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
 
   const uaiFaux = sp.champ === 'uai'
   return (
-    <CoquilleOrganisme recherche={sp.uai ?? ''} invite="Numéro UAI" encart={encart} retour={`${ORGANISME}/etablissement/`} libelleRetour="Retour">
+    <CoquilleOrganisme encart={encart} retour={`${ORGANISME}/etablissement/`} libelleRetour="Retour">
       <Etapes etape={2} total={3} libelle="Établissement" />
       <h1 className={titre}>Ajouter votre établissement</h1>
       <p className="mt-2 text-sm text-fg-2">Nous vérifions le numéro UAI avant toute publication.</p>
