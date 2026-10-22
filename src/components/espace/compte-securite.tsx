@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { KeyRound, Lock, Smartphone } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
+import { chemin } from '@/lib/navigation'
 import { pastille, saisie } from '@/components/compte/ui'
 import { Criteres } from '@/components/compte/connexion'
 import { MESSAGE_MOT_DE_PASSE, motDePasseValide } from '@/lib/tunnel/mot-de-passe'
@@ -67,6 +69,7 @@ export function Appareils({ jetonCourant }: { jetonCourant: string | null }) {
   const [sessions, setSessions] = useState<Session[] | null>(null)
   // La liste demande une connexion de moins d'un jour (Better Auth) : au-delà, on propose de se reconnecter.
   const [ancienne, setAncienne] = useState(false)
+  const routeur = useRouter()
   const [enCours, demarrer] = useTransition()
   useEffect(() => {
     let vivant = true
@@ -89,7 +92,7 @@ export function Appareils({ jetonCourant }: { jetonCourant: string | null }) {
           onClick={() =>
             demarrer(async () => {
               await authClient.signOut()
-              window.location.assign(`/connexion/?retour=${encodeURIComponent(window.location.pathname + window.location.search)}`)
+              routeur.push(chemin(`/connexion/?retour=${encodeURIComponent(window.location.pathname + window.location.search)}`))
             })
           }
           className="mt-3 cursor-pointer font-medium text-fg underline underline-offset-4 hover:no-underline disabled:opacity-60"
