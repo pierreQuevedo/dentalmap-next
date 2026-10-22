@@ -348,20 +348,24 @@ export function CoqueEspace({
 
   return (
     <div className="flex min-h-dvh bg-bg">
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-y-auto border-r border-line bg-bg-soft px-4 py-5 lg:flex">
-        {marque}
-        <div className="mt-6">{identite}</div>
-        <div className="mt-5 flex-1">
+      {/* La barre latérale tient dans l'écran : marque et identité en haut, la carte en bas, seul le menu défile entre les deux. */}
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-hidden border-r border-line bg-bg-soft py-5 lg:flex">
+        <div className="shrink-0 px-4">
+          {marque}
+          <div className="mt-6">{identite}</div>
+        </div>
+        <div className="mt-5 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-2">
           <Nav c={c} actif={actif} />
           <div className="mt-0.5">
             <Deconnexion />
           </div>
         </div>
-        {carteMenu && <div className="mt-6">{carteMenu}</div>}
+        {carteMenu && <div className="shrink-0 border-t border-line px-4 pt-4">{carteMenu}</div>}
       </aside>
       <main className="min-w-0 flex-1 px-4 pb-24 pt-3 sm:px-8 sm:pb-10">
-        <MenuMobile className="group -mx-4 -mt-3 mb-3 border-b border-line bg-bg-soft lg:hidden">
-          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3">
+        {/* Sur téléphone et tablette, la barre du menu reste en haut à chaque page ; le titre défile avec le contenu. */}
+        <MenuMobile className="group sticky top-0 z-50 -mx-4 -mt-3 mb-3 border-b border-line bg-bg-soft sm:-mx-8 lg:hidden">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 sm:px-8">
             <Pastille c={c} taille="size-8 text-[10px]" />
             <span className="min-w-0 flex-1 truncate text-sm font-semibold text-fg">{c.nom}</span>
             <span className="grid size-9 place-items-center rounded-full border border-line bg-bg">
@@ -369,14 +373,17 @@ export function CoqueEspace({
               <span className="sr-only">Menu de l’espace pro</span>
             </span>
           </summary>
-          <div className="space-y-4 px-4 pb-5">
-            <Nav c={c} actif={actif} />
-            <Deconnexion />
-            {carteMenu}
+          {/* Ouvert, le menu tient dans l'écran : la liste défile, la carte reste en bas. */}
+          <div className="flex max-h-[calc(100dvh-4rem)] flex-col">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pb-4 sm:px-8">
+              <Nav c={c} actif={actif} />
+              <Deconnexion />
+            </div>
+            {carteMenu && <div className="shrink-0 border-t border-line px-4 py-3 sm:px-8">{carteMenu}</div>}
           </div>
         </MenuMobile>
-        {/* L'en-tête reste visible au défilement dès la tablette : où l'on est, et la fiche publique à un clic. Sur téléphone, la barre du menu suffit. */}
-        <header className="z-30 -mx-4 sm:sticky sm:top-0 flex flex-wrap items-center justify-between gap-4 border-b border-transparent bg-bg/85 px-4 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-bg/75 sm:-mx-8 sm:px-8">
+        {/* Sur ordinateur, l'en-tête reste visible au défilement : où l'on est, et la fiche publique à un clic. En dessous, c'est la barre du menu qui reste. */}
+        <header className="z-30 -mx-4 flex lg:sticky lg:top-0 flex-wrap items-center justify-between gap-4 border-b border-transparent bg-bg/85 px-4 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-bg/75 sm:-mx-8 sm:px-8">
           <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight text-fg">{titre}</h1>
             <p className="truncate text-sm text-fg-2">{sousTitre}</p>
