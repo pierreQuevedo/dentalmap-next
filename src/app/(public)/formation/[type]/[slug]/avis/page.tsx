@@ -6,7 +6,7 @@ import { FilAriane } from '@/components/annuaire/primitives'
 import { FormulaireAvis } from '@/components/formation/avis-client'
 import { chemin } from '@/lib/navigation'
 import { getGestions, getSourceEtablissement } from '@/lib/espace-pro/etablissement-donnees'
-import { liensPour } from '@/lib/formation/avis'
+import { POINTS_AVIS, liensPour, recherchePour } from '@/lib/formation/avis'
 import { getMonAvis } from '@/lib/formation/avis-donnees'
 import { FAMILLES, estFormationType, typeDe } from '@/lib/formation/types'
 import { getFormation } from '@/lib/wp/queries'
@@ -63,6 +63,16 @@ export default async function Page(props: { params: Promise<{ type: string; slug
         </p>
       ) : (
         <div className="mt-10">
+          <div className="squircle-2xl mb-10 flex items-start gap-4 bg-[#0B1F1D] p-5 text-white sm:p-6">
+            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[#BFE3D6] text-sm font-extrabold text-[#0B1F1D]">+{POINTS_AVIS}</span>
+            <div>
+              <p className="font-semibold">{monAvis ? 'Vos points de mise en avant sont acquis' : `+${POINTS_AVIS} points de mise en avant pour votre recherche de ${recherchePour(source.type)}`}</p>
+              <p className="mt-1 text-sm text-white/70">
+                Ils s’ajoutent à votre profil candidat sur DentalMap, même si vous le créez plus tard, et vous font apparaître plus haut auprès des recruteurs. Les mêmes points quelle que soit
+                votre note.
+              </p>
+            </div>
+          </div>
           <FormulaireAvis slug={slug} liens={liensPour(source.type)} initial={monAvis} />
         </div>
       )}

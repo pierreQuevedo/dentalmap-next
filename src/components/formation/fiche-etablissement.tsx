@@ -235,7 +235,7 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
         />
       )}
 
-      <AvisEtablissement lienPage={lienFormation(f)} nom={f.titre} avis={avis.avis} resume={avis.resume} />
+      <AvisEtablissement lienPage={lienFormation(f)} nom={f.titre} type="ecole_prothese" avis={avis.avis} resume={avis.resume} />
 
       <Contacts
         adresses={adresse ? [adresse] : f.ville ? [f.ville] : []}

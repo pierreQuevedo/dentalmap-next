@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { toBlob } from 'html-to-image'
-import { Download, Loader2, Printer, Share, Star } from 'lucide-react'
+import { Download, Loader2, Printer, Share } from 'lucide-react'
 
 /**
  * Les visuels pour recueillir des avis : une affiche A4 à imprimer (salle,
@@ -29,7 +29,9 @@ type Props = {
   /** L'adresse lisible du formulaire. */
   adresse: string
   photo: string | null
-  note: { moyenne: number; nombre: number } | null
+  /** Les points de mise en avant gagnés par un avis, et la recherche qu'ils servent (« stage ou d’alternance »). */
+  points: number
+  recherche: string
 }
 
 export function VisuelsAvis(props: Props) {
@@ -126,7 +128,7 @@ export function VisuelsAvis(props: Props) {
 }
 
 /** Le visuel à taille réelle ; exporté en PNG dès que tout est chargé. */
-function Composition({ format, nom, faculte, qr, adresse, photo, note, onPret }: Props & { format: FormatAvis; onPret: (f: File) => void }) {
+function Composition({ format, nom, faculte, qr, adresse, photo, points, recherche, onPret }: Props & { format: FormatAvis; onPret: (f: File) => void }) {
   const racine = useRef<HTMLDivElement>(null)
   const pret = useRef(onPret)
   useEffect(() => {
@@ -135,6 +137,7 @@ function Composition({ format, nom, faculte, qr, adresse, photo, note, onPret }:
   const f = FORMATS[format]
   const affiche = format === 'affiche'
   const story = format === 'story'
+  const carre = format === 'carre'
 
   useEffect(() => {
     const noeud = racine.current
@@ -155,79 +158,114 @@ function Composition({ format, nom, faculte, qr, adresse, photo, note, onPret }:
     }
   }, [f, format])
 
-  // Les mesures de chaque format : hauteur de la photo, marges, tailles de texte.
+  // Les mesures de chaque format.
   const m = affiche
-    ? { photo: 700, marge: 96, titre: 104, sous: 38, qr: 300, logo: 56 }
+    ? { photo: 620, marge: 96, titre: 118, sous: 40, qr: 280, logo: 56, sceau: 300 }
     : story
-      ? { photo: 700, marge: 90, titre: 104, sous: 38, qr: 300, logo: 52 }
-      : { photo: 0, marge: 72, titre: 76, sous: 30, qr: 250, logo: 46 }
-  const titre = faculte ? 'Vous y avez étudié, ou été soigné ?' : 'Vous y avez étudié ?'
+      ? { photo: 600, marge: 90, titre: 112, sous: 40, qr: 280, logo: 52, sceau: 280 }
+      : { photo: 0, marge: 72, titre: 84, sous: 30, qr: 230, logo: 46, sceau: 220 }
+  const lieu = faculte ? 'votre faculté' : 'votre école'
+  const etapes = ['Scannez le code', 'Donnez votre avis', `+${points} points sur votre profil`]
 
   return (
     <div ref={racine} className="relative overflow-hidden bg-[#0B1F1D] font-sans text-white" style={{ width: f.l, height: f.h }}>
-      {/* Le fond : la photo de l'établissement en haut (affiche, story), en plein sous un voile (publication). */}
       {photo && (
         <div className="absolute inset-x-0 top-0" style={{ height: m.photo || f.h }}>
           {/* eslint-disable-next-line @next/next/no-img-element -- exporté par html-to-image, qui lit des balises simples */}
           <img src={photo} alt="" className="size-full object-cover" />
           <div
             className="absolute inset-0"
-            style={{ background: m.photo ? 'linear-gradient(180deg, rgba(11,31,29,0.55) 0%, rgba(11,31,29,0.15) 40%, #0B1F1D 100%)' : 'linear-gradient(90deg, #0B1F1D 0%, rgba(11,31,29,0.92) 55%, rgba(11,31,29,0.55) 100%)' }}
+            style={{ background: m.photo ? 'linear-gradient(180deg, rgba(11,31,29,0.6) 0%, rgba(11,31,29,0.2) 45%, #0B1F1D 100%)' : 'linear-gradient(90deg, #0B1F1D 0%, rgba(11,31,29,0.93) 58%, rgba(11,31,29,0.6) 100%)' }}
           />
         </div>
       )}
-      {!photo && <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 80% 10%, rgba(11,132,132,0.45), transparent 55%)' }} />}
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 85% 30%, rgba(11,132,132,0.45), transparent 50%)' }} />
 
       <div className="absolute flex items-center justify-between" style={{ top: m.marge * 0.8, left: m.marge, right: m.marge }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- exporté par html-to-image */}
         <img src="/images/marque/logo-dentalmap-blanc.png" alt="DentalMap" style={{ height: m.logo, width: Math.round(m.logo * (442 / 96)) }} />
-        <span className="font-mono tracking-[0.18em] text-[#BFE3D6]" style={{ fontSize: m.sous * 0.6 }}>
-          AVIS · {faculte ? 'FACULTÉ' : 'ÉCOLE'}
+        <span className="max-w-[55%] truncate font-semibold text-white/85" style={{ fontSize: m.sous * 0.7 }}>
+          {nom}
         </span>
       </div>
 
-      <div className="absolute flex flex-col" style={{ left: m.marge, right: format === 'carre' ? 430 : m.marge, top: m.photo ? m.photo - (story ? 120 : 160) : 220 }}>
-        <p className="font-semibold text-[#BFE3D6]" style={{ fontSize: m.sous }}>
-          {nom}
+      <Sceau points={points} taille={m.sceau} style={carre ? { right: m.marge - 10, top: 150 } : { right: m.marge - 10, top: m.photo - m.sceau * (story ? 0.95 : 0.62) }} />
+
+      <div className="absolute flex flex-col" style={{ left: m.marge, right: carre ? 440 : m.marge + (story ? 0 : 40), top: carre ? 200 : m.photo + (story ? 10 : 20) }}>
+        <p className="font-mono tracking-[0.18em] text-[#BFE3D6]" style={{ fontSize: m.sous * 0.6 }}>
+          AVIS · {faculte ? 'FACULTÉ' : 'ÉCOLE'}
         </p>
-        <p className="mt-4 font-extrabold tracking-[-0.03em]" style={{ fontSize: m.titre, lineHeight: 1 }}>
-          {titre}
+        <p className="mt-4 font-extrabold tracking-[-0.035em]" style={{ fontSize: m.titre, lineHeight: 0.98 }}>
+          Donnez votre avis sur {lieu}.
         </p>
-        <p className="mt-6 text-white/80" style={{ fontSize: m.sous, lineHeight: 1.3 }}>
-          Donnez votre avis en deux minutes : il aide les futurs étudiants à choisir.
+        <p className="mt-6 text-white/85" style={{ fontSize: m.sous, lineHeight: 1.3 }}>
+          Et gagnez <b className="text-[#BFE3D6]">+{points} points de mise en avant</b> pour votre recherche de {recherche} sur DentalMap.
         </p>
-        {note && note.nombre > 0 && (
-          <span className="mt-8 inline-flex w-fit items-center gap-3 rounded-full bg-white/10 px-6 py-3 font-semibold" style={{ fontSize: m.sous * 0.8 }}>
-            <Star className="text-amber-400" fill="currentColor" strokeWidth={0} style={{ width: m.sous, height: m.sous }} aria-hidden />
-            {note.moyenne.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} · {note.nombre} avis sur DentalMap
-          </span>
+        {!carre && (
+          <ol className="mt-10 flex gap-4">
+            {etapes.map((e, i) => (
+              <li key={e} className="flex flex-1 items-center gap-3 rounded-[28px] bg-white/[0.08] px-5 py-4 font-semibold" style={{ fontSize: m.sous * 0.62 }}>
+                <span className="grid shrink-0 place-items-center rounded-full bg-[#BFE3D6] font-extrabold text-[#0B1F1D]" style={{ width: m.sous * 1.1, height: m.sous * 1.1, fontSize: m.sous * 0.6 }}>
+                  {i + 1}
+                </span>
+                {e}
+              </li>
+            ))}
+          </ol>
         )}
       </div>
 
-      {/* Le code QR, sur une carte blanche : en bas, ou à droite sur la publication. */}
       <div
-        className="absolute flex flex-col items-center rounded-[40px] bg-white text-[#0B1F1D]"
-        style={
-          format === 'carre'
-            ? { right: m.marge, top: (f.h - m.qr - 150) / 2, width: m.qr + 64, padding: 32 }
-            : { left: (f.l - m.qr - 80) / 2, bottom: affiche ? m.marge : 220, width: m.qr + 80, padding: 40 }
-        }
+        className="absolute flex items-center gap-8 rounded-[40px] bg-white text-[#0B1F1D]"
+        style={carre ? { right: m.marge, bottom: m.marge, width: m.qr + 64, padding: 32, flexDirection: 'column', gap: 16 } : { left: m.marge, right: m.marge, bottom: affiche ? m.marge * 1.1 : 230, padding: 36 }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- code QR en data URL */}
         <img src={qr} alt="" style={{ width: m.qr, height: m.qr }} />
-        <span className="mt-5 text-center font-bold" style={{ fontSize: m.sous * 0.75 }}>
-          Scannez pour donner votre avis
-        </span>
-        <span className="mt-1 text-center font-mono text-[#0B1F1D]/60" style={{ fontSize: m.sous * 0.5 }}>
-          {adresse}
-        </span>
+        <div className={carre ? 'text-center' : ''}>
+          <p className="font-extrabold tracking-[-0.02em]" style={{ fontSize: carre ? m.sous * 0.8 : m.sous * 1.2, lineHeight: 1.05 }}>
+            Scannez et donnez votre avis
+          </p>
+          {!carre && (
+            <p className="mt-3 text-[#0B1F1D]/70" style={{ fontSize: m.sous * 0.7 }}>
+              Deux minutes. Votre avis aide les futurs étudiants, et les points s’ajoutent à votre profil candidat.
+            </p>
+          )}
+          <p className="mt-3 font-mono text-[#0B8484]" style={{ fontSize: carre ? m.sous * 0.5 : m.sous * 0.6 }}>
+            {adresse}
+          </p>
+        </div>
       </div>
 
       {affiche && (
-        <p className="absolute text-center text-white/55" style={{ left: m.marge, right: m.marge, bottom: m.marge * 0.5, fontSize: 20 }}>
-          Avis publiés sur dentalmap.fr, sans contrepartie. Un avis par personne, positif ou non.
+        <p className="absolute text-center text-white/55" style={{ left: m.marge, right: m.marge, bottom: 40, fontSize: 19 }}>
+          Les points sont les mêmes quelle que soit la note. Un avis par personne et par établissement, publié sur dentalmap.fr.
         </p>
       )}
     </div>
+  )
+}
+
+/** Le sceau « +20 points », légèrement incliné, aux couleurs de la marque. */
+function Sceau({ points, taille, style }: { points: number; taille: number; style: React.CSSProperties }) {
+  const r = 50
+  return (
+    <svg width={taille} height={taille} viewBox="0 0 120 120" className="absolute" style={{ ...style, transform: 'rotate(-10deg)', filter: 'drop-shadow(0 18px 30px rgba(0,0,0,0.45))' }} aria-hidden>
+      <defs>
+        <path id="sceau-avis" d={`M60,60 m-${r - 7},0 a${r - 7},${r - 7} 0 1,1 ${2 * (r - 7)},0 a${r - 7},${r - 7} 0 1,1 -${2 * (r - 7)},0`} />
+      </defs>
+      <circle cx="60" cy="60" r={r + 8} fill="#BFE3D6" />
+      <circle cx="60" cy="60" r={r - 14} fill="#0B8484" />
+      <text fill="#0B1F1D" fontSize="8.2" fontWeight="700" letterSpacing="1.6" fontFamily="inherit">
+        <textPath href="#sceau-avis" textLength={2 * Math.PI * (r - 7) - 4} lengthAdjust="spacing">
+          {'MISE EN AVANT · VOTRE AVIS · DENTALMAP · '}
+        </textPath>
+      </text>
+      <text x="60" y="66" textAnchor="middle" fill="#FFFFFF" fontSize="24" fontWeight="800" fontFamily="inherit">
+        +{points}
+      </text>
+      <text x="60" y="80" textAnchor="middle" fill="#BFE3D6" fontSize="8" fontWeight="700" letterSpacing="1.5" fontFamily="inherit">
+        POINTS
+      </text>
+    </svg>
   )
 }

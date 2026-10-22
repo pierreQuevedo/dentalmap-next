@@ -1,10 +1,12 @@
 'use client'
 
 import { Suspense, useActionState, useEffect, useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { chemin } from '@/lib/navigation'
 import { Check, Flag, Star } from 'lucide-react'
 import { deposerAvis, signalerAvis, type EtatAvis } from '@/lib/formation/actions-avis'
-import { MOTIFS_SIGNALEMENT, TEXTE_MAX, TEXTE_MIN, type LienAvis } from '@/lib/formation/avis'
+import { MOTIFS_SIGNALEMENT, POINTS_AVIS, TEXTE_MAX, TEXTE_MIN, type LienAvis } from '@/lib/formation/avis'
 
 const champ = 'squircle-lg w-full border border-line bg-bg px-3 text-sm text-fg outline-none focus:border-line-strong'
 
@@ -23,7 +25,16 @@ function Retour() {
   return (
     <p role="status" className="squircle-xl mb-8 flex items-center gap-2 bg-teal/10 px-4 py-3 text-sm text-teal">
       <Check className="size-4 shrink-0" aria-hidden />
-      {p === 'merci' ? 'Merci, votre avis est en ligne. Vous pouvez le modifier à tout moment.' : 'Merci, l’équipe examine ce signalement. L’avis reste affiché d’ici sa décision.'}
+      {p === 'merci' ? (
+        <span>
+          Merci, votre avis est en ligne : +{POINTS_AVIS} points de mise en avant sur votre profil candidat.{' '}
+          <Link href={chemin('/espace-pro/emploi/candidat/')} className="font-semibold underline underline-offset-2">
+            Voir mon profil candidat
+          </Link>
+        </span>
+      ) : (
+        'Merci, l’équipe examine ce signalement. L’avis reste affiché d’ici sa décision.'
+      )}
     </p>
   )
 }

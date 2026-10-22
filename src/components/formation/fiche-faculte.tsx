@@ -239,7 +239,7 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres, ma
         />
       )}
 
-      <AvisEtablissement lienPage={lienFormation(f)} nom={f.titre} avis={avis.avis} resume={avis.resume} />
+      <AvisEtablissement lienPage={lienFormation(f)} nom={f.titre} type="faculte" avis={avis.avis} resume={avis.resume} />
 
       <Contacts
         adresses={sites.length ? sites.map((s) => (sites.length > 1 ? `${s.nom}, ${s.adresse}` : s.adresse)) : f.ville ? [f.ville] : []}

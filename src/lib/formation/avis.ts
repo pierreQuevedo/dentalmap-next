@@ -131,3 +131,21 @@ export function classerEtablissements<T extends { slug: string }>(liste: T[], ch
     .sort((a, b) => b.s - a.s || a.i - b.i)
     .map((e) => e.x)
 }
+
+/* ------------------------------------------------------------------ */
+/* Ce que rapporte un avis à son auteur                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Un avis publié rapporte des points de mise en avant au profil candidat de
+ * son auteur (Profils disponibles), quelle que soit sa note : deux avis au
+ * plus comptent, et un avis retiré par l'équipe ne compte plus. Le profil
+ * peut être créé après l'avis : les points l'attendent.
+ */
+export const POINTS_AVIS = 20
+export const AVIS_COMPTES_MAX = 2
+
+export const pointsAvis = (avisPublies: number) => Math.min(AVIS_COMPTES_MAX, Math.max(0, avisPublies)) * POINTS_AVIS
+
+/** Ce que cherche un étudiant de cet établissement : l'alternance n'existe qu'en école de prothèse. */
+export const recherchePour = (type: 'ecole_prothese' | 'faculte') => (type === 'faculte' ? 'stage ou de job étudiant' : 'stage ou d’alternance')

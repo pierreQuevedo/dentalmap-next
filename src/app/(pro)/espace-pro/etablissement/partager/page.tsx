@@ -11,7 +11,7 @@ import { SignalerAvis } from '@/components/formation/avis-client'
 import { Etoiles } from '@/components/formation/etoiles'
 import { chemin } from '@/lib/navigation'
 import { SITE_URL } from '@/lib/seo/site'
-import { libelleLien, noteFr, resumerAvis } from '@/lib/formation/avis'
+import { POINTS_AVIS, libelleLien, noteFr, recherchePour, resumerAvis } from '@/lib/formation/avis'
 import { getAvisGeres } from '@/lib/formation/avis-donnees'
 import { dateLisible } from '@/lib/formation/page-etablissement'
 import { chargerEtablissement } from '../_commun'
@@ -45,7 +45,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const couleurs = { dark: '#0e1317', light: '#ffffff' }
   const [qrSvg, qrPng] = await Promise.all([QRCode.toString(lienAvis, { type: 'svg', margin: 1, color: couleurs }), QRCode.toDataURL(lienAvis, { margin: 1, width: 720, color: couleurs })])
   const photo = t.fiche.donnees.galerie[0]?.url ?? null
-  const message = `Bonjour,\n\nVous avez étudié ${fac ? 'à la faculté' : 'à l’école'} : votre avis aide les futurs étudiants à choisir. Il prend deux minutes, ici :\n${lienAvis}\n\nMerci pour votre retour, qu’il soit positif ou non.\n\n${source.titre}`
+  const message = `Bonjour,\n\nVous avez étudié ${fac ? 'à la faculté' : 'à l’école'} : donnez votre avis en deux minutes, ici :\n${lienAvis}\n\nIl aide les futurs étudiants à choisir, et vous rapporte +${POINTS_AVIS} points de mise en avant pour votre recherche de ${recherchePour(source.type)} sur DentalMap, quelle que soit votre note.\n\nMerci pour votre retour, qu’il soit positif ou non.\n\n${source.titre}`
 
   return (
     <CoqueEspace c={coque} actif="partager" titre="Partage et avis" sousTitre="Faire connaître la page, recueillir les avis et y répondre">
@@ -89,7 +89,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             </div>
           </div>
           <p className="mt-6 text-xs text-fg-2">
-            Demandez un avis à tous, sans le réserver aux plus satisfaits, et sans contrepartie : un avis obtenu contre un avantage ou sélectionné n’est pas un avis libre.
+            Demandez un avis à tous, sans le réserver aux plus satisfaits. DentalMap donne les mêmes points à chaque auteur, quelle que soit la note : ne promettez rien d’autre en échange d’un avis.
           </p>
         </Tuile>
         <Tuile>
@@ -107,7 +107,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
 
       <Tuile id="visuels" className="mt-4 scroll-mt-24">
         <TitreTuile i={Visuel}>Visuels à imprimer et à partager</TitreTuile>
-        <p className="mt-1 text-sm text-fg-2">Aux couleurs de DentalMap, avec votre photo, votre note et le code QR du formulaire.</p>
+        <p className="mt-1 text-sm text-fg-2">Aux couleurs de DentalMap, avec votre photo et le code QR du formulaire : chaque avis rapporte des points de mise en avant à son auteur.</p>
         <div className="mt-5">
           <VisuelsAvis
             nom={source.titre}
@@ -115,7 +115,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             qr={qrPng}
             adresse={new URL(SITE_URL).host.replace(/^www\./, '')}
             photo={photo}
-            note={resume.nombre && resume.moyenne !== null ? { moyenne: resume.moyenne, nombre: resume.nombre } : null}
+            points={POINTS_AVIS}
+            recherche={recherchePour(source.type)}
           />
         </div>
       </Tuile>

@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { MessageSquareQuote, PenLine } from 'lucide-react'
+import { MessageSquareQuote, PenLine, Sparkles } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
-import { libelleLien, noteFr, type ResumeAvis } from '@/lib/formation/avis'
+import { POINTS_AVIS, libelleLien, noteFr, recherchePour, type ResumeAvis } from '@/lib/formation/avis'
 import type { AvisPublic } from '@/lib/formation/avis-donnees'
 import { dateLisible } from '@/lib/formation/page-etablissement'
 import { Etoiles } from './etoiles'
@@ -15,12 +15,18 @@ const VISIBLES = 6
  * réponse de l'établissement. La mention dit comment ils sont recueillis
  * (art. L111-7-2 du Code de la consommation), jamais comment ils classent.
  */
-export function AvisEtablissement({ lienPage, nom, avis, resume }: { lienPage: string; nom: string; avis: AvisPublic[]; resume: ResumeAvis }) {
+export function AvisEtablissement({ lienPage, nom, type, avis, resume }: { lienPage: string; nom: string; type: 'ecole_prothese' | 'faculte'; avis: AvisPublic[]; resume: ResumeAvis }) {
   const ecrire = `${lienPage}avis/`
   const mention = (
     <p className="text-xs leading-relaxed text-fg-2">
       Les avis sont déposés par des personnes connectées qui déclarent leur lien avec {nom}, sans vérification de leur scolarité. Ils paraissent dès leur dépôt, du plus récent au
-      plus ancien, sans contrepartie. Un avis signalé est examiné par l’équipe DentalMap ; il n’est jamais retiré pour sa note.
+      plus ancien. Chaque auteur reçoit {POINTS_AVIS} points de mise en avant pour son profil candidat sur DentalMap, quelle que soit sa note. Un avis signalé est examiné par
+      l’équipe DentalMap ; il n’est jamais retiré pour sa note.
+    </p>
+  )
+  const recompense = (
+    <p className="squircle-xl inline-flex items-center gap-2 bg-teal/10 px-3 py-2 text-sm font-medium text-teal">
+      <Sparkles className="size-4 shrink-0" aria-hidden /> +{POINTS_AVIS} points de mise en avant pour votre recherche de {recherchePour(type)}
     </p>
   )
   // Sans avis, un seul bloc : l'appel à donner le premier.
@@ -35,6 +41,7 @@ export function AvisEtablissement({ lienPage, nom, avis, resume }: { lienPage: s
               <span className="block text-fg-2">Aucun pour l’instant.</span>
             </h2>
             <p className="mt-5 max-w-xl leading-relaxed text-fg-2">Vous y avez étudié, ou vous y étudiez ? Votre expérience aide ceux qui hésitent à choisir.</p>
+            <div className="mt-5">{recompense}</div>
             <div className="mt-6 max-w-xl">{mention}</div>
           </div>
           <Link href={chemin(ecrire)} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-action px-6 text-sm font-semibold text-action-foreground hover:bg-action-hover">
@@ -74,7 +81,8 @@ export function AvisEtablissement({ lienPage, nom, avis, resume }: { lienPage: s
               </ul>
             </>
           )}
-          <Link href={chemin(ecrire)} className="mt-8 inline-flex h-11 items-center gap-2 rounded-full bg-action px-5 text-sm font-semibold text-action-foreground hover:bg-action-hover">
+          <div className="mt-8">{recompense}</div>
+          <Link href={chemin(ecrire)} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-action px-5 text-sm font-semibold text-action-foreground hover:bg-action-hover">
             <PenLine className="size-4" aria-hidden /> Donner mon avis
           </Link>
           <div className="mt-6">{mention}</div>

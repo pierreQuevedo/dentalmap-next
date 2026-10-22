@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
+import { AVIS_COMPTES_MAX, POINTS_AVIS } from '@/lib/formation/avis'
 import { lireCriteres, lireExperiences, lireFormation, libelleQualification, type Criteres, type Situation, type Visibilite } from './profil-candidat'
 
 /**
@@ -9,6 +10,9 @@ import { lireCriteres, lireExperiences, lireFormation, libelleQualification, typ
  * profil qui a masqué la structure qui regarde. Ni adresse ni coordonnées :
  * la ville et un rayon. Lecture directe, jamais mise en cache : la liste
  * dépend de qui la regarde.
+ *
+ * Ordre : les points de mise en avant d'abord (un avis publié sur une école
+ * ou une faculté, `pointsAvis`), puis la distance, puis le profil le plus récent.
  */
 export type ProfilDisponible = {
   id: string
@@ -51,6 +55,7 @@ export async function getProfilsDisponibles(o: {
   }>(sql`
     SELECT k.user_id, u.name AS nom, k.visibilite, k.situation, k.qualification, k.titre_verifie, k.formation, k.experiences, k.competences, k.criteres,
            c.nom AS ville,
+           LEAST(${AVIS_COMPTES_MAX}, (SELECT count(*) FROM avis_etablissement a WHERE a.user_id = k.user_id AND a.statut = 'publie'))::int * ${POINTS_AVIS} AS mise_en_avant,
            ${origine ? sql`round((ST_Distance(c.centre::geography, ${origine}::geography) / 1000)::numeric, 1)::float8` : sql`NULL::float8`} AS km
     FROM candidats k
     JOIN "user" u ON u.id = k.user_id
@@ -60,7 +65,7 @@ export async function getProfilsDisponibles(o: {
       ${o.situation ? sql`AND k.situation = ${o.situation}` : sql``}
       ${o.contrat ? sql`AND (k.criteres->'contrats') ? ${o.contrat}` : sql``}
       ${origine ? sql`AND c.centre IS NOT NULL AND ST_DWithin(c.centre::geography, ${origine}::geography, ${(o.rayonKm ?? 30) * 1000})` : sql``}
-    ORDER BY ${origine ? sql`km, ` : sql``}k.termine_le DESC, k.user_id
+    ORDER BY mise_en_avant DESC, ${origine ? sql`km, ` : sql``}k.termine_le DESC, k.user_id
     LIMIT ${o.limite ?? 60}
   `)
   return rows.map((r) => {
