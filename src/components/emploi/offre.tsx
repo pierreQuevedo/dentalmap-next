@@ -134,8 +134,8 @@ function BoutonPostuler({ o, pleine }: { o: OffreDetail; pleine?: boolean }) {
 function NoteCandidature() {
   return (
     <p className="text-xs leading-relaxed text-fg-2">
-      Pour postuler, il faut un compte DentalMap. Le recruteur voit votre profil et votre message ; votre téléphone et votre email ne lui sont transmis que si vous
-      acceptez un échange. L’alerte, elle, fonctionne sans compte.
+      Pour postuler, il faut un compte DentalMap. Le recruteur reçoit votre profil, votre message, votre téléphone et votre email, et vous contacte directement.
+      L’alerte, elle, fonctionne sans compte.
     </p>
   )
 }

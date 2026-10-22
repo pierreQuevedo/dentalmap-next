@@ -18,7 +18,7 @@ const INTRO: Record<string, string> = {
   recherche: 'Les offres sont triées par distance depuis votre ville. Une première alerte reprend ces critères.',
   qualification: 'Elle s’affiche sur votre profil et vos candidatures.',
   formation: 'Pour recevoir des alternances et des stages qui s’accordent avec votre rythme.',
-  visibilite: 'Vous choisissez qui peut vous trouver et vous proposer un échange.',
+  visibilite: 'Vous choisissez qui peut vous trouver et vous inviter à postuler.',
   pret: 'Voici ce que les recruteurs verront. Tout reste modifiable depuis « Mon profil ».',
 }
 

@@ -7,8 +7,8 @@ import { MESSAGE_MAX } from '@/lib/emploi/candidature'
 
 const champ = 'squircle-xl w-full border border-line bg-bg px-3.5 py-2.5 text-sm text-fg outline-none placeholder:text-fg-2 focus:border-line-strong'
 
-/** OUV-C-POSTULER : le message, le CV facultatif, l'envoi. */
-export function FormulairePostuler({ slug, profil, cvProfil }: { slug: string; profil: string | null; cvProfil: string | null }) {
+/** OUV-C-POSTULER : le téléphone (obligatoire, prérempli du profil), le message, le CV facultatif, l'envoi. */
+export function FormulairePostuler({ slug, profil, cvProfil, telephone }: { slug: string; profil: string | null; cvProfil: string | null; telephone: string | null }) {
   const [etat, action, enCours] = useActionState<EtatCandidature, FormData>(postuler, null)
   const [message, setMessage] = useState('')
   const [cv, setCv] = useState<string | null>(null)
@@ -21,6 +21,19 @@ export function FormulairePostuler({ slug, profil, cvProfil }: { slug: string; p
           <p className="mt-0.5 text-sm text-fg">{profil}</p>
         </div>
       )}
+      <label className="block">
+        <span className="mb-1.5 block text-sm font-medium text-fg">Votre téléphone</span>
+        <input
+          name="telephone"
+          type="tel"
+          required
+          autoComplete="tel"
+          defaultValue={telephone ?? ''}
+          placeholder="06 12 34 56 78"
+          className={`${champ} ${etat?.champ === 'telephone' ? 'border-destructive' : ''}`}
+        />
+        <span className="mt-1 block text-xs text-fg-2">Le recruteur vous appelle ou vous écrit directement.</span>
+      </label>
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium text-fg">Votre message</span>
         <textarea
@@ -53,7 +66,7 @@ export function FormulairePostuler({ slug, profil, cvProfil }: { slug: string; p
         <input type="file" name="cv" accept="application/pdf" className="sr-only" onChange={(e) => setCv(e.target.files?.[0]?.name ?? null)} />
       </label>
       <p className="squircle-xl bg-bg-soft px-3.5 py-2.5 text-xs leading-relaxed text-fg-2">
-        Le recruteur voit votre prénom, l’initiale de votre nom, votre message et votre CV. Votre téléphone et votre email ne lui sont transmis que si vous acceptez un échange.
+        Le recruteur reçoit votre nom, votre téléphone, votre email, votre message et votre CV.
       </p>
       {etat?.erreur && <p className="squircle-xl bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">{etat.erreur}</p>}
       <button type="submit" disabled={enCours} className="inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-action px-6 text-sm font-semibold text-action-foreground hover:bg-action-hover disabled:opacity-60">

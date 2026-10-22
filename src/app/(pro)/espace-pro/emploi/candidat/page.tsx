@@ -16,15 +16,15 @@ import { chargerEmploi } from '../../_commun'
 export const metadata: Metadata = { title: 'Emploi, vue d’ensemble', robots: { index: false, follow: false } }
 export const instant = false
 
-/** La frise d'une candidature : Envoyée, Vue, Échange proposé, Retenue (ou Non retenue). */
+/** La frise d'une candidature : Envoyée, Vue, puis Retenue ou Non retenue. */
 function Frise({ statut, type }: { statut: Parameters<typeof etapeFrise>[0]; type: string }) {
   const { etape, issue } = etapeFrise(statut)
-  const etapes = ['Envoyée', `Vue par le ${type}`, 'Échange proposé', issue === 'non' ? 'Non retenue' : 'Retenue']
+  const etapes = ['Envoyée', `Vue par le ${type}`, issue === 'non' ? 'Non retenue' : 'Retenue']
   return (
-    <ol className="grid grid-cols-4 gap-1.5">
+    <ol className="grid grid-cols-3 gap-1.5">
       {etapes.map((e, i) => {
         const fait = issue === 'non' ? i <= 1 : i <= etape
-        const non = issue === 'non' && i === 3
+        const non = issue === 'non' && i === 2
         return (
           <li key={e}>
             <span className={`block h-1.5 rounded-full ${non ? 'bg-fg-2/40' : fait ? 'bg-teal' : 'bg-line'}`} />
@@ -39,8 +39,7 @@ function Frise({ statut, type }: { statut: Parameters<typeof etapeFrise>[0]; typ
 /**
  * CAND-VUE et ETU-VUE : le point d'arrivée de l'Emploi côté candidat. Le
  * profil (complétude, prochaine étape), quelques chiffres, l'alerte active,
- * les offres pour vous et les candidatures en cours ; une proposition
- * d'échange en attente est mise en évidence.
+ * les offres pour vous et les candidatures en cours.
  */
 export default async function Page(props: { searchParams: Promise<{ fiche?: string }> }) {
   const sp = await props.searchParams
@@ -48,7 +47,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const [profil, candidatures, alertes] = await Promise.all([getProfilCandidat(compte.id), getCandidaturesEnvoyees(compte.id), getAlertesCompte(compte.id)])
   const pourVous = profil ? await getOffresPourVous(profil) : null
   const enCours = candidatures.filter((k) => k.statut !== 'non_retenue')
-  const aRepondre = candidatures.filter((k) => k.echange?.statut === 'en_attente').length
+  const retenues = candidatures.filter((k) => k.statut === 'retenue').length
   const alerte = alertes.find((a) => a.active)
   const prenom = (compte.nom ?? '').split(' ')[0]
   const c = profil ? completudeProfil(profil) : null
@@ -90,7 +89,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                   [
                     [String(pourVous?.offres.length ?? 0), 'offres près de vous'],
                     [String(enCours.length), `candidature${enCours.length > 1 ? 's' : ''} en cours`],
-                    [String(aRepondre), `échange${aRepondre > 1 ? 's' : ''} à répondre`],
+                    [String(retenues), `candidature${retenues > 1 ? 's' : ''} retenue${retenues > 1 ? 's' : ''}`],
                     [`${profil.criteres.rayonKm} km`, 'rayon de recherche'],
                   ] as const
                 ).map(([v, l]) => (
@@ -188,9 +187,6 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                         {k.offre.commune ? `, ${k.offre.commune}` : ''}
                       </span>
                     </span>
-                    {k.echange?.statut === 'en_attente' && (
-                      <span className="squircle-full shrink-0 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-400/30">À répondre</span>
-                    )}
                   </Link>
                   <div className="mt-3">
                     <Frise statut={k.statut} type={k.offre.laboratoire ? 'laboratoire' : 'cabinet'} />

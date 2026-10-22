@@ -8,22 +8,22 @@ import { db } from '@/db'
 import { chemin } from '@/lib/navigation'
 import { nomAffiche, type Profession } from '@/lib/annuaire/types'
 import { getCompte } from '@/lib/tunnel/compte'
-import { envoyerCandidatureNonRetenue, envoyerEchangeAccepte, envoyerEchangeDecline, envoyerEchangePropose, envoyerNouvelleCandidature } from '@/lib/email'
-import { CV_MAX_OCTETS, MESSAGE_MAX, creneauxValides, libelleCreneau, nomCandidat, telephoneValide } from './candidature'
+import { envoyerCandidatureNonRetenue, envoyerInvitationAPostuler, envoyerNouvelleCandidature } from '@/lib/email'
+import { CV_MAX_OCTETS, MESSAGE_MAX, nomCandidat, telephoneValide } from './candidature'
 import { cheminOffre } from './chemins'
 import { rangerCv } from './cv'
 import { recruteur } from './recruteur'
 
 /**
- * Les candidatures : postuler (un compte connecté suffit, sans palier),
- * proposer un échange avec des créneaux, retenir ou non, et la réponse du
- * candidat. Les coordonnées ne passent au recruteur qu'à l'échange accepté.
+ * Les candidatures : postuler (un compte connecté suffit, sans palier, le
+ * téléphone obligatoire), retenir ou non, et l'invitation à postuler envoyée
+ * à un profil disponible. Le recruteur reçoit les coordonnées dès la
+ * candidature et contacte la personne directement.
  */
 
 export type EtatCandidature = { erreur?: string; champ?: string } | null
 
 const PAGE_RECRUTEUR = '/espace-pro/emploi/candidatures/'
-const PAGE_CANDIDAT = '/espace-pro/emploi/mes-candidatures/'
 
 /* ------------------------------------------------------------------ */
 /* Candidat                                                             */
@@ -42,6 +42,8 @@ export async function postuler(_: EtatCandidature, donnees: FormData): Promise<E
   const o = rows[0]
   if (!o) return { erreur: 'Cette offre n’est plus en ligne.' }
   if (o.propre) return { erreur: 'C’est une offre de votre fiche : vous ne pouvez pas y postuler.' }
+  const telephone = String(donnees.get('telephone') ?? '').trim()
+  if (!telephoneValide(telephone)) return { erreur: 'Indiquez un numéro de téléphone où le recruteur peut vous joindre.', champ: 'telephone' }
   const message = String(donnees.get('message') ?? '').trim()
   if (message.length > MESSAGE_MAX) return { erreur: `Votre message dépasse ${MESSAGE_MAX.toLocaleString('fr-FR')} caractères.`, champ: 'message' }
   const cv = donnees.get('cv')
@@ -58,59 +60,16 @@ export async function postuler(_: EtatCandidature, donnees: FormData): Promise<E
   const cvNom = avecCv ? cv.name.slice(0, 120) : cvChemin ? (duProfil?.cv_nom ?? 'CV.pdf') : null
   const cvTaille = avecCv ? cv.size : cvChemin ? (duProfil?.cv_taille ?? null) : null
   const { rows: inseres } = await db.execute<{ id: string }>(sql`
-    INSERT INTO candidatures (id, offre_id, candidat_user_id, message, cv_chemin, cv_nom, cv_taille)
-    VALUES (${id}, ${o.id}, ${compte.id}::uuid, ${message || null}, ${cvChemin}, ${cvNom}, ${cvTaille})
+    INSERT INTO candidatures (id, offre_id, candidat_user_id, message, telephone, cv_chemin, cv_nom, cv_taille)
+    VALUES (${id}, ${o.id}, ${compte.id}::uuid, ${message || null}, ${telephone}, ${cvChemin}, ${cvNom}, ${cvTaille})
     ON CONFLICT (offre_id, candidat_user_id) DO NOTHING
     RETURNING id
   `)
   if (!inseres[0]) return { erreur: 'Vous avez déjà postulé à cette offre.' }
-  await envoyerNouvelleCandidature(o.auteur_email, o.titre, nomCandidat(compte.nom ?? '', false), `${PAGE_RECRUTEUR}?c=${id}`)
+  // Le téléphone est gardé au profil candidat, prérempli à la prochaine candidature.
+  await db.execute(sql`UPDATE candidats SET telephone = ${telephone}, maj_le = now() WHERE user_id = ${compte.id}::uuid`)
+  await envoyerNouvelleCandidature(o.auteur_email, { offre: o.titre, candidat: nomCandidat(compte.nom ?? '', true), email: compte.email, telephone, url: `${PAGE_RECRUTEUR}?c=${id}` })
   redirect(chemin(`${cheminOffre(slug)}?postuler=envoyee`))
-}
-
-const Reponse = z.object({ candidature: z.string().min(1), reponse: z.enum(['accepter', 'refuser']), creneau: z.string().optional(), telephone: z.string().trim().optional() })
-
-/** La réponse du candidat à une proposition d'échange. Accepter partage les coordonnées des deux côtés. */
-export async function repondreEchange(_: EtatCandidature, donnees: FormData): Promise<EtatCandidature> {
-  const compte = await getCompte()
-  if (!compte) redirect(chemin(`/connexion/?retour=${encodeURIComponent(PAGE_CANDIDAT)}`))
-  const lu = Reponse.safeParse(Object.fromEntries(donnees))
-  if (!lu.success) return { erreur: 'Réponse incomplète.' }
-  const v = lu.data
-  const { rows } = await db.execute<{ creneaux: string[]; offre_titre: string; auteur_email: string }>(sql`
-    SELECT e.creneaux, o.titre AS offre_titre, u.email AS auteur_email
-    FROM echanges_candidature e
-    JOIN candidatures k ON k.id = e.candidature_id
-    JOIN offres o ON o.id = k.offre_id
-    JOIN "user" u ON u.id = o.auteur_user_id
-    WHERE e.candidature_id = ${v.candidature} AND k.candidat_user_id = ${compte.id}::uuid AND e.statut = 'en_attente'
-  `)
-  const e = rows[0]
-  if (!e) return { erreur: 'Cette proposition n’attend plus de réponse.' }
-  const retourRecruteur = `${PAGE_RECRUTEUR}?c=${v.candidature}`
-
-  if (v.reponse === 'refuser') {
-    await db.execute(sql`UPDATE echanges_candidature SET statut = 'refusee', repondu_le = now() WHERE candidature_id = ${v.candidature}`)
-    await db.execute(sql`UPDATE candidatures SET statut = 'vue', maj_le = now() WHERE id = ${v.candidature}`)
-    await envoyerEchangeDecline(e.auteur_email, nomCandidat(compte.nom ?? '', false), e.offre_titre, retourRecruteur)
-    redirect(chemin(`${PAGE_CANDIDAT}?fait=refuse`))
-  }
-  if (!v.creneau || !e.creneaux.includes(v.creneau)) return { erreur: 'Choisissez l’un des créneaux proposés.', champ: 'creneau' }
-  if (!v.telephone || !telephoneValide(v.telephone)) return { erreur: 'Indiquez un numéro de téléphone pour être joint(e).', champ: 'telephone' }
-  await db.execute(sql`
-    UPDATE echanges_candidature SET statut = 'acceptee', creneau_choisi = ${v.creneau}, telephone_candidat = ${v.telephone}, repondu_le = now()
-    WHERE candidature_id = ${v.candidature}
-  `)
-  await db.execute(sql`UPDATE candidatures SET statut = 'echange_accepte', maj_le = now() WHERE id = ${v.candidature}`)
-  await envoyerEchangeAccepte(e.auteur_email, {
-    candidat: nomCandidat(compte.nom ?? '', true),
-    offre: e.offre_titre,
-    creneau: libelleCreneau(v.creneau),
-    telephone: v.telephone,
-    email: compte.email,
-    url: retourRecruteur,
-  })
-  redirect(chemin(`${PAGE_CANDIDAT}?fait=accepte`))
 }
 
 /* ------------------------------------------------------------------ */
@@ -138,40 +97,6 @@ function retourListe(fiche: string | null, id: string, fait: string) {
   return chemin(`${PAGE_RECRUTEUR}?${fiche ? `fiche=${encodeURIComponent(fiche)}&` : ''}c=${id}&fait=${fait}`)
 }
 
-const Echange = z.object({
-  fiche: z.string(),
-  candidature: z.string().min(1),
-  message: z.string().trim().min(10, 'Un message de quelques mots au moins.').max(MESSAGE_MAX, `${MESSAGE_MAX.toLocaleString('fr-FR')} caractères au plus.`),
-  telephone: z.string().trim(),
-  contact: z.string().trim().max(80).optional(),
-})
-
-export async function proposerEchange(_: EtatCandidature, donnees: FormData): Promise<EtatCandidature> {
-  const lu = Echange.safeParse(Object.fromEntries(donnees))
-  if (!lu.success) {
-    const p = lu.error.issues[0]
-    return { erreur: p.message.startsWith('Invalid') ? 'Un champ est incomplet.' : p.message, champ: String(p.path[0] ?? '') }
-  }
-  const v = lu.data
-  const r = await recruteur(v.fiche)
-  if (!r) return { erreur: 'Réservé au titulaire vérifié de la fiche.' }
-  const c = await candidatureDuRecruteur(v.candidature, r.espace.fiche.id)
-  if (!c) return { erreur: 'Candidature introuvable.' }
-  if (c.statut === 'echange_accepte' || c.statut === 'non_retenue') return { erreur: 'Cette candidature n’attend plus de proposition.' }
-  const creneaux = creneauxValides(donnees.getAll('creneaux').map(String))
-  if (!creneaux.ok) return { erreur: creneaux.erreur, champ: 'creneaux' }
-  if (!telephoneValide(v.telephone)) return { erreur: 'Indiquez le téléphone du cabinet.', champ: 'telephone' }
-  await db.execute(sql`
-    INSERT INTO echanges_candidature (candidature_id, message, creneaux, telephone_recruteur, contact_recruteur, statut)
-    VALUES (${c.id}, ${v.message}, ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(creneaux.creneaux)}::jsonb))::text[], ${v.telephone}, ${v.contact || null}, 'en_attente')
-    ON CONFLICT (candidature_id) DO UPDATE SET message = excluded.message, creneaux = excluded.creneaux, telephone_recruteur = excluded.telephone_recruteur,
-      contact_recruteur = excluded.contact_recruteur, statut = 'en_attente', creneau_choisi = NULL, telephone_candidat = NULL, cree_le = now(), repondu_le = NULL
-  `)
-  await db.execute(sql`UPDATE candidatures SET statut = 'echange_propose', vue_le = coalesce(vue_le, now()), maj_le = now() WHERE id = ${c.id}`)
-  await envoyerEchangePropose(c.candidat_email, nomRecruteur(c), c.offre_titre, v.message, creneaux.creneaux.map(libelleCreneau))
-  redirect(retourListe(r.espace.autres.length ? r.espace.fiche.slug : null, c.id, 'echange'))
-}
-
 /** Retenir, ou ne pas retenir : le candidat non retenu reçoit un message. */
 export async function deciderCandidature(donnees: FormData): Promise<never> {
   const r = await recruteur(String(donnees.get('fiche') ?? ''))
@@ -186,24 +111,21 @@ export async function deciderCandidature(donnees: FormData): Promise<never> {
   redirect(retourListe(r.espace.autres.length ? r.espace.fiche.slug : null, id, decision))
 }
 
-const EchangeProfil = z.object({
+const Invitation = z.object({
   fiche: z.string(),
   profil: z.string().uuid(),
   offre: z.string().min(1, 'Choisissez l’offre concernée.'),
-  message: z.string().trim().min(10, 'Un message de quelques mots au moins.').max(MESSAGE_MAX, `${MESSAGE_MAX.toLocaleString('fr-FR')} caractères au plus.`),
-  telephone: z.string().trim(),
-  contact: z.string().trim().max(80).optional(),
+  message: z.string().trim().max(MESSAGE_MAX, `${MESSAGE_MAX.toLocaleString('fr-FR')} caractères au plus.`).optional(),
 })
 
 /**
- * Proposer un échange à un profil disponible, depuis `/emploi/profils/` :
- * recruteur vérifié, rattaché à l'une de ses offres en ligne. La proposition
- * devient une candidature d'origine « recruteur », au statut « Échange
- * proposé », que la personne retrouve dans ses candidatures. Rien n'est
- * transmis tant qu'elle n'accepte pas.
+ * Inviter un profil disponible à postuler, depuis `/emploi/profils/` :
+ * recruteur vérifié, l'une de ses offres en ligne. La personne reçoit un email
+ * avec l'offre ; aucune candidature n'est créée, et ses coordonnées ne sont
+ * transmises que si elle postule.
  */
-export async function proposerEchangeProfil(_: EtatCandidature, donnees: FormData): Promise<EtatCandidature> {
-  const lu = EchangeProfil.safeParse(Object.fromEntries(donnees))
+export async function inviterAPostuler(_: EtatCandidature, donnees: FormData): Promise<EtatCandidature> {
+  const lu = Invitation.safeParse(Object.fromEntries(donnees))
   if (!lu.success) {
     const p = lu.error.issues[0]
     return { erreur: p.message.startsWith('Invalid') ? 'Un champ est incomplet.' : p.message, champ: String(p.path[0] ?? '') }
@@ -211,39 +133,25 @@ export async function proposerEchangeProfil(_: EtatCandidature, donnees: FormDat
   const v = lu.data
   const r = await recruteur(v.fiche)
   if (!r) return { erreur: 'Réservé aux recruteurs à la fiche vérifiée.' }
-  const creneaux = creneauxValides(donnees.getAll('creneaux').map(String))
-  if (!creneaux.ok) return { erreur: creneaux.erreur, champ: 'creneaux' }
-  if (!telephoneValide(v.telephone)) return { erreur: 'Indiquez le téléphone du cabinet.', champ: 'telephone' }
-  const { rows: offres } = await db.execute<{ titre: string }>(sql`
-    SELECT titre FROM offres WHERE id = ${v.offre} AND praticien_id = ${r.espace.fiche.id} AND statut = 'en_ligne' AND (expire_le IS NULL OR expire_le > now())
+  if (v.profil === r.compte.id) return { erreur: 'C’est votre propre profil.' }
+  const { rows: offres } = await db.execute<{ titre: string; slug: string }>(sql`
+    SELECT titre, slug FROM offres WHERE id = ${v.offre} AND praticien_id = ${r.espace.fiche.id} AND statut = 'en_ligne' AND (expire_le IS NULL OR expire_le > now())
   `)
   if (!offres[0]) return { erreur: 'Choisissez l’une de vos offres en ligne.', champ: 'offre' }
-  const { rows: profils } = await db.execute<{ email: string }>(sql`
-    SELECT u.email FROM candidats k JOIN "user" u ON u.id = k.user_id
-    WHERE k.user_id = ${v.profil}::uuid AND k.termine_le IS NOT NULL AND k.visibilite IN ('visible', 'anonyme')
-      AND NOT (${r.espace.fiche.slug} = ANY(k.structures_masquees))
+  const { rows: profils } = await db.execute<{ email: string; deja: boolean }>(sql`
+    SELECT u.email, EXISTS (SELECT 1 FROM candidatures k WHERE k.offre_id = ${v.offre} AND k.candidat_user_id = u.id) AS deja
+    FROM candidats c JOIN "user" u ON u.id = c.user_id
+    WHERE c.user_id = ${v.profil}::uuid AND c.termine_le IS NOT NULL AND c.visibilite IN ('visible', 'anonyme')
+      AND NOT (${r.espace.fiche.slug} = ANY(c.structures_masquees))
   `)
   if (!profils[0]) return { erreur: 'Ce profil n’est plus disponible.' }
-  if (v.profil === r.compte.id) return { erreur: 'C’est votre propre profil.' }
-
-  const { rows: existante } = await db.execute<{ id: string; statut: string }>(sql`
-    SELECT id, statut FROM candidatures WHERE offre_id = ${v.offre} AND candidat_user_id = ${v.profil}::uuid
-  `)
-  if (existante[0] && (existante[0].statut === 'echange_accepte' || existante[0].statut === 'non_retenue')) return { erreur: 'Cette personne a déjà une candidature close ou un échange accepté sur cette offre.' }
-  const id = existante[0]?.id ?? randomUUID()
-  if (!existante[0]) {
-    await db.execute(sql`
-      INSERT INTO candidatures (id, offre_id, candidat_user_id, statut, origine, vue_le) VALUES (${id}, ${v.offre}, ${v.profil}::uuid, 'echange_propose', 'recruteur', now())
-    `)
-  }
-  await db.execute(sql`
-    INSERT INTO echanges_candidature (candidature_id, message, creneaux, telephone_recruteur, contact_recruteur, statut)
-    VALUES (${id}, ${v.message}, ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(creneaux.creneaux)}::jsonb))::text[], ${v.telephone}, ${v.contact || null}, 'en_attente')
-    ON CONFLICT (candidature_id) DO UPDATE SET message = excluded.message, creneaux = excluded.creneaux, telephone_recruteur = excluded.telephone_recruteur,
-      contact_recruteur = excluded.contact_recruteur, statut = 'en_attente', creneau_choisi = NULL, telephone_candidat = NULL, cree_le = now(), repondu_le = NULL
-  `)
-  await db.execute(sql`UPDATE candidatures SET statut = 'echange_propose', maj_le = now() WHERE id = ${id}`)
+  if (profils[0].deja) return { erreur: 'Cette personne a déjà postulé à cette offre : retrouvez-la dans vos candidatures.' }
   const f = r.espace.fiche
-  await envoyerEchangePropose(profils[0].email, nomAffiche({ profession: f.profession as Profession, nom: f.nom, prenom: f.prenom, raisonSociale: f.raisonSociale }), offres[0].titre, v.message, creneaux.creneaux.map(libelleCreneau), true)
-  redirect(chemin('/emploi/profils/?fait=echange'))
+  await envoyerInvitationAPostuler(profils[0].email, {
+    recruteur: nomAffiche({ profession: f.profession as Profession, nom: f.nom, prenom: f.prenom, raisonSociale: f.raisonSociale }),
+    offre: offres[0].titre,
+    message: v.message || null,
+    url: cheminOffre(offres[0].slug),
+  })
+  redirect(chemin('/emploi/profils/?fait=invitation'))
 }

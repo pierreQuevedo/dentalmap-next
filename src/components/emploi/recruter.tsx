@@ -26,11 +26,11 @@ export const FAQ_RECRUTEURS = [
   },
   {
     q: 'Comment recevoir les coordonnées d’un candidat ?',
-    r: 'Vous voyez son profil et son message. Vous lui proposez un échange ; s’il accepte, son téléphone et son email vous sont transmis.',
+    r: 'Ils arrivent avec la candidature : son téléphone et son email, avec son profil, son message et son CV. Vous l’appelez ou lui écrivez directement.',
   },
   {
     q: 'Que montrent les profils disponibles ?',
-    r: 'Le métier, l’expérience, les compétences, la disponibilité et une zone de recherche. Ni nom, ni photo, ni coordonnées : le candidat choisit s’il accepte votre proposition.',
+    r: 'Le métier, l’expérience, les compétences, la disponibilité et une zone de recherche. Ni nom complet, ni photo, ni coordonnées : vous invitez la personne à postuler, elle choisit de le faire.',
   },
   {
     q: 'Combien de temps une offre reste-t-elle en ligne ?',
@@ -42,13 +42,13 @@ const RAISONS = [
   { icone: Crosshair, titre: 'Des candidats ciblés', texte: 'Uniquement des métiers du dentaire, et des candidats qui cherchent autour de votre adresse.' },
   { icone: ShieldCheck, titre: 'Un recruteur vérifié', texte: 'Votre offre porte la pastille « Fiche vérifiée » et renvoie à votre fiche : adresse, présentation, accès.' },
   { icone: BadgeEuro, titre: 'La rémunération affichée', texte: 'Les candidats savent avant de postuler. Moins de candidatures hors sujet, des entretiens qui portent sur le poste.' },
-  { icone: UsersRound, titre: 'Des profils disponibles', texte: 'Consultez des profils anonymisés de candidats qui cherchent près de chez vous, et proposez-leur un échange.' },
+  { icone: UsersRound, titre: 'Des profils disponibles', texte: 'Consultez des profils anonymisés de candidats qui cherchent près de chez vous, et invitez-les à postuler.' },
 ]
 
 const ETAPES = [
   { t: 'Votre fiche est vérifiée', d: 'Votre cabinet, centre de santé ou laboratoire est rapproché des registres officiels. Vous gérez la fiche depuis l’espace pro.' },
   { t: 'Vous publiez votre offre', d: 'Poste, contrat, temps de travail, date de début et rémunération. L’offre s’affiche avec votre fiche et sur la carte.' },
-  { t: 'Vous choisissez avec qui échanger', d: 'Vous recevez des candidatures de personnes qui ont un compte. Leurs coordonnées vous parviennent quand elles acceptent votre proposition d’échange.' },
+  { t: 'Les coordonnées avec la candidature', d: 'Vous recevez des candidatures de personnes qui ont un compte, avec leur téléphone et leur email : vous les contactez directement.' },
 ]
 
 /** Une offre d'exemple, pour l'aperçu : structure et personne inventées. */
@@ -138,7 +138,7 @@ export function Recruter() {
       <section id="profils" className="container scroll-mt-24 py-16 md:py-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <TitreDeuxTons sous="anonymisés, dans votre espace pro.">Profils disponibles</TitreDeuxTons>
-          <p className="max-w-sm text-sm text-fg-2">Ni nom, ni photo, ni coordonnées. Le candidat décide s’il accepte votre proposition d’échange. Ci-dessous, des exemples.</p>
+          <p className="max-w-sm text-sm text-fg-2">Ni nom complet, ni photo, ni coordonnées. Vous invitez la personne à postuler à votre offre. Ci-dessous, des exemples.</p>
         </div>
         <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {PROFILS.map((p) => (

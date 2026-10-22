@@ -36,7 +36,8 @@ describe('vue d’ensemble candidat', () => {
   })
   it('frise', () => {
     expect(etapeFrise('nouvelle')).toEqual({ etape: 0, issue: null })
-    expect(etapeFrise('echange_accepte').etape).toBe(2)
+    expect(etapeFrise('vue')).toEqual({ etape: 1, issue: null })
+    expect(etapeFrise('retenue')).toEqual({ etape: 2, issue: 'retenue' })
     expect(etapeFrise('non_retenue').issue).toBe('non')
   })
 })

@@ -774,6 +774,8 @@ export const candidats = pgTable('candidats', {
   /** Expériences déclarées : `{ poste, structure, periode }[]`, cinq au plus. */
   experiences: jsonb('experiences').notNull().default(sql`'[]'::jsonb`),
   competences: text('competences').array().notNull().default([]),
+  /** Téléphone gardé à la première candidature, prérempli ensuite. */
+  telephone: text('telephone'),
   /** CV facultatif, chemin dans le stockage privé, jamais une URL publique. Joint d'office aux candidatures. */
   cvChemin: text('cv_chemin'),
   cvNom: text('cv_nom'),
@@ -785,18 +787,20 @@ export const candidats = pgTable('candidats', {
 })
 
 /**
- * Candidature d'un compte connecté (pas de candidature anonyme). Les
- * coordonnées du candidat ne passent au recruteur qu'une fois l'échange
- * accepté. Purgée six mois après la clôture de l'offre.
+ * Candidature d'un compte connecté (pas de candidature anonyme). Le
+ * recruteur reçoit le nom, l'email et le téléphone dès la candidature, et
+ * contacte la personne directement. Purgée six mois après la clôture de l'offre.
  */
 export const candidatures = pgTable('candidatures', {
   id: text('id').primaryKey(),
   offreId: text('offre_id').notNull().references(() => offres.id, { onDelete: 'cascade' }),
   candidatUserId: uuid('candidat_user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   message: text('message'),
-  statut: text('statut', { enum: ['nouvelle', 'vue', 'echange_propose', 'echange_accepte', 'retenue', 'non_retenue'] }).notNull().default('nouvelle'),
-  /** Qui a fait le premier pas : la personne a postulé, ou un recruteur l'a contactée depuis les profils disponibles. */
+  statut: text('statut', { enum: ['nouvelle', 'vue', 'retenue', 'non_retenue'] }).notNull().default('nouvelle'),
+  /** Qui a fait le premier pas. Toujours la personne depuis le 2026-10-22 : un recruteur l'invite à postuler, il ne crée plus de candidature. */
   origine: text('origine', { enum: ['candidat', 'recruteur'] }).notNull().default('candidat'),
+  /** Téléphone donné en postulant : transmis au recruteur avec l'email du compte, dès la candidature. */
+  telephone: text('telephone'),
   /** CV joint, facultatif : chemin dans le stockage privé (`blob:` ou `local:`), servi après contrôle du compte. */
   cvChemin: text('cv_chemin'),
   cvNom: text('cv_nom'),
@@ -809,27 +813,6 @@ export const candidatures = pgTable('candidatures', {
   uniqueIndex('candidatures_offre_candidat').on(t.offreId, t.candidatUserId),
   index('candidatures_candidat').on(t.candidatUserId),
 ])
-
-/**
- * Proposition d'échange du recruteur sur une candidature : un message, deux ou
- * trois créneaux, le téléphone du cabinet et la personne qui appellera. Les
- * coordonnées ne passent d'un côté à l'autre que si le candidat accepte, en
- * choisissant un créneau ; sans réponse ou en cas de refus, rien n'est
- * transmis. Une seule proposition par candidature, remplacée si le recruteur
- * en refait une.
- */
-export const echangesCandidature = pgTable('echanges_candidature', {
-  candidatureId: text('candidature_id').primaryKey().references(() => candidatures.id, { onDelete: 'cascade' }),
-  message: text('message').notNull(),
-  creneaux: text('creneaux').array().notNull(),
-  telephoneRecruteur: text('telephone_recruteur').notNull(),
-  contactRecruteur: text('contact_recruteur'),
-  statut: text('statut', { enum: ['en_attente', 'acceptee', 'refusee'] }).notNull().default('en_attente'),
-  creneauChoisi: text('creneau_choisi'),
-  telephoneCandidat: text('telephone_candidat'),
-  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
-  reponduLe: timestamp('repondu_le', { withTimezone: true }),
-})
 
 /**
  * Alerte emploi : avec un compte (critères du profil) ou sans, par une adresse

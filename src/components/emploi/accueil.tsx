@@ -205,7 +205,7 @@ export function SectionRecruter() {
   const etapes = [
     ['Votre fiche est vérifiée', 'Le cabinet, le centre de santé ou le laboratoire est rapproché des registres officiels. Sans fiche vérifiée, pas de publication.'],
     ['Vous publiez depuis l’espace pro', 'Poste, contrat, rémunération, date de début. L’offre s’affiche avec votre fiche.'],
-    ['Vous choisissez avec qui échanger', 'Les candidats ont un compte ; leurs coordonnées vous parviennent quand ils acceptent votre proposition d’échange.'],
+    ['Les coordonnées avec la candidature', 'Les candidats ont un compte : chaque candidature arrive avec leur téléphone et leur email, vous les contactez directement.'],
   ]
   return (
     <section className="dark bg-background text-fg">

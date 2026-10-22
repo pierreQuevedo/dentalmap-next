@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { sql } from 'drizzle-orm'
-import { BadgeCheck, Briefcase, Check, MapPin, MessageSquare, Search, Users } from 'lucide-react'
+import { BadgeCheck, Briefcase, Check, MapPin, Search, Send, Users } from 'lucide-react'
 import { db } from '@/db'
 import { FilAriane } from '@/components/annuaire/primitives'
 import { ChampCommune } from '@/components/emploi/champ-commune'
-import { FormulaireEchangeProfil } from '@/components/emploi/formulaire-echange-profil'
+import { FormulaireInvitation } from '@/components/emploi/formulaire-invitation'
 import { nomVuParRecruteur } from '@/components/emploi/apercu-candidat'
 import { chemin } from '@/lib/navigation'
 import { getCommuneParCode } from '@/lib/annuaire/queries'
@@ -46,9 +46,9 @@ async function recruteurQuiRegarde() {
  * anonymisés, par distance au lieu de la recherche (le cabinet du recruteur
  * connecté par défaut). Le nom n'apparaît, réduit au prénom et à l'initiale,
  * qu'à un recruteur vérifié et pour un profil « visible » ; sinon, les
- * initiales. « Proposer un échange » : recruteur vérifié, une offre en ligne.
+ * initiales. « Inviter à postuler » : recruteur vérifié, une offre en ligne.
  */
-export default async function Page(props: { searchParams: Promise<{ profil?: string; contrat?: string; commune?: string; rayon?: string; echange?: string; fait?: string }> }) {
+export default async function Page(props: { searchParams: Promise<{ profil?: string; contrat?: string; commune?: string; rayon?: string; inviter?: string; fait?: string }> }) {
   const sp = await props.searchParams
   const { compte, recruteur } = await recruteurQuiRegarde()
   const situation = (CODES_SITUATION as string[]).includes(sp.profil ?? '') ? (sp.profil as Situation) : null
@@ -57,7 +57,7 @@ export default async function Page(props: { searchParams: Promise<{ profil?: str
   const commune = sp.commune && /^[0-9AB]{5}$/.test(sp.commune) ? await getCommuneParCode(sp.commune) : null
   const centre = commune?.lon != null && commune.lat != null ? { lon: commune.lon, lat: commune.lat, ville: commune.nom } : (recruteur?.centre ?? null)
   const profils = await getProfilsDisponibles({ situation, contrat, centre, rayonKm, vuPar: recruteur?.slug ?? null })
-  const ouvert = sp.echange ? profils.find((p) => p.id === sp.echange) : undefined
+  const ouvert = sp.inviter ? profils.find((p) => p.id === sp.inviter) : undefined
   const params = new URLSearchParams(Object.entries({ profil: sp.profil, contrat: sp.contrat, commune: sp.commune, rayon: sp.rayon }).filter((e): e is [string, string] => Boolean(e[1])))
   const base = `${ICI}${params.toString() ? `?${params}` : ''}`
   const avec = (x: string) => `${base}${params.toString() ? '&' : '?'}${x}`
@@ -69,7 +69,7 @@ export default async function Page(props: { searchParams: Promise<{ profil?: str
           <FilAriane segments={[{ libelle: 'Emploi', href: EMPLOI }, { libelle: 'Profils disponibles' }]} />
           <h1 className="mt-4 text-3xl font-semibold tracking-tight text-fg md:text-4xl">Profils disponibles</h1>
           <p className="mt-2 max-w-3xl text-fg-2">
-            Des assistant(e)s, secrétaires, prothésistes et étudiant(e)s qui cherchent un poste et ont choisi d’être visibles des recruteurs vérifiés. Ni adresse ni coordonnées : elles ne sont partagées que si la personne accepte un échange.
+            Des assistant(e)s, secrétaires, prothésistes et étudiant(e)s qui cherchent un poste et ont choisi d’être visibles des recruteurs vérifiés. Ni adresse ni coordonnées : elles ne sont transmises que si la personne postule à votre offre.
           </p>
           <form method="get" className="squircle-2xl mt-6 grid gap-3 border border-line bg-bg p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)_7rem_auto] md:items-end">
             <label className="block">
@@ -116,16 +116,16 @@ export default async function Page(props: { searchParams: Promise<{ profil?: str
       </section>
 
       <div className="container py-8 lg:py-10">
-        {sp.fait === 'echange' && (
+        {sp.fait === 'invitation' && (
           <p role="status" className="squircle-xl mb-6 flex items-center gap-2 bg-teal/10 px-4 py-3 text-sm text-teal">
-            <Check className="size-4 shrink-0" aria-hidden /> Proposition envoyée. Vous la suivez dans les candidatures de votre espace pro.
+            <Check className="size-4 shrink-0" aria-hidden /> Invitation envoyée. Si la personne postule, sa candidature arrive dans votre espace pro.
           </p>
         )}
         {!recruteur && (
           <div className="squircle-2xl mb-6 flex flex-wrap items-center justify-between gap-4 border border-line bg-bg-soft p-5">
             <p className="text-sm text-fg">
               <span className="block font-semibold">Vous recrutez ?</span>
-              <span className="text-fg-2">Avec une fiche vérifiée et une offre en ligne, vous proposez un échange aux profils qui vous intéressent.</span>
+              <span className="text-fg-2">Avec une fiche vérifiée et une offre en ligne, vous invitez à postuler les profils qui vous intéressent.</span>
             </p>
             <Link
               href={chemin(compte ? '/espace-pro/emploi/' : `/connexion/?retour=${encodeURIComponent(ICI)}`)}
@@ -186,12 +186,12 @@ export default async function Page(props: { searchParams: Promise<{ profil?: str
                     </span>
                     {recruteur ? (
                       recruteur.offres.length ? (
-                        <Link href={chemin(avec(`echange=${p.id}`))} scroll={false} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3.5 text-xs font-semibold text-fg hover:border-line-strong">
-                          <MessageSquare className="size-3.5" aria-hidden /> Proposer un échange
+                        <Link href={chemin(avec(`inviter=${p.id}`))} scroll={false} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3.5 text-xs font-semibold text-fg hover:border-line-strong">
+                          <Send className="size-3.5" aria-hidden /> Inviter à postuler
                         </Link>
                       ) : (
                         <Link href={chemin('/espace-pro/emploi/')} className="text-xs font-medium text-fg-2 underline underline-offset-2 hover:text-fg">
-                          Publiez une offre pour proposer un échange
+                          Publiez une offre pour inviter à postuler
                         </Link>
                       )
                     ) : null}
@@ -204,7 +204,7 @@ export default async function Page(props: { searchParams: Promise<{ profil?: str
       </div>
 
       {recruteur && ouvert && recruteur.offres.length > 0 && (
-        <FormulaireEchangeProfil fiche={recruteur.slug} profil={ouvert.id} nom={nomVuParRecruteur(ouvert.nom, ouvert.visibilite)} detail={ouvert.qualification} offres={recruteur.offres} fermer={base} />
+        <FormulaireInvitation fiche={recruteur.slug} profil={ouvert.id} nom={nomVuParRecruteur(ouvert.nom, ouvert.visibilite)} detail={ouvert.qualification} offres={recruteur.offres} fermer={base} />
       )}
     </main>
   )

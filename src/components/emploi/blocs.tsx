@@ -368,7 +368,7 @@ export const PILIERS = [
   {
     icone: Lock,
     titre: 'Coordonnées protégées',
-    texte: 'Votre téléphone et votre email ne sont transmis au recruteur que si vous acceptez un échange.',
+    texte: 'Votre téléphone et votre email ne sont transmis qu’au recruteur de l’offre à laquelle vous postulez.',
   },
 ]
 
@@ -383,7 +383,7 @@ export const FAQ = [
   },
   {
     q: 'Quand mes coordonnées sont-elles transmises ?',
-    r: 'Le recruteur voit votre profil et votre message. Votre téléphone et votre adresse email ne lui sont transmis que si vous acceptez sa proposition d’échange.',
+    r: 'Quand vous postulez : le recruteur de l’offre reçoit votre nom, votre téléphone, votre email, votre message et votre CV. Les profils disponibles, eux, ne montrent jamais vos coordonnées.',
   },
   {
     q: 'Pourquoi la rémunération est-elle toujours indiquée ?',

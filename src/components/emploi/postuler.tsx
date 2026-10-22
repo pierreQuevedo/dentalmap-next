@@ -56,8 +56,8 @@ export async function TiroirPostuler({ o, etat }: { o: OffreDetail; etat: string
               <div>
                 <p className="text-lg font-semibold text-fg">{etat === 'envoyee' ? 'Candidature envoyée' : 'Vous avez déjà postulé'}</p>
                 <p className="mt-1 text-sm text-fg-2">
-                  {etat === 'envoyee' ? 'Le recruteur est prévenu par email.' : `Le ${deja.creeLe.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}.`} Vous suivez sa réponse dans vos candidatures, et
-                  recevez un email s’il vous propose un échange.
+                  {etat === 'envoyee' ? 'Le recruteur est prévenu par email.' : `Le ${deja.creeLe.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}.`} Il vous contacte directement s’il
+                  souhaite donner suite, et vous suivez sa réponse dans vos candidatures.
                 </p>
               </div>
               <Link href={chemin('/espace-pro/emploi/mes-candidatures/')} className="inline-flex h-11 items-center rounded-full bg-fg px-5 text-sm font-semibold text-bg">
@@ -82,6 +82,7 @@ export async function TiroirPostuler({ o, etat }: { o: OffreDetail; etat: string
                 slug={o.slug}
                 profil={profil ? [libelleQualification(profil), profil.experiences.length ? `${profil.experiences.length} expérience${profil.experiences.length > 1 ? 's' : ''}` : null, profil.criteres.disponibilite, mobilite(profil.criteres)].filter(Boolean).join(' · ') : null}
                 cvProfil={profil?.cv?.nom ?? null}
+                telephone={profil?.telephone ?? null}
               />
             </div>
           )}

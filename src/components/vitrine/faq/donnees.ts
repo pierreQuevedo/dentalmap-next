@@ -158,7 +158,7 @@ export const CATEGORIES: Categorie[] = [
       {
         ordre: 4,
         question: 'Mes coordonnées sont-elles transmises au recruteur ?',
-        reponse: 'Seulement si vous acceptez sa proposition d’échange. Avant cela, il ne voit ni votre téléphone ni votre email.',
+        reponse: 'Seulement quand vous postulez à son offre : il reçoit alors votre téléphone et votre email avec la candidature. Votre profil disponible, lui, ne les montre jamais.',
       },
       {
         ordre: 5,

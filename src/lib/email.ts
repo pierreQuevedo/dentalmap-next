@@ -578,70 +578,37 @@ export async function envoyerConfirmationAlerteEmploi(to: string, jeton: string)
 /* Candidatures                                                         */
 /* ------------------------------------------------------------------ */
 
-/** Au recruteur : une candidature arrive sur l'une de ses offres. */
-export async function envoyerNouvelleCandidature(to: string, offre: string, candidat: string, url: string) {
-  await envoyer(to, `Nouvelle candidature : ${offre}`, {
+/** Au recruteur : une candidature arrive sur l'une de ses offres, avec les coordonnées pour la contacter directement. */
+export async function envoyerNouvelleCandidature(to: string, d: { offre: string; candidat: string; email: string; telephone: string; url: string }) {
+  await envoyer(to, `Nouvelle candidature : ${d.offre}`, {
     titre: 'Une nouvelle candidature',
     blocs: [
-      { type: 'texte', texte: `${candidat} a postulé à votre offre « ${offre} ».` },
-      { type: 'bouton', libelle: 'Voir la candidature', url: `${SITE}${url}` },
-      { type: 'texte', texte: 'Ses coordonnées vous sont transmises si la personne accepte votre proposition d’échange.' },
-    ],
-    raison: 'Vous recevez cet email parce que vous avez publié une offre d’emploi sur DentalMap.',
-  })
-}
-
-/** Au candidat : le recruteur propose un échange et des créneaux. */
-export async function envoyerEchangePropose(to: string, recruteur: string, offre: string, message: string, creneaux: string[], depuisProfil = false) {
-  await envoyer(to, `${recruteur} vous propose un échange`, {
-    titre: 'Un recruteur vous propose un échange',
-    blocs: [
-      {
-        type: 'texte',
-        texte: depuisProfil
-          ? `${recruteur} a vu votre profil parmi les profils disponibles et vous propose son offre « ${offre} » :`
-          : `${recruteur} a lu votre candidature à l’offre « ${offre} » et vous écrit :`,
-      },
-      { type: 'encart', texte: message },
-      { type: 'champs', lignes: creneaux.map((c, i): [string, string] => [`Créneau ${i + 1}`, c]) },
-      { type: 'bouton', libelle: 'Choisir un créneau', url: `${SITE}/espace-pro/emploi/mes-candidatures/` },
-      { type: 'texte', texte: 'Vos coordonnées ne sont partagées que si vous acceptez. Sans réponse ou en cas de refus, rien n’est transmis.' },
-    ],
-    raison: depuisProfil
-      ? 'Vous recevez cet email parce que votre profil candidat est visible des recruteurs vérifiés sur DentalMap. Vous pouvez le rendre discret à tout moment.'
-      : 'Vous recevez cet email parce que vous avez postulé à une offre d’emploi sur DentalMap.',
-  })
-}
-
-/** Au recruteur : le candidat accepte l'échange, ses coordonnées et le créneau. */
-export async function envoyerEchangeAccepte(to: string, d: { candidat: string; offre: string; creneau: string; telephone: string; email: string; url: string }) {
-  await envoyer(to, `Échange accepté : ${d.candidat}`, {
-    titre: 'Votre proposition d’échange est acceptée',
-    blocs: [
-      { type: 'texte', texte: `${d.candidat} accepte un échange pour l’offre « ${d.offre} ».` },
+      { type: 'texte', texte: `${d.candidat} a postulé à votre offre « ${d.offre} ».` },
       {
         type: 'champs',
         lignes: [
-          ['Créneau', d.creneau],
           ['Téléphone', d.telephone],
           ['Email', d.email],
         ],
       },
       { type: 'bouton', libelle: 'Voir la candidature', url: `${SITE}${d.url}` },
+      { type: 'texte', texte: 'Appelez ou écrivez directement à la personne. Indiquez ensuite dans votre espace si elle est retenue ou non.' },
     ],
-    raison: 'Vous recevez cet email parce que vous avez proposé un échange à un candidat sur DentalMap.',
+    raison: 'Vous recevez cet email parce que vous avez publié une offre d’emploi sur DentalMap.',
   })
 }
 
-/** Au recruteur : le candidat décline l'échange. Rien n'est transmis. */
-export async function envoyerEchangeDecline(to: string, candidat: string, offre: string, url: string) {
-  await envoyer(to, `Échange décliné : ${offre}`, {
-    titre: 'Proposition d’échange déclinée',
+/** À un profil disponible : un recruteur l'invite à postuler à l'une de ses offres. Rien n'est transmis au recruteur. */
+export async function envoyerInvitationAPostuler(to: string, d: { recruteur: string; offre: string; message: string | null; url: string }) {
+  await envoyer(to, `${d.recruteur} vous invite à postuler`, {
+    titre: 'Un recruteur vous invite à postuler',
     blocs: [
-      { type: 'texte', texte: `${candidat} ne donne pas suite à votre proposition d’échange pour l’offre « ${offre} ». Ses coordonnées ne vous sont pas transmises.` },
-      { type: 'lien', libelle: 'Voir les candidatures', url: `${SITE}${url}` },
+      { type: 'texte', texte: `${d.recruteur} a vu votre profil parmi les profils disponibles et vous propose son offre « ${d.offre} ».` },
+      ...(d.message ? [{ type: 'encart' as const, texte: d.message }] : []),
+      { type: 'bouton', libelle: 'Voir l’offre et postuler', url: `${SITE}${d.url}` },
+      { type: 'texte', texte: 'Le recruteur n’a pas vos coordonnées : elles ne lui sont transmises que si vous postulez.' },
     ],
-    raison: 'Vous recevez cet email parce que vous avez proposé un échange à un candidat sur DentalMap.',
+    raison: 'Vous recevez cet email parce que votre profil candidat est visible des recruteurs vérifiés sur DentalMap. Vous pouvez le rendre discret à tout moment.',
   })
 }
 

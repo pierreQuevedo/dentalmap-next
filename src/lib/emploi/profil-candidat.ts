@@ -112,7 +112,7 @@ export const COMPETENCES: Record<Situation, string[]> = {
 export type Visibilite = 'visible' | 'anonyme' | 'discret'
 
 export const VISIBILITES: { cle: Visibilite; libelle: string; detail: string }[] = [
-  { cle: 'visible', libelle: 'Visible des recruteurs vérifiés', detail: 'Ils voient votre prénom, l’initiale de votre nom, votre qualification et vos critères, et peuvent vous proposer un échange.' },
+  { cle: 'visible', libelle: 'Visible des recruteurs vérifiés', detail: 'Ils voient votre prénom, l’initiale de votre nom, votre qualification et vos critères, et peuvent vous inviter à postuler.' },
   { cle: 'anonyme', libelle: 'Anonymisé', detail: 'Ils voient votre qualification et vos critères, sans nom ni photo : seulement vos initiales.' },
   { cle: 'discret', libelle: 'Discret', detail: 'Aucun recruteur ne voit votre profil. Vous postulez vous-même, et seul le recruteur de l’offre voit votre candidature.' },
 ]
@@ -176,10 +176,9 @@ export function completudeProfil(p: PourCompletude): { pct: number; prochaine: {
   return { pct, prochaine: suivant ? { titre: suivant.titre, gain: suivant.gain, ancre: suivant.ancre } : null }
 }
 
-/** La frise d'une candidature, vue du candidat : Envoyée, Vue, Échange proposé, Retenue. */
-export function etapeFrise(statut: 'nouvelle' | 'vue' | 'echange_propose' | 'echange_accepte' | 'retenue' | 'non_retenue'): { etape: number; issue: 'retenue' | 'non' | null } {
+/** La frise d'une candidature, vue du candidat : Envoyée, Vue, puis Retenue ou Non retenue. */
+export function etapeFrise(statut: 'nouvelle' | 'vue' | 'retenue' | 'non_retenue'): { etape: number; issue: 'retenue' | 'non' | null } {
   if (statut === 'non_retenue') return { etape: 1, issue: 'non' }
-  if (statut === 'retenue') return { etape: 3, issue: 'retenue' }
-  if (statut === 'echange_propose' || statut === 'echange_accepte') return { etape: 2, issue: null }
+  if (statut === 'retenue') return { etape: 2, issue: 'retenue' }
   return { etape: statut === 'vue' ? 1 : 0, issue: null }
 }

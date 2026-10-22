@@ -52,7 +52,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const masquees = new Set(profil.structuresMasquees.map((s) => s.slug))
 
   return (
-    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Visibilité de votre profil candidat : qui peut vous trouver et vous proposer un échange">
+    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Visibilité de votre profil candidat : qui peut vous trouver et vous inviter à postuler">
       <OngletsEmploi actif="mes" q={q} sansFiche={!espace} />
       <SousOngletsCandidat actif="visibilite" q={q} />
       {sp.fait && MESSAGES[sp.fait] && (
@@ -74,7 +74,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
               </label>
             ))}
           </fieldset>
-          <p className="mt-4 text-xs text-fg-2">Vos coordonnées ne sont jamais transmises sans votre accord, quel que soit ce choix.</p>
+          <p className="mt-4 text-xs text-fg-2">Vos coordonnées ne sont transmises qu’au recruteur de l’offre à laquelle vous postulez, quel que soit ce choix.</p>
           <button type="submit" className="mt-5 inline-flex h-11 cursor-pointer items-center rounded-full bg-action px-5 text-sm font-semibold text-action-foreground hover:bg-action-hover">
             Enregistrer
           </button>
