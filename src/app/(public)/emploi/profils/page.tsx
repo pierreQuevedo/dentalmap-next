@@ -34,8 +34,12 @@ async function recruteurQuiRegarde() {
   if (!compte || (compte.role !== 'dentiste' && compte.role !== 'prothesiste')) return { compte, recruteur: null }
   const espace = await getEspace(compte, null)
   if (!espace || !espace.ctx.identiteVerifiee || espace.fiche.demande?.statut !== 'acceptee') return { compte, recruteur: null }
-  const { rows } = await db.execute<{ id: string; titre: string }>(sql`
-    SELECT id, titre FROM offres WHERE praticien_id = ${espace.fiche.id} AND statut = 'en_ligne' AND (expire_le IS NULL OR expire_le > now()) ORDER BY publiee_le DESC
+  // Ses offres en ligne, et qui y a déjà postulé : on n'invite pas quelqu'un à une offre où sa candidature est déjà arrivée.
+  const { rows } = await db.execute<{ id: string; titre: string; candidats: string[] }>(sql`
+    SELECT o.id, o.titre, coalesce(array_agg(k.candidat_user_id::text) FILTER (WHERE k.id IS NOT NULL), '{}') AS candidats
+    FROM offres o LEFT JOIN candidatures k ON k.offre_id = o.id
+    WHERE o.praticien_id = ${espace.fiche.id} AND o.statut = 'en_ligne' AND (o.expire_le IS NULL OR o.expire_le > now())
+    GROUP BY o.id ORDER BY o.publiee_le DESC
   `)
   const lieu = espace.fiche.lieux.find((l) => l.principal && l.lon != null) ?? espace.fiche.lieux.find((l) => l.lon != null)
   return { compte, recruteur: { slug: espace.fiche.slug, offres: rows, centre: lieu?.lon != null && lieu.lat != null ? { lon: lieu.lon, lat: lieu.lat, ville: lieu.communeNom } : null } }
@@ -61,6 +65,8 @@ export default async function Page(props: { searchParams: Promise<{ profil?: str
   const params = new URLSearchParams(Object.entries({ profil: sp.profil, contrat: sp.contrat, commune: sp.commune, rayon: sp.rayon }).filter((e): e is [string, string] => Boolean(e[1])))
   const base = `${ICI}${params.toString() ? `?${params}` : ''}`
   const avec = (x: string) => `${base}${params.toString() ? '&' : '?'}${x}`
+  /** Les offres du recruteur auxquelles ce profil n'a pas encore postulé. */
+  const offresOuvertes = (profil: string) => (recruteur?.offres ?? []).filter((o) => !o.candidats.includes(profil)).map(({ id, titre }) => ({ id, titre }))
 
   return (
     <main>
@@ -185,7 +191,9 @@ export default async function Page(props: { searchParams: Promise<{ profil?: str
                       <Briefcase className="size-3.5" aria-hidden /> {p.experiences ? `${p.experiences} expérience${p.experiences > 1 ? 's' : ''}` : 'Expériences non renseignées'}
                     </span>
                     {recruteur ? (
-                      recruteur.offres.length ? (
+                      recruteur.offres.length && !offresOuvertes(p.id).length ? (
+                        <span className="text-xs font-medium text-fg-2">A déjà postulé à vos offres</span>
+                      ) : recruteur.offres.length ? (
                         <Link href={chemin(avec(`inviter=${p.id}`))} scroll={false} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3.5 text-xs font-semibold text-fg hover:border-line-strong">
                           <Send className="size-3.5" aria-hidden /> Inviter à postuler
                         </Link>
@@ -203,8 +211,8 @@ export default async function Page(props: { searchParams: Promise<{ profil?: str
         )}
       </div>
 
-      {recruteur && ouvert && recruteur.offres.length > 0 && (
-        <FormulaireInvitation fiche={recruteur.slug} profil={ouvert.id} nom={nomVuParRecruteur(ouvert.nom, ouvert.visibilite)} detail={ouvert.qualification} offres={recruteur.offres} fermer={base} />
+      {recruteur && ouvert && offresOuvertes(ouvert.id).length > 0 && (
+        <FormulaireInvitation fiche={recruteur.slug} profil={ouvert.id} nom={nomVuParRecruteur(ouvert.nom, ouvert.visibilite)} detail={ouvert.qualification} offres={offresOuvertes(ouvert.id)} fermer={base} />
       )}
     </main>
   )

@@ -9,9 +9,11 @@ import { CODES_CONTRAT, LIBELLE_CONTRAT, type CodeContrat, type CodeMetier } fro
 
 export const SITUATIONS = [
   { cle: 'assistant', libelle: 'Assistant(e) dentaire', detail: 'Au fauteuil, stérilisation, accueil', metier: 'assistant_dentaire' },
+  { cle: 'assistant_specialise', libelle: 'Assistant(e) spécialisé(e)', detail: 'Orthodontie, chirurgie, parodontie', metier: 'assistant_specialise' },
   { cle: 'secretaire', libelle: 'Secrétaire ou assistant(e) de gestion', detail: 'Accueil, agenda, facturation', metier: 'secretaire' },
   { cle: 'prothesiste', libelle: 'Prothésiste salarié(e)', detail: 'En laboratoire', metier: 'prothesiste' },
   { cle: 'aide', libelle: 'Aide dentaire', detail: 'Hygiène, stérilisation, préparation', metier: 'aide_dentaire' },
+  { cle: 'dentiste', libelle: 'Chirurgien-dentiste', detail: 'Salariat, remplacements, collaborations', metier: 'chirurgien_dentiste' },
   { cle: 'etudiant', libelle: 'Étudiant(e)', detail: 'Alternance, stage, job étudiant', metier: null },
 ] as const satisfies readonly { cle: string; libelle: string; detail: string; metier: CodeMetier | null }[]
 
@@ -31,6 +33,8 @@ const TITRE: Record<Exclude<Situation, 'etudiant'>, { choix: string; qualifie: s
   secretaire: { choix: 'Diplôme de secrétaire médical(e) ou d’assistant(e) de gestion', qualifie: 'Secrétaire ou assistant(e) de gestion diplômé(e)' },
   prothesiste: { choix: 'Diplôme de prothésiste dentaire', qualifie: 'Prothésiste dentaire diplômé(e)' },
   aide: { choix: 'Expérience d’aide dentaire', qualifie: 'Aide dentaire' },
+  assistant_specialise: { choix: 'Titre d’assistant(e) dentaire et spécialisation', qualifie: 'Assistant(e) spécialisé(e) qualifié(e)' },
+  dentiste: { choix: 'Diplôme d’État de docteur en chirurgie dentaire', qualifie: 'Chirurgien-dentiste diplômé(e)' },
 }
 
 /** Le libellé d'un choix de qualification, à l'étape SE3. */
@@ -51,7 +55,7 @@ export function libelleQualification(p: { situation: Situation; qualification: s
 
 export const DISPONIBILITES = ['Dès maintenant', 'Sous un mois', 'Préavis d’un mois', 'Préavis de deux ou trois mois', 'Plus tard dans l’année'] as const
 export const RAYONS_CANDIDAT = [5, 10, 15, 20, 30, 50] as const
-export const CONTRATS_CANDIDAT: CodeContrat[] = ['cdi', 'cdd', 'remplacement', 'alternance', 'stage']
+export const CONTRATS_CANDIDAT: CodeContrat[] = ['cdi', 'cdd', 'remplacement', 'collaboration', 'alternance', 'stage']
 
 export const Criteres = z.object({
   contrats: z.array(z.enum(CODES_CONTRAT)).default([]),
@@ -106,6 +110,8 @@ export const COMPETENCES: Record<Situation, string[]> = {
   secretaire: ['Accueil et agenda', 'Devis et tiers payant', 'Facturation', 'Logiciel de gestion du cabinet', 'Relances et impayés', 'Gestion des stocks'],
   prothesiste: ['Prothèse fixe', 'Prothèse amovible', 'Céramique', 'CFAO', 'Implantologie', 'Orthodontie'],
   aide: ['Stérilisation et traçabilité', 'Hygiène des locaux', 'Préparation des plateaux', 'Gestion des stocks'],
+  assistant_specialise: ['Orthodontie', 'Chirurgie orale', 'Implantologie', 'Parodontologie', 'Radioprotection', 'Stérilisation et traçabilité', 'Accueil et agenda'],
+  dentiste: ['Omnipratique', 'Implantologie', 'Parodontologie', 'Endodontie', 'Orthodontie', 'Pédodontie', 'Chirurgie orale', 'Prothèse'],
   etudiant: ['Coulée et modèles', 'Cire et montage', 'Initiation CFAO', 'Assistance au fauteuil', 'Stérilisation', 'Accueil des patients'],
 }
 

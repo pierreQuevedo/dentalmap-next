@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useTransition, type ReactNode } from 'react'
-import { ArrowRight, Loader2 } from 'lucide-react'
+import { ArrowRight, CalendarDays, FlaskConical, GraduationCap, HeartHandshake, Loader2, Microscope, SprayCan, Stethoscope, type LucideIcon } from 'lucide-react'
 import { enregistrerBienvenue, type EtatProfil } from '@/lib/emploi/actions-candidat'
 import {
   QUALIFICATIONS,
@@ -30,6 +30,11 @@ type Props = {
 
 const carte = 'squircle-xl flex cursor-pointer items-start gap-3 border border-line p-4 has-[:checked]:border-teal has-[:checked]:bg-teal/[0.06]'
 
+/** Un encart par situation, en grille sur toute la largeur : l'icône, le libellé, le détail. */
+const ICONES_SITUATION: Record<string, LucideIcon> = { assistant: HeartHandshake, assistant_specialise: Microscope, secretaire: CalendarDays, prothesiste: FlaskConical, aide: SprayCan, dentiste: Stethoscope, etudiant: GraduationCap }
+const encart =
+  'squircle-2xl relative flex cursor-pointer flex-col gap-3 border border-line bg-bg p-5 transition-colors hover:border-line-strong has-[:checked]:border-teal has-[:checked]:bg-teal/[0.06] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-action'
+
 /** Une étape du parcours de bienvenue candidat (SE1 à SE5). */
 export function FormulaireBienvenue(p: Props) {
   const [etat, action, enCours] = useActionState<EtatProfil, FormData>(enregistrerBienvenue, null)
@@ -51,16 +56,26 @@ export function FormulaireBienvenue(p: Props) {
       {p.retour && <input type="hidden" name="retour" value={p.retour} />}
 
       {p.etape === 'situation' && (
-        <fieldset className="grid gap-2">
-          {SITUATIONS.map((s) => (
-            <label key={s.cle} className={carte}>
-              <input type="radio" name="situation" value={s.cle} defaultChecked={p.situation === s.cle} className="mt-1 size-4 accent-teal" />
-              <span>
-                <span className="block text-sm font-semibold text-fg">{s.libelle}</span>
-                <span className="block text-xs text-fg-2">{s.detail}</span>
-              </span>
-            </label>
-          ))}
+        <fieldset className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <legend className="sr-only">Votre situation</legend>
+          {SITUATIONS.map((s) => {
+            const Icone = ICONES_SITUATION[s.cle]
+            return (
+              <label key={s.cle} className={`group ${encart}`}>
+                <input type="radio" name="situation" value={s.cle} defaultChecked={p.situation === s.cle} className="peer sr-only" />
+                <span className="flex items-center justify-between">
+                  <span className="grid size-10 place-items-center rounded-xl bg-bg-soft text-fg-2 group-has-[:checked]:bg-teal/15 group-has-[:checked]:text-teal">
+                    <Icone className="size-5" aria-hidden />
+                  </span>
+                  <span aria-hidden className="size-5 rounded-full border border-line-strong bg-bg transition-[border-width,border-color] group-has-[:checked]:border-[6px] group-has-[:checked]:border-teal" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-fg">{s.libelle}</span>
+                  <span className="mt-0.5 block text-xs text-fg-2">{s.detail}</span>
+                </span>
+              </label>
+            )
+          })}
         </fieldset>
       )}
 

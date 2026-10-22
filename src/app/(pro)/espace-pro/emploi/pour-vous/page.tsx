@@ -28,7 +28,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { compte, coque, q, espace } = await chargerEmploi('pour-vous', sp.fiche)
   const profil = await getProfilCandidat(compte.id)
   if (!profil) redirect(chemin(`/espace-pro/emploi/bienvenue/situation/${q}`))
-  const resultat = await getOffresPourVous(profil)
+  const resultat = await getOffresPourVous(profil, compte.id)
   const n = Math.max(PAR_PAGE, Math.min(100, Number(sp.n) || PAR_PAGE))
   const offres = resultat?.offres ?? []
   const etudiant = profil.situation === 'etudiant'

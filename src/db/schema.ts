@@ -760,7 +760,7 @@ export const recrutementCabinets = pgTable('recrutement_cabinets', {
 /** Profil d'un salarié ou d'un étudiant qui cherche un poste. */
 export const candidats = pgTable('candidats', {
   userId: uuid('user_id').primaryKey().references(() => user.id, { onDelete: 'cascade' }),
-  situation: text('situation', { enum: ['assistant', 'secretaire', 'prothesiste', 'aide', 'etudiant'] }).notNull(),
+  situation: text('situation', { enum: ['assistant', 'assistant_specialise', 'secretaire', 'prothesiste', 'aide', 'dentiste', 'etudiant'] }).notNull(),
   /** Contrats, temps, commune, rayon, disponibilité. */
   criteres: jsonb('criteres').notNull().default(sql`'{}'::jsonb`),
   qualification: text('qualification'),

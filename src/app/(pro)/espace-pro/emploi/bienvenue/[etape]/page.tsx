@@ -41,9 +41,10 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
   const criteres = profil?.criteres ?? lireCriteres({})
 
   return (
-    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Votre profil candidat, en cinq étapes">
+    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Votre profil candidat, en cinq étapes" sansLienFlottant>
       <OngletsEmploi actif="mes" q={q} sansFiche={!espace} />
-      <div className="max-w-2xl">
+      {/* Toute la largeur, comme le reste de l'espace : l'intro reste lisible, les choix s'étalent en encarts. */}
+      <div>
       <div className="mt-2 flex items-center gap-1.5" aria-hidden>
         {etapes.map((x, i) => (
           <span key={x} className={`h-1 flex-1 rounded-full ${i < n ? 'bg-teal' : 'bg-line'}`} />
@@ -56,8 +57,8 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
         {e === 'situation' && compte.nom ? `Bonjour ${compte.nom.split(' ')[0]}, ` : ''}
         {e === 'situation' ? 'quelle est votre situation ?' : TITRES_ETAPE[e]}
       </h2>
-      <p className="mt-2 text-fg-2">{INTRO[e]}</p>
-      <div className="squircle-2xl mt-8 border border-line bg-bg p-5 sm:p-6">
+      <p className="mt-2 max-w-2xl text-fg-2">{INTRO[e]}</p>
+      <div className="squircle-2xl mt-6 border border-line bg-bg p-5 sm:p-6">
         <FormulaireBienvenue
           etape={e}
           retour={retour}

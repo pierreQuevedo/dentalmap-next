@@ -45,7 +45,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const sp = await props.searchParams
   const { compte, coque, q, espace } = await chargerEmploi('candidat', sp.fiche)
   const [profil, candidatures, alertes] = await Promise.all([getProfilCandidat(compte.id), getCandidaturesEnvoyees(compte.id), getAlertesCompte(compte.id)])
-  const pourVous = profil ? await getOffresPourVous(profil) : null
+  const pourVous = profil ? await getOffresPourVous(profil, compte.id) : null
   const enCours = candidatures.filter((k) => k.statut !== 'non_retenue')
   const retenues = candidatures.filter((k) => k.statut === 'retenue').length
   const alerte = alertes.find((a) => a.active)
@@ -66,7 +66,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <SousOngletsCandidat actif="vue" q={q} />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <section className="squircle-2xl relative overflow-hidden bg-gradient-to-br from-[#134E4A] to-[#0B1F1D] p-6 text-white">
+        <section className="squircle-2xl relative overflow-hidden bg-gradient-to-br from-[#134E4A] to-[#0B1F1D] p-5 text-white">
           {profil && c ? (
             <>
               <p className="text-xs font-semibold uppercase tracking-wider text-[#BFE3D6]">Profil {VISIBILITES.find((v) => v.cle === profil.visibilite)?.libelle.toLowerCase()}</p>
@@ -77,14 +77,14 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                   ? 'Votre profil est discret : seuls les recruteurs auxquels vous postulez le voient.'
                   : `Votre profil est visible des recruteurs vérifiés${profil.visibilite === 'anonyme' ? ', sans votre nom' : ''}.`}
               </p>
-              <div className="mt-5 flex items-center gap-3">
+              <div className="mt-4 flex items-center gap-3">
                 <span className="relative h-2 flex-1 overflow-hidden rounded-full bg-white/15">
                   <span className="absolute inset-y-0 left-0 rounded-full bg-[#BFE3D6]" style={{ width: `${c.pct}%` }} />
                 </span>
                 <span className="text-sm font-semibold tabular-nums">{c.pct} %</span>
                 <span className="text-xs text-white/60">profil complet</span>
               </div>
-              <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {(
                   [
                     [String(pourVous?.offres.length ?? 0), 'offres près de vous'],
@@ -93,7 +93,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                     [`${profil.criteres.rayonKm} km`, 'rayon de recherche'],
                   ] as const
                 ).map(([v, l]) => (
-                  <div key={l} className="squircle-xl bg-white/[0.07] p-3">
+                  <div key={l} className="squircle-xl bg-white/[0.07] px-3 py-2.5">
                     <dt className="sr-only">{l}</dt>
                     <dd className="text-xl font-semibold tabular-nums">{v}</dd>
                     <dd className="text-xs text-white/65">{l}</dd>
@@ -103,7 +103,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
               {c.prochaine && (
                 <Link
                   href={chemin(`${lien('profil-candidat')}${c.prochaine.ancre}`)}
-                  className="squircle-xl mt-5 flex items-center gap-3 bg-white/10 p-3 text-sm hover:bg-white/15"
+                  className="squircle-xl mt-4 flex items-center gap-3 bg-white/10 px-3 py-2.5 text-sm hover:bg-white/15"
                 >
                   <span className="squircle-full shrink-0 bg-[#BFE3D6] px-2 py-0.5 text-xs font-semibold text-[#0B1F1D]">+{c.prochaine.gain} %</span>
                   <span className="min-w-0 flex-1 font-medium">{c.prochaine.titre}</span>
@@ -163,7 +163,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           </TitreTuile>
           {pourVous?.offres.length ? (
             <ul className="mt-4 space-y-2">
-              {pourVous.offres.slice(0, 3).map((o) => (
+              {/* Une offre et une candidature : la vue d'ensemble tient dans l'écran, « Tout voir » mène au reste. */}
+              {pourVous.offres.slice(0, 1).map((o) => (
                 <CarteOffre key={o.id} o={o} forme="compacte" />
               ))}
             </ul>
@@ -177,7 +178,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           </TitreTuile>
           {enCours.length ? (
             <ul className="mt-2 divide-y divide-line">
-              {enCours.slice(0, 4).map((k) => (
+              {enCours.slice(0, 1).map((k) => (
                 <li key={k.id} className="py-4">
                   <Link href={chemin(lien('mes-candidatures'))} className="flex items-start justify-between gap-3">
                     <span className="min-w-0">
