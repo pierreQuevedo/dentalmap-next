@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { placesParVoie } from '@/lib/espace-pro/etablissement'
-import { Check, Pencil, Plus, Trash2 } from 'lucide-react'
+import { manqueCentre, placesParVoie } from '@/lib/espace-pro/etablissement'
+import { Check, CheckCircle2, CircleAlert, Hospital, Pencil, Plus, Trash2 } from 'lucide-react'
 
 /**
  * Une liste d'éléments à champs simples : étapes d'accès aux études, cycles,
@@ -27,6 +27,7 @@ export function SaisieListe({
   max,
   prefixe,
   places,
+  centres = false,
 }: {
   /** Nom de la liste dans le document : `voiesAcces`, `cycles`, `centres`. */
   cle: string
@@ -40,6 +41,8 @@ export function SaisieListe({
   prefixe: string
   /** Voies d'accès d'une faculté : le détail de la capacité d'accueil, d'où l'on lit les places de chaque voie. */
   places?: string | null
+  /** Centres de soins : une icône, et sous le nom ce qui manque, ou « Complet » avec les jours et horaires. */
+  centres?: boolean
 }) {
   const [elements, setElements] = useState<Element[]>(initiales)
   const [ouvert, setOuvert] = useState<string | null>(null)
@@ -65,10 +68,20 @@ export function SaisieListe({
           return (
             <li key={id} className={`squircle-2xl border bg-bg ${edition ? 'border-line-strong' : 'border-line'}`}>
               <div className="flex items-center gap-4 p-4">
-                <span className="w-7 text-center text-xl font-light tabular-nums text-fg-2">{String(k + 1).padStart(2, '0')}</span>
+                {centres ? (
+                  <span className="squircle-xl grid size-11 shrink-0 place-items-center bg-teal/10 text-teal">
+                    <Hospital className="size-5" aria-hidden />
+                  </span>
+                ) : (
+                  <span className="w-7 text-center text-xl font-light tabular-nums text-fg-2">{String(k + 1).padStart(2, '0')}</span>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-fg">{String(e[titre] ?? '') || 'Nouvel élément'}</p>
-                  {sous && <p className="truncate text-sm text-fg-2">{sous}</p>}
+                  {centres ? (
+                    <LigneCentre e={e} />
+                  ) : (
+                    sous && <p className="truncate text-sm text-fg-2">{sous}</p>
+                  )}
                 </div>
                 {places !== undefined && placesParVoie(places, String(e[titre] ?? '')) !== null && (
                   <span className="squircle-full shrink-0 bg-teal/10 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-teal">{placesParVoie(places, String(e[titre] ?? ''))} places</span>
@@ -145,5 +158,24 @@ export function SaisieListe({
         )}
       </ol>
     </div>
+  )
+}
+
+const JOURS_COURTS: Record<string, string> = { lundi: 'lun', mardi: 'mar', mercredi: 'mer', jeudi: 'jeu', vendredi: 'ven', samedi: 'sam' }
+
+/** Sous le nom d'un centre : ce qui manque aux patients, ou ce qu'ils liront. */
+function LigneCentre({ e }: { e: Element }) {
+  const c = { adresse: String(e.adresse ?? ''), telephone: String(e.telephone ?? ''), jours: (e.jours as string[] | undefined) ?? [], horaires: String(e.horaires ?? '') }
+  const manque = manqueCentre(c as Parameters<typeof manqueCentre>[0])
+  if (manque)
+    return (
+      <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-amber-700 dark:text-amber-300">
+        <CircleAlert className="size-3.5 shrink-0" aria-hidden /> {manque}
+      </p>
+    )
+  return (
+    <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-fg-2">
+      <CheckCircle2 className="size-3.5 shrink-0 text-teal" aria-hidden /> <span className="font-medium text-teal">Complet</span> · {c.jours.map((j) => JOURS_COURTS[j] ?? j).join(', ')}, {c.horaires} · {c.telephone}
+    </p>
   )
 }

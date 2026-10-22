@@ -583,3 +583,15 @@ export function decouperDiplomes(texte: string | null, max = 20): string[] {
     .map((d) => d.charAt(0).toUpperCase() + d.slice(1))
     .slice(0, max)
 }
+
+/**
+ * Ce qu'il reste à préciser pour un centre de soins, pour que les patients
+ * puissent y aller : une vraie adresse (avec son code postal), un téléphone,
+ * les jours et les horaires. Nul quand le centre est complet.
+ */
+export function manqueCentre(c: Pick<CentreSoins, 'adresse' | 'telephone' | 'jours' | 'horaires'>): string | null {
+  const m = [!/\b\d{5}\b/.test(c.adresse) && 'adresse', !c.telephone.trim() && 'téléphone', (!c.horaires.trim() || !c.jours.length) && 'horaires'].filter((x): x is string => Boolean(x))
+  if (!m.length) return null
+  const liste = m.length === 1 ? m[0] : `${m.slice(0, -1).join(', ')} et ${m[m.length - 1]}`
+  return `${liste.charAt(0).toUpperCase()}${liste.slice(1)} à préciser`
+}

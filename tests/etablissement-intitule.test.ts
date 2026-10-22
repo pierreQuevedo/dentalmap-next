@@ -85,3 +85,12 @@ describe('diplômes après le diplôme d’État', () => {
     expect(decouperDiplomes('3 DES (internat), 7 CES, 10 DU et DIU')).toEqual(['3 DES, par l’internat', '7 CES', '10 DU et DIU'])
   })
 })
+
+import { manqueCentre } from '../src/lib/espace-pro/etablissement'
+
+describe('centre de soins', () => {
+  it('dit ce qui manque', () => {
+    expect(manqueCentre({ adresse: 'CSERD, hôpital Pellegrin, Bordeaux', telephone: '', jours: [], horaires: '' })).toBe('Adresse, téléphone et horaires à préciser')
+    expect(manqueCentre({ adresse: 'Place Amélie Raba-Léon, 33076 Bordeaux', telephone: '05 56 79 56 79', jours: ['lundi'], horaires: '8 h 30 à 17 h' })).toBeNull()
+  })
+})
