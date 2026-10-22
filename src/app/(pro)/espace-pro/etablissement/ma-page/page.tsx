@@ -4,7 +4,7 @@ import { CalendarDays, FileText, Lock, PanelsTopLeft, Pencil, Plus } from 'lucid
 import { CoqueEspace, Statut, TitreTuile, Tuile } from '@/components/espace/coque'
 import { chemin } from '@/lib/navigation'
 import { enregistrerBloc } from '@/lib/espace-pro/actions-etablissement'
-import { portesOuvertesAJour } from '@/lib/espace-pro/etablissement'
+import { libelleSection, portesOuvertesAJour } from '@/lib/espace-pro/etablissement'
 import { Retour, chargerEtablissement, versEtab } from '../_commun'
 
 export const metadata: Metadata = { title: 'Ma page', robots: { index: false, follow: false } }
@@ -20,11 +20,12 @@ const champ = 'squircle-lg w-full border border-line bg-bg px-3 text-sm text-fg 
 export default async function Page(props: { searchParams: Promise<{ fiche?: string; erreur?: string; enregistre?: string }> }) {
   const sp = await props.searchParams
   const t = await chargerEtablissement('ma-page', sp.fiche)
-  const { source, fiche, sections, coque } = t
+  const { source, fiche, sections, coque, force } = t
   const d = fiche.donnees
-  const declarees = sections.filter((s) => s.statut !== 'auto' && !s.bientot)
-  const compte = (s: string) => sections.filter((x) => x.statut === s && !x.bientot).length
-  const pct = declarees.length ? Math.round((compte('publiee') / declarees.length) * 100) : 0
+  const declarees = sections.filter((s) => s.statut !== 'auto' && !s.bientot && !s.automatique)
+  const compte = (s: string) => sections.filter((x) => x.statut === s && !x.bientot && !(s === 'vide' && x.automatique)).length
+  // La même complétude que la vue d'ensemble : celle de la page entière, pas seulement des sections.
+  const pct = force.total
   const passee = !!d.portesOuvertes && !portesOuvertesAJour(d)
 
   return (
@@ -40,12 +41,12 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                   <p className="font-semibold text-fg">{s.titre}</p>
                   <p className="text-sm text-fg-2">
                     {s.detail}
-                    {s.manque && <span className="text-amber-700 dark:text-amber-300"> · {s.manque}</span>}
+                    {s.manque && s.manque !== libelleSection(s) && <span className="text-amber-700 dark:text-amber-300"> · {s.manque}</span>}
                   </p>
                 </div>
                 <div className="ml-12 flex flex-wrap items-center gap-3 sm:ml-0">
                   <span className="hidden text-xs text-fg-2 md:block">{s.source}</span>
-                  {s.bientot ? <span className="squircle-full bg-bg-soft px-2 py-0.5 text-xs text-fg-2 ring-1 ring-inset ring-line">Bientôt</span> : <Statut s={s.statut} />}
+                  {s.bientot ? <span className="squircle-full bg-bg-soft px-2 py-0.5 text-xs text-fg-2 ring-1 ring-inset ring-line">Bientôt</span> : <Statut s={s.statut} libelle={libelleSection(s)} />}
                   {s.statut === 'auto' ? (
                     <span className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm text-fg-2">
                       <Lock className="size-3.5" aria-hidden /> Lecture seule
@@ -128,7 +129,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             <TitreTuile i={PanelsTopLeft}>Complétude</TitreTuile>
             <p className="mt-4 text-4xl font-semibold tracking-tight text-fg">{pct} %</p>
             <p className="text-sm text-fg-2">
-              {compte('publiee')} section{compte('publiee') > 1 ? 's' : ''} déclarée{compte('publiee') > 1 ? 's' : ''} sur {declarees.length} publiée{compte('publiee') > 1 ? 's' : ''}
+              Page complète · {compte('publiee')} section{compte('publiee') > 1 ? 's' : ''} déclarée{compte('publiee') > 1 ? 's' : ''} sur {declarees.length} publiée{compte('publiee') > 1 ? 's' : ''}
             </p>
             <span className="mt-4 block h-2 rounded-full bg-line">
               <span className="block h-full rounded-full bg-teal" style={{ width: `${pct}%` }} />

@@ -6,7 +6,7 @@ import { CarteEtablissement } from '@/components/espace/etablissement'
 import { TuileActivite, TuileSombre } from '@/components/espace/tuiles'
 import { chemin } from '@/lib/navigation'
 import { publierEtablissement } from '@/lib/espace-pro/actions-etablissement'
-import { actives, portesOuvertesAJour, intituleDiplome } from '@/lib/espace-pro/etablissement'
+import { actives, portesOuvertesAJour, intituleDiplome, libelleSection } from '@/lib/espace-pro/etablissement'
 import { aujourdhui, quand } from '../_commun'
 import { Retour, chargerEtablissement, dateCourte, versEtab } from './_commun'
 
@@ -37,7 +37,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const enLigne = coque.enLigne
   const restantes = missions.filter((m) => !m.faite && m.gain > 0)
   const prochaine = restantes[0] ?? null
-  const declarees = sections.filter((s) => s.statut !== 'auto' && !s.bientot)
+  const declarees = sections.filter((s) => s.statut !== 'auto' && !s.bientot && !s.automatique)
   const publiees = declarees.filter((s) => s.statut === 'publiee').length
   const auto = sections.filter((s) => s.statut === 'auto').length
   const n = actives(d).length
@@ -152,7 +152,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             {sections.slice(0, 8).map((s) => (
               <li key={s.cle} className="flex items-center justify-between gap-3 text-sm">
                 <span className="truncate text-fg">{s.titre}</span>
-                {s.bientot ? <span className="squircle-full bg-bg-soft px-2 py-0.5 text-xs text-fg-2 ring-1 ring-inset ring-line">Bientôt</span> : <Statut s={s.statut} libelle={s.cle === 'formations' && s.statut === 'incomplete' ? s.manque : undefined} />}
+                {s.bientot ? <span className="squircle-full bg-bg-soft px-2 py-0.5 text-xs text-fg-2 ring-1 ring-inset ring-line">Bientôt</span> : <Statut s={s.statut} libelle={libelleSection(s)} />}
               </li>
             ))}
           </ul>

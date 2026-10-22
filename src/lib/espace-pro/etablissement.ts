@@ -386,7 +386,8 @@ export function missionsEtablissement(force: Force, type: TypeEtablissement): Mi
 }
 
 export type StatutSection = 'publiee' | 'incomplete' | 'vide' | 'auto' | 'attente'
-export type Section = { cle: string; titre: string; detail: string; statut: StatutSection; source: string; href?: string; manque?: string; bientot?: boolean }
+/** `automatique` : la section vient d'une source publique ; vide, c'est qu'il n'y a pas encore de données, pas un oubli de l'établissement. */
+export type Section = { cle: string; titre: string; detail: string; statut: StatutSection; source: string; href?: string; manque?: string; bientot?: boolean; automatique?: boolean }
 
 const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? 's' : ''}`
 
@@ -402,7 +403,7 @@ export function sectionsPage(d: Donnees, type: TypeEtablissement, auto: { regist
     statut: po ? 'publiee' : 'incomplete',
     source: 'Déclaré et registre',
     href: 'page#portes-ouvertes',
-    manque: po ? undefined : d.portesOuvertes ? 'Date des portes ouvertes passée' : 'Portes ouvertes',
+    manque: po ? undefined : d.portesOuvertes ? 'Date des portes ouvertes passée' : 'Portes ouvertes à annoncer',
   }
   const presentation: Section = {
     cle: 'presentation',
@@ -422,7 +423,7 @@ export function sectionsPage(d: Donnees, type: TypeEtablissement, auto: { regist
     href: 'galerie',
     manque: d.galerie.length && !d.droitsAttestes ? 'Droits à attester' : undefined,
   }
-  const registres: Section = { cle: 'registres', titre: 'Registres', detail: 'UAI, statut, diplômes au RNCP', statut: auto.registres ? 'auto' : 'vide', source: 'Référentiels publics' }
+  const registres: Section = { cle: 'registres', titre: 'Registres', detail: 'UAI, statut, diplômes au RNCP', statut: auto.registres ? 'auto' : 'vide', source: 'Référentiels publics', automatique: true }
   const bientot = (cle: string, titre: string, detail: string): Section => ({ cle, titre, detail, statut: 'vide', source: 'Déclaré', bientot: true })
 
   if (type === 'faculte') {
@@ -433,7 +434,7 @@ export function sectionsPage(d: Donnees, type: TypeEtablissement, auto: { regist
       galerie,
       { cle: 'acces', titre: 'Accès aux études', detail: d.voiesAcces.length ? pluriel(d.voiesAcces.length, 'étape') : 'Voies d’accès et calendrier', statut: etat(d.voiesAcces.length > 0, d.voiesAcces.every((v) => !!v.quand)), source: 'Déclaré', href: 'acces', manque: d.voiesAcces.some((v) => !v.quand) ? 'Période d’une étape' : undefined },
       { cle: 'cursus', titre: 'Cursus', detail: d.cycles.length ? `${pluriel(d.cycles.length, 'cycle')}, ${pluriel(d.autresDiplomes.length, 'autre diplôme')}` : 'Cycles et diplômes', statut: etat(d.cycles.length > 0, d.cycles.length > 0), source: 'Déclaré et RNCP', href: 'cursus' },
-      { cle: 'internat', titre: 'Internat', detail: 'Spécialités et postes ouverts', statut: auto.resultats ? 'auto' : 'vide', source: 'Centre national de gestion' },
+      { cle: 'internat', titre: 'Internat', detail: 'Spécialités et postes ouverts', statut: auto.resultats ? 'auto' : 'vide', source: 'Centre national de gestion', automatique: true },
       { cle: 'soins', titre: 'Se faire soigner', detail: d.centres.length ? pluriel(d.centres.length, 'centre de soins') : 'Centres de soins et rendez-vous', statut: etat(d.centres.length > 0, centresComplets), source: 'Déclaré', href: 'soins', manque: d.centres.length && !centresComplets ? 'Horaires ou téléphone d’un centre' : undefined },
       bientot('vie', 'Vie étudiante', 'Logement, restauration, transports'),
       bientot('rendez-vous', 'Rendez-vous', 'Événements datés'),
@@ -455,7 +456,7 @@ export function sectionsPage(d: Donnees, type: TypeEtablissement, auto: { regist
       manque: a.find((f) => !f.acces) ? 'Conditions d’accès à préciser' : a.find((f) => !f.places) ? 'Places à préciser' : !a.every((f) => f.voies.length) ? 'Voies à préciser' : undefined,
     },
     { cle: 'alternance', titre: 'Alternance', detail: alternance ? 'Au moins une formation en apprentissage' : 'Aucune formation en apprentissage déclarée', statut: etat(a.length > 0, alternance), source: 'Déclaré', href: 'formations' },
-    { cle: 'resultats', titre: 'Réussite et insertion', detail: 'Résultats aux examens, InserJeunes', statut: auto.resultats ? 'auto' : 'vide', source: 'Ministère de l’Éducation nationale' },
+    { cle: 'resultats', titre: 'Réussite et insertion', detail: 'Résultats aux examens, InserJeunes', statut: auto.resultats ? 'auto' : 'vide', source: 'Ministère de l’Éducation nationale', automatique: true },
     bientot('admission', 'Admission', 'Étapes de sélection et attentes'),
     bientot('couts', 'Coûts et aides', 'Frais, équipement, aides'),
     registres,
@@ -471,4 +472,11 @@ export function resumeFormation(f: FormationDeclaree): string {
 /** « 6 février 2027 ». */
 export function dateLongue(iso: string): string {
   return new Date(`${iso}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' })
+}
+
+/** Le libellé d'état d'une section, quand il dit mieux que la pastille générique : ce qui manque, ou l'absence de données publiques. */
+export function libelleSection(s: Section): string | undefined {
+  if (s.automatique && s.statut === 'vide') return 'Pas encore de données'
+  if (s.cle === 'formations' && s.statut === 'incomplete') return s.manque
+  return undefined
 }
