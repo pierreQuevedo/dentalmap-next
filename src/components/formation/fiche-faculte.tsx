@@ -1,7 +1,7 @@
 import { CalendarDays, Clock, Globe, GraduationCap, HeartPulse, Phone, Stethoscope } from 'lucide-react'
 import { FAMILLES, lienFormation } from '@/lib/formation/types'
 import { nomCourt, postesInternat, sitesDe, type Faculte } from '@/lib/formation/faculte'
-import { CYCLES_DEFAUT, decouper } from '@/lib/espace-pro/etablissement'
+import { CYCLES_DEFAUT, decouperDiplomes } from '@/lib/espace-pro/etablissement'
 import {
   capacitesParAnnee,
   citationRelevee,
@@ -326,7 +326,7 @@ function Acces({ fac, details, declaration, sourceReleve }: { fac: Faculte; deta
 function Cursus({ fac, declaration }: { fac: Faculte; declaration: DeclarationPublique | null }) {
   const d = declaration?.donnees
   const cycles = d?.cycles.length ? d.cycles : CYCLES_DEFAUT
-  const autresDiplomes = d?.autresDiplomes.length ? d.autresDiplomes : decouper(fac.autresDiplomes, 20)
+  const autresDiplomes = d?.autresDiplomes.length ? d.autresDiplomes : decouperDiplomes(fac.autresDiplomes)
   return (
     <section id="cursus" className="container scroll-mt-20 py-20 md:py-24">
       <Titre2 sous="Six ans de la première année de santé au diplôme d’État, puis l’internat pour ceux qui se spécialisent.">Le cursus</Titre2>

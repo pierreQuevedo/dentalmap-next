@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
+import { chemin } from '@/lib/navigation'
 import { GraduationCap, Map as Plan, Plus, Trash2 } from 'lucide-react'
 
 /**
@@ -11,8 +13,9 @@ import { GraduationCap, Map as Plan, Plus, Trash2 } from 'lucide-react'
 type Cycle = { id: string; titre: string; annees: string; detail: string }
 
 const champ = 'squircle-lg h-10 w-full border border-line bg-bg px-3 text-sm text-fg outline-none focus:border-line-strong'
+const etiquette = 'mb-1 block text-xs font-medium text-fg-2'
 
-export function CursusClient({ cycles: c0, autres: a0 }: { cycles: Cycle[]; autres: string[] }) {
+export function CursusClient({ cycles: c0, autres: a0, acces }: { cycles: Cycle[]; autres: string[]; acces?: string }) {
   const [cycles, setCycles] = useState(c0)
   const [autres, setAutres] = useState(a0)
   const [nouveau, setNouveau] = useState('')
@@ -26,12 +29,30 @@ export function CursusClient({ cycles: c0, autres: a0 }: { cycles: Cycle[]; autr
         <h2 className="flex items-center gap-2 text-sm font-semibold text-fg">
           <Plan className="size-4 text-fg-2" aria-hidden /> Cycles
         </h2>
+        {acces && (
+          <p className="mt-1 text-xs text-fg-2">
+            La 1re année (PASS, L.AS) se décrit dans{' '}
+            <Link href={chemin(acces)} className="font-medium text-fg underline underline-offset-2">
+              Accès aux études
+            </Link>
+            .
+          </p>
+        )}
         <ol className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
           {cycles.map((c) => (
-            <li key={c.id} className="squircle-xl space-y-2 border border-line p-3">
-              <input aria-label="Années" value={c.annees} maxLength={60} onChange={(e) => maj(c.id, { annees: e.target.value })} placeholder="2e et 3e années" className={`${champ} h-8 text-xs`} />
-              <input aria-label="Cycle" value={c.titre} maxLength={80} onChange={(e) => maj(c.id, { titre: e.target.value })} placeholder="DFGSO" className={`${champ} font-semibold`} />
-              <textarea aria-label="Ce qu’on y fait" value={c.detail} maxLength={300} rows={3} onChange={(e) => maj(c.id, { detail: e.target.value })} className={`${champ} h-auto py-2 text-xs`} />
+            <li key={c.id} className="squircle-xl space-y-2.5 border border-line p-3">
+              <label className="block">
+                <span className={etiquette}>Cycle</span>
+                <input value={c.titre} maxLength={80} onChange={(e) => maj(c.id, { titre: e.target.value })} placeholder="DFGSO" className={`${champ} font-semibold`} />
+              </label>
+              <label className="block">
+                <span className={etiquette}>Années</span>
+                <input value={c.annees} maxLength={60} onChange={(e) => maj(c.id, { annees: e.target.value })} placeholder="2e et 3e années" className={champ} />
+              </label>
+              <label className="block">
+                <span className={etiquette}>Ce qu’on y fait</span>
+                <textarea value={c.detail} maxLength={300} rows={3} onChange={(e) => maj(c.id, { detail: e.target.value })} className={`${champ} h-auto py-2 text-xs`} />
+              </label>
               <button type="button" onClick={() => setCycles((x) => x.filter((y) => y.id !== c.id))} className="inline-flex cursor-pointer items-center gap-1 text-xs text-fg-2 hover:text-destructive">
                 <Trash2 className="size-3" aria-hidden /> Retirer
               </button>

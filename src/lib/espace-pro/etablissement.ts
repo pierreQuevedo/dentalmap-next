@@ -302,7 +302,7 @@ export function donneesFaculte(fac: { diplome: string | null; duree: string | nu
     formations: formationsFaculte(fac.diplome, fac.duree, fac.capacite?.nombre ?? null),
     cycles: CYCLES_DEFAUT,
     voiesAcces: decouperVoies(fac.voiesAcces).map((t, k) => ({ id: `voie-${k + 1}`, titre: t.slice(0, 120), detail: '', quand: '' })),
-    autresDiplomes: decouper(fac.autresDiplomes, 20).map((d) => d.slice(0, 140)),
+    autresDiplomes: decouperDiplomes(fac.autresDiplomes).map((d) => d.slice(0, 140)),
     centres: fac.centresDeSoins.slice(0, 8).map((c, k) => ({ id: `centre-${k + 1}`, nom: nomCentre(c).slice(0, 140), adresse: adresseCentre(c).slice(0, 200), telephone: /0\d(?:[ .]?\d{2}){4}/.exec(c)?.[0] ?? '', jours: [], horaires: '', delai: '', soins: [] })),
   }
 }
@@ -568,4 +568,18 @@ export function placesParVoie(detail: string | null, voie: string): number | nul
     if (n && libelle.slice(0, n).every((w, i) => mots[i] === w)) return Number(m[2])
   }
   return null
+}
+
+/**
+ * Les diplômes après le diplôme d'État, tels que le contenu les résume
+ * (« 3 DES (internat), 7 CES, 10 DU et DIU ») : une ligne par diplôme, coupée
+ * aux virgules hors parenthèses ou aux « ; », « (internat) » dit en clair.
+ */
+export function decouperDiplomes(texte: string | null, max = 20): string[] {
+  if (!texte) return []
+  return couperHorsParentheses(texte.replace(/;/g, ','), ',')
+    .map((d) => d.replace(/\s*\(internat\)/i, ', par l’internat').replace(/\.$/, '').trim())
+    .filter((d) => d.length >= 2)
+    .map((d) => d.charAt(0).toUpperCase() + d.slice(1))
+    .slice(0, max)
 }

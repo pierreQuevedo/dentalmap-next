@@ -77,3 +77,11 @@ describe('voies d’accès d’une faculté', () => {
     expect(placesParVoie(detail, 'Accueil sur conventions d’étudiants de Poitiers')).toBeNull()
   })
 })
+
+import { decouperDiplomes } from '../src/lib/espace-pro/etablissement'
+
+describe('diplômes après le diplôme d’État', () => {
+  it('une ligne par diplôme', () => {
+    expect(decouperDiplomes('3 DES (internat), 7 CES, 10 DU et DIU')).toEqual(['3 DES, par l’internat', '7 CES', '10 DU et DIU'])
+  })
+})

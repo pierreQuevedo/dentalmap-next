@@ -33,7 +33,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           <input type="hidden" name="fiche" value={source.slug} />
           <input type="hidden" name="bloc" value="cursus" />
           <input type="hidden" name="retour" value={versEtab(t, 'cursus')} />
-          <CursusClient cycles={d.cycles} autres={d.autresDiplomes} />
+          <CursusClient cycles={d.cycles} autres={d.autresDiplomes} acces={versEtab(t, 'acces')} />
           <div className="flex justify-end">
             <button type="submit" className="inline-flex h-10 cursor-pointer items-center rounded-full bg-action px-5 text-sm font-semibold text-action-foreground hover:bg-action-hover">
               Enregistrer
