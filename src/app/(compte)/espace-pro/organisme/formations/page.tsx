@@ -43,7 +43,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
     >
       <Etapes etape={3} total={3} libelle="Formations" />
       <h1 className={titre}>Vos formations</h1>
-      <p className="mt-2 text-sm text-fg-2">Au moins une formation active pour publier. Les étudiants filtrent par diplôme, durée et alternance.</p>
+      <p className="mt-2 text-sm text-fg-2">Au moins une formation active pour publier. Les étudiants filtrent par diplôme{source.type === 'faculte' ? ' et durée' : ', durée et alternance'}.</p>
 
       <div className={`${cadre} mt-6`}>
         <ResumeEtablissement titre={source.titre} type={source.type} adresse={source.adresse ?? source.ville} uai={source.uai} />

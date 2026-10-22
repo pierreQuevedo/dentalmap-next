@@ -71,7 +71,7 @@ export async function getSourceEtablissement(slug: string): Promise<SourceEtabli
     image: f.image,
     lien: lienFormation(f),
     domaines: domainesDe({ emails, siteWeb: f.siteWeb ?? ecole?.siteWeb ?? fac?.siteWeb ?? null }),
-    formationsInitiales: f.type === 'faculte' ? formationsFaculte(fac?.diplome ?? null, fac?.duree ?? null) : formationsDepuisDiplomes(f.diplomes),
+    formationsInitiales: f.type === 'faculte' ? formationsFaculte(fac?.diplome ?? null, fac?.duree ?? null, fac?.capacite.nombre ?? null) : formationsDepuisDiplomes(f.diplomes),
     donneesInitiales: fac ? donneesFaculte(fac, nomCourt, extraireAdresse) : { formations: f.type === 'faculte' ? formationsFaculte(null, null) : formationsDepuisDiplomes(f.diplomes) },
     faculte: fac,
     auto: { registres: true, resultats: f.type === 'faculte' ? (fac?.internats.length ?? 0) > 0 : false },

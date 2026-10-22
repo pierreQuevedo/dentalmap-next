@@ -264,7 +264,7 @@ export function formationsDepuisDiplomes(diplomes: DiplomeEcole[]): FormationDec
 }
 
 /** Le diplôme d'État pour une faculté : sa seule formation initiale. */
-export function formationsFaculte(diplome: string | null, duree: string | null): FormationDeclaree[] {
+export function formationsFaculte(diplome: string | null, duree: string | null, places: number | null = null): FormationDeclaree[] {
   return [
     {
       id: 'diplome-etat',
@@ -273,7 +273,7 @@ export function formationsFaculte(diplome: string | null, duree: string | null):
       duree: duree?.trim() || '6 ans',
       voies: ['initiale'],
       acces: 'Après une première année de santé (PASS ou L.AS)',
-      places: null,
+      places,
       active: true,
     },
   ]
@@ -297,9 +297,9 @@ export function decouper(texte: string | null, max = 10): string[] {
 }
 
 /** Ce qu'une faculté retrouve au premier passage : cursus, voies d'accès et centres lus dans son contenu publié. */
-export function donneesFaculte(fac: { diplome: string | null; duree: string | null; voiesAcces: string | null; autresDiplomes: string | null; centresDeSoins: string[] }, nomCentre: (s: string) => string, adresseCentre: (s: string) => string): Partial<Donnees> {
+export function donneesFaculte(fac: { diplome: string | null; duree: string | null; voiesAcces: string | null; autresDiplomes: string | null; centresDeSoins: string[]; capacite?: { nombre: number | null } }, nomCentre: (s: string) => string, adresseCentre: (s: string) => string): Partial<Donnees> {
   return {
-    formations: formationsFaculte(fac.diplome, fac.duree),
+    formations: formationsFaculte(fac.diplome, fac.duree, fac.capacite?.nombre ?? null),
     cycles: CYCLES_DEFAUT,
     voiesAcces: decouper(fac.voiesAcces).map((t, k) => ({ id: `voie-${k + 1}`, titre: t.slice(0, 120), detail: '', quand: '' })),
     autresDiplomes: decouper(fac.autresDiplomes, 20).map((d) => d.slice(0, 140)),
@@ -487,4 +487,18 @@ export function manqueFormation(f: Pick<FormationDeclaree, 'acces' | 'places' | 
   if (!m.length) return null
   const liste = m.length === 1 ? m[0] : `${m.slice(0, -1).join(', ')} et ${m[m.length - 1]}`
   return `${liste.charAt(0).toUpperCase()}${liste.slice(1)} à préciser`
+}
+
+/**
+ * La durée telle que la carte peut l'afficher : « 6 ans minimum, 8 à 9 ans
+ * avec l'internat » devient « 6 à 9 ans ». Une durée simple reste telle quelle.
+ */
+export function dureeCourte(duree: string | null): string | null {
+  if (!duree) return null
+  const sansParenthese = duree.split(/\s*\(/)[0]
+  const nombres = [...sansParenthese.matchAll(/(\d+)/g)].map((m) => Number(m[1]))
+  if (nombres.length < 2 || !/\ban/.test(sansParenthese)) return sansParenthese
+  const min = Math.min(...nombres)
+  const max = Math.max(...nombres)
+  return min === max ? `${min} ans` : `${min} à ${max} ans`
 }

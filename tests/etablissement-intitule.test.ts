@@ -27,3 +27,17 @@ describe('entités du contenu WordPress', () => {
     expect(decoderEntites('Académie d&amp;rsquo;Art')).toBe('Académie d’Art')
   })
 })
+
+import { dureeCourte, formationsFaculte } from '../src/lib/espace-pro/etablissement'
+
+describe('faculté', () => {
+  it('durée courte pour la carte', () => {
+    expect(dureeCourte('6 ans minimum, 8 à 9 ans avec l’internat')).toBe('6 à 9 ans')
+    expect(dureeCourte('2 ans')).toBe('2 ans')
+    expect(dureeCourte('3 ans (dont 1 en alternance)')).toBe('3 ans')
+  })
+  it('places préremplies avec la capacité d’accueil', () => {
+    expect(formationsFaculte(null, null, 82)[0].places).toBe(82)
+    expect(formationsFaculte(null, null)[0].places).toBeNull()
+  })
+})
