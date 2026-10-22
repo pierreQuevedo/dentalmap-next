@@ -4,6 +4,7 @@ import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
 import { SaisieRealisations } from '@/components/espace/saisie-realisations'
 import { enregistrerBloc } from '@/lib/espace-pro/actions-etablissement'
 import { televersementDirect } from '@/lib/espace-pro/justificatif'
+import { LIBELLE_TYPE } from '@/lib/espace-pro/etablissement'
 import { Retour, chargerEtablissement, versEtab } from '../_commun'
 
 export const metadata: Metadata = { title: 'Galerie', robots: { index: false, follow: false } }
@@ -39,6 +40,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           nom="photos"
           mot="photo"
           mention="La première est la grande photo de la page et de la carte de formation. Chaque photo reste deux ans, puis vous êtes invité à la confirmer."
+          apercu={{ titre: source.titre, type: LIBELLE_TYPE[source.type], credit: d.credit }}
           apres={
             // Crédit et droits n'ont de sens qu'avec au moins une photo.
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

@@ -3,7 +3,8 @@
 import { useRef, useState } from 'react'
 import Image from 'next/image'
 import { upload } from '@vercel/blob/client'
-import { ImagePlus, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Eye, GripVertical, ImagePlus, Maximize2, Trash2 } from 'lucide-react'
+import { Galerie } from '@/components/formation/galerie-etablissement'
 import { REALISATIONS_MAX } from '@/lib/espace-pro/labo'
 
 /**
@@ -39,6 +40,7 @@ export function SaisieRealisations({
   mot = 'réalisation',
   mention = 'La première est la grande photo de la fiche. Aucun patient reconnaissable.',
   apres,
+  apercu,
 }: {
   initiales: { url: string; legende: string }[]
   direct: boolean
@@ -50,11 +52,25 @@ export function SaisieRealisations({
   mention?: string
   /** Sous les photos, une fois la première ajoutée : crédit, droits, enregistrement. */
   apres?: React.ReactNode
+  /** L'aperçu de la page publique d'un établissement : le haut de page et la mosaïque, à jour à chaque geste. */
+  apercu?: { titre: string; type: string; credit: string | null }
 }) {
   const entree = useRef<HTMLInputElement>(null)
   const [photos, setPhotos] = useState<Photo[]>(initiales)
   const [envoi, setEnvoi] = useState(0)
   const [erreur, setErreur] = useState(false)
+  const [glisse, setGlisse] = useState<number | null>(null)
+
+  /** Déplacer une photo : l'ordre est celui de la page, la première est la grande. */
+  const deplacer = (de: number, vers: number) => {
+    if (vers < 0 || vers >= photos.length || de === vers) return
+    setPhotos((x) => {
+      const y = [...x]
+      const [p] = y.splice(de, 1)
+      y.splice(vers, 0, p)
+      return y
+    })
+  }
 
   const ajouter = async (fichiers: FileList | null) => {
     if (!fichiers) return
@@ -109,13 +125,42 @@ export function SaisieRealisations({
       )}
       <ol className={`grid grid-cols-2 gap-3 md:grid-cols-4 ${photos.length === 0 ? 'hidden' : ''}`}>
         {photos.map((p, i) => (
-          <li key={p.url} className="squircle-xl overflow-hidden border border-line bg-bg">
-            <div className="relative aspect-[4/3] bg-bg-soft">
+          <li
+            key={p.url}
+            draggable
+            onDragStart={() => setGlisse(i)}
+            onDragEnd={() => setGlisse(null)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault()
+              if (glisse !== null) deplacer(glisse, i)
+              else ajouter(e.dataTransfer.files)
+              setGlisse(null)
+            }}
+            className={`squircle-xl overflow-hidden border bg-bg ${glisse === i ? 'border-teal opacity-60' : 'border-line'}`}
+          >
+            <div className="relative aspect-[4/3] cursor-grab bg-bg-soft active:cursor-grabbing">
               <Image src={p.apercu ?? p.url} alt={p.legende || `${mot} ${i + 1}`} fill sizes="20vw" className="object-cover" unoptimized={!!p.apercu} />
               {i === 0 && <span className="squircle-full absolute left-2 top-2 bg-white px-2 py-0.5 text-[11px] font-semibold text-[#0e1317]">Grande photo</span>}
               <button type="button" onClick={() => setPhotos((x) => x.filter((_, k) => k !== i))} aria-label={`Retirer la ${mot} ${i + 1}`} className="absolute right-2 top-2 grid size-7 cursor-pointer place-items-center rounded-full bg-black/55 text-white hover:bg-black/70">
                 <Trash2 className="size-3.5" aria-hidden />
               </button>
+              <span className="pointer-events-none absolute bottom-2 left-2 grid size-7 place-items-center rounded-full bg-black/55 text-white" aria-hidden>
+                <GripVertical className="size-3.5" />
+              </span>
+              <span className="absolute bottom-2 right-2 flex gap-1">
+                {i > 0 && (
+                  <button type="button" onClick={() => deplacer(i, 0)} aria-label={`Faire de la ${mot} ${i + 1} la grande photo`} title="Grande photo" className="grid size-7 cursor-pointer place-items-center rounded-full bg-black/55 text-white hover:bg-black/70">
+                    <Maximize2 className="size-3.5" aria-hidden />
+                  </button>
+                )}
+                <button type="button" disabled={i === 0} onClick={() => deplacer(i, i - 1)} aria-label={`Avancer la ${mot} ${i + 1}`} className="grid size-7 cursor-pointer place-items-center rounded-full bg-black/55 text-white hover:bg-black/70 disabled:hidden">
+                  <ArrowLeft className="size-3.5" aria-hidden />
+                </button>
+                <button type="button" disabled={i === photos.length - 1} onClick={() => deplacer(i, i + 1)} aria-label={`Reculer la ${mot} ${i + 1}`} className="grid size-7 cursor-pointer place-items-center rounded-full bg-black/55 text-white hover:bg-black/70 disabled:hidden">
+                  <ArrowRight className="size-3.5" aria-hidden />
+                </button>
+              </span>
             </div>
             <input
               value={p.legende}
@@ -144,6 +189,32 @@ export function SaisieRealisations({
       <input ref={entree} type="file" accept="image/*" multiple className="sr-only" onChange={(e) => ajouter(e.target.files)} aria-label="Ajouter des photos" />
       {erreur && <p className="mt-2 text-sm text-destructive">Une photo n’a pas pu être préparée. Essayez un autre fichier.</p>}
       <p className="mt-3 text-xs text-fg-2">{mention}</p>
+      {apercu && photos.length > 0 && (
+        <section className="squircle-2xl mt-6 border border-line p-5">
+          <p className="flex items-center gap-2 text-sm font-semibold text-fg">
+            <Eye className="size-4 text-fg-2" aria-hidden /> Sur la page
+          </p>
+          <p className="mt-1 text-xs text-fg-2">Ce que les candidats verront, dans cet ordre. Glissez les photos, ou utilisez les flèches, pour le changer.</p>
+          {/* Le haut de la page : la grande photo à côté du nom. */}
+          <div className="squircle-2xl mt-4 grid items-center gap-5 bg-[#0e1317] p-5 text-white sm:grid-cols-[minmax(0,1fr)_16rem]">
+            <div className="min-w-0">
+              <span className="squircle-full inline-flex border border-white/15 px-2.5 py-0.5 text-[11px]">{apercu.type}</span>
+              <p className="mt-3 text-2xl font-semibold leading-tight tracking-tight">{apercu.titre}</p>
+              <p className="mt-2 text-xs text-white/60">Haut de la page</p>
+            </div>
+            <div className="squircle-2xl relative aspect-[4/3] overflow-hidden border border-white/10">
+              <Image src={photos[0].apercu ?? photos[0].url} alt={photos[0].legende} fill sizes="16rem" className="object-cover" unoptimized={!!photos[0].apercu} />
+              {apercu.credit && <span className="absolute bottom-2 right-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-white">{apercu.credit}</span>}
+            </div>
+          </div>
+          <p className="mb-2 mt-5 text-xs text-fg-2">Galerie de la page</p>
+          <Galerie
+            photos={photos.map((p) => ({ url: p.apercu ?? p.url, legende: p.legende, local: !!p.apercu }))}
+            credit={apercu.credit}
+            source={`Photos publiées par l’établissement, ${photos.length} au total.`}
+          />
+        </section>
+      )}
       {apres && photos.length > 0 && <div className="mt-4">{apres}</div>}
     </div>
   )
