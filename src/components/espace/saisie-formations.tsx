@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Check, GraduationCap, Pencil, Plus, Trash2 } from 'lucide-react'
-import { NIVEAUX, VOIES, resumeFormation, type FormationDeclaree, type Voie } from '@/lib/espace-pro/etablissement'
+import { NIVEAUX, VOIES, manqueFormation, resumeFormation, type FormationDeclaree, type Voie } from '@/lib/espace-pro/etablissement'
 
 /**
  * Les formations d'un établissement (O3a, puis « Formations » du tableau de
@@ -38,6 +38,7 @@ export function SaisieFormations({ initiales, enveloppe = false }: { initiales: 
                 <div className="min-w-0 flex-1">
                   <p className={`truncate text-sm font-medium ${f.active ? 'text-fg' : 'text-fg-2'}`}>{f.intitule || 'Nouvelle formation'}</p>
                   <p className="truncate text-xs text-fg-2">{resumeFormation(f) || 'Niveau, durée et voies à préciser'}</p>
+                  {f.active && f.intitule && manqueFormation(f) && <p className="mt-0.5 truncate text-xs text-amber-700 dark:text-amber-300">{manqueFormation(f)}</p>}
                 </div>
                 <button
                   type="button"

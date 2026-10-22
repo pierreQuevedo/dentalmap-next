@@ -274,12 +274,15 @@ export function CoqueEspace({
   actif,
   titre,
   sousTitre,
+  sansLienFlottant = false,
   children,
 }: {
   c: InfosCoque
   actif: CleNav
   titre: string
   sousTitre: string
+  /** Un formulaire à boutons en bas (Créer un poste) : pas de « Voir ma fiche » flottant par-dessus. */
+  sansLienFlottant?: boolean
   children: React.ReactNode
 }) {
   // L'état de la fiche, en une ligne : pastille, statut, fin d'adresse ; la carte entière mène à la page publique.
@@ -360,8 +363,8 @@ export function CoqueEspace({
             {carteMenu}
           </div>
         </MenuMobile>
-        {/* L'en-tête reste visible au défilement : où l'on est, et la fiche publique à un clic. */}
-        <header className="sticky top-0 z-30 -mx-4 flex flex-wrap items-center justify-between gap-4 border-b border-transparent bg-bg/85 px-4 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-bg/75 sm:-mx-8 sm:px-8">
+        {/* L'en-tête reste visible au défilement dès la tablette : où l'on est, et la fiche publique à un clic. Sur téléphone, la barre du menu suffit. */}
+        <header className="z-30 -mx-4 sm:sticky sm:top-0 flex flex-wrap items-center justify-between gap-4 border-b border-transparent bg-bg/85 px-4 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-bg/75 sm:-mx-8 sm:px-8">
           <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight text-fg">{titre}</h1>
             <p className="truncate text-sm text-fg-2">{sousTitre}</p>
@@ -373,7 +376,7 @@ export function CoqueEspace({
           )}
         </header>
         {/* Sur mobile, le lien vers la fiche publique flotte en bas, centré, sous le pouce. */}
-        {c.pagePublique && (
+        {c.pagePublique && !sansLienFlottant && (
           <Link
             href={chemin(c.pagePublique)}
             className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-40 inline-flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-fg px-5 text-sm font-semibold text-bg shadow-pop sm:hidden"

@@ -72,6 +72,7 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
 
   return (
     <CoqueEspace
+      sansLienFlottant
       c={coque}
       actif="emploi"
       titre={enLigne ? 'Modifier l’offre' : 'Créer un poste'}

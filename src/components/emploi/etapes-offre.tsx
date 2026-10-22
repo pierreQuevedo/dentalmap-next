@@ -60,11 +60,12 @@ export function FormulaireEtape(p: Props) {
       </div>
 
       {etat?.erreur && <p className="squircle-xl mt-5 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">{etat.erreur}</p>}
-      <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-line pt-5">
+      {/* Sur téléphone, l'action principale d'abord et en pleine largeur, puis « Enregistrer et quitter », puis « Retour ». */}
+      <div className="mt-6 flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:flex-wrap sm:items-center [&>*]:justify-center sm:[&>*]:justify-start">
         <Link href={chemin(p.retour)} className="inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-fg-2 hover:text-fg">
           <ArrowLeft className="size-4" aria-hidden /> Retour
         </Link>
-        <span className="flex-1" />
+        <span className="hidden flex-1 sm:block" />
         {!p.enLigne && (p.etape !== 'cabinet' || p.offre) && (
           <button type="submit" name="intention" value="brouillon" disabled={enCours} className="inline-flex h-11 cursor-pointer items-center rounded-full border border-line px-4 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-60">
             Enregistrer et quitter

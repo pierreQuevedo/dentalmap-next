@@ -480,3 +480,11 @@ export function libelleSection(s: Section): string | undefined {
   if (s.cle === 'formations' && s.statut === 'incomplete') return s.manque
   return undefined
 }
+
+/** Ce qu'il reste à préciser pour une formation : « Conditions d'accès et places à préciser ». Nul quand elle est complète. */
+export function manqueFormation(f: Pick<FormationDeclaree, 'acces' | 'places' | 'voies'>): string | null {
+  const m = [!f.acces && 'conditions d’accès', !f.places && 'places', !f.voies.length && 'voies'].filter((x): x is string => Boolean(x))
+  if (!m.length) return null
+  const liste = m.length === 1 ? m[0] : `${m.slice(0, -1).join(', ')} et ${m[m.length - 1]}`
+  return `${liste.charAt(0).toUpperCase()}${liste.slice(1)} à préciser`
+}

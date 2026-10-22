@@ -28,7 +28,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <div className="mb-4 space-y-2">
         <Retour erreur={sp.erreur} enregistre={sp.enregistre} bloc="formations" />
       </div>
-      <Tuile className="max-w-3xl">
+      <Tuile>
         <form action={enregistrerBloc}>
           <input type="hidden" name="fiche" value={source.slug} />
           <input type="hidden" name="bloc" value="formations" />
