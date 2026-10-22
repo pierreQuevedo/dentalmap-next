@@ -23,6 +23,7 @@ import { contratTexte, dateCourte, euros, km, monogramme, remuneration, tempsTex
 import { CODES_CONTRAT, LIBELLE_CONTRAT, METIERS, type CodeMetier, type Metier } from '@/lib/emploi/metiers'
 import { OBJET_SALAIRES, SALAIRES, SANS_GRILLE, SECTEURS, montantTexte, sourcesDe, type CaseSalaire, type LigneSalaires, type Source } from '@/lib/emploi/salaires'
 import type { OffreResume } from '@/lib/emploi/types'
+import { illustration } from '@/lib/annuaire/illustration'
 
 export function Etiquette({ children, ton = 'neutre' }: { children: React.ReactNode; ton?: 'neutre' | 'teal' | 'sombre' }) {
   const c = {
@@ -72,10 +73,12 @@ function IconeType({ o, className }: { o: Pick<OffreResume, 'type'>; className: 
  * d'illustration : elle laisserait croire qu'elle montre ce cabinet.
  */
 export function Visuel({ o, className = '', petit }: { o: Pick<OffreResume, 'photo' | 'recruteur' | 'type'>; className?: string; petit?: boolean }) {
-  if (o.photo) {
+  // Un laboratoire sans photo : son visuel de remplacement (l'établi), comme dans l'annuaire, plutôt que ses initiales.
+  const photo = o.photo ?? (o.type === 'laboratoire' ? illustration('prothesiste', null) : null)
+  if (photo) {
     return (
       <div className={`relative overflow-hidden ${className}`}>
-        <Image src={o.photo} alt="" fill sizes={petit ? '96px' : '(min-width: 1024px) 24rem, 90vw'} className="object-cover" />
+        <Image src={photo} alt="" fill sizes={petit ? '96px' : '(min-width: 1024px) 24rem, 90vw'} className="object-cover" />
       </div>
     )
   }
@@ -103,6 +106,7 @@ export function CarteOffre({
   actif,
   className = '',
   sansLien,
+  postulee,
 }: {
   o: OffreResume
   forme?: 'carte' | 'ligne' | 'compacte'
@@ -110,6 +114,8 @@ export function CarteOffre({
   className?: string
   /** Aperçu (page Recruter) : la carte ne mène nulle part. */
   sansLien?: boolean
+  /** Le candidat connecté a déjà postulé : contour foncé et « Déjà postulé ». */
+  postulee?: boolean
 }) {
   const titre = sansLien ? (
     <span>{o.titre}</span>
@@ -129,12 +135,13 @@ export function CarteOffre({
     return (
       <li
         className={`${className} squircle-2xl hover-lift group relative flex gap-4 border bg-bg p-3 [--lift:3px] hover:shadow-pop sm:p-4 ${
-          actif ? 'border-line-strong shadow-pop' : 'border-line'
+          postulee ? 'border-fg ring-1 ring-fg' : actif ? 'border-line-strong shadow-pop' : 'border-line'
         }`}
       >
         {!compacte && <Visuel o={o} petit className="squircle-xl hidden size-24 shrink-0 sm:grid sm:place-items-center" />}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
+            {postulee && <span className="squircle-full inline-flex items-center px-2.5 py-0.5 text-xs font-semibold text-bg ring-1 ring-inset ring-fg bg-fg">Déjà postulé</span>}
             <Etiquette ton="teal">{contratTexte(o)}</Etiquette>
             {!compacte && <Etiquette>{tempsTexte(o)}</Etiquette>}
             <Publiee o={o} />

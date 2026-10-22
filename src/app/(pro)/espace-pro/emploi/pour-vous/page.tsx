@@ -9,6 +9,7 @@ import { chemin } from '@/lib/navigation'
 import { getProfilCandidat } from '@/lib/emploi/candidat-donnees'
 import { LIBELLE_CONTRAT } from '@/lib/emploi/metiers'
 import { getOffresPourVous } from '@/lib/emploi/pour-vous'
+import { getOffresPostulees } from '@/lib/emploi/candidatures-donnees'
 import { situationDe } from '@/lib/emploi/profil-candidat'
 import { chargerEmploi } from '../../_commun'
 
@@ -28,7 +29,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { compte, coque, q, espace } = await chargerEmploi('pour-vous', sp.fiche)
   const profil = await getProfilCandidat(compte.id)
   if (!profil) redirect(chemin(`/espace-pro/emploi/bienvenue/situation/${q}`))
-  const resultat = await getOffresPourVous(profil, compte.id)
+  const [resultat, postulees] = await Promise.all([getOffresPourVous(profil, compte.id), getOffresPostulees(compte.id)])
   const n = Math.max(PAR_PAGE, Math.min(100, Number(sp.n) || PAR_PAGE))
   const offres = resultat?.offres ?? []
   const etudiant = profil.situation === 'etudiant'
@@ -104,7 +105,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           ) : (
             <ul className="mt-3 grid gap-3 lg:grid-cols-2">
               {offres.slice(0, n).map((o) => (
-                <CarteOffre key={o.id} o={o} forme="ligne" />
+                <CarteOffre key={o.id} o={o} forme="ligne" postulee={postulees.has(o.id)} />
               ))}
             </ul>
           )}

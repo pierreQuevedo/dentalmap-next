@@ -146,7 +146,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             <ul className="mt-4 space-y-2">
               {/* Une offre et une candidature : la vue d'ensemble tient dans l'écran, « Tout voir » mène au reste. */}
               {pourVous.offres.slice(0, 1).map((o) => (
-                <CarteOffre key={o.id} o={o} forme="compacte" />
+                <CarteOffre key={o.id} o={o} forme="compacte" postulee={candidatures.some((k) => k.offre.id === o.id)} />
               ))}
             </ul>
           ) : (

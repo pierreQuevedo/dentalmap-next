@@ -166,3 +166,9 @@ export async function getMaCandidature(userId: string, offreId: string): Promise
   `)
   return rows[0] ? { id: rows[0].id, creeLe: new Date(rows[0].cree_le) } : null
 }
+
+/** Les offres auxquelles un compte a déjà postulé : « Déjà postulé » sur leur carte. */
+export async function getOffresPostulees(userId: string): Promise<Set<string>> {
+  const { rows } = await db.execute<{ offre_id: string }>(sql`SELECT offre_id FROM candidatures WHERE candidat_user_id = ${userId}::uuid`)
+  return new Set(rows.map((r) => r.offre_id))
+}

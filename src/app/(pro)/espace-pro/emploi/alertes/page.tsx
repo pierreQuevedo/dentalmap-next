@@ -97,9 +97,12 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                         {a.dernierEnvoiLe ? ` · dernier envoi le ${a.dernierEnvoiLe.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}` : ''}
                       </p>
                     </div>
-                    <Geste id={a.id} geste={a.active ? 'pause' : 'reprendre'}>
-                      {a.active ? <Pause className="size-4" aria-hidden /> : <Play className="size-4" aria-hidden />} {a.active ? 'Mettre en pause' : 'Reprendre'}
-                    </Geste>
+                    {/* En haut à droite dès la tablette ; sur téléphone, en bas avec Modifier et Supprimer. */}
+                    <span className="hidden sm:block">
+                      <Geste id={a.id} geste={a.active ? 'pause' : 'reprendre'}>
+                        {a.active ? <Pause className="size-4" aria-hidden /> : <Play className="size-4" aria-hidden />} {a.active ? 'Mettre en pause' : 'Reprendre'}
+                      </Geste>
+                    </span>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {pucesAlerte(a.criteres, a.lieu).map((c) => (
@@ -115,7 +118,12 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                     <span className="inline-flex items-center gap-1.5">
                       <Mail className="size-4" aria-hidden /> Email
                     </span>
-                    <span className="ml-auto flex items-center gap-4">
+                    <span className="flex w-full items-center gap-4 whitespace-nowrap sm:ml-auto sm:w-auto">
+                      <span className="mr-auto sm:hidden">
+                        <Geste id={a.id} geste={a.active ? 'pause' : 'reprendre'}>
+                          {a.active ? <Pause className="size-3.5" aria-hidden /> : <Play className="size-3.5" aria-hidden />} {a.active ? 'Mettre en pause' : 'Reprendre'}
+                        </Geste>
+                      </span>
                       <Link href={chemin(avec(`alerte=${a.id}`))} className="inline-flex items-center gap-1 font-medium text-fg hover:underline">
                         <Pencil className="size-3.5" aria-hidden /> Modifier
                       </Link>
