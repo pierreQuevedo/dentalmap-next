@@ -1,4 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
+import { sql } from 'drizzle-orm'
+import { db } from '@/db'
 import { Check, CircleX } from 'lucide-react'
 import type { CleNav, InfosCoque } from '@/components/espace/coque'
 import { chemin } from '@/lib/navigation'
@@ -73,6 +75,7 @@ export async function chargerEtablissement(page: CleNav, slug?: string): Promise
 
   const verifie = gestion.statut === 'acceptee'
   const force = calculerForceEtablissement(fiche.donnees, source.type, verifie)
+  const { rows: sansReponse } = await db.execute<{ n: number }>(sql`SELECT count(*)::int AS n FROM avis_etablissement WHERE slug = ${source.slug} AND statut = 'publie' AND reponse IS NULL`)
   const missions = missionsEtablissement(force, source.type)
   const sections = sectionsPage(fiche.donnees, source.type, source.auto)
   const mots = source.titre.replace(/[’']/g, ' ').split(/\s+/).filter((m) => m.length > 1 && !MOTS_VIDES.test(m))
@@ -91,6 +94,7 @@ export async function chargerEtablissement(page: CleNav, slug?: string): Promise
     labo: false,
     delaisAReconfirmer: false,
     etablissement: source.type,
+    avisSansReponse: sansReponse[0]?.n ?? 0,
     progressionEtab: { total: force.total, detail: detailForce(force), verifiee: verifie, sources: sourcesEtab(force, missions) },
   }
   return { compte, source, gestion, fiche, force, missions, sections, coque, q: plusieurs ? `?fiche=${encodeURIComponent(source.slug)}` : '', ici }

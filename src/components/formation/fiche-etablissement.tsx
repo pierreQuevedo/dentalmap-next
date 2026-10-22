@@ -1,3 +1,6 @@
+import { AvisEtablissement } from './avis-etablissement'
+import type { AvisPublic } from '@/lib/formation/avis-donnees'
+import type { ResumeAvis } from '@/lib/formation/avis'
 import { Briefcase, CalendarDays, CircleCheck, Globe, GraduationCap, Phone } from 'lucide-react'
 import Link from 'next/link'
 import { Carte } from '@/components/map/carte'
@@ -60,11 +63,13 @@ export type FicheEcoleProps = {
   departement: { slug: string; nom: string } | null
   /** L'heure de référence (`maintenantPage`) : les dates passées ne s'affichent plus. */
   maintenant: string
+  /** Les avis publiés et leur résumé. */
+  avis: { avis: AvisPublic[]; resume: ResumeAvis }
 }
 
 const TYPE = 'ecoles-de-prothese'
 
-export function FicheEcole({ f, ecole, declaration, position, autres, departement, maintenant: iso }: FicheEcoleProps) {
+export function FicheEcole({ f, ecole, declaration, position, autres, departement, maintenant: iso, avis }: FicheEcoleProps) {
   const maintenant = new Date(iso)
   const famille = FAMILLES[TYPE]
   const cheminFiche = lienFormation(f)
@@ -229,6 +234,8 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
           mention={`Les dates passées disparaissent d’elles-mêmes. ${sourceReleve}`}
         />
       )}
+
+      <AvisEtablissement lienPage={lienFormation(f)} nom={f.titre} avis={avis.avis} resume={avis.resume} />
 
       <Contacts
         adresses={adresse ? [adresse] : f.ville ? [f.ville] : []}

@@ -1,3 +1,6 @@
+import { AvisEtablissement } from './avis-etablissement'
+import type { AvisPublic } from '@/lib/formation/avis-donnees'
+import type { ResumeAvis } from '@/lib/formation/avis'
 import { CalendarDays, Clock, Globe, GraduationCap, HeartPulse, Phone, Stethoscope } from 'lucide-react'
 import { FAMILLES, lienFormation } from '@/lib/formation/types'
 import { nomCourt, postesInternat, sitesDe, type Faculte } from '@/lib/formation/faculte'
@@ -58,13 +61,15 @@ export type FicheFaculteProps = {
   autres: FormationResume[]
   /** L'heure de référence (`maintenantPage`) : les dates passées ne s'affichent plus. */
   maintenant: string
+  /** Les avis publiés et leur résumé. */
+  avis: { avis: AvisPublic[]; resume: ResumeAvis }
 }
 
 const TYPE = 'facultes-odontologie'
 
 type Centre = { id: string; nom: string; adresse: string | null; horaires: string | null; telephone: string | null }
 
-export function FicheFaculte({ f, fac, declaration, position, points, autres, maintenant: iso }: FicheFaculteProps) {
+export function FicheFaculte({ f, fac, declaration, position, points, autres, maintenant: iso, avis }: FicheFaculteProps) {
   const maintenant = new Date(iso)
   const famille = FAMILLES[TYPE]
   const cheminFiche = lienFormation(f)
@@ -233,6 +238,8 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres, ma
           mention={`Les dates passées disparaissent d’elles-mêmes. ${sourceReleve}`}
         />
       )}
+
+      <AvisEtablissement lienPage={lienFormation(f)} nom={f.titre} avis={avis.avis} resume={avis.resume} />
 
       <Contacts
         adresses={sites.length ? sites.map((s) => (sites.length > 1 ? `${s.nom}, ${s.adresse}` : s.adresse)) : f.ville ? [f.ville] : []}

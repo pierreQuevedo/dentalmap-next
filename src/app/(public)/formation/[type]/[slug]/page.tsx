@@ -15,6 +15,7 @@ import { getCodesDepartementsDeRegion, getDepartementParCode } from '@/lib/annua
 import { lireEcole, lireFaculte, nomCourt, sitesDe } from '@/lib/formation/faculte'
 import { getPositionsFormation } from '@/lib/formation/geocodage'
 import { maintenantPage } from '@/lib/formation/page-etablissement'
+import { getAvisPublics } from '@/lib/formation/avis-donnees'
 import { estFormationType, FAMILLES, lienFormation, typeDe } from '@/lib/formation/types'
 import { getFormation, getFormations } from '@/lib/wp/queries'
 
@@ -126,6 +127,7 @@ export default async function Page(props: { params: Params }) {
           autres={autres}
           departement={departement ? { slug: departement.slug, nom: departement.nom } : null}
           maintenant={await maintenantPage()}
+          avis={await getAvisPublics(f.slug)}
         />
       </>
     )
@@ -134,7 +136,7 @@ export default async function Page(props: { params: Params }) {
     return (
       <>
         <HeaderTransparent />
-        <FicheFaculte f={f} fac={fac} declaration={declaration ?? null} position={ici} points={points} autres={autres} maintenant={await maintenantPage()} />
+        <FicheFaculte f={f} fac={fac} declaration={declaration ?? null} position={ici} points={points} autres={autres} maintenant={await maintenantPage()} avis={await getAvisPublics(f.slug)} />
       </>
     )
   }

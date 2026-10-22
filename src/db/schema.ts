@@ -628,6 +628,51 @@ export const demandesAjoutEtablissement = pgTable('demandes_ajout_etablissement'
   traiteLe: timestamp('traite_le', { withTimezone: true }),
 }, (t) => [index('demandes_ajout_etab_statut').on(t.statut)])
 
+/**
+ * Les avis sur un établissement de formation (école de prothèse, faculté) :
+ * une personne connectée, un avis par établissement, son lien déclaré. Publié
+ * dès le dépôt ; un avis signalé reste en ligne jusqu'à la décision de
+ * l'équipe, seul un avis retiré disparaît. L'établissement répond une fois,
+ * réponse modifiable.
+ */
+export const avisEtablissement = pgTable('avis_etablissement', {
+  id: text('id').primaryKey(),
+  /** Slug WordPress de l'établissement. */
+  slug: text('slug').notNull(),
+  userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  lien: text('lien', { enum: ['etudiant', 'ancien', 'parent', 'patient'] }).notNull(),
+  /** Promotion ou année, déclarée, facultative. */
+  annee: text('annee'),
+  note: integer('note').notNull(),
+  texte: text('texte').notNull(),
+  statut: text('statut', { enum: ['publie', 'retire'] }).notNull().default('publie'),
+  motifRetrait: text('motif_retrait'),
+  reponse: text('reponse'),
+  reponduLe: timestamp('repondu_le', { withTimezone: true }),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  modifieLe: timestamp('modifie_le', { withTimezone: true }),
+}, (t) => [
+  uniqueIndex('avis_etab_slug_compte').on(t.slug, t.userId),
+  index('avis_etab_slug_statut').on(t.slug, t.statut),
+])
+
+/** Un signalement d'avis, par l'établissement ou un lecteur connecté ; l'équipe tranche. */
+export const signalementsAvis = pgTable('signalements_avis', {
+  id: text('id').primaryKey(),
+  avisId: text('avis_id').notNull().references(() => avisEtablissement.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').references(() => user.id, { onDelete: 'set null' }),
+  /** Signalé par le gestionnaire de l'établissement. */
+  parEtablissement: boolean('par_etablissement').notNull().default(false),
+  motif: text('motif', { enum: ['injurieux', 'faux', 'personnel', 'hors_sujet', 'autre'] }).notNull(),
+  detail: text('detail'),
+  statut: text('statut', { enum: ['ouvert', 'maintenu', 'retire'] }).notNull().default('ouvert'),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  traiteLe: timestamp('traite_le', { withTimezone: true }),
+}, (t) => [
+  uniqueIndex('signalements_avis_compte').on(t.avisId, t.userId),
+  index('signalements_avis_statut').on(t.statut),
+])
+
 /** La liste d'attente de la formation continue (W1) : aucune donnée publiée. */
 export const listeAttenteFormation = pgTable('liste_attente_formation', {
   id: text('id').primaryKey(),

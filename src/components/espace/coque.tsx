@@ -28,6 +28,7 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
+  Star,
   type LucideIcon,
 } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
@@ -104,6 +105,8 @@ export type InfosCoque = {
   progression?: { points: Points; lon: number | null; lat: number | null; carte: CarteAMontrer }
   /** Taux de page complète et palier d'un établissement : la carte du menu, l'encart de gain, le passage de palier. */
   progressionEtab?: InfosProgressionEtab
+  /** Avis publiés sans réponse de l'établissement : la pastille de « Partage et avis ». */
+  avisSansReponse?: number
 }
 
 function navigation(c: InfosCoque): { groupe: string | null; items: Entree[] }[] {
@@ -142,7 +145,10 @@ function navigation(c: InfosCoque): { groupe: string | null; items: Entree[] }[]
       },
       {
         groupe: 'Visibilité',
-        items: [{ cle: 'stats', libelle: 'Statistiques', i: BarChart3, bientot: true }],
+        items: [
+          { cle: 'partager', libelle: 'Partage et avis', i: Star, href: e('partager'), badge: c.avisSansReponse },
+          { cle: 'stats', libelle: 'Statistiques', i: BarChart3, bientot: true },
+        ],
       },
       {
         groupe: 'Confiance',

@@ -7,6 +7,9 @@ import { getModerationEtablissements } from '@/lib/espace-pro/etablissement-donn
 import { accepterFormation, publierFormation, refuserFormation, verifierMention } from '@/lib/formation/actions-privee'
 import { getPropositionsAModerer } from '@/lib/formation/privee-donnees'
 import { nomRegion, SOURCES_VERIFICATION } from '@/lib/formation/privee'
+import { deciderSignalementAvis } from '@/lib/formation/actions-avis'
+import { MOTIFS_SIGNALEMENT, libelleLien } from '@/lib/formation/avis'
+import { getAvisSignales } from '@/lib/formation/avis-donnees'
 
 export const metadata: Metadata = { title: 'Modération', robots: { index: false, follow: false } }
 export const instant = false
@@ -18,7 +21,7 @@ export const instant = false
  */
 export default async function Page() {
   await exigerModerateur('/espace-pro/moderation/')
-  const [revendications, creations, etab, formations] = await Promise.all([getRevendicationsEnAttente(), getDemandesCreationEnAttente(), getModerationEtablissements(), getPropositionsAModerer()])
+  const [revendications, creations, etab, formations, avisSignales] = await Promise.all([getRevendicationsEnAttente(), getDemandesCreationEnAttente(), getModerationEtablissements(), getPropositionsAModerer(), getAvisSignales()])
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-12">
@@ -200,6 +203,40 @@ export default async function Page() {
                 <input type="hidden" name="id" value={f.id} />
                 <input name="motif" placeholder="Motif du refus" className="rounded-md border border-line px-3 py-2 text-sm" />
                 <button type="submit" className="rounded-full border border-line px-4 py-2 text-sm font-medium text-fg">Refuser</button>
+              </form>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <h2 id="avis" className="mt-10 scroll-mt-6 text-lg font-semibold text-fg">Avis signalés ({avisSignales.length})</h2>
+      <p className="mt-1 text-sm text-fg-2">Un avis n’est jamais retiré pour sa note ou parce qu’il est négatif : seulement s’il est injurieux, faux, vise une personne ou est hors sujet.</p>
+      <ol className="mt-3 space-y-4">
+        {avisSignales.map((a) => (
+          <li key={a.id} className="rounded-xl border border-line p-4">
+            <p className="text-sm text-fg-2">
+              {a.slug} · {a.note}/5 · {a.auteur}, {libelleLien(a.lien)} · {new Date(a.creeLe).toLocaleDateString('fr-FR')}
+            </p>
+            <p className="mt-2 whitespace-pre-line text-sm text-fg">{a.texte}</p>
+            <ul className="mt-2 space-y-1 text-sm text-fg-2">
+              {a.signalements.map((s, i) => (
+                <li key={i}>
+                  {s.parEtablissement ? 'Établissement' : 'Lecteur'} : {MOTIFS_SIGNALEMENT.find((m) => m.cle === s.motif)?.libelle ?? s.motif}
+                  {s.detail ? ` · « ${s.detail} »` : ''}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <form action={deciderSignalementAvis}>
+                <input type="hidden" name="avis" value={a.id} />
+                <input type="hidden" name="decision" value="maintenir" />
+                <button type="submit" className="rounded-full bg-action px-4 py-2 text-sm font-medium text-action-foreground">Maintenir l’avis</button>
+              </form>
+              <form action={deciderSignalementAvis} className="flex flex-wrap gap-2">
+                <input type="hidden" name="avis" value={a.id} />
+                <input type="hidden" name="decision" value="retirer" />
+                <input name="motif" required placeholder="Motif du retrait" className="rounded-md border border-line px-3 py-2 text-sm" />
+                <button type="submit" className="rounded-full border border-line px-4 py-2 text-sm font-medium text-fg">Retirer</button>
               </form>
             </div>
           </li>

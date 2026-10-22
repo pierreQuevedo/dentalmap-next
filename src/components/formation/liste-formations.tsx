@@ -9,6 +9,8 @@ import { chemin, FORMATION_TYPES, type FormationType } from '@/lib/navigation'
 import { FAMILLES, typeDe } from '@/lib/formation/types'
 import { repondAuLieu, resoudreLieu } from '@/lib/formation/filtre-lieu'
 import { getFormations } from '@/lib/wp/queries'
+import { classerEtablissements } from '@/lib/formation/avis'
+import { getChiffresClassement } from '@/lib/formation/avis-donnees'
 import { Balisage, filAriane } from '@/lib/seo/jsonld'
 import { CarteFormation } from './carte-formation'
 
@@ -47,8 +49,11 @@ export async function metadonneesFormations(type: FormationType | null, params: 
  * « écoles à Lyon » sans résultat ressemblerait à un site vide.
  */
 export async function ListeFormations({ type, params }: { type: FormationType | null; params: ParamsLieu }) {
-  const [toutes, lieu] = await Promise.all([getFormations(), resoudreLieu(params)])
-  const parFamille = type ? toutes.filter((f) => typeDe(f) === type) : toutes
+  const [toutes, lieu, chiffres] = await Promise.all([getFormations(), resoudreLieu(params), getChiffresClassement()])
+  // Écoles et facultés : dans l'ordre du classement ; les autres familles gardent celui du CMS.
+  const classee = type === 'ecoles-de-prothese' || type === 'facultes-odontologie'
+  const famille_ = type ? toutes.filter((f) => typeDe(f) === type) : toutes
+  const parFamille = classee ? classerEtablissements(famille_, chiffres) : famille_
   const formations = lieu ? parFamille.filter((f) => repondAuLieu(f, lieu)) : parFamille
   const famille = type ? FAMILLES[type] : null
   const requete = requeteLieu(params)
@@ -124,7 +129,7 @@ export async function ListeFormations({ type, params }: { type: FormationType | 
       {formations.length > 0 ? (
         <ol className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {formations.map((f) => (
-            <CarteFormation key={f.slug} formation={f} />
+            <CarteFormation key={f.slug} formation={f} avis={chiffres.get(f.slug)} />
           ))}
         </ol>
       ) : (
@@ -133,7 +138,7 @@ export async function ListeFormations({ type, params }: { type: FormationType | 
             <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-2">Partout en France</h2>
             <ol className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {parFamille.slice(0, 6).map((f) => (
-                <CarteFormation key={f.slug} formation={f} />
+                <CarteFormation key={f.slug} formation={f} avis={chiffres.get(f.slug)} />
               ))}
             </ol>
           </section>

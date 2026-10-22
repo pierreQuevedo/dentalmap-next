@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Award, MapPin } from 'lucide-react'
+import { noteFr } from '@/lib/formation/avis'
+import { Award, MapPin, Star } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 import { FAMILLES, lienFormation, typeDe } from '@/lib/formation/types'
 import type { FormationResume } from '@/lib/wp/queries'
@@ -12,7 +13,8 @@ import type { FormationResume } from '@/lib/wp/queries'
  * durée à droite, et la ville en pied. Une école liste ses diplômes dans son
  * contenu balisé ; à défaut, le diplôme et la durée des champs ACF.
  */
-export function CarteFormation({ formation: f }: { formation: FormationResume }) {
+/** `avis` : le nombre d'avis et la note, affichés sous le titre dès le premier avis. */
+export function CarteFormation({ formation: f, avis }: { formation: FormationResume; avis?: { nombre: number; moyenne: number | null } }) {
   const famille = FAMILLES[typeDe(f)]
   // Sans diplôme renseigné, pas de ligne qui répéterait le titre : la durée
   // rejoint alors la ville, en pied.
@@ -49,6 +51,12 @@ export function CarteFormation({ formation: f }: { formation: FormationResume })
             {f.titre}
           </Link>
         </h2>
+        {avis && avis.nombre > 0 && avis.moyenne !== null && (
+          <p className="mt-1.5 flex items-center gap-1.5 text-sm text-fg-2">
+            <Star className="size-4 text-amber-400" fill="currentColor" strokeWidth={0} aria-hidden />
+            <span className="font-semibold text-fg">{noteFr(avis.moyenne)}</span> · {avis.nombre} avis
+          </p>
+        )}
         {f.extrait && <p className="mt-1.5 line-clamp-2 text-sm text-fg-2">{f.extrait}</p>}
       </div>
 

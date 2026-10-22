@@ -13,6 +13,8 @@ import { FicheEcole } from '@/components/formation/fiche-etablissement'
 import { FicheFaculte } from '@/components/formation/fiche-faculte'
 import { ECOLE, FACULTE, FORMATION_ECOLE, FORMATION_FACULTE } from './_donnees'
 
+const SANS_AVIS = { avis: [], resume: { nombre: 0, moyenne: null, repartition: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } } }
+
 /** Bloquante : la fiche montrée dépend de l'URL. */
 export const instant = false
 
@@ -33,6 +35,7 @@ export default async function Page(props: { searchParams: Promise<Record<string,
           points={position ? [{ cle: 'etablissement', nom: FORMATION_FACULTE.titre, ...position, role: 'etablissement' }] : []}
           autres={[]}
           maintenant={await maintenantPage()}
+          avis={SANS_AVIS}
         />
       </>
     )
@@ -40,7 +43,7 @@ export default async function Page(props: { searchParams: Promise<Record<string,
   return (
     <>
       <HeaderTransparent />
-      <FicheEcole f={FORMATION_ECOLE} ecole={ECOLE} declaration={null} position={FORMATION_ECOLE.details.position} autres={[]} departement={{ slug: 'gironde', nom: 'Gironde' }} maintenant={await maintenantPage()} />
+      <FicheEcole f={FORMATION_ECOLE} ecole={ECOLE} declaration={null} position={FORMATION_ECOLE.details.position} autres={[]} departement={{ slug: 'gironde', nom: 'Gironde' }} maintenant={await maintenantPage()} avis={SANS_AVIS} />
     </>
   )
 }
