@@ -14,6 +14,7 @@ import { enRegion as libelleRegion } from '@/lib/annuaire/libelles'
 import { getCodesDepartementsDeRegion, getDepartementParCode } from '@/lib/annuaire/queries'
 import { lireEcole, lireFaculte, nomCourt, sitesDe } from '@/lib/formation/faculte'
 import { getPositionsFormation } from '@/lib/formation/geocodage'
+import { maintenantPage } from '@/lib/formation/page-etablissement'
 import { estFormationType, FAMILLES, lienFormation, typeDe } from '@/lib/formation/types'
 import { getFormation, getFormations } from '@/lib/wp/queries'
 
@@ -124,6 +125,7 @@ export default async function Page(props: { params: Params }) {
           position={ici}
           autres={autres}
           departement={departement ? { slug: departement.slug, nom: departement.nom } : null}
+          maintenant={await maintenantPage()}
         />
       </>
     )
@@ -132,7 +134,7 @@ export default async function Page(props: { params: Params }) {
     return (
       <>
         <HeaderTransparent />
-        <FicheFaculte f={f} fac={fac} declaration={declaration ?? null} position={ici} points={points} autres={autres} />
+        <FicheFaculte f={f} fac={fac} declaration={declaration ?? null} position={ici} points={points} autres={autres} maintenant={await maintenantPage()} />
       </>
     )
   }

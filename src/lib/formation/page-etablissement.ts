@@ -1,3 +1,4 @@
+import { cacheLife } from 'next/cache'
 import type { CapaciteFaculte, DiplomeEcole } from './faculte'
 import { VOIES, actives, portesOuvertesAJour, type Donnees } from '@/lib/espace-pro/etablissement'
 
@@ -187,9 +188,10 @@ export function dureeInternat(specialite: string): string | null {
 }
 
 /** La date des prochaines portes ouvertes, si elle est à venir. */
-export function prochainesPortesOuvertes(d: Donnees | null, maintenant = new Date()): string | null {
+export function prochainesPortesOuvertes(d: Donnees | null, maintenant?: Date): string | null {
   if (!d?.portesOuvertes || d.aucunePorteOuverte) return null
-  return portesOuvertesAJour(d, maintenant) ? d.portesOuvertes : null
+  // L'heure n'est lue que s'il y a une date à comparer : sans portes ouvertes, la page se prérend.
+  return portesOuvertesAJour(d, maintenant ?? new Date()) ? d.portesOuvertes : null
 }
 
 /** « 12 septembre 2026 », depuis une date ou un horodatage ISO. */
@@ -202,4 +204,15 @@ export function dateLisible(iso: string, avecJour = false): string {
 /** Le site sans protocole ni barre finale, pour l'afficher. */
 export function siteLisible(url: string): string {
   return url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '')
+}
+
+/**
+ * L'heure de référence des pages d'établissement, en cache une heure : les
+ * portes ouvertes et les événements passés s'effacent d'eux-mêmes, sans lire
+ * l'heure pendant le prérendu.
+ */
+export async function maintenantPage(): Promise<string> {
+  'use cache'
+  cacheLife('hours')
+  return new Date().toISOString()
 }

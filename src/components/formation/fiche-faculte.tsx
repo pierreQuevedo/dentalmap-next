@@ -56,13 +56,16 @@ export type FicheFaculteProps = {
   /** Sites et lieux de soins géocodés, pour la carte des soins. */
   points: PointFaculte[]
   autres: FormationResume[]
+  /** L'heure de référence (`maintenantPage`) : les dates passées ne s'affichent plus. */
+  maintenant: string
 }
 
 const TYPE = 'facultes-odontologie'
 
 type Centre = { id: string; nom: string; adresse: string | null; horaires: string | null; telephone: string | null }
 
-export function FicheFaculte({ f, fac, declaration, position, points, autres }: FicheFaculteProps) {
+export function FicheFaculte({ f, fac, declaration, position, points, autres, maintenant: iso }: FicheFaculteProps) {
+  const maintenant = new Date(iso)
   const famille = FAMILLES[TYPE]
   const cheminFiche = lienFormation(f)
   const d = declaration?.donnees ?? null
@@ -72,10 +75,10 @@ export function FicheFaculte({ f, fac, declaration, position, points, autres }: 
   const telephone = fac.telephone ?? x.telephone
   const email = fac.email ?? x.email
   const presentation = d?.presentation ?? fac.presentation ?? f.extrait
-  const po = prochainesPortesOuvertes(d)
+  const po = prochainesPortesOuvertes(d, maintenant)
   // Rendez-vous saisis dans WordPress, quand la faculté ne déclare pas de portes ouvertes.
-  const poSaisie = po || d?.aucunePorteOuverte ? null : prochainePorteOuverteSaisie(x.evenements)
-  const evenementsSaisis = po || d?.aucunePorteOuverte ? [] : evenementsAVenir(x.evenements)
+  const poSaisie = po || d?.aucunePorteOuverte ? null : prochainePorteOuverteSaisie(x.evenements, maintenant)
+  const evenementsSaisis = po || d?.aucunePorteOuverte ? [] : evenementsAVenir(x.evenements, maintenant)
   const photo = d?.galerie[0] ? { url: d.galerie[0].url, alt: d.galerie[0].legende, credit: d.credit } : f.image ? { url: f.image.url, alt: f.image.alt, credit: f.creditImage } : null
   const internat = postesInternat(fac)
   const sites = sitesDe(fac.adresse, f.titre)

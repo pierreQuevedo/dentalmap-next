@@ -38,6 +38,7 @@ export function SaisieRealisations({
   nom = 'realisations',
   mot = 'réalisation',
   mention = 'La première est la grande photo de la fiche. Aucun patient reconnaissable.',
+  apres,
 }: {
   initiales: { url: string; legende: string }[]
   direct: boolean
@@ -47,6 +48,8 @@ export function SaisieRealisations({
   nom?: string
   mot?: string
   mention?: string
+  /** Sous les photos, une fois la première ajoutée : crédit, droits, enregistrement. */
+  apres?: React.ReactNode
 }) {
   const entree = useRef<HTMLInputElement>(null)
   const [photos, setPhotos] = useState<Photo[]>(initiales)
@@ -80,10 +83,31 @@ export function SaisieRealisations({
     }
   }
 
+  const deposer = (e: React.DragEvent) => {
+    e.preventDefault()
+    ajouter(e.dataTransfer.files)
+  }
+
   return (
     <div>
       <input type="hidden" name={nom} value={JSON.stringify(photos.map(({ url, legende }) => ({ url, legende })))} />
-      <ol className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      {photos.length === 0 && (
+        // Sans photo, une grande zone de dépôt sur toute la largeur.
+        <button
+          type="button"
+          onClick={() => entree.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={deposer}
+          className="squircle-2xl grid h-56 w-full cursor-pointer place-items-center border-2 border-dashed border-line text-center text-sm text-fg-2 hover:border-line-strong hover:text-fg"
+        >
+          <span>
+            <ImagePlus className="mx-auto size-8" aria-hidden />
+            <span className="mt-3 block text-base font-medium text-fg">{envoi ? 'Préparation…' : 'Glissez vos photos ici ou choisissez-les'}</span>
+            <span className="mt-1 block text-xs">JPEG, PNG ou HEIC · {max} au plus</span>
+          </span>
+        </button>
+      )}
+      <ol className={`grid grid-cols-2 gap-3 md:grid-cols-4 ${photos.length === 0 ? 'hidden' : ''}`}>
         {photos.map((p, i) => (
           <li key={p.url} className="squircle-xl overflow-hidden border border-line bg-bg">
             <div className="relative aspect-[4/3] bg-bg-soft">
@@ -105,7 +129,7 @@ export function SaisieRealisations({
         ))}
         {photos.length < max && (
           <li>
-            <button type="button" onClick={() => entree.current?.click()} className="squircle-xl grid aspect-[4/3] w-full cursor-pointer place-items-center border-2 border-dashed border-line text-center text-sm text-fg-2 hover:border-line-strong hover:text-fg">
+            <button type="button" onClick={() => entree.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={deposer} className="squircle-xl grid aspect-[4/3] w-full cursor-pointer place-items-center border-2 border-dashed border-line text-center text-sm text-fg-2 hover:border-line-strong hover:text-fg">
               <span>
                 <ImagePlus className="mx-auto size-6" aria-hidden />
                 <span className="mt-2 block">{envoi ? 'Préparation…' : 'Ajouter des photos'}</span>
@@ -120,6 +144,7 @@ export function SaisieRealisations({
       <input ref={entree} type="file" accept="image/*" multiple className="sr-only" onChange={(e) => ajouter(e.target.files)} aria-label="Ajouter des photos" />
       {erreur && <p className="mt-2 text-sm text-destructive">Une photo n’a pas pu être préparée. Essayez un autre fichier.</p>}
       <p className="mt-3 text-xs text-fg-2">{mention}</p>
+      {apres && photos.length > 0 && <div className="mt-4">{apres}</div>}
     </div>
   )
 }

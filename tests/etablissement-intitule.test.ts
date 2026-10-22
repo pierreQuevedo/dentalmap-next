@@ -18,3 +18,12 @@ describe('ce qui manque à une formation', () => {
     expect(manqueFormation({ acces: 'Après le bac', places: 12, voies: ['initiale'] })).toBeNull()
   })
 })
+
+import { decoderEntites } from '../src/lib/formation/faculte'
+
+describe('entités du contenu WordPress', () => {
+  it('décode les apostrophes typographiques, même encodées deux fois', () => {
+    expect(decoderEntites('Académie d&rsquo;Art')).toBe('Académie d’Art')
+    expect(decoderEntites('Académie d&amp;rsquo;Art')).toBe('Académie d’Art')
+  })
+})

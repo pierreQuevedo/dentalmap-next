@@ -7,6 +7,7 @@
  * WordPress.
  */
 import type { Metadata } from 'next'
+import { maintenantPage } from '@/lib/formation/page-etablissement'
 import { HeaderTransparent } from '@/components/home/HeaderTransparent'
 import { FicheEcole } from '@/components/formation/fiche-etablissement'
 import { FicheFaculte } from '@/components/formation/fiche-faculte'
@@ -31,6 +32,7 @@ export default async function Page(props: { searchParams: Promise<Record<string,
           position={position}
           points={position ? [{ cle: 'etablissement', nom: FORMATION_FACULTE.titre, ...position, role: 'etablissement' }] : []}
           autres={[]}
+          maintenant={await maintenantPage()}
         />
       </>
     )
@@ -38,7 +40,7 @@ export default async function Page(props: { searchParams: Promise<Record<string,
   return (
     <>
       <HeaderTransparent />
-      <FicheEcole f={FORMATION_ECOLE} ecole={ECOLE} declaration={null} position={FORMATION_ECOLE.details.position} autres={[]} departement={{ slug: 'gironde', nom: 'Gironde' }} />
+      <FicheEcole f={FORMATION_ECOLE} ecole={ECOLE} declaration={null} position={FORMATION_ECOLE.details.position} autres={[]} departement={{ slug: 'gironde', nom: 'Gironde' }} maintenant={await maintenantPage()} />
     </>
   )
 }

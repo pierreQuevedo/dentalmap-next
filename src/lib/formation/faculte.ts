@@ -54,14 +54,26 @@ const ENTITES: Record<string, string> = {
   apos: "'",
   nbsp: ' ',
   hellip: '…',
+  rsquo: '’',
+  lsquo: '‘',
+  rdquo: '”',
+  ldquo: '“',
+  laquo: '«',
+  raquo: '»',
+  ndash: '–',
+  mdash: '—',
+  euro: '€',
 }
 
 /** Décode les entités que WordPress laisse dans le contenu rendu. */
 export function decoderEntites(s: string): string {
-  return s
-    .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n: string) => String.fromCodePoint(Number.parseInt(n, 16)))
-    .replace(/&([a-z]+);/gi, (m, nom: string) => ENTITES[nom.toLowerCase()] ?? m)
+  const passe = (t: string) =>
+    t
+      .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)))
+      .replace(/&#x([0-9a-f]+);/gi, (_, n: string) => String.fromCodePoint(Number.parseInt(n, 16)))
+      .replace(/&([a-z]+);/gi, (m, nom: string) => ENTITES[nom.toLowerCase()] ?? m)
+  // Une seconde passe : le contenu porte parfois une entité encodée deux fois (« &amp;rsquo; »).
+  return passe(passe(s))
 }
 
 function texte(html: string): string {

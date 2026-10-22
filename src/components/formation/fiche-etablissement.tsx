@@ -58,11 +58,14 @@ export type FicheEcoleProps = {
   /** Autres écoles, celles de la région d'abord. */
   autres: FormationResume[]
   departement: { slug: string; nom: string } | null
+  /** L'heure de référence (`maintenantPage`) : les dates passées ne s'affichent plus. */
+  maintenant: string
 }
 
 const TYPE = 'ecoles-de-prothese'
 
-export function FicheEcole({ f, ecole, declaration, position, autres, departement }: FicheEcoleProps) {
+export function FicheEcole({ f, ecole, declaration, position, autres, departement, maintenant: iso }: FicheEcoleProps) {
+  const maintenant = new Date(iso)
   const famille = FAMILLES[TYPE]
   const cheminFiche = lienFormation(f)
   const d = declaration?.donnees ?? null
@@ -73,10 +76,10 @@ export function FicheEcole({ f, ecole, declaration, position, autres, departemen
   const adresse = ecole.adresse ?? x.adresse
   const presentation = d?.presentation ?? ecole.presentation ?? f.extrait
   const { formations, declarees } = formationsAffichees(d, ecole.diplomes)
-  const po = prochainesPortesOuvertes(d)
+  const po = prochainesPortesOuvertes(d, maintenant)
   // Portes ouvertes saisies dans WordPress, quand l'établissement n'en déclare pas.
-  const poSaisie = po || d?.aucunePorteOuverte ? null : prochainePorteOuverteSaisie(x.evenements)
-  const evenementsSaisis = po || d?.aucunePorteOuverte ? [] : evenementsAVenir(x.evenements)
+  const poSaisie = po || d?.aucunePorteOuverte ? null : prochainePorteOuverteSaisie(x.evenements, maintenant)
+  const evenementsSaisis = po || d?.aucunePorteOuverte ? [] : evenementsAVenir(x.evenements, maintenant)
   const photo = d?.galerie[0] ? { url: d.galerie[0].url, alt: d.galerie[0].legende, credit: d.credit } : f.image ? { url: f.image.url, alt: f.image.alt, credit: f.creditImage } : null
   const statut = ecole.statut === 'public' ? 'Public' : ecole.statut === 'prive' ? 'Privé' : null
   // « Lycée public » dit déjà le statut : on ne le répète pas.
