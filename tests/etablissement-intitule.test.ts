@@ -48,3 +48,32 @@ describe('diplôme d’État', () => {
     expect(intituleDiplome("Diplôme d'état")).toBe('Diplôme d’État')
   })
 })
+
+import { decouperVoies, placesParVoie } from '../src/lib/espace-pro/etablissement'
+
+describe('voies d’accès d’une faculté', () => {
+  it('ne coupe ni dans les parenthèses ni dans une liste de villes', () => {
+    expect(
+      decouperVoies('PASS (Bordeaux et sites délocalisés Pau, Dax, Agen, Périgueux), L.AS 60 ECTS, L.AS 120 ECTS et licences 2-3 (Bordeaux et Pau), passerelles ; accueil sur conventions d’étudiants de Poitiers, Limoges, La Réunion et du Pacifique Sud'),
+    ).toEqual([
+      'PASS (Bordeaux et sites délocalisés Pau, Dax, Agen, Périgueux)',
+      'L.AS 60 ECTS',
+      'L.AS 120 ECTS et licences 2-3 (Bordeaux et Pau)',
+      'Passerelles',
+      'Accueil sur conventions d’étudiants de Poitiers, Limoges, La Réunion et du Pacifique Sud',
+    ])
+    expect(decouperVoies('PASS, L.AS 1, L.AS 2-3, passerelles')).toEqual(['PASS', 'L.AS 1', 'L.AS 2-3', 'Passerelles'])
+    expect(decouperVoies('L.AS uniquement, licence Sciences pour la santé accès santé, pas de PASS ; passerelles')).toEqual([
+      'L.AS uniquement, licence Sciences pour la santé accès santé, pas de PASS',
+      'Passerelles',
+    ])
+  })
+  it('places par voie', () => {
+    const detail = 'PASS 35, L.AS 60 ECTS 4, L.AS 120 ECTS et L2-L3 32, passerelles 9, candidats internationaux 2 ; hors conventions (Poitiers 36, Limoges 4, La Réunion 4) et Pacifique Sud (5)'
+    expect(placesParVoie(detail, 'PASS (Bordeaux et sites délocalisés Pau, Dax, Agen, Périgueux)')).toBe(35)
+    expect(placesParVoie(detail, 'L.AS 60 ECTS')).toBe(4)
+    expect(placesParVoie(detail, 'L.AS 120 ECTS et licences 2-3 (Bordeaux et Pau)')).toBe(32)
+    expect(placesParVoie(detail, 'Passerelles')).toBe(9)
+    expect(placesParVoie(detail, 'Accueil sur conventions d’étudiants de Poitiers')).toBeNull()
+  })
+})

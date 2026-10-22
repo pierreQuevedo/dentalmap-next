@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { placesParVoie } from '@/lib/espace-pro/etablissement'
 import { Check, Pencil, Plus, Trash2 } from 'lucide-react'
 
 /**
@@ -25,6 +26,7 @@ export function SaisieListe({
   ajout,
   max,
   prefixe,
+  places,
 }: {
   /** Nom de la liste dans le document : `voiesAcces`, `cycles`, `centres`. */
   cle: string
@@ -36,6 +38,8 @@ export function SaisieListe({
   ajout: string
   max: number
   prefixe: string
+  /** Voies d'accès d'une faculté : le détail de la capacité d'accueil, d'où l'on lit les places de chaque voie. */
+  places?: string | null
 }) {
   const [elements, setElements] = useState<Element[]>(initiales)
   const [ouvert, setOuvert] = useState<string | null>(null)
@@ -66,6 +70,9 @@ export function SaisieListe({
                   <p className="truncate font-semibold text-fg">{String(e[titre] ?? '') || 'Nouvel élément'}</p>
                   {sous && <p className="truncate text-sm text-fg-2">{sous}</p>}
                 </div>
+                {places !== undefined && placesParVoie(places, String(e[titre] ?? '')) !== null && (
+                  <span className="squircle-full shrink-0 bg-teal/10 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-teal">{placesParVoie(places, String(e[titre] ?? ''))} places</span>
+                )}
                 <button
                   type="button"
                   onClick={() => setOuvert(edition ? null : id)}

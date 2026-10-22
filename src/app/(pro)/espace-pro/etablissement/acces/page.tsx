@@ -40,6 +40,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             sousTitre="detail"
             ajout="Ajouter une étape"
             max={10}
+            places={cap?.detail ?? null}
             champs={[
               { cle: 'titre', libelle: 'Étape', type: 'texte', max: 120, exemple: 'Admission en deuxième année', large: true },
               { cle: 'detail', libelle: 'Ce qu’il faut savoir', type: 'texte', max: 300, exemple: 'Sur classement, épreuves écrites puis orales', large: true },

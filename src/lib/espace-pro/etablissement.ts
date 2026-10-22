@@ -301,7 +301,7 @@ export function donneesFaculte(fac: { diplome: string | null; duree: string | nu
   return {
     formations: formationsFaculte(fac.diplome, fac.duree, fac.capacite?.nombre ?? null),
     cycles: CYCLES_DEFAUT,
-    voiesAcces: decouper(fac.voiesAcces).map((t, k) => ({ id: `voie-${k + 1}`, titre: t.slice(0, 120), detail: '', quand: '' })),
+    voiesAcces: decouperVoies(fac.voiesAcces).map((t, k) => ({ id: `voie-${k + 1}`, titre: t.slice(0, 120), detail: '', quand: '' })),
     autresDiplomes: decouper(fac.autresDiplomes, 20).map((d) => d.slice(0, 140)),
     centres: fac.centresDeSoins.slice(0, 8).map((c, k) => ({ id: `centre-${k + 1}`, nom: nomCentre(c).slice(0, 140), adresse: adresseCentre(c).slice(0, 200), telephone: /0\d(?:[ .]?\d{2}){4}/.exec(c)?.[0] ?? '', jours: [], horaires: '', delai: '', soins: [] })),
   }
@@ -501,4 +501,71 @@ export function dureeCourte(duree: string | null): string | null {
   const min = Math.min(...nombres)
   const max = Math.max(...nombres)
   return min === max ? `${min} ans` : `${min} à ${max} ans`
+}
+
+/** Coupe sur un séparateur, jamais à l'intérieur d'une parenthèse. */
+function couperHorsParentheses(texte: string, separateur: string): string[] {
+  const morceaux: string[] = []
+  let profondeur = 0
+  let courant = ''
+  for (const c of texte) {
+    if (c === '(') profondeur++
+    if (c === ')') profondeur = Math.max(0, profondeur - 1)
+    if (c === separateur && profondeur === 0) {
+      morceaux.push(courant)
+      courant = ''
+    } else courant += c
+  }
+  morceaux.push(courant)
+  return morceaux.map((m) => m.trim()).filter(Boolean)
+}
+
+/** Ce par quoi commence une voie d'accès : PASS, L.AS, une licence, les passerelles… */
+const DEBUT_VOIE = /^(pass\b|l\.?as\b|l\d|licences?\b|passerelles?\b|masters?\b|acc[eè]s\b|accueil\b|candidat|places?\b|transferts?\b|dispositif|universit)/i
+
+/**
+ * Les voies d'accès d'une faculté, telles que son contenu les écrit : les voies
+ * sont séparées par « ; », et une virgule ne sépare deux voies que si chaque
+ * morceau en commence une (« PASS, L.AS 1, passerelles »). Les virgules d'une
+ * liste de villes ou de sites restent dans leur voie. Chaque voie commence par
+ * une majuscule.
+ */
+export function decouperVoies(texte: string | null, max = 10): string[] {
+  if (!texte) return []
+  return couperHorsParentheses(texte, ';')
+    .flatMap((partie) => {
+      const morceaux = couperHorsParentheses(partie, ',')
+      return morceaux.length > 1 && morceaux.every((m) => DEBUT_VOIE.test(m)) ? morceaux : [partie]
+    })
+    .map((v) => v.replace(/\.$/, '').trim())
+    .filter((v) => v.length >= 2)
+    .map((v) => v.charAt(0).toUpperCase() + v.slice(1))
+    .slice(0, max)
+}
+
+const motsVoie = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\./g, '')
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+
+/**
+ * Les places d'une voie, lues dans le détail de la capacité d'accueil
+ * (« PASS 35, L.AS 60 ECTS 4, … ») : la voie dont les premiers mots sont ceux
+ * du libellé. Nul quand rien ne correspond.
+ */
+export function placesParVoie(detail: string | null, voie: string): number | null {
+  if (!detail) return null
+  const mots = motsVoie(voie)
+  for (const morceau of couperHorsParentheses(detail.replace(/;/g, ','), ',')) {
+    const m = /^(.*?)\s+(\d+)\s*$/.exec(morceau)
+    if (!m) continue
+    const libelle = motsVoie(m[1])
+    const n = Math.min(2, libelle.length)
+    if (n && libelle.slice(0, n).every((w, i) => mots[i] === w)) return Number(m[2])
+  }
+  return null
 }
