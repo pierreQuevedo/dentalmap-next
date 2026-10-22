@@ -65,16 +65,40 @@ export function MotDePasse() {
 
 export function Appareils({ jetonCourant }: { jetonCourant: string | null }) {
   const [sessions, setSessions] = useState<Session[] | null>(null)
+  // La liste demande une connexion de moins d'un jour (Better Auth) : au-delà, on propose de se reconnecter.
+  const [ancienne, setAncienne] = useState(false)
   const [enCours, demarrer] = useTransition()
   useEffect(() => {
     let vivant = true
-    authClient.listSessions().then(({ data }) => {
-      if (vivant) setSessions((data as Session[] | null) ?? [])
+    authClient.listSessions().then(({ data, error }) => {
+      if (!vivant) return
+      if (error?.code === 'SESSION_NOT_FRESH') setAncienne(true)
+      else setSessions((data as Session[] | null) ?? [])
     })
     return () => {
       vivant = false
     }
   }, [])
+  if (ancienne) {
+    return (
+      <div className="mt-3 text-sm text-fg-2">
+        <p>Par sécurité, la liste des appareils demande une connexion de moins d’un jour.</p>
+        <button
+          type="button"
+          disabled={enCours}
+          onClick={() =>
+            demarrer(async () => {
+              await authClient.signOut()
+              window.location.assign(`/connexion/?retour=${encodeURIComponent(window.location.pathname + window.location.search)}`)
+            })
+          }
+          className="mt-3 cursor-pointer font-medium text-fg underline underline-offset-4 hover:no-underline disabled:opacity-60"
+        >
+          Me reconnecter
+        </button>
+      </div>
+    )
+  }
   if (!sessions) return <p className="mt-3 text-sm text-fg-2">Chargement des appareils…</p>
   const tri = [...sessions].sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt))
   return (

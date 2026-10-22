@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Check, Sparkles, type LucideIcon } from 'lucide-react'
+import { Check, Circle, Sparkles, type LucideIcon } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 import { progressionEtab } from '@/lib/espace-pro/progression-etablissement'
 import { Anneau } from './apercu'
@@ -20,6 +20,7 @@ export function EnTeteEtab({
   pct,
   legende,
   gain,
+  puces,
   progression,
   q,
 }: {
@@ -31,6 +32,8 @@ export function EnTeteEtab({
   legende: string
   /** Ce que la rubrique rapporte encore à la page complète : `null` quand rien n'est en jeu ici. */
   gain: { pct: number; quand: string } | null
+  /** Des points cochés ou à faire, sous le texte (la sécurité du compte). */
+  puces?: { fait: boolean; libelle: string }[]
   progression: InfosProgressionEtab
   q: string
 }) {
@@ -54,6 +57,18 @@ export function EnTeteEtab({
                 <Check className="size-3.5" strokeWidth={3} aria-hidden /> Acquis pour la page complète
               </p>
             ))}
+          {puces && (
+            <ul className="mt-4 flex flex-wrap gap-1.5">
+              {puces.map((p) => (
+                <li
+                  key={p.libelle}
+                  className={`squircle-full inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium ${p.fait ? 'bg-teal/15 text-[#BFE3D6]' : 'border border-dashed border-white/30 text-white/70'}`}
+                >
+                  {p.fait ? <Check className="size-3.5" strokeWidth={3} aria-hidden /> : <Circle className="size-3" aria-hidden />} {p.libelle}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <Anneau pct={pct} taille={120} sombre legende={legende} />
       </div>
