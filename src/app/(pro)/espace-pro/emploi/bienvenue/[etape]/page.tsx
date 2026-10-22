@@ -6,8 +6,8 @@ import { FormulaireBienvenue } from '@/components/emploi/formulaire-bienvenue'
 import { chemin } from '@/lib/navigation'
 import { getProfilCandidat } from '@/lib/emploi/candidat-donnees'
 import { getEcoles } from '@/lib/emploi/ecoles'
-import { LIBELLE_CONTRAT } from '@/lib/emploi/metiers'
-import { TITRES_ETAPE, VISIBILITES, etapesBienvenue, libelleQualification, lireCriteres, mobilite, situationDe } from '@/lib/emploi/profil-candidat'
+import { TITRES_ETAPE, etapesBienvenue, lireCriteres } from '@/lib/emploi/profil-candidat'
+import { ApercuCandidat } from '@/components/emploi/apercu-candidat'
 import { chargerEmploi } from '../../../_commun'
 
 export const metadata: Metadata = { title: 'Votre profil candidat', robots: { index: false, follow: false } }
@@ -37,6 +37,9 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
   if (!profil && etape !== 'situation') redirect(chemin(`/espace-pro/emploi/bienvenue/situation/${retour ? `?retour=${encodeURIComponent(retour)}` : ''}`))
   const e = etape as (typeof etapes)[number]
   const n = etapes.indexOf(e) + 1
+  // L'étape d'avant, avec la fiche et l'offre de retour.
+  const params = new URLSearchParams({ ...(fiche ? { fiche } : {}), ...(retour ? { retour } : {}) }).toString()
+  const precedente = n > 1 ? `/espace-pro/emploi/bienvenue/${etapes[n - 2]}/${params ? `?${params}` : ''}` : null
   const ecoles = e === 'formation' ? await getEcoles() : []
   const criteres = profil?.criteres ?? lireCriteres({})
 
@@ -62,6 +65,7 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
         <FormulaireBienvenue
           etape={e}
           retour={retour}
+          precedente={precedente}
           situation={profil?.situation ?? null}
           qualification={profil?.qualification ?? null}
           criteres={criteres}
@@ -69,22 +73,11 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
           visibilite={profil?.visibilite ?? 'visible'}
           ecoles={ecoles}
         >
+          {/* La fin du parcours montre le profil comme un recruteur le lit, plutôt qu'un tableau. */}
           {e === 'pret' && profil && (
-            <dl className="divide-y divide-line text-sm">
-              {(
-                [
-                  ['Situation', situationDe(profil.situation)?.libelle ?? ''],
-                  [profil.situation === 'etudiant' ? 'Formation' : 'Qualification', libelleQualification(profil)],
-                  ['Recherche', [criteres.contrats.map((c) => LIBELLE_CONTRAT[c]).join(', '), mobilite(criteres), criteres.disponibilite].filter(Boolean).join(' · ')],
-                  ['Visibilité', VISIBILITES.find((v) => v.cle === profil.visibilite)?.libelle ?? ''],
-                ] as const
-              ).map(([l, v]) => (
-                <div key={l} className="flex flex-wrap justify-between gap-x-6 gap-y-1 py-3 first:pt-0">
-                  <dt className="text-fg-2">{l}</dt>
-                  <dd className="font-medium text-fg">{v}</dd>
-                </div>
-              ))}
-            </dl>
+            <div className="max-w-xl">
+              <ApercuCandidat p={profil} nom={compte.nom ?? ''} cadre={false} />
+            </div>
           )}
         </FormulaireBienvenue>
       </div>

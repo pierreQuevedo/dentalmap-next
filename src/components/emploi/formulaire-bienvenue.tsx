@@ -1,7 +1,9 @@
 'use client'
 
 import { useActionState, useTransition, type ReactNode } from 'react'
-import { ArrowRight, CalendarDays, FlaskConical, GraduationCap, HeartHandshake, Loader2, Microscope, SprayCan, Stethoscope, type LucideIcon } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Compass, Eye, EyeOff, FlaskConical, GraduationCap, HeartHandshake, Loader2, Microscope, SprayCan, Stethoscope, VenetianMask, type LucideIcon } from 'lucide-react'
+import { chemin } from '@/lib/navigation'
 import { enregistrerBienvenue, type EtatProfil } from '@/lib/emploi/actions-candidat'
 import {
   QUALIFICATIONS,
@@ -18,6 +20,8 @@ import { ChampsFormation, ChampsRecherche } from './champs-candidat'
 type Props = {
   etape: 'situation' | 'recherche' | 'qualification' | 'formation' | 'visibilite' | 'pret'
   retour: string | null
+  /** L'étape d'avant, pour revenir sans perdre sa place ; absente à la première. */
+  precedente?: string | null
   situation: Situation | null
   qualification: string | null
   criteres: Criteres
@@ -28,12 +32,32 @@ type Props = {
   children?: ReactNode
 }
 
-const carte = 'squircle-xl flex cursor-pointer items-start gap-3 border border-line p-4 has-[:checked]:border-teal has-[:checked]:bg-teal/[0.06]'
 
 /** Un encart par situation, en grille sur toute la largeur : l'icône, le libellé, le détail. */
 const ICONES_SITUATION: Record<string, LucideIcon> = { assistant: HeartHandshake, assistant_specialise: Microscope, secretaire: CalendarDays, prothesiste: FlaskConical, aide: SprayCan, dentiste: Stethoscope, etudiant: GraduationCap }
 const encart =
   'squircle-2xl relative flex cursor-pointer flex-col gap-3 border border-line bg-bg p-5 transition-colors hover:border-line-strong has-[:checked]:border-teal has-[:checked]:bg-teal/[0.06] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-action'
+const ICONES_QUALIFICATION: Record<string, LucideIcon> = { titre: BadgeCheck, formation: GraduationCap, autre: Compass }
+const ICONES_VISIBILITE: Record<string, LucideIcon> = { visible: Eye, anonyme: VenetianMask, discret: EyeOff }
+
+/** Un choix en encart : l'icône et le rond de sélection en haut, le libellé et le détail dessous. */
+function EncartChoix({ nom, valeur, coche, icone: Icone, libelle, detail }: { nom: string; valeur: string; coche: boolean; icone: LucideIcon; libelle: string; detail?: string }) {
+  return (
+    <label className={`group ${encart}`}>
+      <input type="radio" name={nom} value={valeur} defaultChecked={coche} className="peer sr-only" />
+      <span className="flex items-center justify-between">
+        <span className="grid size-10 place-items-center rounded-xl bg-bg-soft text-fg-2 group-has-[:checked]:bg-teal/15 group-has-[:checked]:text-teal">
+          <Icone className="size-5" aria-hidden />
+        </span>
+        <span aria-hidden className="size-5 rounded-full border border-line-strong bg-bg transition-[border-width,border-color] group-has-[:checked]:border-[6px] group-has-[:checked]:border-teal" />
+      </span>
+      <span>
+        <span className="block text-sm font-semibold text-fg">{libelle}</span>
+        {detail && <span className="mt-0.5 block text-xs text-fg-2">{detail}</span>}
+      </span>
+    </label>
+  )
+}
 
 /** Une étape du parcours de bienvenue candidat (SE1 à SE5). */
 export function FormulaireBienvenue(p: Props) {
@@ -58,24 +82,9 @@ export function FormulaireBienvenue(p: Props) {
       {p.etape === 'situation' && (
         <fieldset className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <legend className="sr-only">Votre situation</legend>
-          {SITUATIONS.map((s) => {
-            const Icone = ICONES_SITUATION[s.cle]
-            return (
-              <label key={s.cle} className={`group ${encart}`}>
-                <input type="radio" name="situation" value={s.cle} defaultChecked={p.situation === s.cle} className="peer sr-only" />
-                <span className="flex items-center justify-between">
-                  <span className="grid size-10 place-items-center rounded-xl bg-bg-soft text-fg-2 group-has-[:checked]:bg-teal/15 group-has-[:checked]:text-teal">
-                    <Icone className="size-5" aria-hidden />
-                  </span>
-                  <span aria-hidden className="size-5 rounded-full border border-line-strong bg-bg transition-[border-width,border-color] group-has-[:checked]:border-[6px] group-has-[:checked]:border-teal" />
-                </span>
-                <span>
-                  <span className="block text-sm font-semibold text-fg">{s.libelle}</span>
-                  <span className="mt-0.5 block text-xs text-fg-2">{s.detail}</span>
-                </span>
-              </label>
-            )
-          })}
+          {SITUATIONS.map((s) => (
+            <EncartChoix key={s.cle} nom="situation" valeur={s.cle} coche={p.situation === s.cle} icone={ICONES_SITUATION[s.cle]} libelle={s.libelle} detail={s.detail} />
+          ))}
         </fieldset>
       )}
 
@@ -83,12 +92,10 @@ export function FormulaireBienvenue(p: Props) {
 
       {p.etape === 'qualification' && p.situation && (
         <>
-          <fieldset className="grid gap-2">
+          <fieldset className="grid gap-3 sm:grid-cols-3">
+            <legend className="sr-only">Votre qualification</legend>
             {QUALIFICATIONS.map((q) => (
-              <label key={q} className={carte}>
-                <input type="radio" name="qualification" value={q} defaultChecked={(p.qualification ?? 'titre') === q} className="mt-1 size-4 accent-teal" />
-                <span className="text-sm font-semibold text-fg">{libelleChoixQualification(p.situation!, q)}</span>
-              </label>
+              <EncartChoix key={q} nom="qualification" valeur={q} coche={(p.qualification ?? 'titre') === q} icone={ICONES_QUALIFICATION[q]} libelle={libelleChoixQualification(p.situation!, q)} />
             ))}
           </fieldset>
           <p className="squircle-xl flex items-start justify-between gap-3 bg-bg-soft px-4 py-3 text-xs text-fg-2">
@@ -110,15 +117,10 @@ export function FormulaireBienvenue(p: Props) {
 
       {p.etape === 'visibilite' && (
         <>
-          <fieldset className="grid gap-2">
+          <fieldset className="grid gap-3 sm:grid-cols-3">
+            <legend className="sr-only">Visibilité du profil</legend>
             {VISIBILITES.map((v) => (
-              <label key={v.cle} className={carte}>
-                <input type="radio" name="visibilite" value={v.cle} defaultChecked={p.visibilite === v.cle} className="mt-1 size-4 accent-teal" />
-                <span>
-                  <span className="block text-sm font-semibold text-fg">{v.libelle}</span>
-                  <span className="block text-xs text-fg-2">{v.detail}</span>
-                </span>
-              </label>
+              <EncartChoix key={v.cle} nom="visibilite" valeur={v.cle} coche={p.visibilite === v.cle} icone={ICONES_VISIBILITE[v.cle]} libelle={v.libelle} detail={v.detail} />
             ))}
           </fieldset>
           <label className="flex cursor-pointer items-start gap-3 text-sm text-fg">
@@ -128,14 +130,20 @@ export function FormulaireBienvenue(p: Props) {
               <span className="block text-xs text-fg-2">Un email par semaine au plus, seulement s’il y a du nouveau. Vous pouvez l’arrêter à tout moment.</span>
             </span>
           </label>
-          <p className="text-xs text-fg-2">Vos coordonnées ne sont jamais transmises sans votre accord. Vous pourrez aussi masquer une structure, votre employeur actuel par exemple.</p>
+          <p className="text-xs text-fg-2">Vos coordonnées ne sont transmises qu’au recruteur de l’offre à laquelle vous postulez. Vous pourrez aussi masquer une structure, votre employeur actuel par exemple.</p>
         </>
       )}
 
       {p.children}
 
       {etat?.erreur && <p className="squircle-xl bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">{etat.erreur}</p>}
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line pt-5">
+      {/* Sur téléphone, l'action principale d'abord et en pleine largeur, « Retour » en dernier. */}
+      <div className="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end [&>*]:justify-center">
+        {p.precedente && (
+          <Link href={chemin(p.precedente)} className="inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-fg-2 hover:text-fg sm:mr-auto">
+            <ArrowLeft className="size-4" aria-hidden /> Retour
+          </Link>
+        )}
         {p.etape === 'pret' ? (
           <>
             <button type="submit" name="suite" value="profil" disabled={enCours} className="inline-flex h-11 cursor-pointer items-center rounded-full border border-line px-4 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-60">

@@ -4,17 +4,16 @@ import { libelleQualification, mobilite, pucesCriteres } from '@/lib/emploi/prof
 import type { ProfilCandidat } from '@/lib/emploi/candidat-donnees'
 
 /** Le nom tel qu'un recruteur le lit, selon la visibilité : « Camille M. », ou les initiales « C. M. ». */
-export function nomVuParRecruteur(nom: string, visibilite: ProfilCandidat['visibilite'], echangeAccepte = false): string {
-  if (echangeAccepte) return nomCandidat(nom, true)
+export function nomVuParRecruteur(nom: string, visibilite: ProfilCandidat['visibilite']): string {
   if (visibilite === 'anonyme') return initiales(nom).split('').join('. ') + '.'
   return nomCandidat(nom, false)
 }
 
 /** « Ce que voient les recruteurs » : l'aperçu du profil, selon la visibilité choisie. */
-export function ApercuCandidat({ p, nom }: { p: ProfilCandidat; nom: string }) {
+export function ApercuCandidat({ p, nom, cadre = true }: { p: ProfilCandidat; nom: string; /** Sans cadre, quand l'aperçu est déjà dans un encart (fin du parcours de bienvenue). */ cadre?: boolean }) {
   const puces = pucesCriteres(p.criteres)
   return (
-    <div className="squircle-2xl border border-line p-5">
+    <div className={cadre ? 'squircle-2xl border border-line p-5' : ''}>
       <h2 className="text-base font-semibold text-fg">Ce que voient les recruteurs</h2>
       {p.visibilite === 'discret' && <p className="squircle-xl mt-3 bg-bg-soft px-3.5 py-2.5 text-xs text-fg-2">Profil discret : seul le recruteur d’une offre à laquelle vous postulez le voit.</p>}
       <div className="squircle-xl mt-4 border border-line p-4">
@@ -39,7 +38,7 @@ export function ApercuCandidat({ p, nom }: { p: ProfilCandidat; nom: string }) {
         )}
       </div>
       <ul className="mt-4 space-y-1.5 text-xs text-fg-2">
-        {[p.visibilite === 'anonyme' ? 'Ni nom, ni photo : vos initiales seulement' : 'Ni nom complet, ni photo, ni adresse', 'Votre ville et un rayon, jamais votre adresse', 'Coordonnées seulement après votre accord'].map((t) => (
+        {[p.visibilite === 'anonyme' ? 'Ni nom, ni photo : vos initiales seulement' : 'Ni nom complet, ni photo, ni adresse', 'Votre ville et un rayon, jamais votre adresse', 'Coordonnées seulement quand vous postulez'].map((t) => (
           <li key={t} className="flex items-center gap-2">
             <EyeOff className="size-3.5 shrink-0" aria-hidden /> {t}
           </li>
