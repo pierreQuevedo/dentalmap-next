@@ -35,6 +35,7 @@ import { Enregistre } from './enregistre'
 import { MenuMobile } from './menu-mobile'
 import { Deconnexion } from './deconnexion'
 import { CarteProgression, SuiviProgression, type CarteAMontrer } from './progression'
+import { CarteProgressionEtab, SuiviProgressionEtab, type InfosProgressionEtab } from './progression-etablissement'
 import type { Points } from '@/lib/espace-pro/progression'
 import { Logo } from '@/components/site/logo'
 
@@ -101,6 +102,8 @@ export type InfosCoque = {
   candidat?: boolean
   /** Points et palier de la fiche (dentiste, laboratoire) : la carte du menu, l'encart de gain, le passage de palier. */
   progression?: { points: Points; lon: number | null; lat: number | null; carte: CarteAMontrer }
+  /** Taux de page complète et palier d'un établissement : la carte du menu, l'encart de gain, le passage de palier. */
+  progressionEtab?: InfosProgressionEtab
 }
 
 function navigation(c: InfosCoque): { groupe: string | null; items: Entree[] }[] {
@@ -122,6 +125,7 @@ function navigation(c: InfosCoque): { groupe: string | null; items: Entree[] }[]
         items: [
           { cle: 'vue', libelle: 'Vue d’ensemble', i: LayoutGrid, href: e('') },
           { cle: 'ma-page', libelle: 'Ma page', i: PanelsTopLeft, href: e('ma-page'), badge: c.missionsRestantes },
+          { cle: 'progression', libelle: 'Progression', i: Sparkles, href: e('progression') },
           ...(fac
             ? [
                 { cle: 'acces' as const, libelle: 'Accès aux études', i: GraduationCap, href: e('acces') },
@@ -315,6 +319,8 @@ export function CoqueEspace({
   const q = c.plusieursFiches ? `?fiche=${encodeURIComponent(c.slug)}` : ''
   const carteMenu = c.candidat ? null : c.progression ? (
     <CarteProgression points={c.progression.points} distinctions={`/espace-pro/progression/${q}`} q={q} />
+  ) : c.progressionEtab ? (
+    <CarteProgressionEtab p={c.progressionEtab} q={q} pagePublique={c.enLigne ? c.pagePublique : null} />
   ) : (
     carteEnLigne
   )
@@ -396,6 +402,7 @@ export function CoqueEspace({
         </div>
       </main>
       {c.progression && <SuiviProgression slug={c.slug} points={c.progression.points} lon={c.progression.lon} lat={c.progression.lat} partager={`/espace-pro/partager/${q}`} distinctions={`/espace-pro/progression/${q}`} carte={c.progression.carte} />}
+      {c.progressionEtab && <SuiviProgressionEtab slug={c.slug} p={c.progressionEtab} q={q} pagePublique={c.enLigne ? c.pagePublique : null} />}
     </div>
   )
 }

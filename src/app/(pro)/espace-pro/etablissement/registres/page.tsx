@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Award, ExternalLink, Lock, ShieldCheck } from 'lucide-react'
+import { EnTeteEtab } from '@/components/espace/en-tete-etablissement'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
 import { chemin } from '@/lib/navigation'
 import { LIBELLE_TYPE, actives, intituleDiplome } from '@/lib/espace-pro/etablissement'
@@ -25,9 +26,22 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
     ['Identité du gestionnaire', gestion.statut === 'acceptee' ? (gestion.methode === 'domaine' ? 'Adresse sur le domaine de l’établissement' : 'Attestation de fonction vérifiée') : 'Attestation en cours d’examen'],
   ]
   const diplomes = actives(t.fiche.donnees)
+  const verifie = gestion.statut === 'acceptee'
+  const lus = lignes.filter((l) => l[1] && !l[2]).length
   const sources = source.faculte?.sources ?? []
   return (
     <CoqueEspace c={coque} actif="registre" titre="Registres" sousTitre="Ce que la page lit aux sources publiques, en lecture seule">
+      <EnTeteEtab
+        i={ShieldCheck}
+        etiquette="Confiance"
+        titre={verifie ? 'Identité vérifiée' : 'Identité en cours de vérification'}
+        texte="Ces données viennent des référentiels publics : elles ne se modifient pas ici, une erreur se corrige à la source. La vérification de votre identité publie la page et lui donne la pastille « Vérifié »."
+        pct={Math.round((lus / lignes.length) * 100)}
+        legende="données lues"
+        gain={{ pct: verifie ? 0 : 30, quand: 'dès la vérification' }}
+        progression={coque.progressionEtab!}
+        q={t.q}
+      />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Tuile>
           <TitreTuile i={ShieldCheck}>Identité de l’établissement</TitreTuile>

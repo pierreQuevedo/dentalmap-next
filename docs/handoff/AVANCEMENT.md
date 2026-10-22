@@ -165,6 +165,8 @@ Tableau de bord `/espace-pro/etablissement/` (coque à navigation établissement
 
 Barème : pour une faculté, l'alternance ne s'applique pas ; ses 10 points vont aux centres de soins (à confirmer dans `03-gamification.md`).
 
+Gamification de l'espace établissement (2026-10-22), sur le modèle des soignants : trois paliers sur le taux de page complète (`src/lib/espace-pro/progression-etablissement.ts` : Page publiée à la vérification, Page complète à 70 %, Page exemplaire à 100 %), carte de progression en bas du menu, encart de gain et passage de palier avec confettis (mémoire dans le navigateur, `dm-etab:<slug>`), tuile d'en-tête sombre sur chaque page (`EnTeteEtab` : état de la rubrique, ce qu'elle rapporte encore, la page entière et son palier), page `/espace-pro/etablissement/progression/` (à faire, chemin, historique lu dans les dates d'enregistrement). Liens des missions et sections corrigés vers `ma-page#…`.
+
 Page publique de la formation : module « L'établissement en parle » (renseigné par l'établissement, seulement si la page est publiée et le gestionnaire vérifié), et encart « Vous représentez cet établissement ? » qui ouvre O2a sur lui.
 
 Écarts :

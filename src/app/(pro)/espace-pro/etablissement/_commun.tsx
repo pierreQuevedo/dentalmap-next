@@ -11,6 +11,7 @@ import {
   type Section,
 } from '@/lib/espace-pro/etablissement'
 import type { Force } from '@/lib/espace-pro/force'
+import { detailForce, sourcesEtab } from '@/lib/espace-pro/progression-etablissement'
 import {
   ESPACE_ETAB,
   ORGANISME,
@@ -90,8 +91,15 @@ export async function chargerEtablissement(page: CleNav, slug?: string): Promise
     labo: false,
     delaisAReconfirmer: false,
     etablissement: source.type,
+    progressionEtab: { total: force.total, detail: detailForce(force), verifiee: verifie, sources: sourcesEtab(force, missions) },
   }
   return { compte, source, gestion, fiche, force, missions, sections, coque, q: plusieurs ? `?fiche=${encodeURIComponent(source.slug)}` : '', ici }
+}
+
+/** Ce que des missions rapportent encore, en pour cent : `null` quand aucune ne s'applique à ce type d'établissement. */
+export function gainMissions(t: Pick<TableauEtab, 'missions'>, ...cles: string[]): number | null {
+  const ms = t.missions.filter((m) => cles.includes(m.cle))
+  return ms.length ? ms.reduce((s, m) => s + m.gain, 0) : null
 }
 
 /** Le lien d'une sous-page, en gardant l'établissement courant. */

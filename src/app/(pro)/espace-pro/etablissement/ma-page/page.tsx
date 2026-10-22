@@ -2,10 +2,11 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CalendarDays, FileText, Lock, PanelsTopLeft, Pencil, Plus } from 'lucide-react'
 import { CoqueEspace, Statut, TitreTuile, Tuile } from '@/components/espace/coque'
+import { EnTeteEtab } from '@/components/espace/en-tete-etablissement'
 import { chemin } from '@/lib/navigation'
 import { enregistrerBloc } from '@/lib/espace-pro/actions-etablissement'
 import { libelleSection, portesOuvertesAJour } from '@/lib/espace-pro/etablissement'
-import { Retour, chargerEtablissement, versEtab } from '../_commun'
+import { Retour, chargerEtablissement, gainMissions, versEtab } from '../_commun'
 
 export const metadata: Metadata = { title: 'Ma page', robots: { index: false, follow: false } }
 export const instant = false
@@ -27,9 +28,22 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   // La même complétude que la vue d'ensemble : celle de la page entière, pas seulement des sections.
   const pct = force.total
   const passee = !!d.portesOuvertes && !portesOuvertesAJour(d)
+  const publiees = compte('publiee')
+  const gain = gainMissions(t, ...t.missions.map((m) => m.cle))
 
   return (
     <CoqueEspace c={coque} actif="ma-page" titre="Ma page" sousTitre="Les sections de la page publique, dans l’ordre où les candidats les lisent">
+      <EnTeteEtab
+        i={PanelsTopLeft}
+        etiquette="Ma page"
+        titre={publiees === declarees.length ? 'Toutes vos sections sont publiées' : `${publiees} section${publiees > 1 ? 's' : ''} publiée${publiees > 1 ? 's' : ''} sur ${declarees.length}`}
+        texte="Une section vide reste masquée : la page ne montre que ce qui est rempli. Chaque section complétée fait monter la page complète."
+        pct={pct}
+        legende="page complète"
+        gain={gain === null ? null : { pct: gain, quand: 'en complétant les sections' }}
+        progression={coque.progressionEtab!}
+        q={t.q}
+      />
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-4">
           {sp.erreur && <Retour erreur={sp.erreur} bloc="" />}
@@ -126,15 +140,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
 
         <aside className="space-y-4">
           <Tuile>
-            <TitreTuile i={PanelsTopLeft}>Complétude</TitreTuile>
-            <p className="mt-4 text-4xl font-semibold tracking-tight text-fg">{pct} %</p>
-            <p className="text-sm text-fg-2">
-              Page complète · {compte('publiee')} section{compte('publiee') > 1 ? 's' : ''} déclarée{compte('publiee') > 1 ? 's' : ''} sur {declarees.length} publiée{compte('publiee') > 1 ? 's' : ''}
-            </p>
-            <span className="mt-4 block h-2 rounded-full bg-line">
-              <span className="block h-full rounded-full bg-teal" style={{ width: `${pct}%` }} />
-            </span>
-            <ul className="mt-5 space-y-2 text-sm">
+            <TitreTuile i={PanelsTopLeft}>Sections</TitreTuile>
+            <ul className="mt-4 space-y-2 text-sm">
               <li className="flex justify-between"><span className="text-fg-2">Publiées</span><span className="font-medium text-fg">{compte('publiee')}</span></li>
               <li className="flex justify-between"><span className="text-fg-2">À compléter</span><span className="font-medium text-amber-700 dark:text-amber-300">{compte('incomplete')}</span></li>
               <li className="flex justify-between"><span className="text-fg-2">Vides, masquées</span><span className="font-medium text-fg">{compte('vide')}</span></li>

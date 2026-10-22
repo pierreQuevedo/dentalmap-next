@@ -371,14 +371,14 @@ export function missionsEtablissement(force: Force, type: TypeEtablissement): Mi
       ? [
           m('acces', 'Décrire l’accès aux études', '3 min', 'acces'),
           m('centres', 'Renseigner les centres de soins', '4 min', 'soins'),
-          m('portes_ouvertes', 'Annoncer les portes ouvertes', '1 min', 'page'),
+          m('portes_ouvertes', 'Annoncer les portes ouvertes', '1 min', 'ma-page#portes-ouvertes'),
           m('photo', 'Ajouter une photo', '2 min', 'galerie'),
           m('formations', 'Confirmer le cursus', '2 min', 'cursus'),
         ]
       : [
           m('acces', 'Préciser les conditions d’accès', '3 min', 'formations'),
           m('alternance', 'Indiquer les voies de chaque formation', '2 min', 'formations'),
-          m('portes_ouvertes', 'Annoncer les portes ouvertes', '1 min', 'page'),
+          m('portes_ouvertes', 'Annoncer les portes ouvertes', '1 min', 'ma-page#portes-ouvertes'),
           m('photo', 'Ajouter une photo', '2 min', 'galerie'),
           m('formations', 'Activer au moins une formation', '1 min', 'formations'),
         ]
@@ -402,7 +402,7 @@ export function sectionsPage(d: Donnees, type: TypeEtablissement, auto: { regist
     detail: 'Nom, statut et adresse lus au référentiel, portes ouvertes déclarées',
     statut: po ? 'publiee' : 'incomplete',
     source: 'Déclaré et registre',
-    href: 'page#portes-ouvertes',
+    href: 'ma-page#portes-ouvertes',
     manque: po ? undefined : d.portesOuvertes ? 'Date des portes ouvertes passée' : 'Portes ouvertes à annoncer',
   }
   const presentation: Section = {
@@ -411,7 +411,7 @@ export function sectionsPage(d: Donnees, type: TypeEtablissement, auto: { regist
     detail: d.presentation ? `${d.presentation.length} caractères${d.accroche ? ', avec accroche' : ''}` : 'Accroche et texte de présentation',
     statut: etat(!!d.presentation, !!d.presentation && d.presentation.length >= 200),
     source: 'Déclaré',
-    href: 'page#presentation',
+    href: 'ma-page#presentation',
     manque: d.presentation && d.presentation.length < 200 ? '200 caractères au moins' : undefined,
   }
   const galerie: Section = {

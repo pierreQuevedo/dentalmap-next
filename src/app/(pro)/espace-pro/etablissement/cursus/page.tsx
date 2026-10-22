@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { Lock } from 'lucide-react'
+import { Lock, Map as Plan } from 'lucide-react'
+import { EnTeteEtab } from '@/components/espace/en-tete-etablissement'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
 import { chemin } from '@/lib/navigation'
 import { enregistrerBloc } from '@/lib/espace-pro/actions-etablissement'
-import { Retour, chargerEtablissement, versEtab } from '../_commun'
+import { Retour, chargerEtablissement, gainMissions, versEtab } from '../_commun'
 import { CursusClient } from '@/components/espace/saisie-cursus'
 
 export const metadata: Metadata = { title: 'Cursus et internat', robots: { index: false, follow: false } }
@@ -22,12 +23,25 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { source, fiche, coque } = t
   const d = fiche.donnees
   const internats = source.faculte?.internats ?? []
+  const decrits = d.cycles.filter((c) => c.detail.trim()).length
+  const gain = gainMissions(t, 'formations')
 
   return (
     <CoqueEspace c={coque} actif="cursus" titre="Cursus et internat" sousTitre="Le cursus est déclaré par la faculté ; les postes d’internat sont lus dans l’arrêté annuel">
       <div className="mb-4">
         <Retour erreur={sp.erreur} enregistre={sp.enregistre} bloc="cursus" />
       </div>
+      <EnTeteEtab
+        i={Plan}
+        etiquette="Cursus et internat"
+        titre={d.cycles.length ? `${d.cycles.length} cycle${d.cycles.length > 1 ? 's' : ''}, ${d.autresDiplomes.length} diplôme${d.autresDiplomes.length > 1 ? 's' : ''} après le diplôme d’État` : 'Décrivez le cursus'}
+        texte="Du DFGSO à la thèse : le cursus montre aux futurs étudiants ce qu’on fait chaque année, et l’internat, les postes ouverts. Un cycle décrit en une phrase suffit."
+        pct={d.cycles.length ? Math.round((decrits / d.cycles.length) * 100) : 0}
+        legende="cycles décrits"
+        gain={gain === null ? null : { pct: gain, quand: 'en confirmant le cursus' }}
+        progression={coque.progressionEtab!}
+        q={t.q}
+      />
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_26rem]">
         <form action={enregistrerBloc} className="space-y-4">
           <input type="hidden" name="fiche" value={source.slug} />

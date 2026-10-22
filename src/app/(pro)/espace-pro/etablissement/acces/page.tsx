@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { GraduationCap, Lock } from 'lucide-react'
+import { EnTeteEtab } from '@/components/espace/en-tete-etablissement'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
 import { SaisieListe } from '@/components/espace/saisie-liste'
 import { chemin } from '@/lib/navigation'
 import { enregistrerBloc } from '@/lib/espace-pro/actions-etablissement'
-import { Retour, chargerEtablissement, versEtab } from '../_commun'
+import { Retour, chargerEtablissement, gainMissions, versEtab } from '../_commun'
 
 export const metadata: Metadata = { title: 'Accès aux études', robots: { index: false, follow: false } }
 export const instant = false
@@ -21,12 +22,26 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   if (t.source.type !== 'faculte') redirect(chemin(versEtab(t, 'formations')))
   const { source, fiche, coque } = t
   const cap = source.faculte?.capacite
+  const voies = fiche.donnees.voiesAcces
+  const detaillees = voies.filter((v) => v.detail.trim()).length
+  const gain = gainMissions(t, 'acces')
 
   return (
     <CoqueEspace c={coque} actif="acces" titre="Accès aux études" sousTitre="Les étapes affichées sur la page, de la première année de santé à l’inscription">
       <div className="mb-4">
         <Retour erreur={sp.erreur} enregistre={sp.enregistre} bloc="voiesAcces" />
       </div>
+      <EnTeteEtab
+        i={GraduationCap}
+        etiquette="Accès aux études"
+        titre={voies.length ? `${voies.length} voie${voies.length > 1 ? 's' : ''} d’accès décrite${voies.length > 1 ? 's' : ''}` : 'Décrivez l’accès aux études'}
+        texte="PASS, L.AS, passerelles : les futurs étudiants lisent ici comment entrer en odontologie, étape par étape. Une voie détaillée dit quand candidater et ce qu’on y attend."
+        pct={voies.length ? Math.round((detaillees / voies.length) * 100) : 0}
+        legende="voies détaillées"
+        gain={gain === null ? null : { pct: gain, quand: 'avec au moins une voie d’accès' }}
+        progression={coque.progressionEtab!}
+        q={t.q}
+      />
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <form action={enregistrerBloc}>
           <input type="hidden" name="fiche" value={source.slug} />

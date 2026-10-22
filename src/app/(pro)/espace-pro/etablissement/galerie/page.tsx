@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import { Camera, Copyright } from 'lucide-react'
+import { EnTeteEtab } from '@/components/espace/en-tete-etablissement'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
 import { SaisieRealisations } from '@/components/espace/saisie-realisations'
 import { enregistrerBloc } from '@/lib/espace-pro/actions-etablissement'
 import { televersementDirect } from '@/lib/espace-pro/justificatif'
 import { LIBELLE_TYPE } from '@/lib/espace-pro/etablissement'
-import { Retour, chargerEtablissement, versEtab } from '../_commun'
+import { Retour, chargerEtablissement, gainMissions, versEtab } from '../_commun'
 
 export const metadata: Metadata = { title: 'Galerie', robots: { index: false, follow: false } }
 export const instant = false
@@ -23,12 +24,25 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const t = await chargerEtablissement('galerie', sp.fiche)
   const { source, fiche, coque } = t
   const d = fiche.donnees
+  const n = d.galerie.length
+  const gain = gainMissions(t, 'photo')
 
   return (
     <CoqueEspace c={coque} actif="galerie" titre="Galerie" sousTitre={`${d.galerie.length} photo${d.galerie.length > 1 ? 's' : ''} sur 24 · les 5 premières s’affichent sur la page`}>
       <div className="mb-4">
         <Retour erreur={sp.erreur} enregistre={sp.enregistre} bloc="galerie" />
       </div>
+      <EnTeteEtab
+        i={Camera}
+        etiquette="Galerie"
+        titre={!n ? 'Ajoutez une première photo' : n >= 5 ? 'Votre galerie est complète sur la page' : `${n} photo${n > 1 ? 's' : ''} sur la page, encore ${5 - n} place${5 - n > 1 ? 's' : ''}`}
+        texte="La première photo fait la grande image de la page et de la carte de formation. Les cinq premières forment la galerie que voient les candidats : ateliers, salles, travaux d’étudiants."
+        pct={Math.round((Math.min(n, 5) / 5) * 100)}
+        legende="photos affichées"
+        gain={gain === null ? null : { pct: gain, quand: 'avec une première photo' }}
+        progression={coque.progressionEtab!}
+        q={t.q}
+      />
       <form action={enregistrerBloc}>
         <input type="hidden" name="fiche" value={source.slug} />
         <input type="hidden" name="bloc" value="galerie" />

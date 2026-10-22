@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { CalendarDays, Images } from 'lucide-react'
+import { CalendarDays, GraduationCap, Images } from 'lucide-react'
+import { EnTeteEtab } from '@/components/espace/en-tete-etablissement'
+import { actives, manqueFormation } from '@/lib/espace-pro/etablissement'
 import { CoqueEspace, Tuile } from '@/components/espace/coque'
 import { SaisieFormations } from '@/components/espace/saisie-formations'
 import { chemin } from '@/lib/navigation'
 import { enregistrerBloc } from '@/lib/espace-pro/actions-etablissement'
-import { Retour, chargerEtablissement, versEtab } from '../_commun'
+import { Retour, chargerEtablissement, gainMissions, versEtab } from '../_commun'
 
 export const metadata: Metadata = { title: 'Formations', robots: { index: false, follow: false } }
 export const instant = false
@@ -21,6 +23,9 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   if (t.source.type === 'faculte') redirect(chemin(versEtab(t, 'cursus')))
   const { source, fiche, coque } = t
   const confirme = fiche.donnees.confirmeLe.formations
+  const a = actives(fiche.donnees)
+  const completes = a.filter((f) => !manqueFormation(f)).length
+  const gain = gainMissions(t, 'formations', 'acces', 'alternance')
   const rentree = new Date().getMonth() >= 8 ? new Date().getFullYear() + 1 : new Date().getFullYear()
 
   return (
@@ -28,6 +33,17 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <div className="mb-4 space-y-2">
         <Retour erreur={sp.erreur} enregistre={sp.enregistre} bloc="formations" />
       </div>
+      <EnTeteEtab
+        i={GraduationCap}
+        etiquette="Formations"
+        titre={!a.length ? 'Activez au moins une formation' : completes === a.length ? 'Vos formations sont complètes' : `${completes} formation${completes > 1 ? 's' : ''} complète${completes > 1 ? 's' : ''} sur ${a.length}`}
+        texte="Chaque formation active s’affiche sur votre page et dans la recherche des formations. Conditions d’accès, places et voies (initiale, alternance, continue) répondent aux premières questions des candidats."
+        pct={a.length ? Math.round((completes / a.length) * 100) : 0}
+        legende="formations complètes"
+        gain={gain === null ? null : { pct: gain, quand: 'quand chaque formation est complète' }}
+        progression={coque.progressionEtab!}
+        q={t.q}
+      />
       <Tuile>
         <form action={enregistrerBloc}>
           <input type="hidden" name="fiche" value={source.slug} />
