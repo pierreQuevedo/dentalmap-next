@@ -14,8 +14,8 @@ export const instant = false
 const champ = 'squircle-lg h-10 w-full border border-line bg-bg px-3 text-sm text-fg outline-none focus:border-line-strong'
 
 /**
- * ETAB-GAL : jusqu'à vingt-quatre photos des locaux, des ateliers et des
- * événements, chacune avec sa légende ; les cinq premières forment la
+ * ETAB-GAL : jusqu'à vingt-quatre photos des locaux, des ateliers (des
+ * amphithéâtres et centres de soins pour une faculté) et des événements, chacune avec sa légende ; les cinq premières forment la
  * mosaïque de la page. Le crédit photo et l'attestation des droits
  * accompagnent la galerie.
  */
@@ -26,6 +26,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const d = fiche.donnees
   const n = d.galerie.length
   const gain = gainMissions(t, 'photo')
+  const fac = source.type === 'faculte'
 
   return (
     <CoqueEspace c={coque} actif="galerie" titre="Galerie" sousTitre={`${d.galerie.length} photo${d.galerie.length > 1 ? 's' : ''} sur 24 · les 5 premières s’affichent sur la page`}>
@@ -36,7 +37,11 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         i={Camera}
         etiquette="Galerie"
         titre={!n ? 'Ajoutez une première photo' : n >= 5 ? 'Votre galerie est complète sur la page' : `${n} photo${n > 1 ? 's' : ''} sur la page, encore ${5 - n} place${5 - n > 1 ? 's' : ''}`}
-        texte="La première photo fait la grande image de la page et de la carte de formation. Les cinq premières forment la galerie que voient les candidats : ateliers, salles, travaux d’étudiants."
+        texte={
+          fac
+            ? 'La première photo fait la grande image de la page et de la carte de la faculté. Les cinq premières forment la galerie que voient les futurs étudiants et les patients : amphithéâtres, salles de travaux pratiques, centres de soins.'
+            : 'La première photo fait la grande image de la page et de la carte de formation. Les cinq premières forment la galerie que voient les candidats : ateliers, salles, travaux d’étudiants.'
+        }
         pct={Math.round((Math.min(n, 5) / 5) * 100)}
         legende="photos affichées"
         gain={gain === null ? null : { pct: gain, quand: 'avec une première photo' }}
@@ -53,7 +58,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           max={24}
           nom="photos"
           mot="photo"
-          mention="La première est la grande photo de la page et de la carte de formation. Chaque photo reste deux ans, puis vous êtes invité à la confirmer."
+          mention={`La première est la grande photo de la page et de la carte ${fac ? 'de la faculté' : 'de formation'}. Chaque photo reste deux ans, puis vous êtes invité à la confirmer.`}
           apercu={{ titre: source.titre, type: LIBELLE_TYPE[source.type], credit: d.credit }}
           apres={
             // Crédit et droits n'ont de sens qu'avec au moins une photo.
