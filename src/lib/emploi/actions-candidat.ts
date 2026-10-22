@@ -6,7 +6,7 @@ import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { chemin } from '@/lib/navigation'
 import { getCompte } from '@/lib/tunnel/compte'
-import { CV_MAX_OCTETS } from './candidature'
+import { CV_MAX_OCTETS, telephoneValide } from './candidature'
 import { rangerCv } from './cv'
 import { CODES_CONTRAT, type CodeContrat } from './metiers'
 import {
@@ -168,6 +168,13 @@ export async function enregistrerProfil(_: EtatProfil, donnees: FormData): Promi
   const proposees = COMPETENCES[situation as Situation]
   const competences = donnees.getAll('competences').map(String).filter((x) => proposees.includes(x))
 
+  const telephone = String(donnees.get('telephone') ?? '').trim()
+  if (telephone && !telephoneValide(telephone)) return { erreur: 'Ce numéro de téléphone ne semble pas valide.', champ: 'telephone' }
+  // La photo : celle de la fiche du compte (rien d'enregistré au profil), ou une photo propre, téléversée par le navigateur.
+  const photo = String(donnees.get('photo') ?? '').trim()
+  const photoPerso = donnees.get('photoSource') === 'perso' && photo ? photo : null
+  if (photoPerso && !/^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/|\/photos\/[0-9a-f-]{36}\.jpg$)/.test(photoPerso)) return { erreur: 'Photo non reconnue.', champ: 'photo' }
+
   const cv = donnees.get('cv')
   const avecCv = cv instanceof File && cv.size > 0
   if (avecCv && (cv.type !== 'application/pdf' || cv.size > CV_MAX_OCTETS)) return { erreur: 'Le CV doit être un PDF de 5 Mo au plus.', champ: 'cv' }
@@ -180,7 +187,8 @@ export async function enregistrerProfil(_: EtatProfil, donnees: FormData): Promi
   await db.execute(sql`
     UPDATE candidats SET situation = ${situation}, qualification = ${qualification}, criteres = ${JSON.stringify(c)}::jsonb,
       experiences = ${JSON.stringify(experiences)}::jsonb, competences = ${tableau(competences)},
-      formation = ${situation === 'etudiant' ? sql`${JSON.stringify(formationSaisie(donnees))}::jsonb` : sql`formation`}
+      formation = ${situation === 'etudiant' ? sql`${JSON.stringify(formationSaisie(donnees))}::jsonb` : sql`formation`},
+      telephone = ${telephone || null}, photo_url = ${photoPerso}
       ${cvSql}, maj_le = now()
     WHERE user_id = ${compte.id}::uuid
   `)

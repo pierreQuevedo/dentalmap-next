@@ -17,7 +17,7 @@ import { CheckCircle2, Crop, ImagePlus, Trash2, Upload } from 'lucide-react'
  */
 const LARGEUR = 1200
 
-async function recadrer(fichier: File): Promise<Blob> {
+export async function recadrer(fichier: File): Promise<Blob> {
   const image = await createImageBitmap(fichier)
   const ratio = 4 / 5
   let sw = image.width

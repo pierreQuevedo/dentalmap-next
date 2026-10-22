@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { Check, Lock } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { ApercuCandidat } from '@/components/emploi/apercu-candidat'
 import { CoqueEspace } from '@/components/espace/coque'
 import { OngletsEmploi, SousOngletsCandidat } from '@/components/emploi/espace-offres'
@@ -25,7 +25,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const nom = compte.nom ?? ''
 
   return (
-    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Mon profil candidat : ce que les recruteurs voient quand vous postulez">
+    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Mon profil candidat : ce que les recruteurs voient quand vous postulez" sansLienFlottant>
       <OngletsEmploi actif="mes" q={q} sansFiche={!espace} />
       <SousOngletsCandidat actif="profil" q={q} />
       {sp.fait === 'profil' && (
@@ -35,17 +35,17 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       )}
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-4">
-          <section className="squircle-2xl flex items-center gap-4 border border-line bg-bg p-5 sm:p-6">
-            <span className="squircle-xl grid size-14 shrink-0 place-items-center bg-bg-soft text-base font-bold text-fg ring-1 ring-line">{initiales(nom)}</span>
-            <div className="min-w-0">
-              <p className="font-semibold text-fg">{nom || 'Votre nom'}</p>
-              <p className="text-sm text-fg-2">{profil.criteres.communeNom ?? 'Ville à renseigner'}</p>
-              <p className="mt-0.5 flex items-center gap-1.5 text-xs text-fg-2">
-                <Lock className="size-3" aria-hidden /> {compte.email} · jamais affichée
-              </p>
-            </div>
-          </section>
           <FormulaireProfil
+            vous={{
+              nom,
+              email: compte.email,
+              ville: profil.criteres.communeNom ?? null,
+              telephone: profil.telephone,
+              photoCompte: espace?.completee?.photoUrl ?? null,
+              photoPerso: profil.photo,
+              initiales: initiales(nom),
+              direct: !!process.env.BLOB_READ_WRITE_TOKEN,
+            }}
             situation={profil.situation}
             qualification={profil.qualification}
             criteres={profil.criteres}

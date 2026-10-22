@@ -5,12 +5,13 @@ import { BadgeCheck, Briefcase, CalendarClock, Check, ChevronLeft, FileText, Inf
 import { db } from '@/db'
 import { CoqueEspace, Tuile } from '@/components/espace/coque'
 import { OngletsEmploi } from '@/components/emploi/espace-offres'
+import { AvatarCandidat } from '@/components/emploi/apercu-candidat'
 import { mobilite } from '@/lib/emploi/profil-candidat'
 import { chemin } from '@/lib/navigation'
 import { tailleLisible } from '@/lib/espace-pro/justificatif'
 import { dateCourte } from '@/lib/emploi/format'
 import { deciderCandidature } from '@/lib/emploi/actions-candidatures'
-import { FILTRES_CANDIDATURES, STATUT_RECRUTEUR, dansFiltre, initiales, lireFiltre, nomCandidat, type StatutCandidature } from '@/lib/emploi/candidature'
+import { FILTRES_CANDIDATURES, STATUT_RECRUTEUR, dansFiltre, lireFiltre, nomCandidat, type StatutCandidature } from '@/lib/emploi/candidature'
 import { getCandidaturesRecues } from '@/lib/emploi/candidatures-donnees'
 import { CONSERVATION_CANDIDATURES_MOIS } from '@/lib/emploi/offre-pro'
 import { chargerTableau } from '../../_commun'
@@ -123,7 +124,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                   return (
                     <li key={k.id}>
                       <Link href={chemin(params({ c: k.id }))} aria-current={actif ? 'true' : undefined} className={`flex items-center gap-3 px-4 py-3 hover:bg-bg-soft ${actif ? 'bg-bg-soft' : ''} ${k.statut === 'non_retenue' ? 'opacity-60' : ''}`}>
-                        <span className={`squircle-lg grid size-9 shrink-0 place-items-center bg-bg text-xs font-bold text-fg ring-1 ${actif ? 'ring-fg' : 'ring-line'}`}>{initiales(k.nom)}</span>
+                        <AvatarCandidat nom={k.nom} photo={k.photo} className={`squircle-lg size-9 bg-bg text-xs ring-1 ${actif ? 'ring-fg' : 'ring-line'}`} />
                         <span className="min-w-0 flex-1">
                           <span className={`block truncate text-sm text-fg ${k.statut === 'nouvelle' ? 'font-semibold' : 'font-medium'}`}>{nomCandidat(k.nom, true)}</span>
                           <span className="block truncate text-xs text-fg-2">{sp.offre ? (k.profil?.qualification ?? 'Profil non renseigné') : k.offreTitre}</span>
@@ -143,7 +144,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           {ouverte && (
             <Tuile className="p-0">
               <div className="flex flex-wrap items-start gap-4 border-b border-line p-5 sm:p-6">
-                <span className="squircle-xl grid size-14 shrink-0 place-items-center bg-bg-soft text-base font-bold text-fg ring-1 ring-line">{initiales(ouverte.nom)}</span>
+                <AvatarCandidat nom={ouverte.nom} photo={ouverte.photo} className="squircle-xl size-14 bg-bg-soft text-base ring-1 ring-line" />
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-fg-2">
                     Candidature reçue le {ouverte.creeLe.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} à{' '}

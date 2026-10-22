@@ -1,0 +1,1 @@
+ALTER TABLE "candidats" ADD COLUMN "photo_url" text;

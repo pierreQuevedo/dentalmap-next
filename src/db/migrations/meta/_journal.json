@@ -204,6 +204,13 @@
       "when": 1792674806030,
       "tag": "0028_redundant_barracuda",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1792690749878,
+      "tag": "0029_parallel_ego",
+      "breakpoints": true
     }
   ]
 }

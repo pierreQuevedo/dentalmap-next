@@ -24,6 +24,8 @@ export type CandidatureRecue = {
   /** Nom tel que le compte le porte, affiché en entier au recruteur. */
   nom: string
   coordonnees: { email: string; telephone: string | null }
+  /** Photo du profil candidat, sinon celle de la fiche du compte ; à défaut, les initiales. */
+  photo: string | null
   /** Le profil candidat, s'il existe : ce que le recruteur en lit. */
   profil: { qualification: string; titreVerifie: boolean; experiences: Experience[]; competences: string[]; criteres: Criteres; visibilite: Visibilite } | null
 }
@@ -45,6 +47,7 @@ export async function getCandidaturesRecues(praticienId: string): Promise<Candid
       nom: string
       email: string
       telephone: string | null
+      photo: string | null
       situation: string | null
       qualification: string | null
       titre_verifie: boolean | null
@@ -56,6 +59,10 @@ export async function getCandidaturesRecues(praticienId: string): Promise<Candid
     }>(sql`
     SELECT k.id, k.offre_id, o.titre AS offre_titre, o.slug AS offre_slug, k.statut, k.origine, k.message,
            k.cv_nom, k.cv_taille, k.cv_chemin, k.cree_le, u.name AS nom, u.email, coalesce(k.telephone, c.telephone) AS telephone,
+           coalesce(c.photo_url, (
+             SELECT fc.photo_url FROM revendications r JOIN fiches_completees fc ON fc.praticien_id = r.praticien_id
+             WHERE r.user_id = k.candidat_user_id AND r.statut = 'acceptee' AND r.objet = 'revendication' AND fc.photo_url IS NOT NULL LIMIT 1
+           )) AS photo,
            c.situation, c.qualification, c.titre_verifie, c.criteres, c.formation, c.experiences, c.competences, c.visibilite
     FROM candidatures k
     JOIN offres o ON o.id = k.offre_id
@@ -77,6 +84,7 @@ export async function getCandidaturesRecues(praticienId: string): Promise<Candid
       creeLe: new Date(r.cree_le),
       nom: r.nom,
       coordonnees: { email: r.email, telephone: r.telephone },
+      photo: r.photo,
       profil:
         r.situation && situationDe(r.situation)
           ? {

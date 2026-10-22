@@ -776,6 +776,8 @@ export const candidats = pgTable('candidats', {
   competences: text('competences').array().notNull().default([]),
   /** Téléphone gardé à la première candidature, prérempli ensuite. */
   telephone: text('telephone'),
+  /** Photo propre au profil candidat ; vide, c'est la photo de profil de la fiche du compte qui sert. */
+  photoUrl: text('photo_url'),
   /** CV facultatif, chemin dans le stockage privé, jamais une URL publique. Joint d'office aux candidatures. */
   cvChemin: text('cv_chemin'),
   cvNom: text('cv_nom'),

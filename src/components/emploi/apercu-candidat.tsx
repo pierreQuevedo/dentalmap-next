@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { EyeOff } from 'lucide-react'
 import { initiales, nomCandidat } from '@/lib/emploi/candidature'
 import { libelleQualification, mobilite, pucesCriteres } from '@/lib/emploi/profil-candidat'
@@ -7,6 +8,15 @@ import type { ProfilCandidat } from '@/lib/emploi/candidat-donnees'
 export function nomVuParRecruteur(nom: string, visibilite: ProfilCandidat['visibilite']): string {
   if (visibilite === 'anonyme') return initiales(nom).split('').join('. ') + '.'
   return nomCandidat(nom, false)
+}
+
+/** La pastille d'un candidat dans une candidature : sa photo, ou ses initiales. `className` porte la taille, la forme et le liseré. */
+export function AvatarCandidat({ nom, photo, className }: { nom: string; photo: string | null; className: string }) {
+  return (
+    <span className={`relative grid shrink-0 place-items-center overflow-hidden font-bold text-fg ${className}`}>
+      {photo ? <Image src={photo} alt="" fill sizes="56px" className="object-cover" /> : initiales(nom)}
+    </span>
+  )
 }
 
 /** « Ce que voient les recruteurs » : l'aperçu du profil, selon la visibilité choisie. */

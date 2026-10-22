@@ -1,12 +1,15 @@
 'use client'
 
 import { useActionState, useState, useTransition } from 'react'
-import { Briefcase, FileText, GraduationCap, Loader2, Navigation, Plus, ShieldCheck, Trash2, Wrench } from 'lucide-react'
+import { Briefcase, FileText, GraduationCap, Loader2, Lock, Navigation, Plus, ShieldCheck, Trash2, UserRound, Wrench } from 'lucide-react'
 import { enregistrerProfil, type EtatProfil } from '@/lib/emploi/actions-candidat'
 import { COMPETENCES, EXPERIENCES_MAX, QUALIFICATIONS, SITUATIONS, libelleChoixQualification, type Criteres, type Experience, type Formation, type Situation } from '@/lib/emploi/profil-candidat'
 import { ChampsFormation, ChampsRecherche, Puce, aide, champ, etiquette } from './champs-candidat'
+import { PhotoCandidat } from './photo-candidat'
 
 type Props = {
+  /** Le bloc « Vous » : nom et email du compte, téléphone et photo du profil. */
+  vous: { nom: string; email: string; ville: string | null; telephone: string | null; photoCompte: string | null; photoPerso: string | null; initiales: string; direct: boolean }
   situation: Situation
   qualification: string | null
   criteres: Criteres
@@ -52,6 +55,24 @@ export function FormulaireProfil(p: Props) {
       }}
       className="space-y-4"
     >
+      <Bloc i={UserRound} titre="Vous">
+        <PhotoCandidat compte={p.vous.photoCompte} perso={p.vous.photoPerso} initiales={p.vous.initiales} direct={p.vous.direct} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <span className={etiquette}>Nom</span>
+            <p className="text-sm text-fg">{p.vous.nom || 'Votre nom'}{p.vous.ville ? <span className="text-fg-2"> · {p.vous.ville}</span> : null}</p>
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-fg-2">
+              <Lock className="size-3" aria-hidden /> {p.vous.email} · transmise seulement quand vous postulez
+            </p>
+          </div>
+          <label className="block">
+            <span className={etiquette}>Téléphone</span>
+            <input name="telephone" type="tel" autoComplete="tel" defaultValue={p.vous.telephone ?? ''} placeholder="06 12 34 56 78" className={`${champ} ${invalide('telephone') ? 'border-destructive' : ''}`} />
+            <span className={aide}>Prérempli quand vous postulez, transmis seulement au recruteur de l’offre.</span>
+          </label>
+        </div>
+      </Bloc>
+
       <Bloc i={ShieldCheck} titre={etudiant ? 'Situation' : 'Situation et qualification'}>
         <label className="block">
           <span className={etiquette}>Situation</span>

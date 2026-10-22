@@ -17,6 +17,8 @@ export type ProfilCandidat = {
   cv: { nom: string; taille: number | null } | null
   /** Téléphone donné à la dernière candidature, prérempli à la suivante. */
   telephone: string | null
+  /** Photo propre au profil candidat, sinon celle de la fiche du compte. */
+  photo: string | null
   termine: boolean
 }
 
@@ -35,10 +37,11 @@ export async function getProfilCandidat(userId: string): Promise<ProfilCandidat 
     cv_nom: string | null
     cv_taille: number | null
     telephone: string | null
+    photo_url: string | null
     termine_le: string | null
   }>(sql`
     SELECT situation, qualification, titre_verifie, criteres, formation, experiences, competences, visibilite,
-           structures_masquees, cv_chemin, cv_nom, cv_taille, telephone, termine_le
+           structures_masquees, cv_chemin, cv_nom, cv_taille, telephone, photo_url, termine_le
     FROM candidats WHERE user_id = ${userId}::uuid
   `)
   const r = rows[0]
@@ -66,6 +69,7 @@ export async function getProfilCandidat(userId: string): Promise<ProfilCandidat 
     }),
     cv: r.cv_chemin ? { nom: r.cv_nom ?? 'CV.pdf', taille: r.cv_taille } : null,
     telephone: r.telephone,
+    photo: r.photo_url,
     termine: Boolean(r.termine_le),
   }
 }

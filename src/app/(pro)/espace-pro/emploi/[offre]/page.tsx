@@ -10,8 +10,9 @@ import { cheminOffre } from '@/lib/emploi/chemins'
 import { contratTexte, dateCourte, dateLongue, periodeTexte, remuneration, tempsTexte } from '@/lib/emploi/format'
 import { CONSERVATION_CANDIDATURES_MOIS, etatOffre } from '@/lib/emploi/offre-pro'
 import { getOffresRecruteur } from '@/lib/emploi/offres-pro'
-import { STATUT_RECRUTEUR, initiales, nomCandidat } from '@/lib/emploi/candidature'
+import { STATUT_RECRUTEUR, nomCandidat } from '@/lib/emploi/candidature'
 import { getCandidaturesRecues } from '@/lib/emploi/candidatures-donnees'
+import { AvatarCandidat } from '@/components/emploi/apercu-candidat'
 import { PALIERS, PALIER_EMPLOI, progressionDe } from '@/lib/espace-pro/progression'
 import { chargerTableau } from '../../_commun'
 
@@ -189,7 +190,7 @@ export default async function Page(props: { params: Promise<{ offre: string }>; 
                 {recues.slice(0, 5).map((k) => (
                   <li key={k.id}>
                     <Link href={chemin(`/espace-pro/emploi/candidatures/?${q ? `${q.slice(1)}&` : ''}offre=${o.id}&c=${k.id}`)} className="flex items-center gap-3 py-2.5 hover:opacity-80">
-                      <span className="squircle-lg grid size-8 shrink-0 place-items-center bg-bg-soft text-[11px] font-bold text-fg ring-1 ring-line">{initiales(k.nom)}</span>
+                      <AvatarCandidat nom={k.nom} photo={k.photo} className="squircle-lg size-8 bg-bg-soft text-[11px] ring-1 ring-line" />
                       <span className={`min-w-0 flex-1 truncate text-sm text-fg ${k.statut === 'nouvelle' ? 'font-semibold' : ''}`}>{nomCandidat(k.nom, true)}</span>
                       <span className={`squircle-full shrink-0 px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${STATUT_RECRUTEUR[k.statut].classe}`}>{STATUT_RECRUTEUR[k.statut].libelle}</span>
                     </Link>
