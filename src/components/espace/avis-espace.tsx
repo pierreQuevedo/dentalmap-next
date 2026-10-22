@@ -1,31 +1,9 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
-import QRCode from 'qrcode'
-import { Download, MessageSquareQuote, Pencil } from 'lucide-react'
+import { useActionState, useState } from 'react'
+import { MessageSquareQuote, Pencil } from 'lucide-react'
 import { repondreAvis, type EtatAvis } from '@/lib/formation/actions-avis'
 import { REPONSE_MAX } from '@/lib/formation/avis'
-
-/** Le code QR du lien d'avis, à afficher en salle ou sur une plaquette, et à télécharger. */
-export function QrAvis({ lien, nom }: { lien: string; nom: string }) {
-  const [qr, setQr] = useState<string | null>(null)
-  useEffect(() => {
-    QRCode.toDataURL(lien, { margin: 1, width: 720, color: { dark: '#0e1317', light: '#ffffff' } }).then(setQr, () => {})
-  }, [lien])
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="squircle-xl grid size-40 place-items-center bg-white p-2 ring-1 ring-line">
-        {/* eslint-disable-next-line @next/next/no-img-element -- image générée dans le navigateur */}
-        {qr ? <img src={qr} alt={`Code QR vers le formulaire d’avis de ${nom}`} className="size-full" /> : <span className="text-xs text-fg-2">…</span>}
-      </div>
-      {qr && (
-        <a href={qr} download="avis-dentalmap-qr.png" className="inline-flex items-center gap-1.5 text-sm font-medium text-fg underline underline-offset-4 hover:no-underline">
-          <Download className="size-4" aria-hidden /> Télécharger le code QR
-        </a>
-      )}
-    </div>
-  )
-}
 
 /** Répondre à un avis au nom de l'établissement, ou modifier la réponse ; vide, elle est retirée. */
 export function ReponseAvis({ avis, reponse, nom }: { avis: string; reponse: string | null; nom: string }) {

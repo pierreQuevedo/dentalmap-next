@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Check, ExternalLink, Link2, Mail, MessageSquareQuote, QrCode, Star } from 'lucide-react'
+import QRCode from 'qrcode'
+import { Check, Download, ExternalLink, Image as Visuel, Link2, Mail, MessageSquareQuote, QrCode, Star } from 'lucide-react'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
 import { Copier } from '@/components/espace/copier'
 import { EnTeteEtab } from '@/components/espace/en-tete-etablissement'
-import { QrAvis, ReponseAvis } from '@/components/espace/avis-espace'
+import { ReponseAvis } from '@/components/espace/avis-espace'
+import { VisuelsAvis } from '@/components/espace/visuels-avis'
 import { SignalerAvis } from '@/components/formation/avis-client'
 import { Etoiles } from '@/components/formation/etoiles'
 import { chemin } from '@/lib/navigation'
@@ -39,6 +41,10 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const sansReponse = publies.filter((a) => !a.reponse).length
   const fac = source.type === 'faculte'
   const lienAvis = `${SITE_URL}${source.lien}avis/`
+  // Le code QR se fabrique ici : en SVG pour la page et le téléchargement, en PNG pour les visuels.
+  const couleurs = { dark: '#0e1317', light: '#ffffff' }
+  const [qrSvg, qrPng] = await Promise.all([QRCode.toString(lienAvis, { type: 'svg', margin: 1, color: couleurs }), QRCode.toDataURL(lienAvis, { margin: 1, width: 720, color: couleurs })])
+  const photo = t.fiche.donnees.galerie[0]?.url ?? null
   const message = `Bonjour,\n\nVous avez étudié ${fac ? 'à la faculté' : 'à l’école'} : votre avis aide les futurs étudiants à choisir. Il prend deux minutes, ici :\n${lienAvis}\n\nMerci pour votre retour, qu’il soit positif ou non.\n\n${source.titre}`
 
   return (
@@ -89,11 +95,30 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <Tuile>
           <TitreTuile i={QrCode}>Code QR</TitreTuile>
           <p className="mt-1 text-sm text-fg-2">À afficher en salle, dans les ateliers{fac ? ', au centre de soins' : ''} ou sur une plaquette.</p>
-          <div className="mt-5">
-            <QrAvis lien={lienAvis} nom={source.titre} />
+          <div className="mt-5 flex flex-col items-center gap-3">
+            <div className="squircle-xl size-40 bg-white p-2 ring-1 ring-line [&_svg]:size-full" role="img" aria-label={`Code QR vers le formulaire d’avis de ${source.titre}`} dangerouslySetInnerHTML={{ __html: qrSvg }} />
+            <a href={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(qrSvg)}`} download="avis-dentalmap-qr.svg" className="inline-flex items-center gap-1.5 text-sm font-medium text-fg underline underline-offset-4 hover:no-underline">
+              <Download className="size-4" aria-hidden /> Télécharger le code QR
+            </a>
+            <p className="text-center text-xs text-fg-2">En SVG : il reste net à toutes les tailles, de la plaquette au kakémono.</p>
           </div>
         </Tuile>
       </div>
+
+      <Tuile id="visuels" className="mt-4 scroll-mt-24">
+        <TitreTuile i={Visuel}>Visuels à imprimer et à partager</TitreTuile>
+        <p className="mt-1 text-sm text-fg-2">Aux couleurs de DentalMap, avec votre photo, votre note et le code QR du formulaire.</p>
+        <div className="mt-5">
+          <VisuelsAvis
+            nom={source.titre}
+            faculte={fac}
+            qr={qrPng}
+            adresse={new URL(SITE_URL).host.replace(/^www\./, '')}
+            photo={photo}
+            note={resume.nombre && resume.moyenne !== null ? { moyenne: resume.moyenne, nombre: resume.nombre } : null}
+          />
+        </div>
+      </Tuile>
 
       <Tuile id="avis" className="mt-4 scroll-mt-24">
         <TitreTuile
