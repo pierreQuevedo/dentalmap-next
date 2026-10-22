@@ -2,7 +2,7 @@
 
 import { useActionState, useTransition, type ReactNode } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Compass, Eye, EyeOff, FlaskConical, GraduationCap, HeartHandshake, Loader2, Microscope, SprayCan, Stethoscope, VenetianMask, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 import { enregistrerBienvenue, type EtatProfil } from '@/lib/emploi/actions-candidat'
 import {
@@ -16,6 +16,7 @@ import {
   type Visibilite,
 } from '@/lib/emploi/profil-candidat'
 import { ChampsFormation, ChampsRecherche } from './champs-candidat'
+import { EncartChoix, ICONES_QUALIFICATION, ICONES_SITUATION, ICONES_VISIBILITE } from './encart-choix'
 
 type Props = {
   etape: 'situation' | 'recherche' | 'qualification' | 'formation' | 'visibilite' | 'pret'
@@ -32,32 +33,6 @@ type Props = {
   children?: ReactNode
 }
 
-
-/** Un encart par situation, en grille sur toute la largeur : l'icône, le libellé, le détail. */
-const ICONES_SITUATION: Record<string, LucideIcon> = { assistant: HeartHandshake, assistant_specialise: Microscope, secretaire: CalendarDays, prothesiste: FlaskConical, aide: SprayCan, dentiste: Stethoscope, etudiant: GraduationCap }
-const encart =
-  'squircle-2xl relative flex cursor-pointer flex-col gap-3 border border-line bg-bg p-5 transition-colors hover:border-line-strong has-[:checked]:border-teal has-[:checked]:bg-teal/[0.06] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-action'
-const ICONES_QUALIFICATION: Record<string, LucideIcon> = { titre: BadgeCheck, formation: GraduationCap, autre: Compass }
-const ICONES_VISIBILITE: Record<string, LucideIcon> = { visible: Eye, anonyme: VenetianMask, discret: EyeOff }
-
-/** Un choix en encart : l'icône et le rond de sélection en haut, le libellé et le détail dessous. */
-function EncartChoix({ nom, valeur, coche, icone: Icone, libelle, detail }: { nom: string; valeur: string; coche: boolean; icone: LucideIcon; libelle: string; detail?: string }) {
-  return (
-    <label className={`group ${encart}`}>
-      <input type="radio" name={nom} value={valeur} defaultChecked={coche} className="peer sr-only" />
-      <span className="flex items-center justify-between">
-        <span className="grid size-10 place-items-center rounded-xl bg-bg-soft text-fg-2 group-has-[:checked]:bg-teal/15 group-has-[:checked]:text-teal">
-          <Icone className="size-5" aria-hidden />
-        </span>
-        <span aria-hidden className="size-5 rounded-full border border-line-strong bg-bg transition-[border-width,border-color] group-has-[:checked]:border-[6px] group-has-[:checked]:border-teal" />
-      </span>
-      <span>
-        <span className="block text-sm font-semibold text-fg">{libelle}</span>
-        {detail && <span className="mt-0.5 block text-xs text-fg-2">{detail}</span>}
-      </span>
-    </label>
-  )
-}
 
 /** Une étape du parcours de bienvenue candidat (SE1 à SE5). */
 export function FormulaireBienvenue(p: Props) {

@@ -4,6 +4,7 @@ import { sql } from 'drizzle-orm'
 import { Check, EyeOff, Search, X } from 'lucide-react'
 import { db } from '@/db'
 import { CoqueEspace } from '@/components/espace/coque'
+import { EncartChoix, ICONES_VISIBILITE } from '@/components/emploi/encart-choix'
 import { OngletsEmploi, SousOngletsCandidat } from '@/components/emploi/espace-offres'
 import { chemin } from '@/lib/navigation'
 import { nomAffiche, type Profession } from '@/lib/annuaire/types'
@@ -52,7 +53,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const masquees = new Set(profil.structuresMasquees.map((s) => s.slug))
 
   return (
-    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Visibilité de votre profil candidat : qui peut vous trouver et vous inviter à postuler">
+    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Visibilité de votre profil candidat : qui peut vous trouver et vous inviter à postuler" sansLienFlottant>
       <OngletsEmploi actif="mes" q={q} sansFiche={!espace} />
       <SousOngletsCandidat actif="visibilite" q={q} />
       {sp.fait && MESSAGES[sp.fait] && (
@@ -60,18 +61,14 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           <Check className="size-4 shrink-0" aria-hidden /> {MESSAGES[sp.fait]}
         </p>
       )}
-      <div className="grid gap-4 xl:grid-cols-2">
+      {/* Les choix en encarts sur toute la largeur, les structures masquées dessous. */}
+      <div className="grid gap-4">
         <form action={enregistrerVisibilite} className="squircle-2xl border border-line bg-bg p-5 sm:p-6">
           <h2 className="text-base font-semibold text-fg">Votre profil</h2>
-          <fieldset className="mt-4 grid gap-2">
+          <fieldset className="mt-4 grid gap-3 sm:grid-cols-3">
+            <legend className="sr-only">Visibilité du profil</legend>
             {VISIBILITES.map((v) => (
-              <label key={v.cle} className="squircle-xl flex cursor-pointer items-start gap-3 border border-line p-4 has-[:checked]:border-teal has-[:checked]:bg-teal/[0.06]">
-                <input type="radio" name="visibilite" value={v.cle} defaultChecked={profil.visibilite === v.cle} className="mt-1 size-4 accent-teal" />
-                <span>
-                  <span className="block text-sm font-semibold text-fg">{v.libelle}</span>
-                  <span className="block text-xs text-fg-2">{v.detail}</span>
-                </span>
-              </label>
+              <EncartChoix key={v.cle} nom="visibilite" valeur={v.cle} coche={profil.visibilite === v.cle} icone={ICONES_VISIBILITE[v.cle]} libelle={v.libelle} detail={v.detail} />
             ))}
           </fieldset>
           <p className="mt-4 text-xs text-fg-2">Vos coordonnées ne sont transmises qu’au recruteur de l’offre à laquelle vous postulez, quel que soit ce choix.</p>
