@@ -10,31 +10,12 @@ import { getAlertesCompte } from '@/lib/emploi/alertes-compte-donnees'
 import { getProfilCandidat } from '@/lib/emploi/candidat-donnees'
 import { getCandidaturesEnvoyees } from '@/lib/emploi/candidatures-donnees'
 import { getOffresPourVous } from '@/lib/emploi/pour-vous'
-import { VISIBILITES, completudeProfil, etapeFrise, libelleQualification } from '@/lib/emploi/profil-candidat'
+import { VISIBILITES, completudeProfil, libelleQualification } from '@/lib/emploi/profil-candidat'
+import { Frise } from '@/components/emploi/frise-candidature'
 import { chargerEmploi } from '../../_commun'
 
 export const metadata: Metadata = { title: 'Emploi, vue d’ensemble', robots: { index: false, follow: false } }
 export const instant = false
-
-/** La frise d'une candidature : Envoyée, Vue, puis Retenue ou Non retenue. */
-function Frise({ statut, type }: { statut: Parameters<typeof etapeFrise>[0]; type: string }) {
-  const { etape, issue } = etapeFrise(statut)
-  const etapes = ['Envoyée', `Vue par le ${type}`, issue === 'non' ? 'Non retenue' : 'Retenue']
-  return (
-    <ol className="grid grid-cols-3 gap-1.5">
-      {etapes.map((e, i) => {
-        const fait = issue === 'non' ? i <= 1 : i <= etape
-        const non = issue === 'non' && i === 2
-        return (
-          <li key={e}>
-            <span className={`block h-1.5 rounded-full ${non ? 'bg-fg-2/40' : fait ? 'bg-teal' : 'bg-line'}`} />
-            <span className={`mt-1.5 block text-[11px] leading-tight ${i === etape && !non ? 'font-semibold text-fg' : fait ? 'text-fg-2' : 'text-fg-2/70'}`}>{e}</span>
-          </li>
-        )
-      })}
-    </ol>
-  )
-}
 
 /**
  * CAND-VUE et ETU-VUE : le point d'arrivée de l'Emploi côté candidat. Le

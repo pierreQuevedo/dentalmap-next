@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { ExternalLink, FileText, Send } from 'lucide-react'
 import { CoqueEspace } from '@/components/espace/coque'
 import { OngletsEmploi, SousOngletsCandidat } from '@/components/emploi/espace-offres'
+import { Frise, PHRASE_ETAT } from '@/components/emploi/frise-candidature'
 import { chemin } from '@/lib/navigation'
-import { STATUT_CANDIDAT, STATUT_RECRUTEUR } from '@/lib/emploi/candidature'
 import { getCandidaturesEnvoyees } from '@/lib/emploi/candidatures-donnees'
 import { getProfilCandidat } from '@/lib/emploi/candidat-donnees'
 import { cheminOffre } from '@/lib/emploi/chemins'
@@ -68,8 +68,13 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                     </p>
                     <p className="mt-1 font-semibold text-fg">{k.offre.titre}</p>
                   </div>
-                  <span className={`squircle-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${STATUT_RECRUTEUR[k.statut].classe}`}>{STATUT_CANDIDAT[k.statut]}</span>
                 </div>
+
+                {/* Où en est la candidature : la frise, puis ce que l'état veut dire. */}
+                <div className="mt-4 max-w-xl">
+                  <Frise statut={k.statut} type={k.offre.laboratoire ? 'laboratoire' : 'cabinet'} />
+                </div>
+                <p className="mt-3 text-sm text-fg-2">{PHRASE_ETAT[k.statut]}</p>
 
                 {(k.offre.enLigne || k.cvNom) && (
                   <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
