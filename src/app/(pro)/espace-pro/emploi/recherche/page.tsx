@@ -99,7 +99,8 @@ export default async function Page(props: { searchParams: Promise<RechercheEmplo
         {offres.length > 0 && <Vues mode={f.vue} liens={{ liste: urlFiltres(base, f, 'liste'), carte: urlFiltres(base, f, 'carte') }} />}
       </div>
 
-      <Tuile className="mt-4 overflow-hidden p-0">
+      {/* `overflow-clip` et non `hidden` : la carte et les filtres restent collés à l'écran au défilement. */}
+      <Tuile className="mt-4 overflow-clip p-0">
         {!centre ? (
           <p className="p-6 text-sm text-fg-2">Choisissez une commune pour lancer la recherche.</p>
         ) : (

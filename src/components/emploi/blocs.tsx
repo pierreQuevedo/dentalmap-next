@@ -107,6 +107,7 @@ export function CarteOffre({
   className = '',
   sansLien,
   postulee,
+  balise: Balise = 'li',
 }: {
   o: OffreResume
   forme?: 'carte' | 'ligne' | 'compacte'
@@ -116,6 +117,8 @@ export function CarteOffre({
   sansLien?: boolean
   /** Le candidat connecté a déjà postulé : contour foncé et « Déjà postulé ». */
   postulee?: boolean
+  /** `div` quand la carte est enveloppée (liste liée à la carte), l'enveloppe portant l'élément de liste. */
+  balise?: 'li' | 'div'
 }) {
   const titre = sansLien ? (
     <span>{o.titre}</span>
@@ -133,7 +136,7 @@ export function CarteOffre({
   if (forme === 'ligne' || forme === 'compacte') {
     const compacte = forme === 'compacte'
     return (
-      <li
+      <Balise
         className={`${className} squircle-2xl hover-lift group relative flex gap-4 border bg-bg p-3 [--lift:3px] hover:shadow-pop sm:p-4 ${
           postulee ? 'border-fg ring-1 ring-fg' : actif ? 'border-line-strong shadow-pop' : 'border-line'
         }`}
@@ -156,7 +159,7 @@ export function CarteOffre({
             <p className="text-sm text-fg-2">{lieu}</p>
           </div>
         </div>
-      </li>
+      </Balise>
     )
   }
   return (

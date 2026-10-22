@@ -38,6 +38,7 @@ import type { OffreResume } from '@/lib/emploi/types'
 import type { CriteresAlerte } from '@/lib/emploi/alerte'
 import { AlerteEmail } from './alerte-email'
 import { CarteOffres, type PointOffre } from './carte-offres'
+import { SurvolOffre } from './survol-offre'
 import { CarteOffre, LienFicheMetier, ListeLiens, SalairesSecteurs, nombreOffres } from './blocs'
 
 type Ariane = { libelle: string; href?: string }[]
@@ -257,7 +258,8 @@ export function Resultats({ g }: { g: Gabarit }) {
     return (
       <div className={`${cadre} grid gap-10 py-8 lg:gap-12 lg:py-10 ${g.filtres ? 'lg:grid-cols-[16rem_minmax(0,1fr)]' : ''}`}>
         {g.filtres && (
-          <aside className="hidden lg:block">
+          // Les filtres restent à l'écran pendant que la liste défile.
+          <aside className="hidden lg:sticky lg:top-24 lg:block lg:max-h-[calc(100dvh-7rem)] lg:self-start lg:overflow-y-auto">
             <FiltresPanneau {...g.filtres} />
           </aside>
         )}
@@ -294,18 +296,25 @@ export function Resultats({ g }: { g: Gabarit }) {
         </div>
       )}
       {/* Grand écran : liste compacte et carte côte à côte, la carte couvre toute la hauteur de la liste. */}
+      {/* La carte reste à l'écran pendant que la liste défile ; survoler une offre la montre, cliquer un marqueur ramène la liste à l'offre. */}
       <div className="hidden lg:grid lg:grid-cols-[28rem_minmax(0,1fr)]">
         <div className="border-r border-line px-6 py-6 xl:pl-10 [&_.alerte]:flex-col! [&_.alerte]:items-start!">
           {g.avant}
           <Compteur n={g.total} />
           <ul className="mt-4 space-y-3">
             {g.offres.map((o, i) => (
-              <CarteOffre key={o.id} o={o} forme="compacte" actif={i === 0} />
+              <SurvolOffre key={o.id} id={o.id} actifDepart={i === 0}>
+                <CarteOffre o={o} forme="compacte" balise="div" />
+              </SurvolOffre>
             ))}
           </ul>
           {g.suite}
         </div>
-        <CarteOffres key={cle} className="h-full min-h-[44rem]" emprise={g.emprise} actif={g.offres[0]?.id} points={pts} rayon={g.rayon} />
+        <div className="relative">
+          <div className="sticky top-24 h-[calc(100dvh-7rem)] min-h-[28rem]">
+            <CarteOffres key={cle} liee className="size-full" emprise={g.emprise} actif={g.offres[0]?.id} points={pts} rayon={g.rayon} />
+          </div>
+        </div>
       </div>
       {/* Mobile : la carte, et la première offre en panneau bas. */}
       <div className="relative h-[42rem] lg:hidden">

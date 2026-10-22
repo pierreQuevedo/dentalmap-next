@@ -10,12 +10,17 @@
  * « où ? » comme les points de l'annuaire ; l'offre active (survolée ou ouverte) porte une
  * étiquette. Carte inerte par défaut, comme le décor du hero de l'accueil.
  *
+ * `liee` : la carte d'une liste de résultats. Elle se déplace et se zoome, et
+ * suit la liste dans les deux sens : survoler une offre de la liste la montre
+ * sur la carte, cliquer un marqueur fait défiler la liste jusqu'à l'offre. Les
+ * offres posées au même endroit forment un seul marqueur, avec leur nombre.
+ *
  * Les étiquettes sont posées en `textContent` : elles viennent des offres
  * (rémunération, nom du recruteur) et ne doivent jamais être lues comme du
  * HTML.
  */
-import { useEffect, useRef } from 'react'
-import { Map as MapLibre, Marker, setWorkerUrl } from 'maplibre-gl'
+import { useEffect, useRef, useState } from 'react'
+import { Map as MapLibre, Marker, NavigationControl, setWorkerUrl } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { styleCarte } from '@/components/map/style'
 import type { Emprise } from '@/lib/annuaire/emprise'
@@ -23,6 +28,20 @@ import type { Emprise } from '@/lib/annuaire/emprise'
 setWorkerUrl('/maplibre/maplibre-gl-worker.mjs')
 
 export type PointOffre = { id: string; lon: number; lat: number; etiquette?: string; nombre?: number }
+
+/** Événements entre la liste et la carte : l'offre survolée dans la liste, l'offre choisie sur la carte. */
+export const OFFRE_SURVOLEE = 'dm:offre-survolee'
+export const OFFRE_CHOISIE = 'dm:offre-choisie'
+
+/** Les offres au même endroit, regroupées : un marqueur par lieu. */
+function grouper(points: PointOffre[]): PointOffre[][] {
+  const lieux = new Map<string, PointOffre[]>()
+  for (const p of points) {
+    const cle = `${p.lon.toFixed(5)},${p.lat.toFixed(5)}`
+    lieux.set(cle, [...(lieux.get(cle) ?? []), p])
+  }
+  return [...lieux.values()]
+}
 
 export function CarteOffres({
   emprise,
@@ -33,6 +52,7 @@ export function CarteOffres({
   interactive = false,
   rayon,
   mention = true,
+  liee = false,
 }: {
   emprise: Emprise
   points: PointOffre[]
@@ -46,13 +66,26 @@ export function CarteOffres({
   rayon?: { lon: number; lat: number; metres: number }
   /** Attribution des fonds de plan, due. Absente seulement quand la page l'affiche ailleurs. */
   mention?: boolean
+  /** Carte d'une liste de résultats : déplaçable, et liée à la liste dans les deux sens. */
+  liee?: boolean
 }) {
   const conteneur = useRef<HTMLDivElement>(null)
-  const depart = useRef({ emprise, points, actif, theme, interactive, rayon })
+  const carte = useRef<MapLibre | null>(null)
+  const [prete, setPrete] = useState(false)
+  const [courant, setCourant] = useState(actif)
+  const depart = useRef({ emprise, theme, interactive: interactive || liee, rayon })
+
+  // La liste annonce l'offre survolée : elle devient l'offre active de la carte.
+  useEffect(() => {
+    if (!liee) return
+    const surSurvol = (ev: Event) => setCourant((ev as CustomEvent<string>).detail)
+    window.addEventListener(OFFRE_SURVOLEE, surSurvol)
+    return () => window.removeEventListener(OFFRE_SURVOLEE, surSurvol)
+  }, [liee])
 
   useEffect(() => {
     if (!conteneur.current) return
-    const { emprise: e, points: pts, actif: a, theme: t, interactive: inter, rayon: r } = depart.current
+    const { emprise: e, theme: t, interactive: inter, rayon: r } = depart.current
     const sombreDoc = document.documentElement.classList.contains('dark')
     const style = styleCarte(t ? (t === 'sombre' ? 'dark' : 'light') : sombreDoc ? 'dark' : 'light')
     const m = new MapLibre({
@@ -83,20 +116,41 @@ export function CarteOffres({
       })
     }
 
+    if (inter) m.addControl(new NavigationControl({ showCompass: false }), 'top-right')
+    // Le cadre change de taille (carte collée au défilement, fenêtre redimensionnée) : le plan suit.
+    const suivi = new ResizeObserver(() => m.resize())
+    suivi.observe(conteneur.current)
+    carte.current = m
+    setPrete(true)
+    return () => {
+      suivi.disconnect()
+      m.remove()
+      carte.current = null
+      setPrete(false)
+    }
+  }, [])
+
+  // Les marqueurs, refaits quand l'offre active change : la survolée dans la liste, ou la cliquée sur la carte.
+  useEffect(() => {
+    const m = carte.current
+    if (!m || !prete || !conteneur.current) return
     // Sous 600 px de large, les étiquettes se chevauchent : seules restent celle de l'offre active et les grappes.
     const etroit = conteneur.current.clientWidth < 600
-    const marqueurs = pts.map((brut) => {
+    const marqueurs = (liee ? grouper(points) : points.map((p) => [p])).map((groupe) => {
+      const actifIci = groupe.find((p) => p.id === courant)
+      const brut = actifIci ?? groupe[0]
+      const nombre = groupe.length > 1 && !actifIci ? groupe.length : brut.nombre
       const el = document.createElement('div')
-      const estActif = brut.id === a
+      const estActif = Boolean(actifIci)
       const p = etroit && !estActif ? { ...brut, etiquette: undefined } : brut
-      if (p.nombre && p.nombre > 1) {
+      if (nombre && nombre > 1) {
         el.className =
           'grid size-8 place-items-center rounded-full border-2 border-white bg-[#16222b] text-xs font-semibold text-white shadow-[0_3px_12px_rgb(0_0_0/0.25)]'
-        el.textContent = String(p.nombre)
+        el.textContent = String(nombre)
       } else if (estActif && p.etiquette) {
         el.className = 'flex flex-col items-center'
         el.innerHTML = `<span class="whitespace-nowrap rounded-full bg-[#0071e3] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_6px_20px_rgb(0_113_227/0.35)]"></span><span class="-mt-px size-0 border-x-[6px] border-t-[7px] border-x-transparent border-t-[#0071e3]"></span><span class="mt-1 size-3.5 rounded-full border-2 border-white bg-[#0071e3] shadow"></span>`
-        el.firstElementChild!.textContent = p.etiquette
+        el.firstElementChild!.textContent = groupe.length > 1 ? `${p.etiquette} · ${groupe.length} offres` : p.etiquette!
       } else if (p.etiquette) {
         el.className =
           'whitespace-nowrap rounded-full border border-black/5 bg-white px-2.5 py-1 text-[11px] font-semibold text-[#16222b] shadow-[0_3px_12px_rgb(22_34_43/0.18)]'
@@ -104,14 +158,23 @@ export function CarteOffres({
       } else {
         el.className = `rounded-full border-2 border-white bg-[#0071e3] shadow ${estActif ? 'size-5' : 'size-3.5'}`
       }
+      if (liee) {
+        // Cliquer un marqueur : l'offre devient active et la liste défile jusqu'à elle. Sur un lieu à plusieurs offres, on passe à la suivante.
+        el.style.cursor = 'pointer'
+        el.addEventListener('click', (ev) => {
+          ev.stopPropagation()
+          const i = groupe.findIndex((x) => x.id === courant)
+          const suivante = groupe[(i + 1) % groupe.length]
+          setCourant(suivante.id)
+          window.dispatchEvent(new CustomEvent(OFFRE_CHOISIE, { detail: suivante.id }))
+        })
+      }
       return new Marker({ element: el, anchor: estActif && p.etiquette ? 'bottom' : 'center' }).setLngLat([p.lon, p.lat]).addTo(m)
     })
-
-    return () => {
-      marqueurs.forEach((mk) => mk.remove())
-      m.remove()
-    }
-  }, [])
+    return () => marqueurs.forEach((mk) => mk.remove())
+    // `points` est recréé à chaque rendu : la clé du composant change quand les offres changent.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prete, courant, liee])
 
   return (
     <div className={`relative ${className}`}>
