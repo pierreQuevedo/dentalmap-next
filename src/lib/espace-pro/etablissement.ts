@@ -452,7 +452,7 @@ export function sectionsPage(d: Donnees, type: TypeEtablissement, auto: { regist
       statut: etat(a.length > 0, a.every((f) => f.acces && f.voies.length && f.places)),
       source: 'Déclaré et RNCP',
       href: 'formations',
-      manque: a.find((f) => !f.places) ? `Places : ${a.find((f) => !f.places)!.intitule}` : a.find((f) => !f.acces) ? 'Conditions d’accès' : undefined,
+      manque: a.find((f) => !f.acces) ? 'Conditions d’accès à préciser' : a.find((f) => !f.places) ? 'Places à préciser' : !a.every((f) => f.voies.length) ? 'Voies à préciser' : undefined,
     },
     { cle: 'alternance', titre: 'Alternance', detail: alternance ? 'Au moins une formation en apprentissage' : 'Aucune formation en apprentissage déclarée', statut: etat(a.length > 0, alternance), source: 'Déclaré', href: 'formations' },
     { cle: 'resultats', titre: 'Réussite et insertion', detail: 'Résultats aux examens, InserJeunes', statut: auto.resultats ? 'auto' : 'vide', source: 'Ministère de l’Éducation nationale' },

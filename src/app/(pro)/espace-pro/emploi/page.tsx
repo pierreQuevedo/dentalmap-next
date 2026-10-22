@@ -135,14 +135,21 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                         <p className="flex flex-wrap items-center gap-2 text-xs text-fg-2">
                           <PastilleOffre etat={e} /> {quand}
                         </p>
-                        <p className="mt-1.5 truncate font-semibold text-fg">{o.titre}</p>
-                        <p className="mt-0.5 truncate text-sm text-fg-2">
+                        <p className="mt-1.5 font-semibold text-fg sm:truncate">{o.titre}</p>
+                        <p className="mt-0.5 text-sm text-fg-2 sm:truncate">
                           {contratTexte(o)} · {tempsTexte(o)}
                           {o.communeNom ? ` · ${o.communeNom}` : ''}
                         </p>
+                        {/* Sur téléphone, le compte passe sous le titre pour lui laisser toute la largeur. */}
+                        {o.statut !== 'brouillon' && (
+                          <p className="mt-1 text-sm text-fg sm:hidden">
+                            <b>{o.candidatures}</b> candidature{o.candidatures > 1 ? 's' : ''}
+                            {o.nouvelles > 0 && <span className="squircle-full ml-2 bg-teal/10 px-2 py-0.5 text-xs font-semibold text-teal">{o.nouvelles} nouvelle{o.nouvelles > 1 ? 's' : ''}</span>}
+                          </p>
+                        )}
                       </div>
                       {o.statut !== 'brouillon' && (
-                        <p className="shrink-0 text-right text-sm text-fg">
+                        <p className="hidden shrink-0 text-right text-sm text-fg sm:block">
                           <b>{o.candidatures}</b> candidature{o.candidatures > 1 ? 's' : ''}
                           {o.nouvelles > 0 && <span className="squircle-full ml-2 bg-teal/10 px-2 py-0.5 text-xs font-semibold text-teal">{o.nouvelles} nouvelle{o.nouvelles > 1 ? 's' : ''}</span>}
                         </p>

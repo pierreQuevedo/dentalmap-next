@@ -12,6 +12,7 @@ import { TitreTuile, Tuile } from './coque'
 export function TuileSombre({
   etiquette,
   titre,
+  sousTitre,
   texte,
   pct,
   legende,
@@ -20,6 +21,8 @@ export function TuileSombre({
 }: {
   etiquette: string
   titre: string
+  /** Sous le titre, sur une ligne : le nom de l'établissement quand le titre salue la personne. */
+  sousTitre?: string
   texte: string
   pct: number
   legende: string
@@ -34,6 +37,7 @@ export function TuileSombre({
             <CheckCircle2 className="size-3.5" aria-hidden /> {etiquette}
           </span>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white">{titre}</h2>
+          {sousTitre && <p className="mt-1 truncate text-sm font-medium text-white/85">{sousTitre}</p>}
           <p className="mt-3 text-white/70">{texte}</p>
         </div>
         <Anneau pct={pct} taille={148} sombre legende={legende} />

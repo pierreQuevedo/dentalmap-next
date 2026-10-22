@@ -6,7 +6,7 @@ import { CarteEtablissement } from '@/components/espace/etablissement'
 import { TuileActivite, TuileSombre } from '@/components/espace/tuiles'
 import { chemin } from '@/lib/navigation'
 import { publierEtablissement } from '@/lib/espace-pro/actions-etablissement'
-import { actives, portesOuvertesAJour } from '@/lib/espace-pro/etablissement'
+import { actives, portesOuvertesAJour, intituleDiplome } from '@/lib/espace-pro/etablissement'
 import { aujourdhui, quand } from '../_commun'
 import { Retour, chargerEtablissement, dateCourte, versEtab } from './_commun'
 
@@ -30,7 +30,8 @@ const ICONE: Record<string, LucideIcon> = {
 export default async function Page(props: { searchParams: Promise<{ fiche?: string; erreur?: string; enregistre?: string }> }) {
   const sp = await props.searchParams
   const t = await chargerEtablissement('vue', sp.fiche)
-  const { source, fiche, force, missions, sections, gestion, coque } = t
+  const { source, fiche, force, missions, sections, gestion, coque, compte } = t
+  const prenom = (compte.nom ?? '').trim().split(/\s+/)[0]
   const d = fiche.donnees
   const verifie = gestion.statut === 'acceptee'
   const enLigne = coque.enLigne
@@ -84,7 +85,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <TuileSombre
           etiquette={!verifie ? 'Vérification en cours' : enLigne ? 'Page en ligne' : 'Page en préparation'}
-          titre={`Bonjour, ${source.titre}`}
+          titre={prenom ? `Bonjour ${prenom}` : 'Bonjour'}
+          sousTitre={source.titre}
           texte={texte}
           pct={force.total}
           legende="page complète"
@@ -102,9 +104,9 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             <CarteEtablissement
               titre={source.titre}
               type={source.type}
-              extrait={d.accroche ?? source.extrait}
+              extrait={intituleDiplome(d.accroche ?? source.extrait ?? '') || null}
               image={d.galerie[0] ?? source.image}
-              lignes={actives(d).map((f) => ({ nom: f.intitule, duree: f.duree }))}
+              lignes={actives(d).map((f) => ({ nom: intituleDiplome(f.intitule), duree: f.duree }))}
               ville={source.ville}
             />
           </ul>
@@ -150,7 +152,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             {sections.slice(0, 8).map((s) => (
               <li key={s.cle} className="flex items-center justify-between gap-3 text-sm">
                 <span className="truncate text-fg">{s.titre}</span>
-                {s.bientot ? <span className="squircle-full bg-bg-soft px-2 py-0.5 text-xs text-fg-2 ring-1 ring-inset ring-line">Bientôt</span> : <Statut s={s.statut} />}
+                {s.bientot ? <span className="squircle-full bg-bg-soft px-2 py-0.5 text-xs text-fg-2 ring-1 ring-inset ring-line">Bientôt</span> : <Statut s={s.statut} libelle={s.cle === 'formations' && s.statut === 'incomplete' ? s.manque : undefined} />}
               </li>
             ))}
           </ul>

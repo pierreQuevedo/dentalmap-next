@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { twMerge } from 'tailwind-merge'
 import Link from 'next/link'
 import Image from 'next/image'
 import { EnVerification } from './en-verification'
@@ -398,7 +399,8 @@ export function CoqueEspace({
 
 export function Tuile({ className = '', id, children }: { className?: string; id?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className={`squircle-2xl min-w-0 border border-line bg-bg p-5 ${className}`}>
+    // twMerge : un `p-0` ou un `px-6` passé en classe remplace bien le `p-5` par défaut.
+    <section id={id} className={twMerge('squircle-2xl min-w-0 border border-line bg-bg p-5', className)}>
       {children}
     </section>
   )

@@ -68,20 +68,22 @@ export function EmploiVerrouille({ reste, q }: { reste: number; q: string }) {
 /** Les usages de l'onglet Emploi : créer un poste (ses offres), en rechercher un, suivre ses candidatures. Sans fiche, pas de « Créer un poste ». */
 export function OngletsEmploi({ actif, q, sansFiche = false }: { actif: 'creer' | 'rechercher' | 'mes'; q: string; sansFiche?: boolean }) {
   const onglets = [
-    { cle: 'creer', libelle: 'Créer un poste', href: `/espace-pro/emploi/${q}`, I: Megaphone },
-    { cle: 'rechercher', libelle: 'Rechercher un poste', href: `/espace-pro/emploi/recherche/${q}`, I: Search },
-    { cle: 'mes', libelle: 'Mes candidatures', href: `/espace-pro/emploi/candidat/${q}`, I: Send },
+    { cle: 'creer', libelle: 'Créer un poste', court: 'Créer', href: `/espace-pro/emploi/${q}`, I: Megaphone },
+    { cle: 'rechercher', libelle: 'Rechercher un poste', court: 'Rechercher', href: `/espace-pro/emploi/recherche/${q}`, I: Search },
+    { cle: 'mes', libelle: 'Mes candidatures', court: 'Mes candidatures', href: `/espace-pro/emploi/candidat/${q}`, I: Send },
   ] as const
   return (
     <nav aria-label="Emploi" className="squircle-full mb-4 flex w-full bg-bg-soft p-1 sm:inline-flex sm:w-auto">
-      {onglets.filter((o) => !sansFiche || o.cle !== 'creer').map(({ cle, libelle, href, I }) => (
+      {onglets.filter((o) => !sansFiche || o.cle !== 'creer').map(({ cle, libelle, court, href, I }) => (
         <Link
           key={cle}
           href={chemin(href)}
           aria-current={actif === cle ? 'page' : undefined}
           className={`squircle-full inline-flex h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap px-3 text-sm font-semibold sm:flex-none sm:px-5 ${actif === cle ? 'bg-fg text-bg shadow-sm' : 'text-fg-2 hover:text-fg'}`}
         >
-          <I className="size-4" aria-hidden /> {libelle}
+          {/* Sur téléphone, libellés courts et sans icône : les trois onglets tiennent dans la largeur. */}
+          <I className="hidden size-4 sm:block" aria-hidden /> <span className="sm:hidden">{court}</span>
+          <span className="hidden sm:inline">{libelle}</span>
         </Link>
       ))}
     </nav>
