@@ -146,9 +146,9 @@ export const JOURS_CENTRE = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 
 const texte = (max: number) => z.string().trim().max(max)
 const ident = z.string().trim().min(1).max(40)
 
-/** L'intitulé d'un diplôme tel qu'on l'affiche : « Bac+3 » devient « Bac + 3 », comme le niveau. */
+/** L'intitulé d'un diplôme tel qu'on l'affiche : « Bac+3 » devient « Bac + 3 », comme le niveau, et « diplôme d'état » prend sa majuscule. */
 export function intituleDiplome(intitule: string): string {
-  return intitule.replace(/\b(bac)\s*\+\s*(\d)/gi, (_, bac: string, n: string) => `${bac} + ${n}`)
+  return intitule.replace(/\b(bac)\s*\+\s*(\d)/gi, (_, bac: string, n: string) => `${bac} + ${n}`).replace(/\b(dipl[ôo]me)\s+d['’]\s*[ée]tat\b/gi, (_, d: string) => `${d} d’État`)
 }
 
 export const FormationDeclaree = z.object({

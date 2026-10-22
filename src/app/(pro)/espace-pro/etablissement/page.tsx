@@ -6,7 +6,7 @@ import { CarteEtablissement } from '@/components/espace/etablissement'
 import { TuileActivite, TuileSombre } from '@/components/espace/tuiles'
 import { chemin } from '@/lib/navigation'
 import { publierEtablissement } from '@/lib/espace-pro/actions-etablissement'
-import { actives, portesOuvertesAJour, intituleDiplome, libelleSection } from '@/lib/espace-pro/etablissement'
+import { actives, portesOuvertesAJour, intituleDiplome, libelleSection, dureeCourte } from '@/lib/espace-pro/etablissement'
 import { aujourdhui, quand } from '../_commun'
 import { Retour, chargerEtablissement, dateCourte, versEtab } from './_commun'
 
@@ -100,13 +100,14 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         />
         <Tuile>
           <TitreTuile i={Eye}>Aperçu public</TitreTuile>
-          <ul className="mt-4">
+          {/* À la taille d'une carte, comme dans l'annuaire, même quand la tuile passe en pleine largeur. */}
+          <ul className="mx-auto mt-4 max-w-sm">
             <CarteEtablissement
               titre={source.titre}
               type={source.type}
               extrait={intituleDiplome(d.accroche ?? source.extrait ?? '') || null}
               image={d.galerie[0] ?? source.image}
-              lignes={actives(d).map((f) => ({ nom: intituleDiplome(f.intitule), duree: f.duree }))}
+              lignes={actives(d).map((f) => ({ nom: intituleDiplome(f.intitule), duree: dureeCourte(f.duree) }))}
               ville={source.ville}
             />
           </ul>

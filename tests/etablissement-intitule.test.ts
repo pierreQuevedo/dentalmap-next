@@ -41,3 +41,10 @@ describe('faculté', () => {
     expect(formationsFaculte(null, null)[0].places).toBeNull()
   })
 })
+
+describe('diplôme d’État', () => {
+  it('prend sa majuscule', () => {
+    expect(intituleDiplome('diplôme d’état de docteur en chirurgie dentaire')).toBe('diplôme d’État de docteur en chirurgie dentaire')
+    expect(intituleDiplome("Diplôme d'état")).toBe('Diplôme d’État')
+  })
+})
