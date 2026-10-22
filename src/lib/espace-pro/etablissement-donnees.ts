@@ -35,6 +35,8 @@ export type SourceEtablissement = {
   ville: string | null
   adresse: string | null
   uai: string | null
+  /** Le statut tel que la fiche le porte : « École privée », « Public ». */
+  statut: string | null
   universite: string | null
   image: { url: string; alt: string } | null
   /** Page publique de la formation. */
@@ -64,6 +66,7 @@ export async function getSourceEtablissement(slug: string): Promise<SourceEtabli
     ville: f.ville,
     adresse: ecole?.adresse ?? fac?.adresse ?? null,
     uai: f.uai,
+    statut: fac ? 'Public, rattachée à l’université' : (ecole?.type ?? (ecole?.statut === 'prive' ? 'Privé' : ecole?.statut === 'public' ? 'Public' : null)),
     universite: fac?.universite ?? null,
     image: f.image,
     lien: lienFormation(f),

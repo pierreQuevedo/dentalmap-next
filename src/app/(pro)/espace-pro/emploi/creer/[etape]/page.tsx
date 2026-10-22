@@ -98,11 +98,13 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
             {ETAPES_OFFRE.map((e, i) => {
               const actif = e.cle === etape
               const accessible = e.cle === 'cabinet' || e.cle === 'poste' || Boolean(o)
-              const faite = i < position || (o && e.cle !== 'publication' && !manques.some((m) => m.etape === e.cle) && i !== position)
+              // Une étape n'est cochée que complète : il lui manque quelque chose, elle porte une pastille d'alerte.
+              const manque = manques.some((m) => m.etape === e.cle)
+              const faite = !manque && (i < position || (o && e.cle !== 'publication' && i !== position))
               const contenu = (
                 <>
-                  <span className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold ${actif ? 'bg-fg text-bg' : faite ? 'bg-teal/15 text-teal' : 'bg-bg-soft text-fg-2'}`}>
-                    {faite && !actif ? <Check className="size-3.5" aria-hidden /> : i + 1}
+                  <span className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold ${actif ? 'bg-fg text-bg' : manque ? 'bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300' : faite ? 'bg-teal/15 text-teal' : 'bg-bg-soft text-fg-2'}`}>
+                    {actif ? i + 1 : manque ? <CircleAlert className="size-3.5" aria-label="À compléter" /> : faite ? <Check className="size-3.5" aria-hidden /> : i + 1}
                   </span>
                   <span className={`min-w-0 ${actif ? '' : 'hidden lg:block'}`}>
                     <span className={`block whitespace-nowrap text-sm ${actif ? 'font-semibold text-fg' : 'font-medium text-fg'}`}>{e.titre}</span>
@@ -135,7 +137,7 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
           <h2 className="mt-1 text-xl font-semibold tracking-tight text-fg">{ETAPES_OFFRE[position].titre}</h2>
           <p className="mt-1 text-sm text-fg-2">{INTRO[etape]}</p>
           <div className="mt-6">
-            <FormulaireEtape etape={etape} fiche={fiche.slug} offre={o?.id ?? null} retour={retour} enLigne={enLigne} peutPublier={peutPublier} lieux={lieux} valeurs={valeurs}>
+            <FormulaireEtape etape={etape} fiche={fiche.slug} offre={o?.id ?? null} retour={retour} enLigne={enLigne} peutPublier={peutPublier && manques.length === 0} lieux={lieux} valeurs={valeurs}>
               {etape === 'publication' && o && <Recapitulatif o={o} cabinet={cabinet.presentation} manques={manques} lien={lien} />}
             </FormulaireEtape>
           </div>
@@ -213,14 +215,14 @@ function Recapitulatif({
         </ul>
       )}
       {blocs.map((b) => (
-        <section key={b.etape} className="squircle-xl border border-line p-4">
+        <section key={b.etape} className="squircle-xl border border-line px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold text-fg">{b.titre}</h3>
             <Link href={chemin(lien(b.etape))} className="inline-flex items-center gap-1 text-xs font-medium text-fg-2 hover:text-fg">
               <Pencil className="size-3.5" aria-hidden /> Modifier
             </Link>
           </div>
-          <div className="mt-2 text-sm text-fg">{b.contenu}</div>
+          <div className="mt-1.5 text-sm text-fg">{b.contenu}</div>
         </section>
       ))}
     </div>
