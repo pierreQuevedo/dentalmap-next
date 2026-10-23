@@ -116,7 +116,6 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             adresse={new URL(SITE_URL).host.replace(/^www\./, '')}
             photo={photo}
             points={POINTS_AVIS}
-            recherche={recherchePour(source.type)}
           />
         </div>
       </Tuile>

@@ -29,9 +29,8 @@ type Props = {
   /** L'adresse lisible du formulaire. */
   adresse: string
   photo: string | null
-  /** Les points de mise en avant gagnés par un avis, et la recherche qu'ils servent (« stage ou d’alternance »). */
+  /** Les points de mise en avant gagnés par un avis. */
   points: number
-  recherche: string
 }
 
 export function VisuelsAvis(props: Props) {
@@ -127,8 +126,44 @@ export function VisuelsAvis(props: Props) {
   )
 }
 
+/**
+ * Les polices des visuels, embarquées une fois pour toutes : seulement les
+ * @font-face de la police du site, fichiers en data URL. Sans elles,
+ * html-to-image parcourt toutes les feuilles de style de la page (celle de la
+ * carte comprise) à la première exportation, ce qui prend une minute.
+ */
+let polices: Promise<string> | null = null
+function policesEmbarquees(): Promise<string> {
+  polices ??= (async () => {
+    const regles: CSSFontFaceRule[] = []
+    for (const feuille of document.styleSheets) {
+      try {
+        for (const r of feuille.cssRules) if (r instanceof CSSFontFaceRule && /figtree/i.test(r.style.getPropertyValue('font-family'))) regles.push(r)
+      } catch {
+        // Feuille d'une autre origine : illisible, et sans la police du site.
+      }
+    }
+    const blocs = await Promise.all(
+      regles.map(async (r) => {
+        const m = /url\(["']?([^"')]+)["']?\)/.exec(r.style.getPropertyValue('src'))
+        if (!m) return ''
+        const url = new URL(m[1]!, r.parentStyleSheet?.href ?? location.href).href
+        const fichier = await fetch(url).then((x) => x.blob())
+        const donnees = await new Promise<string>((ok) => {
+          const lecteur = new FileReader()
+          lecteur.onload = () => ok(String(lecteur.result))
+          lecteur.readAsDataURL(fichier)
+        })
+        return r.cssText.replace(m[0], `url("${donnees}")`)
+      }),
+    )
+    return blocs.join('\n')
+  })()
+  return polices
+}
+
 /** Le visuel à taille réelle ; exporté en PNG dès que tout est chargé. */
-function Composition({ format, nom, faculte, qr, adresse, photo, points, recherche, onPret }: Props & { format: FormatAvis; onPret: (f: File) => void }) {
+function Composition({ format, nom, faculte, qr, adresse, photo, points, onPret }: Props & { format: FormatAvis; onPret: (f: File) => void }) {
   const racine = useRef<HTMLDivElement>(null)
   const pret = useRef(onPret)
   useEffect(() => {
@@ -147,9 +182,9 @@ function Composition({ format, nom, faculte, qr, adresse, photo, points, recherc
       await document.fonts.ready
       const images = [...noeud.querySelectorAll('img')].filter((i) => !i.complete)
       await Promise.race([Promise.all(images.map((i) => new Promise((ok) => (i.addEventListener('load', ok, { once: true }), i.addEventListener('error', ok, { once: true }))))), new Promise((ok) => setTimeout(ok, 4000))])
-      const options = { width: f.l, height: f.h, pixelRatio: f.ratio, style: { transform: 'none' } }
-      // Une première passe charge les ressources, la seconde les dessine : contournement connu de Safari.
-      await toBlob(noeud, options).catch(() => null)
+      const options = { width: f.l, height: f.h, pixelRatio: f.ratio, style: { transform: 'none' }, fontEmbedCSS: await policesEmbarquees() }
+      // Safari dessine mal la première passe : une passe à blanc charge les ressources. Ailleurs, une seule suffit.
+      if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) await toBlob(noeud, options).catch(() => null)
       const blob = await toBlob(noeud, options)
       if (!annule && blob) pret.current(new File([blob], `dentalmap-avis-${format}.png`, { type: 'image/png' }))
     })().catch((e) => console.error('[visuel avis] export impossible', e))
@@ -164,8 +199,10 @@ function Composition({ format, nom, faculte, qr, adresse, photo, points, recherc
     : story
       ? { photo: 600, marge: 90, titre: 112, sous: 40, qr: 280, logo: 52, sceau: 280 }
       : { photo: 0, marge: 72, titre: 84, sous: 30, qr: 230, logo: 46, sceau: 220 }
-  const lieu = faculte ? 'votre faculté' : 'votre école'
-  const etapes = ['Scannez le code', 'Donnez votre avis', `+${points} points sur votre profil`]
+  // Ce que vise l'étudiant, et qui recrute : l'alternance n'existe qu'en école de prothèse.
+  const objectif = faculte ? 'votre stage ou votre job étudiant' : 'votre stage ou votre alternance'
+  const recruteurs = faculte ? 'cabinets' : 'laboratoires'
+  const etapes = ['Scannez', 'Donnez votre avis', 'Passez devant']
 
   return (
     <div ref={racine} className="relative overflow-hidden bg-[#0B1F1D] font-sans text-white" style={{ width: f.l, height: f.h }}>
@@ -193,13 +230,13 @@ function Composition({ format, nom, faculte, qr, adresse, photo, points, recherc
 
       <div className="absolute flex flex-col" style={{ left: m.marge, right: carre ? 440 : m.marge + (story ? 0 : 40), top: carre ? 200 : m.photo + (story ? 10 : 20) }}>
         <p className="font-mono tracking-[0.18em] text-[#BFE3D6]" style={{ fontSize: m.sous * 0.6 }}>
-          AVIS · {faculte ? 'FACULTÉ' : 'ÉCOLE'}
+          VOUS Y AVEZ ÉTUDIÉ ?
         </p>
         <p className="mt-4 font-extrabold tracking-[-0.035em]" style={{ fontSize: m.titre, lineHeight: 0.98 }}>
-          Donnez votre avis sur {lieu}.
+          Votre avis vaut <span className="text-[#BFE3D6]">+{points}&nbsp;points.</span>
         </p>
         <p className="mt-6 text-white/85" style={{ fontSize: m.sous, lineHeight: 1.3 }}>
-          Et gagnez <b className="text-[#BFE3D6]">+{points} points de mise en avant</b> pour votre recherche de {recherche} sur DentalMap.
+          Racontez {faculte ? 'votre faculté' : 'votre école'} en deux minutes : votre profil passe devant les {recruteurs} qui recrutent pour <b className="text-white">{objectif}</b>.
         </p>
         {!carre && (
           <ol className="mt-10 flex gap-4">
@@ -223,11 +260,11 @@ function Composition({ format, nom, faculte, qr, adresse, photo, points, recherc
         <img src={qr} alt="" style={{ width: m.qr, height: m.qr }} />
         <div className={carre ? 'text-center' : ''}>
           <p className="font-extrabold tracking-[-0.02em]" style={{ fontSize: carre ? m.sous * 0.8 : m.sous * 1.2, lineHeight: 1.05 }}>
-            Scannez et donnez votre avis
+            {carre ? 'Scannez, c’est parti' : 'Scannez, c’est deux minutes'}
           </p>
           {!carre && (
             <p className="mt-3 text-[#0B1F1D]/70" style={{ fontSize: m.sous * 0.7 }}>
-              Deux minutes. Votre avis aide les futurs étudiants, et les points s’ajoutent à votre profil candidat.
+              Votre avis aide les futurs étudiants à choisir. Vos +{points} points vous attendent sur votre profil candidat DentalMap.
             </p>
           )}
           <p className="mt-3 font-mono text-[#0B8484]" style={{ fontSize: carre ? m.sous * 0.5 : m.sous * 0.6 }}>
