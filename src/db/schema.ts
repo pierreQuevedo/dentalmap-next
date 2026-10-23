@@ -779,6 +779,9 @@ export const offres = pgTable('offres', {
   confirmeeLe: timestamp('confirmee_le', { withTimezone: true }),
   expireLe: timestamp('expire_le', { withTimezone: true }),
   clotureeLe: timestamp('cloturee_le', { withTimezone: true }),
+  /** Emails au recruteur sur la confirmation : le rappel avant l'échéance des 15 jours, puis l'avis de sortie de la recherche. Un de chaque par quinzaine. */
+  rappelConfirmationLe: timestamp('rappel_confirmation_le', { withTimezone: true }),
+  sortieSignaleeLe: timestamp('sortie_signalee_le', { withTimezone: true }),
   creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
   majLe: timestamp('maj_le', { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [

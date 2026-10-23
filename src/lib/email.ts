@@ -598,6 +598,33 @@ export async function envoyerNouvelleCandidature(to: string, d: { offre: string;
   })
 }
 
+/** Au recruteur : son offre arrive au bout des 15 jours sans confirmation ; un clic la garde dans la recherche. */
+export async function envoyerRappelConfirmationOffre(to: string, d: { offre: string; avant: Date; url: string }) {
+  const date = d.avant.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+  await envoyer(to, `Votre offre « ${d.offre} » est-elle toujours d’actualité ?`, {
+    titre: 'Votre offre est-elle toujours d’actualité ?',
+    blocs: [
+      { type: 'texte', texte: `Confirmez votre offre « ${d.offre} » avant le ${date} : elle reste alors dans la recherche d’emploi et sur votre fiche pour 15 jours de plus.` },
+      { type: 'bouton', libelle: 'Confirmer mon offre', url: `${SITE}${d.url}` },
+      { type: 'texte', texte: 'Sans confirmation, elle sort de la recherche. Elle n’est pas supprimée : vous la remettez en ligne d’un clic depuis votre espace.' },
+    ],
+    raison: 'Vous recevez cet email parce que vous avez publié une offre d’emploi sur DentalMap.',
+  })
+}
+
+/** Au recruteur : faute de confirmation, son offre est sortie de la recherche ; elle reste dans son espace. */
+export async function envoyerOffreNonConfirmee(to: string, d: { offre: string; url: string }) {
+  await envoyer(to, `Votre offre « ${d.offre} » n’est plus visible`, {
+    titre: 'Votre offre n’est plus visible',
+    blocs: [
+      { type: 'texte', texte: `Faute de confirmation depuis 15 jours, votre offre « ${d.offre} » n’apparaît plus dans la recherche d’emploi ni sur votre fiche.` },
+      { type: 'bouton', libelle: 'Remettre mon offre en ligne', url: `${SITE}${d.url}` },
+      { type: 'texte', texte: 'Elle n’est pas supprimée, et ses candidatures non plus. Si le poste est pourvu, indiquez-le depuis la même page.' },
+    ],
+    raison: 'Vous recevez cet email parce que vous avez publié une offre d’emploi sur DentalMap.',
+  })
+}
+
 /** À un profil disponible : un recruteur l'invite à postuler à l'une de ses offres. Rien n'est transmis au recruteur. */
 export async function envoyerInvitationAPostuler(to: string, d: { recruteur: string; offre: string; message: string | null; url: string }) {
   await envoyer(to, `${d.recruteur} vous invite à postuler`, {
