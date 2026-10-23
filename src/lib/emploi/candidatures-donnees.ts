@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { nomAffiche, type Profession } from '@/lib/annuaire/types'
 import type { StatutCandidature } from './candidature'
 import { libelleQualification, lireCriteres, lireExperiences, lireFormation, lireVisibilite, situationDe, type Criteres, type Experience, type Situation, type Visibilite } from './profil-candidat'
+import { offreEnLigne } from './en-ligne'
 
 /**
  * Les candidatures en base, côté recruteur et côté candidat. Lecture
@@ -131,7 +132,7 @@ export async function getCandidaturesEnvoyees(userId: string): Promise<Candidatu
     }>(sql`
     SELECT k.id, k.statut, k.origine, k.message, k.cv_nom, k.cree_le,
            o.id AS offre_id, o.slug AS offre_slug, o.titre AS offre_titre,
-           (o.statut = 'en_ligne' AND (o.expire_le IS NULL OR o.expire_le > now())) AS en_ligne,
+           ${offreEnLigne()} AS en_ligne,
            cm.nom AS commune_nom, p.profession, p.nom, p.prenom, p.raison_sociale
     FROM candidatures k
     JOIN offres o ON o.id = k.offre_id

@@ -11,6 +11,7 @@ import type { LieuRevendication } from '@/lib/espace-pro/parcours'
 
 export function pastilleOffre(etat: ReturnType<typeof etatOffre>): { libelle: string; classe: string } {
   if (etat.etat === 'en_ligne') return etat.aConfirmer ? { libelle: 'À confirmer', classe: 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-400/30' } : { libelle: 'En ligne', classe: 'bg-teal/10 text-teal ring-teal/20' }
+  if (etat.etat === 'non_confirmee') return { libelle: 'Non confirmée', classe: 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-400/30' }
   if (etat.etat === 'brouillon') return { libelle: 'Brouillon', classe: 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-400/30' }
   return { libelle: etat.etat === 'pourvue' ? 'Pourvue' : etat.etat === 'expiree' ? 'Expirée' : 'Retirée', classe: 'bg-bg-soft text-fg-2 ring-line' }
 }

@@ -8,6 +8,7 @@ import { lireFrequence, peutEnvoyer, titreAlerte } from './alertes-compte'
 import { cheminOffre } from './chemins'
 import { remuneration } from './format'
 import { LIBELLE_CONTRAT, type CodeContrat, type ModeRemuneration } from './metiers'
+import { offreEnLigne } from './en-ligne'
 
 /**
  * Le job `alertes-emploi` (`/api/cron/alertes-emploi/`, chaque matin) : pour
@@ -63,7 +64,7 @@ export async function envoyerAlertesEmploi(maintenant = new Date()): Promise<{ e
       FROM offres o
       JOIN praticiens p ON p.id = o.praticien_id
       JOIN communes cm ON cm.code_insee = o.commune_code
-      WHERE o.statut = 'en_ligne' AND (o.expire_le IS NULL OR o.expire_le > now()) AND p.deleted_at IS NULL
+      WHERE ${offreEnLigne()} AND p.deleted_at IS NULL
         AND o.publiee_le > ${a.depuis}
         ${cr.metiers.length ? sql`AND o.metier IN (${sql.join(cr.metiers.map((m) => sql`${m}`), sql`, `)})` : sql``}
         ${cr.contrats.length ? sql`AND o.contrat IN (${sql.join(cr.contrats.map((x) => sql`${x}`), sql`, `)})` : sql``}

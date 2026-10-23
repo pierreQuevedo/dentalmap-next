@@ -7,7 +7,7 @@ import type { CodeContrat, ModeRemuneration } from './metiers'
 
 /** Une offre reste en ligne 30 jours, renouvelable d'un clic. */
 export const DUREE_OFFRE_JOURS = 30
-/** Le recruteur confirme son offre tous les 15 jours ; sans confirmation, elle est retirée (tâche planifiée). */
+/** Le recruteur confirme son offre tous les 15 jours ; sans confirmation, elle sort de la recherche (`offreEnLigne`) et reste dans ses offres. */
 export const CONFIRMATION_JOURS = 15
 /** Les candidatures sont supprimées 6 mois après la clôture. */
 export const CONSERVATION_CANDIDATURES_MOIS = 6
@@ -34,10 +34,12 @@ export type EtatOffre =
   | { etat: 'brouillon' }
   | { etat: 'en_ligne'; depuisJours: number; resteJours: number; aConfirmer: boolean; confirmerAvant: Date }
   | { etat: 'pourvue' | 'expiree' | 'retiree'; le: Date | null }
+  /** Pas confirmée à temps : hors de la recherche, remise en ligne en la confirmant. */
+  | { etat: 'non_confirmee'; le: Date }
 
 const JOUR = 86_400_000
 
-/** Où en est une offre aujourd'hui. Une offre en ligne dont l'échéance est passée est expirée. */
+/** Où en est une offre aujourd'hui. Une offre en ligne dont l'échéance est passée est expirée ; sans confirmation depuis 15 jours, non confirmée. */
 export function etatOffre(
   o: { statut: StatutOffre; publieeLe: Date | null; confirmeeLe: Date | null; expireLe: Date | null; clotureeLe: Date | null },
   maintenant = new Date(),
@@ -48,6 +50,7 @@ export function etatOffre(
   const publiee = o.publieeLe ?? maintenant
   const confirmee = o.confirmeeLe ?? publiee
   const confirmerAvant = new Date(confirmee.getTime() + CONFIRMATION_JOURS * JOUR)
+  if (confirmerAvant.getTime() <= maintenant.getTime()) return { etat: 'non_confirmee', le: confirmerAvant }
   return {
     etat: 'en_ligne',
     depuisJours: Math.max(0, Math.floor((maintenant.getTime() - publiee.getTime()) / JOUR)),

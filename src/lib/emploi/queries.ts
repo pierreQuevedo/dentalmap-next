@@ -20,11 +20,12 @@ import { BASE_URL, cheminPraticien, type Profession } from '@/lib/annuaire/types
 import { resumeDepuisLigne, type LigneOffre } from './ligne'
 import type { CodeContrat, CodeMetier } from './metiers'
 import type { OffreDetail, OffreResume } from './types'
+import { offreEnLigne } from './en-ligne'
 
 /** Taille d'une page de liste départementale ou nationale. */
 export const PAR_PAGE_EMPLOI = 20
 
-const VISIBLE = sql`o.statut = 'en_ligne' AND (o.expire_le IS NULL OR o.expire_le > now()) AND p.deleted_at IS NULL`
+const VISIBLE = sql`${offreEnLigne()} AND p.deleted_at IS NULL`
 
 /** Les colonnes d'une offre résumée ; `metres` est la distance à `origine`, ou nulle. */
 function colonnes(origine: SQL | null): SQL {

@@ -20,6 +20,10 @@ describe('offres côté recruteur', () => {
     const vieille = etatOffre({ statut: 'en_ligne', publieeLe: il(13), confirmeeLe: il(13), expireLe: dans(17), clotureeLe: null }, maintenant)
     expect(vieille).toMatchObject({ etat: 'en_ligne', aConfirmer: true })
   })
+  it('pas confirmée depuis 15 jours : non confirmée, avant l’échéance', () => {
+    const e = etatOffre({ statut: 'en_ligne', publieeLe: il(20), confirmeeLe: il(16), expireLe: dans(10), clotureeLe: null }, maintenant)
+    expect(e.etat).toBe('non_confirmee')
+  })
   it('échéance passée : expirée', () => {
     expect(etatOffre({ statut: 'en_ligne', publieeLe: il(31), confirmeeLe: il(1), expireLe: il(1), clotureeLe: null }, maintenant).etat).toBe('expiree')
   })

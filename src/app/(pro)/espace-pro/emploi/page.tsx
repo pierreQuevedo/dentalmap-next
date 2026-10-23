@@ -38,7 +38,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const nouvelles = enLigne.reduce((t, o) => t + o.nouvelles, 0)
   const visibles = offres.filter((o) => {
     const e = etats.get(o.id)!.etat
-    return vue === 'toutes' || (vue === 'en_ligne' ? e === 'en_ligne' || e === 'brouillon' : e !== 'en_ligne' && e !== 'brouillon')
+    return vue === 'toutes' || (vue === 'en_ligne' ? e === 'en_ligne' || e === 'brouillon' || e === 'non_confirmee' : e !== 'en_ligne' && e !== 'brouillon' && e !== 'non_confirmee')
   })
   const base = `/espace-pro/emploi/${q}`
   const avec = (x: string) => `${base}${q ? '&' : '?'}${x}`
@@ -169,7 +169,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             <ul className="mt-4 space-y-4 text-sm">
               {(
                 [
-                  [CalendarClock, `Publiée ${DUREE_OFFRE_JOURS} jours`, 'Confirmée d’un clic tous les 15 jours, renouvelable à l’échéance. Sans confirmation, elle est retirée d’elle-même.'],
+                  [CalendarClock, `Publiée ${DUREE_OFFRE_JOURS} jours`, 'Confirmée d’un clic tous les 15 jours, renouvelable à l’échéance. Sans confirmation, elle sort de la recherche et reste ici, prête à être remise en ligne.'],
                   [Euro, 'Rémunération affichée', 'Obligatoire : une fourchette brute mensuelle, ou un pourcentage des honoraires. Sans elle, l’offre n’est pas publiée.'],
                   [Clock, `Candidatures conservées ${CONSERVATION_CANDIDATURES_MOIS} mois`, `Elles sont supprimées ${CONSERVATION_CANDIDATURES_MOIS} mois après la clôture de l’offre, CV compris.`],
                 ] as const

@@ -13,6 +13,7 @@ import { CV_MAX_OCTETS, MESSAGE_MAX, nomCandidat, telephoneValide } from './cand
 import { cheminOffre } from './chemins'
 import { rangerCv } from './cv'
 import { recruteur } from './recruteur'
+import { offreEnLigne } from './en-ligne'
 
 /**
  * Les candidatures : postuler (un compte connecté suffit, sans palier, le
@@ -37,7 +38,7 @@ export async function postuler(_: EtatCandidature, donnees: FormData): Promise<E
     SELECT o.id, o.titre, o.praticien_id, u.email AS auteur_email,
            EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = o.praticien_id AND v.user_id = ${compte.id}::uuid AND v.statut = 'acceptee') AS propre
     FROM offres o JOIN "user" u ON u.id = o.auteur_user_id
-    WHERE o.slug = ${slug} AND o.statut = 'en_ligne' AND (o.expire_le IS NULL OR o.expire_le > now())
+    WHERE o.slug = ${slug} AND ${offreEnLigne()}
   `)
   const o = rows[0]
   if (!o) return { erreur: 'Cette offre n’est plus en ligne.' }
@@ -135,7 +136,7 @@ export async function inviterAPostuler(_: EtatCandidature, donnees: FormData): P
   if (!r) return { erreur: 'Réservé aux recruteurs à la fiche vérifiée.' }
   if (v.profil === r.compte.id) return { erreur: 'C’est votre propre profil.' }
   const { rows: offres } = await db.execute<{ titre: string; slug: string }>(sql`
-    SELECT titre, slug FROM offres WHERE id = ${v.offre} AND praticien_id = ${r.espace.fiche.id} AND statut = 'en_ligne' AND (expire_le IS NULL OR expire_le > now())
+    SELECT titre, slug FROM offres WHERE id = ${v.offre} AND praticien_id = ${r.espace.fiche.id} AND ${offreEnLigne('')}
   `)
   if (!offres[0]) return { erreur: 'Choisissez l’une de vos offres en ligne.', champ: 'offre' }
   const { rows: profils } = await db.execute<{ email: string; deja: boolean }>(sql`

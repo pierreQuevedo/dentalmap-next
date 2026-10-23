@@ -42,6 +42,8 @@ export default async function Page(props: { params: Promise<{ offre: string }>; 
   const echeance =
     e.etat === 'en_ligne'
       ? `En ligne depuis ${e.depuisJours ? `${e.depuisJours} jour${e.depuisJours > 1 ? 's' : ''}` : 'aujourd’hui'}, jusqu’au ${o.expireLe ? dateLongue(o.expireLe.toISOString()) : '?'}. À confirmer avant le ${dateCourte(e.confirmerAvant.toISOString())}.`
+      : e.etat === 'non_confirmee'
+        ? `Pas confirmée depuis le ${dateLongue(e.le.toISOString())} : elle n’apparaît plus dans la recherche ni sur votre fiche. Confirmez-la pour la remettre en ligne jusqu’au ${o.expireLe ? dateLongue(o.expireLe.toISOString()) : '?'}.`
       : e.etat === 'brouillon'
         ? `Brouillon créé le ${dateLongue(o.creeLe.toISOString())}, pas encore publié.`
         : `${e.etat === 'pourvue' ? 'Pourvue' : e.etat === 'expiree' ? 'Expirée' : 'Retirée'} le ${e.le ? dateLongue(e.le.toISOString()) : '?'}.${
@@ -77,7 +79,7 @@ export default async function Page(props: { params: Promise<{ offre: string }>; 
           <Check className="size-4 shrink-0" aria-hidden /> {message}
         </p>
       )}
-      {!ouvert && (e.etat === 'brouillon' || e.etat !== 'en_ligne') && espace.ctx.identiteVerifiee && (
+      {!ouvert && e.etat !== 'en_ligne' && e.etat !== 'non_confirmee' && espace.ctx.identiteVerifiee && (
         <div className="mb-4">
           <EmploiVerrouille reste={Math.max(0, PALIERS[PALIER_EMPLOI - 1].seuil - points.total)} q={q} />
         </div>
@@ -99,6 +101,16 @@ export default async function Page(props: { params: Promise<{ offre: string }>; 
                     </GesteOffre>
                     <GesteOffre offre={o.id} fiche={fiche.slug} geste="pourvue" retour={ici}>
                       <Check className="size-4" aria-hidden /> Pourvue
+                    </GesteOffre>
+                    <GesteOffre offre={o.id} fiche={fiche.slug} geste="retirer">
+                      Retirer
+                    </GesteOffre>
+                  </>
+                )}
+                {e.etat === 'non_confirmee' && (
+                  <>
+                    <GesteOffre offre={o.id} fiche={fiche.slug} geste="confirmer" retour={ici} principal>
+                      <RefreshCw className="size-4" aria-hidden /> Remettre en ligne
                     </GesteOffre>
                     <GesteOffre offre={o.id} fiche={fiche.slug} geste="retirer">
                       Retirer

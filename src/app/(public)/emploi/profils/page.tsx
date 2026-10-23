@@ -16,6 +16,7 @@ import { CODES_SITUATION, SITUATIONS, pucesCriteres, type Situation } from '@/li
 import { getProfilsDisponibles } from '@/lib/emploi/profils-disponibles'
 import { getEspace } from '@/lib/espace-pro/espace'
 import { getCompte } from '@/lib/tunnel/compte'
+import { offreEnLigne } from '@/lib/emploi/en-ligne'
 
 export const metadata: Metadata = {
   title: 'Profils disponibles : assistant(e)s, secrétaires, prothésistes',
@@ -38,7 +39,7 @@ async function recruteurQuiRegarde() {
   const { rows } = await db.execute<{ id: string; titre: string; candidats: string[] }>(sql`
     SELECT o.id, o.titre, coalesce(array_agg(k.candidat_user_id::text) FILTER (WHERE k.id IS NOT NULL), '{}') AS candidats
     FROM offres o LEFT JOIN candidatures k ON k.offre_id = o.id
-    WHERE o.praticien_id = ${espace.fiche.id} AND o.statut = 'en_ligne' AND (o.expire_le IS NULL OR o.expire_le > now())
+    WHERE o.praticien_id = ${espace.fiche.id} AND ${offreEnLigne()}
     GROUP BY o.id ORDER BY o.publiee_le DESC
   `)
   const lieu = espace.fiche.lieux.find((l) => l.principal && l.lon != null) ?? espace.fiche.lieux.find((l) => l.lon != null)
