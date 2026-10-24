@@ -40,8 +40,8 @@ export function BandeauForce({ force, verifiee = true, className = '' }: { force
 }
 
 /**
- * Les règles d'un formulaire : tant de cases cochées pour un nom de champ
- * rapportent tant de points (ceux qui restent à gagner). Placé dans le
+ * Les règles d'un formulaire : tant de champs cochés ou remplis pour un nom
+ * (ou un préfixe suivi de `*`) rapportent tant de points (ceux qui restent à gagner). Placé dans le
  * formulaire, il recalcule à chaque changement et l'annonce au bandeau.
  */
 export function SaisieEnDirect({ regles }: { regles: { champ: string; min: number; points: number }[] }) {
@@ -51,11 +51,15 @@ export function SaisieEnDirect({ regles }: { regles: { champ: string; min: numbe
     if (!formulaire) return
     const calculer = () => {
       const gain = regles.reduce((s, r) => {
-        const n = [...formulaire.querySelectorAll<HTMLInputElement>(`input[name="${r.champ}"]`)].filter((i) => (i.type === 'checkbox' || i.type === 'radio' ? i.checked : !!i.value.trim())).length
+        // « delai_* » : tous les champs qui commencent ainsi.
+        const selecteur = r.champ.endsWith('*') ? `input[name^="${r.champ.slice(0, -1)}"]` : `input[name="${r.champ}"]`
+        const n = [...formulaire.querySelectorAll<HTMLInputElement>(selecteur)].filter((i) => (i.type === 'checkbox' || i.type === 'radio' ? i.checked : !!i.value.trim())).length
         return s + (n >= r.min ? r.points : 0)
       }, 0)
       window.dispatchEvent(new CustomEvent(EVENEMENT_FORCE, { detail: gain }))
     }
+    // Un formulaire prérempli (délais types, rayon) compte dès l'arrivée.
+    calculer()
     formulaire.addEventListener('input', calculer)
     formulaire.addEventListener('change', calculer)
     return () => {

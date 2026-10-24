@@ -6,6 +6,7 @@ import { SaisieDelais, SaisieZone } from '@/components/espace/saisie-delais'
 import { chemin } from '@/lib/navigation'
 import { enregistrerDelaisEtZone } from '@/lib/espace-pro/actions-fiche'
 import { Gain, gainRestant } from '@/app/(compte)/espace-pro/onboarding/_commun'
+import { SaisieEnDirect } from '@/components/espace/bandeau-force'
 import { CoquilleOnboardingLabo, chargerOnboardingLabo, suivanteLabo, versEtapeLabo } from '../_commun'
 
 export const metadata: Metadata = { title: 'Délais et zone desservie', robots: { index: false, follow: false } }
@@ -28,6 +29,13 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <input type="hidden" name="fiche" value={fiche.slug} />
         <input type="hidden" name="suite" value={sp.suite?.startsWith('/espace-pro/') ? sp.suite : suivanteLabo('delais', fiche.slug)} />
         <input type="hidden" name="ici" value={versEtapeLabo('delais', fiche.slug)} />
+        {/* Le taux de l'aperçu suit la saisie : un délai au moins, et le rayon desservi. */}
+        <SaisieEnDirect
+          regles={[
+            { champ: 'delai_*', min: 1, points: gainRestant(espace, ['delais']) },
+            { champ: 'rayon', min: 1, points: gainRestant(espace, ['zone']) },
+          ]}
+        />
         <SaisieDelais initiaux={c?.delais ?? null} />
         <div className="mt-5">
           <SaisieZone rayon={c?.rayonKm ?? null} ramassage={c?.ramassage ?? null} jours={c?.joursRamassage ?? []} transporteur={c?.transporteur ?? null} />
