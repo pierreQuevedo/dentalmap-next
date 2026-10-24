@@ -45,7 +45,22 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
           erreurInitiale={sp.erreur}
           emplacements={[{ nom: 'document', titre: 'Glissez votre extrait Kbis', detail: 'PDF, 10 Mo au plus', document: 'Extrait Kbis' }]}
           libelle="Envoyer l’extrait Kbis"
-          apres={<Encart className="mt-3">L’équipe vérifie la date (moins de trois mois), le SIREN et le nom du gérant. Le document n’est vu que par elle.</Encart>}
+          apres={
+            <>
+              <p className="mt-2 text-xs text-fg-2">
+                Pas d’extrait récent ? Le dirigeant l’obtient gratuitement sur{' '}
+                <a href="https://www.monidenum.fr/" target="_blank" rel="noreferrer" className="font-medium text-fg underline underline-offset-2">
+                  MonIdenum
+                </a>
+                , ou sur{' '}
+                <a href="https://www.infogreffe.fr/" target="_blank" rel="noreferrer" className="font-medium text-fg underline underline-offset-2">
+                  Infogreffe
+                </a>
+                .
+              </p>
+              <Encart className="mt-3">L’équipe vérifie la date (moins de trois mois), le SIREN et le nom du gérant. Le document n’est vu que par elle, et il est supprimé 30 jours après sa décision.</Encart>
+            </>
+          }
         />
       </div>
     </CoquilleParcours>
