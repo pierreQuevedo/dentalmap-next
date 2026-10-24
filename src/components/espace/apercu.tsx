@@ -2,7 +2,8 @@ import Image from 'next/image'
 import { Check, Clock, Euro, FileText, FlaskConical, ImageIcon, MapPin, ShieldCheck, Stethoscope, Truck, Users, Wrench, type LucideIcon } from 'lucide-react'
 import type { Profession } from '@/lib/annuaire/types'
 import type { FicheCompletee } from '@/lib/espace-pro/fiche-completee'
-import { LIBELLE_PALIER, palierDe } from '@/lib/espace-pro/force'
+import { BandeauForce } from './bandeau-force'
+export { Anneau } from './anneau'
 import { resumeAccueil, resumeAujourdhui, resumeConventionnement, resumePresentation, resumeSoins } from '@/lib/espace-pro/resumes'
 
 /**
@@ -22,6 +23,7 @@ export function ApercuPatient({
   completee,
   enCours,
   force,
+  verifiee = true,
 }: {
   nom: string
   profession: Profession
@@ -30,6 +32,8 @@ export function ApercuPatient({
   completee: FicheCompletee | null
   enCours?: BlocApercu
   force: number
+  /** Identité vérifiée : sans elle, aucun palier n'est tenu. */
+  verifiee?: boolean
 }) {
   const blocs: { cle: BlocApercu; titre: string; i: LucideIcon; valeur: string | null }[] = [
     { cle: 'horaires', titre: 'Horaires', i: Clock, valeur: resumeAujourdhui(completee) },
@@ -84,43 +88,11 @@ export function ApercuPatient({
           </ul>
         </div>
       </div>
-      <BandeauForce force={force} className="mt-3" />
+      <BandeauForce force={force} verifiee={verifiee} className="mt-3" />
     </div>
   )
 }
 
-/** « Fiche à 70 % · Avancé », avec l'anneau et la règle de classement. */
-export function BandeauForce({ force, className = '' }: { force: number; className?: string }) {
-  return (
-    <div className={`squircle-2xl flex items-center gap-3 border border-line bg-bg p-3 ${className}`}>
-      <Anneau pct={force} taille={44} />
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-fg">
-          Fiche à {force} % · {LIBELLE_PALIER[palierDe(force)]}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-/** L'anneau de force, en SVG. */
-export function Anneau({ pct, taille = 64, sombre = false, legende }: { pct: number; taille?: number; sombre?: boolean; legende?: string }) {
-  const c = 2 * Math.PI * 44
-  return (
-    <span className="relative grid shrink-0 place-items-center" style={{ width: taille, height: taille }}>
-      <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90" aria-hidden>
-        <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="8" className={sombre ? 'text-white/10' : 'text-line'} />
-        <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${(pct / 100) * c} ${c}`} className="text-teal" />
-      </svg>
-      <span className="text-center leading-none">
-        <span className={`block font-semibold tracking-tight ${sombre ? 'text-white' : 'text-fg'}`} style={{ fontSize: taille * 0.24 }}>
-          {pct} %
-        </span>
-        {legende && <span className={`mt-1 block text-[10px] ${sombre ? 'text-white/60' : 'text-fg-2'}`}>{legende}</span>}
-      </span>
-    </span>
-  )
-}
 
 /**
  * Ce que voient les cabinets d'un laboratoire : savoir-faire, matériaux,
@@ -134,6 +106,7 @@ export function ApercuCabinet({
   lignes,
   enCours = [],
   force,
+  verifiee = true,
 }: {
   nom: string
   adresse: string | null
@@ -141,6 +114,8 @@ export function ApercuCabinet({
   lignes: Record<BlocCabinet, string | null>
   enCours?: BlocCabinet[]
   force: number
+  /** Identité vérifiée : sans elle, aucun palier n'est tenu. */
+  verifiee?: boolean
 }) {
   const blocs: { cle: BlocCabinet; titre: string; i: LucideIcon }[] = [
     { cle: 'savoir_faire', titre: 'Savoir-faire', i: Wrench },
@@ -192,7 +167,7 @@ export function ApercuCabinet({
           })}
         </ul>
       </div>
-      <BandeauForce force={force} className="mt-3" />
+      <BandeauForce force={force} verifiee={verifiee} className="mt-3" />
     </div>
   )
 }

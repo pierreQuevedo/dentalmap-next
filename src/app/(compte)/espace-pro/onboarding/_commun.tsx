@@ -49,6 +49,7 @@ export function CoquilleOnboarding({ espace, enCours, children }: { espace: Espa
       completee={completee}
       enCours={enCours}
       force={force.total}
+      verifiee={(force.items.find((i) => i.cle === 'identite')?.points ?? 0) > 0}
     />
   )
   return (

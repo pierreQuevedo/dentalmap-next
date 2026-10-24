@@ -1,0 +1,68 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { progressionDe } from '@/lib/espace-pro/progression'
+import { Anneau } from './anneau'
+
+/**
+ * Le taux de la fiche sous l'aperçu de l'onboarding, et le palier qu'il
+ * vaut. Il monte pendant la saisie, avant même l'enregistrement : le
+ * formulaire annonce par `dm-force-saisie` les points que ses champs
+ * rapporteraient (`SaisieEnDirect`).
+ */
+export const EVENEMENT_FORCE = 'dm-force-saisie'
+
+export function BandeauForce({ force, verifiee = true, className = '' }: { force: number; verifiee?: boolean; className?: string }) {
+  const [gain, setGain] = useState(0)
+  useEffect(() => {
+    const ecouter = (e: Event) => setGain((e as CustomEvent<number>).detail)
+    window.addEventListener(EVENEMENT_FORCE, ecouter)
+    return () => window.removeEventListener(EVENEMENT_FORCE, ecouter)
+  }, [])
+  const total = Math.min(100, force + gain)
+  const p = progressionDe(total, verifiee)
+  const palier = !verifiee
+    ? 'palier 1 dès la vérification'
+    : p.actuel
+      ? `palier ${p.actuel.niveau} · ${p.actuel.nom}`
+      : `encore ${p.reste} % pour le palier 1`
+  return (
+    <div className={`squircle-2xl flex items-center gap-3 border border-line bg-bg p-3 ${className}`}>
+      <Anneau pct={total} taille={44} />
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-fg">
+          Fiche à {total} %{gain > 0 && <span className="ml-1.5 text-xs font-semibold text-teal">+{gain} %</span>}
+        </p>
+        <p className="text-xs text-fg-2">{palier.charAt(0).toUpperCase() + palier.slice(1)}</p>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Les règles d'un formulaire : tant de cases cochées pour un nom de champ
+ * rapportent tant de points (ceux qui restent à gagner). Placé dans le
+ * formulaire, il recalcule à chaque changement et l'annonce au bandeau.
+ */
+export function SaisieEnDirect({ regles }: { regles: { champ: string; min: number; points: number }[] }) {
+  const ancre = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    const formulaire = ancre.current?.closest('form')
+    if (!formulaire) return
+    const calculer = () => {
+      const gain = regles.reduce((s, r) => {
+        const n = [...formulaire.querySelectorAll<HTMLInputElement>(`input[name="${r.champ}"]`)].filter((i) => (i.type === 'checkbox' || i.type === 'radio' ? i.checked : !!i.value.trim())).length
+        return s + (n >= r.min ? r.points : 0)
+      }, 0)
+      window.dispatchEvent(new CustomEvent(EVENEMENT_FORCE, { detail: gain }))
+    }
+    formulaire.addEventListener('input', calculer)
+    formulaire.addEventListener('change', calculer)
+    return () => {
+      formulaire.removeEventListener('input', calculer)
+      formulaire.removeEventListener('change', calculer)
+      window.dispatchEvent(new CustomEvent(EVENEMENT_FORCE, { detail: 0 }))
+    }
+  }, [regles])
+  return <span ref={ancre} hidden />
+}

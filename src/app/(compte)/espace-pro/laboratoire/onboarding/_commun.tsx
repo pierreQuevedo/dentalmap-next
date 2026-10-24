@@ -38,7 +38,7 @@ export async function chargerOnboardingLabo(etape: EtapeLabo | 'liaison', slug?:
 }
 
 export function CoquilleOnboardingLabo({ espace, enCours, children }: { espace: Espace; enCours?: BlocCabinet[]; children: React.ReactNode }) {
-  const apercu = <ApercuCabinet nom={nomDe(espace.fiche)} adresse={adresseDe(espace.fiche.resume)} lignes={resumesLabo(espace.completee)} enCours={enCours} force={espace.force.total} />
+  const apercu = <ApercuCabinet nom={nomDe(espace.fiche)} adresse={adresseDe(espace.fiche.resume)} lignes={resumesLabo(espace.completee)} enCours={enCours} force={espace.force.total} verifiee={(espace.force.items.find((i) => i.cle === 'identite')?.points ?? 0) > 0} />
   return (
     <Coquille
       retour="/espace-pro/"

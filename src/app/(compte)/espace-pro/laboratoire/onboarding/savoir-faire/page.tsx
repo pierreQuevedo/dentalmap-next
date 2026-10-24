@@ -6,6 +6,7 @@ import { chemin } from '@/lib/navigation'
 import { enregistrerSavoirFaire } from '@/lib/espace-pro/actions-fiche'
 import { MATERIAUX, TECHNIQUES } from '@/lib/espace-pro/labo'
 import { Gain, gainRestant } from '@/app/(compte)/espace-pro/onboarding/_commun'
+import { SaisieEnDirect } from '@/components/espace/bandeau-force'
 import { CoquilleOnboardingLabo, chargerOnboardingLabo, suivanteLabo, versEtapeLabo } from '../_commun'
 
 export const metadata: Metadata = { title: 'Ce que votre laboratoire fabrique', robots: { index: false, follow: false } }
@@ -30,6 +31,13 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <input type="hidden" name="fiche" value={fiche.slug} />
         <input type="hidden" name="suite" value={sp.suite?.startsWith('/espace-pro/') ? sp.suite : suivanteLabo('savoir-faire', fiche.slug)} />
         <input type="hidden" name="ici" value={versEtapeLabo('savoir-faire', fiche.slug)} />
+        {/* Le taux de l'aperçu monte pendant la saisie : trois techniques, puis un matériau. */}
+        <SaisieEnDirect
+          regles={[
+            { champ: 'technique', min: 3, points: gainRestant(espace, ['savoir_faire']) },
+            { champ: 'materiau', min: 1, points: gainRestant(espace, ['materiaux']) },
+          ]}
+        />
         <fieldset>
           <legend className="mb-2 text-[11px] font-medium uppercase tracking-[0.08em] text-fg-2">Techniques</legend>
           <div className="flex flex-wrap gap-2">
