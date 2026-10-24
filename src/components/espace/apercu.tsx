@@ -3,6 +3,7 @@ import { Check, Clock, Euro, FileText, FlaskConical, ImageIcon, MapPin, ShieldCh
 import type { Profession } from '@/lib/annuaire/types'
 import type { FicheCompletee } from '@/lib/espace-pro/fiche-completee'
 import { BandeauForce } from './bandeau-force'
+import { ValeurEnDirect } from './valeur-en-direct'
 export { Anneau } from './anneau'
 import { resumeAccueil, resumeAujourdhui, resumeConventionnement, resumePresentation, resumeSoins } from '@/lib/espace-pro/resumes'
 
@@ -155,7 +156,8 @@ export function ApercuCabinet({
                 <b.i className={`size-4 shrink-0 ${valeur || actif ? 'text-fg' : 'text-fg-2/60'}`} aria-hidden />
                 <span className="min-w-0 flex-1">
                   <span className="block text-[10px] font-medium uppercase tracking-[0.08em] text-fg-2">{b.titre}</span>
-                  <span className={`block truncate text-xs ${valeur ? 'text-fg' : 'text-fg-2'}`}>{valeur ?? 'À compléter'}</span>
+                  {/* Les blocs en cours de saisie suivent le formulaire, sans attendre l'enregistrement. */}
+                  {actif ? <ValeurEnDirect cle={b.cle} initiale={valeur ?? null} /> : <span className={`block truncate text-xs ${valeur ? 'text-fg' : 'text-fg-2'}`}>{valeur ?? 'À compléter'}</span>}
                 </span>
                 {actif ? (
                   <span className="shrink-0 rounded-full bg-teal px-2 py-0.5 text-[10px] font-medium text-white">En cours</span>

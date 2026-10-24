@@ -38,7 +38,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         />
         <SaisieDelais initiaux={c?.delais ?? null} />
         <div className="mt-5">
-          <SaisieZone rayon={c?.rayonKm ?? null} ramassage={c?.ramassage ?? null} jours={c?.joursRamassage ?? []} transporteur={c?.transporteur ?? null} />
+          <SaisieZone rayon={c?.rayonKm ?? null} ramassage={c?.ramassage ?? null} jours={c?.joursRamassage ?? []} transporteur={c?.transporteur ?? null} etendue={c?.zoneEtendue ?? null} centre={fiche.resume.lon != null && fiche.resume.lat != null ? { lon: fiche.resume.lon, lat: fiche.resume.lat } : null} />
         </div>
         <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-1">
           <button type="submit" className={`${principal} sm:w-auto sm:px-8`}>

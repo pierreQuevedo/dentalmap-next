@@ -11,7 +11,7 @@ export const COLONNES_FICHE = sql`
   f.secteur, f.acces_pmr, f.age_minimum, f.presentation, f.photo_url, f.site_web, f.rdv_en_ligne, f.liens_echecs, f.liens_testes_le, f.rappels_coupes_le, f.lien_google_le, f.lien_google_dernier_le, f.lien_google_clics,
   f.horaires_confirmes_le, f.conventionnement_confirme_le, f.accueil_confirme_le, f.presentation_confirmee_le, f.photo_confirmee_le,
   f.publiee_le, f.etape, f.termine_le, f.updated_at,
-  f.techniques, f.materiaux, f.usinage, f.empreintes_stl, f.impression_3d, f.delais, f.rayon_km, f.ramassage, f.jours_ramassage, f.transporteur,
+  f.techniques, f.materiaux, f.usinage, f.empreintes_stl, f.impression_3d, f.delais, f.rayon_km, f.ramassage, f.jours_ramassage, f.transporteur, f.zone_etendue,
   f.realisations, f.credit_photos, f.ansm_numero, f.ansm_declare_le, f.savoir_faire_confirme_le, f.delais_confirmes_le, f.zone_confirmee_le,
   f.realisations_confirmees_le, f.praticien_lie_id`
 
@@ -54,6 +54,7 @@ export type LigneFiche = {
   rayon_km: number | null
   ramassage: boolean | null
   jours_ramassage: string[] | null
+  zone_etendue: 'france' | 'international' | null
   transporteur: boolean | null
   realisations: { url: string; legende: string }[] | null
   credit_photos: string | null
@@ -104,6 +105,7 @@ export function ficheDepuisLigne(r: LigneFiche): FicheCompletee {
     ramassage: r.ramassage,
     joursRamassage: r.jours_ramassage ?? [],
     transporteur: r.transporteur,
+    zoneEtendue: r.zone_etendue ?? null,
     realisations: r.realisations ?? [],
     creditPhotos: r.credit_photos,
     ansmNumero: r.ansm_numero,

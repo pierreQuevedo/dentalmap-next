@@ -33,7 +33,20 @@ export const PIECES = [
   { code: 'protheses_amovible', libelle: 'Prothèse amovible', defaut: 10 },
   { code: 'chassis', libelle: 'Châssis métallique', defaut: 8 },
   { code: 'gouttiere', libelle: 'Gouttière', defaut: 4 },
+  // Proposées dans « Délais de fabrication », après l'onboarding.
+  { code: 'inlay_onlay', libelle: 'Inlay ou onlay', defaut: 5 },
+  { code: 'facette', libelle: 'Facette céramique', defaut: 7 },
+  { code: 'bridge_implants', libelle: 'Bridge sur implants', defaut: 15 },
+  { code: 'complet_implants', libelle: 'Complet sur implants', defaut: 20 },
+  { code: 'prothese_complete', libelle: 'Prothèse complète', defaut: 12 },
+  { code: 'provisoire', libelle: 'Provisoire', defaut: 3 },
+  { code: 'reparation', libelle: 'Réparation', defaut: 2 },
+  { code: 'orthodontie', libelle: 'Appareil d’orthodontie', defaut: 7 },
+  { code: 'guide_chirurgical', libelle: 'Guide chirurgical', defaut: 5 },
 ] as const
+
+/** Les pièces proposées pendant l'onboarding : les six plus courantes. */
+export const PIECES_ONBOARDING = ['couronne_unitaire', 'bridge_3', 'couronne_implant', 'protheses_amovible', 'chassis', 'gouttiere']
 
 /** Les quatre pièces proposées d'emblée à l'onboarding. */
 export const PIECES_DEPART = ['couronne_unitaire', 'bridge_3', 'protheses_amovible', 'gouttiere']
@@ -42,6 +55,19 @@ export const DELAI_MIN = 1
 export const DELAI_MAX = 60
 export const RAYON_MIN = 5
 export const RAYON_MAX = 150
+
+export const ETENDUES = [
+  { code: '', libelle: 'Autour du laboratoire' },
+  { code: 'france', libelle: 'Toute la France' },
+  { code: 'international', libelle: 'France et étranger' },
+] as const
+
+/** « 40 km · ramassage », « Toute la France · ramassage à 30 km » : la zone en quelques mots. */
+export function resumeZone(z: { rayonKm: number | null; ramassage: boolean | null; zoneEtendue?: 'france' | 'international' | null }): string | null {
+  if (!z.rayonKm) return null
+  if (!z.zoneEtendue) return `${z.rayonKm} km${z.ramassage ? ' · ramassage' : ''}`
+  return `${z.zoneEtendue === 'france' ? 'Toute la France' : 'France et étranger'}${z.ramassage ? ` · ramassage à ${z.rayonKm} km` : ''}`
+}
 
 export const JOURS_RAMASSAGE = [
   { code: 'lundi', court: 'Lun' },

@@ -65,13 +65,15 @@ export function FicheLabo({ c }: { c: ContexteFiche }) {
         .filter(Boolean)
         .join(', ')
     : ''
+  const etendue = f?.zoneEtendue === 'france' ? 'toute la France' : f?.zoneEtendue === 'international' ? 'la France et l’étranger' : null
   const zone = f?.rayonKm
-    ? `dessert ${f.rayonKm} km${f.ramassage ? (ramassage === 'chaque jour ouvré' ? ', ramassage quotidien' : ', ramassage des empreintes') : ''}`
+    ? `dessert ${etendue ?? `${f.rayonKm} km`}${f.ramassage ? (ramassage === 'chaque jour ouvré' ? ', ramassage quotidien' : ', ramassage des empreintes') : ''}`
     : null
 
   const chiffres: [string, string][] = []
   if (plage) chiffres.push([plage, 'délais moyens, en jours ouvrés'])
-  if (f?.rayonKm) chiffres.push([`${f.rayonKm} km`, 'zone desservie'])
+  if (f?.zoneEtendue) chiffres.push([f.zoneEtendue === 'france' ? 'France' : 'France et étranger', 'zone desservie'])
+  else if (f?.rayonKm) chiffres.push([`${f.rayonKm} km`, 'zone desservie'])
   if (f?.techniques.length) chiffres.push([String(f.techniques.length), f.techniques.length > 1 ? 'techniques' : 'technique'])
   if (f?.empreintesStl) chiffres.push(['STL', 'empreintes numériques'])
 
@@ -195,9 +197,11 @@ function SectionLabo({ f }: { f: FicheCompletee }) {
     f.impression3d && 'Impression 3D',
   ].filter(Boolean) as string[]
   const logistique = [
-    f.rayonKm && `Dessert ${f.rayonKm} km autour du laboratoire.`,
-    f.ramassage && (ramassage ? `Ramassage des empreintes au cabinet ${ramassage}.` : 'Ramassage des empreintes au cabinet.'),
-    f.transporteur && (f.rayonKm ? `Envoi par transporteur au-delà de ${f.rayonKm} km.` : 'Envoi par transporteur.'),
+    f.zoneEtendue
+      ? `Dessert ${f.zoneEtendue === 'france' ? 'toute la France' : 'la France et l’étranger'}, pièces envoyées par transporteur.`
+      : f.rayonKm && `Dessert ${f.rayonKm} km autour du laboratoire.`,
+    f.ramassage && (f.zoneEtendue && f.rayonKm ? `Ramassage des empreintes au cabinet à ${f.rayonKm} km${ramassage ? `, ${ramassage}` : ''}.` : ramassage ? `Ramassage des empreintes au cabinet ${ramassage}.` : 'Ramassage des empreintes au cabinet.'),
+    !f.zoneEtendue && f.transporteur && (f.rayonKm ? `Envoi par transporteur au-delà de ${f.rayonKm} km.` : 'Envoi par transporteur.'),
   ].filter(Boolean) as string[]
   const lignes: { i: typeof Wrench; k: string; v: string }[] = []
   if (f.techniques.length) lignes.push({ i: Wrench, k: 'Techniques', v: f.techniques.map((t) => libelleDe(TECHNIQUES, t)).join(', ') })

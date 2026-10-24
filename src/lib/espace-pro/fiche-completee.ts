@@ -303,6 +303,8 @@ export type FicheCompletee = {
   ramassage: boolean | null
   joursRamassage: string[]
   transporteur: boolean | null
+  /** Toute la France, ou la France et l'étranger ; sans valeur, le rayon seul. */
+  zoneEtendue: 'france' | 'international' | null
   realisations: { url: string; legende: string }[]
   creditPhotos: string | null
   ansmNumero: string | null
@@ -355,6 +357,7 @@ export const FICHE_VIDE: FicheCompletee = {
   ramassage: null,
   joursRamassage: [],
   transporteur: null,
+  zoneEtendue: null,
   realisations: [],
   creditPhotos: null,
   ansmNumero: null,

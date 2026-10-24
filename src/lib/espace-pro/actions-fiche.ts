@@ -256,6 +256,7 @@ function lireZone(donnees: FormData) {
     ramassage: donnees.get('ramassage') === 'on',
     joursRamassage: donnees.getAll('jour').map(String).filter((j) => jours.has(j)),
     transporteur: donnees.has('transporteur') ? donnees.get('transporteur') === 'on' : undefined,
+    zoneEtendue: (['france', 'international'] as const).find((e) => e === donnees.get('etendue')) ?? null,
     zoneConfirmeeLe: new Date(),
   }
 }

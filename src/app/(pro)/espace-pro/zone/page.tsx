@@ -35,6 +35,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 ramassage={garde ? gardee.texte('ramassage') === 'on' : (c?.ramassage ?? null)}
                 jours={garde ? (gardee.liste('jour') ?? []) : (c?.joursRamassage ?? [])}
                 transporteur={garde ? gardee.texte('transporteur') === 'on' : (c?.transporteur ?? null)}
+                etendue={c?.zoneEtendue ?? null}
                 complete
               />
             </div>
@@ -42,7 +43,11 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           <Tuile>
             <TitreTuile i={Route}>Sur la fiche</TitreTuile>
             <p className="mt-3 text-sm text-fg-2">
-              {c?.rayonKm ? `Dessert ${c.rayonKm} km autour du laboratoire${c.ramassage ? ', ramassage des empreintes au cabinet' : ''}${c.transporteur ? ', envoi par transporteur au-delà' : ''}.` : 'Zone non renseignée.'}
+              {c?.rayonKm
+                ? c.zoneEtendue
+                  ? `Dessert ${c.zoneEtendue === 'france' ? 'toute la France' : 'la France et l’étranger'} par transporteur${c.ramassage ? `, ramassage des empreintes au cabinet à ${c.rayonKm} km` : ''}.`
+                  : `Dessert ${c.rayonKm} km autour du laboratoire${c.ramassage ? ', ramassage des empreintes au cabinet' : ''}${c.transporteur ? ', envoi par transporteur au-delà' : ''}.`
+                : 'Zone non renseignée.'}
             </p>
           </Tuile>
           <button type="submit" className={`${principal} w-auto px-6`}>

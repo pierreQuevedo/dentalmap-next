@@ -379,6 +379,8 @@ export const fichesCompletees = pgTable('fiches_completees', {
   ramassage: boolean('ramassage'),
   joursRamassage: text('jours_ramassage').array().notNull().default(sql`'{}'::text[]`),
   transporteur: boolean('transporteur'),
+  /** Au-delà du rayon : toute la France, ou la France et l'étranger (envoi des pièces). Sans valeur, le rayon seul. */
+  zoneEtendue: text('zone_etendue', { enum: ['france', 'international'] }),
   /** Réalisations : photos publiques, une à huit, avec légende ; crédit commun. */
   realisations: jsonb('realisations').$type<{ url: string; legende: string }[]>(),
   creditPhotos: text('credit_photos'),

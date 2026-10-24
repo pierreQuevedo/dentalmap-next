@@ -1,7 +1,7 @@
 import { JOURS, LANGUES, SECTEURS, TIERS_PAYANT_COURT, libelleAge, orientationsDe, type FicheCompletee, type Jour } from './fiche-completee'
 import { horairesRenseignes } from './force'
 import type { Profession } from '@/lib/annuaire/types'
-import { MATERIAUX, TECHNIQUES } from './labo'
+import { MATERIAUX, TECHNIQUES, resumeZone } from './labo'
 import { resumeDelais } from './force-labo'
 
 /**
@@ -74,7 +74,7 @@ export function resumesLabo(f: FicheCompletee | null): Record<'savoir_faire' | '
     savoir_faire: liste(f?.techniques ?? [], TECHNIQUES),
     materiaux,
     delais: resumeDelais(f),
-    zone: f?.rayonKm ? `${f.rayonKm} km${f.ramassage ? ' · ramassage' : ''}` : null,
+    zone: f ? resumeZone(f) : null,
     realisations: f?.realisations.length ? `${f.realisations.length} photo${f.realisations.length > 1 ? 's' : ''}` : null,
     ansm: f?.ansmNumero ? `Déclaré · ${f.ansmNumero}` : null,
   }

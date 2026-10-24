@@ -45,7 +45,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <form action={enregistrerDelais} className="squircle-2xl border border-line bg-bg p-5">
           <Caches t={t} page="delais" />
           {sp.erreur && <Encart ton="erreur" className="mb-4">{sp.erreur}</Encart>}
-          <SaisieDelais initiaux={delaisGardes && Object.keys(delaisGardes).length ? delaisGardes : (c?.delais ?? null)} />
+          <SaisieDelais initiaux={delaisGardes && Object.keys(delaisGardes).length ? delaisGardes : (c?.delais ?? null)} toutes />
           <button type="submit" className={`${principal} mt-5 w-auto px-6`}>
             Enregistrer les délais
           </button>

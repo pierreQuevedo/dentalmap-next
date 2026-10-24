@@ -62,7 +62,11 @@ export function SaisieEnDirect({ regles }: { regles: { champ: string; min: numbe
     calculer()
     formulaire.addEventListener('input', calculer)
     formulaire.addEventListener('change', calculer)
+    // Les délais réglés au bouton ajoutent leur champ caché sans événement de saisie : on suit aussi le formulaire lui-même.
+    const observateur = new MutationObserver(calculer)
+    observateur.observe(formulaire, { subtree: true, childList: true, attributes: true, attributeFilter: ['value'] })
     return () => {
+      observateur.disconnect()
       formulaire.removeEventListener('input', calculer)
       formulaire.removeEventListener('change', calculer)
       window.dispatchEvent(new CustomEvent(EVENEMENT_FORCE, { detail: 0 }))
