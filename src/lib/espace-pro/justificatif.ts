@@ -53,8 +53,14 @@ export async function rangerJustificatif(fichier: File, praticienId: string): Pr
   const extension = fichier.type === 'application/pdf' ? 'pdf' : fichier.type === 'image/png' ? 'png' : 'jpg'
   const chemin = `justificatifs/${praticienId}/${randomUUID()}.${extension}`
   if (stockageBlob()) {
-    const blob = await put(chemin, fichier, { access: 'private', contentType: fichier.type, addRandomSuffix: false })
-    return `blob:${blob.pathname}`
+    try {
+      const blob = await put(chemin, fichier, { access: 'private', contentType: fichier.type, addRandomSuffix: false })
+      return `blob:${blob.pathname}`
+    } catch (e) {
+      // En local, le jeton OIDC de Vercel expire en quelques heures : le document est rangé sur le disque plutôt que perdu.
+      if (process.env.NODE_ENV === 'production') throw e
+      console.warn('[dev] Vercel Blob indisponible, justificatif rangé en local :', (e as Error).message)
+    }
   }
   if (process.env.NODE_ENV === 'production') throw new Error('Aucun stockage Vercel Blob (BLOB_READ_WRITE_TOKEN ou BLOB_STORE_ID) : dépôt des justificatifs impossible')
   const dossier = join(tmpdir(), 'dentalmap', 'justificatifs', praticienId)
