@@ -268,9 +268,9 @@ export async function chercherFiches(profession: Profession, saisie: string): Pr
  * accents ignorés, avec une tolérance aux fautes, le plus pertinent d'abord.
  * Vingt résultats au plus.
  */
-export async function chercherLabos(saisie: string): Promise<ResultatRecherche[]> {
+export async function chercherLabos(saisie: string): Promise<{ resultats: ResultatRecherche[]; total: number; exact: boolean }> {
   const texte = saisie.trim()
-  if (texte.length < 2) return []
+  if (texte.length < 2) return { resultats: [], total: 0, exact: false }
   const chiffres = texte.replace(/[\s.-]/g, '')
   const cherchable = (colonne: SQL) =>
     sql`lower(translate(${colonne}, 'ÀÂÄÉÈÊËÎÏÔÖÙÛÜÇàâäéèêëîïôöùûüç''-', 'AAAEEEEIIOOUUUCaaaeeeeiioouuuc  '))`
@@ -280,8 +280,8 @@ export async function chercherLabos(saisie: string): Promise<ResultatRecherche[]
   // La pertinence d'abord : le nom exact, puis ce qui commence par la saisie, puis ce qui la contient, puis le plus ressemblant.
   // Sans elle, « Laboratoire Dupont » se perdait parmi tous les « laboratoire dentaire ».
   const pertinence = sql`CASE WHEN ${nom} = ${q} THEN 0 WHEN ${nom} LIKE ${`${q}%`} THEN 1 WHEN ${nom} LIKE ${`%${q}%`} THEN 2 ELSE 3 END`
-  const { rows } = await db.execute<LigneResume & { pertinence: number; ressemblance: number }>(sql`
-    SELECT * FROM (
+  const { rows } = await db.execute<LigneResume & { pertinence: number; ressemblance: number; total: number }>(sql`
+    SELECT *, count(*) OVER ()::int AS total FROM (
       SELECT DISTINCT ON (p.id) ${colonnesResume}, ${pertinence} AS pertinence, similarity(${nom}, ${q}) AS ressemblance
       FROM praticiens p
       LEFT JOIN lieux_exercice l ON l.praticien_id = p.id
@@ -293,7 +293,12 @@ export async function chercherLabos(saisie: string): Promise<ResultatRecherche[]
     ORDER BY t.pertinence, t.ressemblance DESC
     LIMIT 20
   `)
-  return rows.map((r) => ({ ...resumeDe(r), profession: r.profession, rpps: r.rpps }))
+  return {
+    resultats: rows.map((r) => ({ ...resumeDe(r), profession: r.profession, rpps: r.rpps })),
+    total: rows[0]?.total ?? 0,
+    // Un seul laboratoire porte exactement le nom cherché : c'est sans doute le bon.
+    exact: rows.filter((r) => r.pertinence === 0).length === 1,
+  }
 }
 
 /** Le SIREN d'une fiche de laboratoire. */
