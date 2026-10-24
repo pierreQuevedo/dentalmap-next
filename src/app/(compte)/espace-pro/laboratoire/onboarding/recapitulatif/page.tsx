@@ -21,7 +21,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const reponses = [
     { titre: 'Savoir-faire', valeur: r.savoir_faire, etape: 'savoir-faire' as const },
     { titre: 'Matériaux et CFAO', valeur: r.materiaux, etape: 'savoir-faire' as const },
-    { titre: 'Délais', valeur: completee?.delais ? `${Object.keys(completee.delais).length} types de pièces` : null, etape: 'delais' as const },
+    { titre: 'Délais', valeur: completee?.delais ? (Object.keys(completee.delais).length > 1 ? `${Object.keys(completee.delais).length} types de pièces` : '1 type de pièce') : null, etape: 'delais' as const },
     { titre: 'Zone desservie', valeur: r.zone, etape: 'delais' as const },
   ]
   const plusTard = missions.filter((m) => ['realisations', 'ansm', 'presentation'].includes(m.cle) && !m.faite)
