@@ -47,6 +47,9 @@ export type IconeEncart = keyof typeof ICONES
 /** Événement de la colonne de droite (H1) : l'index de la fiche choisie ou survolée. */
 export const EVENEMENT_CHOIX = 'dm:fiche-choisie'
 
+/** Événement de LE1 : les index des établissements cochés. */
+export const EVENEMENT_COCHES = 'dm:lieux-coches'
+
 type Point = { lon: number | null; lat: number | null }
 
 export type EncartCarte = { icone: IconeEncart; titre: string; texte: string; ton?: 'teal' | 'attention' | 'erreur'; badge?: string }
@@ -84,7 +87,7 @@ export function VoletCarte({
   contenu?: React.ReactNode
   /** Texte d'invite de la pastille vide ; par défaut, celui de la profession. */
   invite?: string
-  /** Les établissements d'un même laboratoire (LE1) : tous cadrés, même éloignés, et le zoom gardé d'un choix à l'autre. */
+  /** Les établissements d'un même laboratoire (LE1) : tous cadrés, chacun son repère, sans la fiche posée dessus. */
   ensemble?: boolean
 }) {
   // H1 : la fiche choisie ou survolée à droite devient la fiche de la carte.
@@ -100,7 +103,10 @@ export function VoletCarte({
   const fiche = praticiens.find((p) => p === principal)
   return (
     <div className="relative isolate size-full overflow-hidden bg-muted">
-      <Plan principal={principal} autres={[...praticiens.filter((p) => p !== principal), ...lieux]} ensemble={ensemble}>
+      {ensemble ? (
+        <PlanEtablissements etablissements={praticiens} survole={choix} />
+      ) : (
+      <Plan principal={principal} autres={[...praticiens.filter((p) => p !== principal), ...lieux]}>
         {principal && contenu && !fiche && (
           <div className="pointer-events-none w-[19.25rem]">
             <div className="relative">
@@ -131,6 +137,7 @@ export function VoletCarte({
           </div>
         )}
       </Plan>
+      )}
 
       {/* Un voile clair en haut et à gauche : la marque et la pastille se lisent sur le plan. */}
       {!sansMarque && <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-muted/80 via-transparent to-transparent" />}
@@ -221,7 +228,6 @@ function Plan({
   autres,
   zoom = 15.5,
   vignette = false,
-  ensemble = false,
   children,
 }: {
   principal?: Point
@@ -229,7 +235,6 @@ function Plan({
   zoom?: number
   /** La vignette mobile : repère centré sur le point, mention des sources repliée. */
   vignette?: boolean
-  ensemble?: boolean
   children?: React.ReactNode
 }) {
   const conteneur = useRef<HTMLDivElement>(null)
@@ -254,7 +259,6 @@ function Plan({
     // Les autres points ne comptent que s'ils sont près du principal : deux
     // homonymes à Bordeaux et à La Réunion ne se cadrent pas ensemble.
     const proche = (p: { lon: number | null; lat: number | null }) =>
-      ensemble ||
       !principal || principal.lon === null || principal.lat === null || (p.lon !== null && p.lat !== null && Math.abs(p.lon - principal.lon) < 0.6 && Math.abs(p.lat - principal.lat) < 0.4)
     const points = [principal, ...autres.filter(proche)].filter(
       (p): p is { lon: number; lat: number } & NonNullable<typeof p> => !!p && p.lon !== null && p.lat !== null,
@@ -281,10 +285,9 @@ function Plan({
     if (points.length > 1) {
       const bornes = new LngLatBounds()
       for (const p of points) bornes.extend([p.lon, p.lat])
-      // Les établissements d'un laboratoire (LE1) restent tous dans le cadre, sous la hauteur de la fiche.
-      map.fitBounds(bornes, { padding: ensemble ? { top: 460, bottom: 60, left: 180, right: 180 } : { top: 500, bottom: 90, left: 60, right: 60 }, maxZoom: 14, duration: 0 })
+      map.fitBounds(bornes, { padding: { top: 500, bottom: 90, left: 60, right: 60 }, maxZoom: 14, duration: 0 })
       // La fiche posée sur le repère ne doit pas sortir du cadre : le plan garde ce zoom, mais centré sur le repère.
-      if (!ensemble && principal?.lon != null && principal.lat != null && children)
+      if (principal?.lon != null && principal.lat != null && children)
         map.jumpTo({ center: [principal.lon, principal.lat], padding: { top: 440, bottom: 0, left: 0, right: 0 } })
     } else if (principal && children) {
       // La fiche se pose au-dessus du repère : le point descend dans le cadre pour lui laisser la place.
@@ -319,7 +322,7 @@ function Plan({
     }
     // `cle` résume les positions : les tableaux sont recréés à chaque rendu.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cle, zoom, vignette, ensemble])
+  }, [cle, zoom, vignette])
 
   // Une autre fiche choisie : le repère la rejoint, le plan s'éloigne puis revient sur elle.
   useEffect(() => {
@@ -330,8 +333,6 @@ function Plan({
     }
     if (!map || !repere.current || principal?.lon == null || principal.lat == null) return
     repere.current.setLngLat([principal.lon, principal.lat])
-    // Tous les établissements sont déjà cadrés, la fiche comprise : seul le repère se déplace.
-    if (ensemble) return
     map.flyTo({ center: [principal.lon, principal.lat], zoom: 15, padding: children ? { top: 440, bottom: 0, left: 0, right: 0 } : undefined, speed: 1.1, curve: 1.6, essential: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [principal?.lon, principal?.lat])
@@ -366,6 +367,114 @@ function Plan({
           </>,
           hote,
         )}
+    </>
+  )
+}
+
+/**
+ * LE1 : les établissements d'un laboratoire, tous dans le cadre. Un coché
+ * porte le repère actif et son étiquette ; un décoché, un simple point.
+ * Celui que l'on survole à droite ressort. Tous cochés à l'arrivée, comme
+ * les cases.
+ */
+function PlanEtablissements({ etablissements, survole }: { etablissements: PraticienProche[]; survole: number }) {
+  const conteneur = useRef<HTMLDivElement>(null)
+  const carte = useRef<MapLibreMap | null>(null)
+  const style = useRef<string | null>(null)
+  const [hotes, setHotes] = useState<(HTMLElement | null)[]>([])
+  const [coches, setCoches] = useState<number[]>(() => etablissements.map((_, i) => i))
+  const { resolvedTheme } = useTheme()
+  const cle = etablissements.map((e) => `${e.lon},${e.lat}`).join(';')
+
+  useEffect(() => {
+    const surCoches = (e: Event) => setCoches((e as CustomEvent<number[]>).detail)
+    window.addEventListener(EVENEMENT_COCHES, surCoches)
+    return () => window.removeEventListener(EVENEMENT_COCHES, surCoches)
+  }, [])
+
+  useEffect(() => {
+    if (!conteneur.current) return
+    style.current = styleCarteInitial()
+    const situes = etablissements.filter((e): e is PraticienProche & { lon: number; lat: number } => e.lon !== null && e.lat !== null)
+    const map = new MapLibre({
+      container: conteneur.current,
+      style: style.current,
+      center: situes[0] ? [situes[0].lon, situes[0].lat] : FRANCE.centre,
+      zoom: situes[0] ? 13 : FRANCE.zoom,
+      interactive: false,
+      attributionControl: { compact: true },
+      fadeDuration: 0,
+    })
+    carte.current = map
+    const suivi = new ResizeObserver(() => map.resize())
+    suivi.observe(conteneur.current)
+    if (situes.length > 1) {
+      const bornes = new LngLatBounds()
+      for (const e of situes) bornes.extend([e.lon, e.lat])
+      // Sous la marque, et assez de marge pour les étiquettes.
+      map.fitBounds(bornes, { padding: { top: 150, bottom: 90, left: 110, right: 110 }, maxZoom: 13, duration: 0 })
+    }
+    const marqueurs = etablissements.map((e) => {
+      if (e.lon === null || e.lat === null) return null
+      const el = document.createElement('div')
+      return new Marker({ element: el, anchor: 'bottom' }).setLngLat([e.lon, e.lat]).addTo(map)
+    })
+    const cadre = requestAnimationFrame(() => setHotes(marqueurs.map((m) => m?.getElement() ?? null)))
+    return () => {
+      cancelAnimationFrame(cadre)
+      suivi.disconnect()
+      for (const m of marqueurs) m?.remove()
+      map.remove()
+      carte.current = null
+      setHotes([])
+    }
+    // `cle` résume les positions : le tableau est recréé à chaque rendu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cle])
+
+  useEffect(() => {
+    if (!resolvedTheme || !carte.current) return
+    const voulu = styleCarte(resolvedTheme)
+    if (voulu === style.current) return
+    style.current = voulu
+    carte.current.setStyle(voulu)
+  }, [resolvedTheme])
+
+  return (
+    <>
+      <div className="absolute inset-0 [&_.maplibregl-ctrl-attrib]:!bg-black/45 [&_.maplibregl-ctrl-attrib]:!text-white [&_.maplibregl-ctrl-attrib]:text-[10px] [&_.maplibregl-ctrl-attrib_a]:!text-white [&_.maplibregl-ctrl-attrib-button]:invert">
+        <div ref={conteneur} className="size-full" />
+      </div>
+      {hotes.map((hote, i) => {
+        const e = etablissements[i]
+        if (!hote || !e) return null
+        const actif = coches.includes(i)
+        const enAvant = survole === i
+        // Le survolé passe devant ses voisins.
+        hote.style.zIndex = enAvant ? '2' : actif ? '1' : '0'
+        return createPortal(
+          actif ? (
+            <div className="flex flex-col items-center">
+              <span
+                className={`mb-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold shadow-pill transition-colors ${enAvant ? 'bg-fg text-bg' : 'bg-bg text-fg ring-1 ring-line'}`}
+              >
+                {e.communeNom ?? e.codePostal ?? 'Établissement'}
+              </span>
+              <span className={`grid size-12 place-items-center rounded-full bg-teal/20 transition-transform ${enAvant ? 'scale-110' : ''}`}>
+                <span className="grid size-8 place-items-center rounded-full border-2 border-bg bg-teal text-white shadow-pop">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4" aria-hidden>
+                    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                </span>
+              </span>
+            </div>
+          ) : (
+            <span className={`mb-[-6px] block size-3 rounded-full border-2 border-bg shadow-pill ${enAvant ? 'bg-fg' : 'bg-fg-2'}`} />
+          ),
+          hote,
+        )
+      })}
     </>
   )
 }

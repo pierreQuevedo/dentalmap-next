@@ -2,22 +2,29 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
+import { EVENEMENT_COCHES } from './volet-carte'
 
 /**
  * Le bouton d'un formulaire de cases à cocher (LE1) : désactivé tant
- * qu'aucune case `name` n'est cochée, avec la phrase qui le dit.
+ * qu'aucune case `name` n'est cochée, avec la phrase qui le dit. Avec
+ * `carte`, il annonce aussi les index des cases cochées au volet carte.
  */
-export function BoutonSelection({ name, libelle, consigne, className = '' }: { name: string; libelle: string; consigne: string; className?: string }) {
+export function BoutonSelection({ name, libelle, consigne, carte = false, className = '' }: { name: string; libelle: string; consigne: string; carte?: boolean; className?: string }) {
   const bouton = useRef<HTMLButtonElement>(null)
   const [coches, setCoches] = useState<number | null>(null)
   useEffect(() => {
     const formulaire = bouton.current?.closest('form')
     if (!formulaire) return
-    const compter = () => setCoches(formulaire.querySelectorAll(`input[name="${name}"]:checked`).length)
+    const compter = () => {
+      const cases = [...formulaire.querySelectorAll<HTMLInputElement>(`input[name="${name}"]`)]
+      const cochees = cases.flatMap((c, i) => (c.checked ? [i] : []))
+      setCoches(cochees.length)
+      if (carte) window.dispatchEvent(new CustomEvent(EVENEMENT_COCHES, { detail: cochees }))
+    }
     compter()
     formulaire.addEventListener('change', compter)
     return () => formulaire.removeEventListener('change', compter)
-  }, [name])
+  }, [name, carte])
   const vide = coches === 0
   return (
     <>

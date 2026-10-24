@@ -53,7 +53,7 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
             </SurvolFiche>
           ))}
         </div>
-        <BoutonSelection name="lieu" libelle="Gérer la sélection" consigne="Cochez au moins un établissement." className={`${principal} mt-4`} />
+        <BoutonSelection name="lieu" libelle="Gérer la sélection" consigne="Cochez au moins un établissement." carte className={`${principal} mt-4`} />
       </form>
       <Link href={chemin(`${LABO}/`)} className={`${discret} mt-1`}>
         Retour
