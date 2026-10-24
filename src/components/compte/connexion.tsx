@@ -79,11 +79,12 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
           ? 'dentiste'
           : 'patient',
   )
-  // Le volet de gauche suit le profil choisi tant qu'on s'inscrit (`ChiffresProfil`).
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent(EVENEMENT_PROFIL, { detail: etat === 'inscription' ? role : null }))
-  }, [etat, role])
   const [nom, setNom] = useState('')
+  // Le volet de gauche suit le profil choisi pendant toute l'inscription, code compris (`ChiffresProfil`).
+  const sInscrit = etat === 'inscription' || (etat === 'verifier' && !!nom)
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(EVENEMENT_PROFIL, { detail: sInscrit ? role : null }))
+  }, [sInscrit, role])
   const [erreur, setErreur] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   /** Identifiants refusés : l'écran passe en CX1-E. */
