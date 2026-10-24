@@ -65,6 +65,7 @@ export function VoletCarte({
   position,
   contenu,
   invite,
+  ensemble = false,
 }: {
   /** Les fiches à montrer : la première porte la carte, les autres un simple point. */
   praticiens?: PraticienProche[]
@@ -83,6 +84,8 @@ export function VoletCarte({
   contenu?: React.ReactNode
   /** Texte d'invite de la pastille vide ; par défaut, celui de la profession. */
   invite?: string
+  /** Les établissements d'un même laboratoire (LE1) : tous cadrés, même éloignés, et le zoom gardé d'un choix à l'autre. */
+  ensemble?: boolean
 }) {
   // H1 : la fiche choisie ou survolée à droite devient la fiche de la carte.
   const [choix, setChoix] = useState(0)
@@ -97,7 +100,7 @@ export function VoletCarte({
   const fiche = praticiens.find((p) => p === principal)
   return (
     <div className="relative isolate size-full overflow-hidden bg-muted">
-      <Plan principal={principal} autres={[...praticiens.filter((p) => p !== principal), ...lieux]}>
+      <Plan principal={principal} autres={[...praticiens.filter((p) => p !== principal), ...lieux]} ensemble={ensemble}>
         {principal && contenu && !fiche && (
           <div className="pointer-events-none w-[19.25rem]">
             <div className="relative">
@@ -218,6 +221,7 @@ function Plan({
   autres,
   zoom = 15.5,
   vignette = false,
+  ensemble = false,
   children,
 }: {
   principal?: Point
@@ -225,6 +229,7 @@ function Plan({
   zoom?: number
   /** La vignette mobile : repère centré sur le point, mention des sources repliée. */
   vignette?: boolean
+  ensemble?: boolean
   children?: React.ReactNode
 }) {
   const conteneur = useRef<HTMLDivElement>(null)
@@ -249,6 +254,7 @@ function Plan({
     // Les autres points ne comptent que s'ils sont près du principal : deux
     // homonymes à Bordeaux et à La Réunion ne se cadrent pas ensemble.
     const proche = (p: { lon: number | null; lat: number | null }) =>
+      ensemble ||
       !principal || principal.lon === null || principal.lat === null || (p.lon !== null && p.lat !== null && Math.abs(p.lon - principal.lon) < 0.6 && Math.abs(p.lat - principal.lat) < 0.4)
     const points = [principal, ...autres.filter(proche)].filter(
       (p): p is { lon: number; lat: number } & NonNullable<typeof p> => !!p && p.lon !== null && p.lat !== null,
@@ -275,9 +281,10 @@ function Plan({
     if (points.length > 1) {
       const bornes = new LngLatBounds()
       for (const p of points) bornes.extend([p.lon, p.lat])
-      map.fitBounds(bornes, { padding: { top: 500, bottom: 90, left: 60, right: 60 }, maxZoom: 14, duration: 0 })
+      // Les établissements d'un laboratoire (LE1) restent tous dans le cadre, sous la hauteur de la fiche.
+      map.fitBounds(bornes, { padding: ensemble ? { top: 460, bottom: 60, left: 180, right: 180 } : { top: 500, bottom: 90, left: 60, right: 60 }, maxZoom: 14, duration: 0 })
       // La fiche posée sur le repère ne doit pas sortir du cadre : le plan garde ce zoom, mais centré sur le repère.
-      if (principal?.lon != null && principal.lat != null && children)
+      if (!ensemble && principal?.lon != null && principal.lat != null && children)
         map.jumpTo({ center: [principal.lon, principal.lat], padding: { top: 440, bottom: 0, left: 0, right: 0 } })
     } else if (principal && children) {
       // La fiche se pose au-dessus du repère : le point descend dans le cadre pour lui laisser la place.
@@ -312,7 +319,7 @@ function Plan({
     }
     // `cle` résume les positions : les tableaux sont recréés à chaque rendu.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cle, zoom, vignette])
+  }, [cle, zoom, vignette, ensemble])
 
   // Une autre fiche choisie : le repère la rejoint, le plan s'éloigne puis revient sur elle.
   useEffect(() => {
@@ -323,6 +330,8 @@ function Plan({
     }
     if (!map || !repere.current || principal?.lon == null || principal.lat == null) return
     repere.current.setLngLat([principal.lon, principal.lat])
+    // Tous les établissements sont déjà cadrés, la fiche comprise : seul le repère se déplace.
+    if (ensemble) return
     map.flyTo({ center: [principal.lon, principal.lat], zoom: 15, padding: children ? { top: 440, bottom: 0, left: 0, right: 0 } : undefined, speed: 1.1, curve: 1.6, essential: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [principal?.lon, principal?.lat])

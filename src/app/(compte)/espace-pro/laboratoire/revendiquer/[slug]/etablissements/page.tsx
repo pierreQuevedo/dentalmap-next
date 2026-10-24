@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, FlaskConical, MapPin } from 'lucide-react'
+import { Check, FlaskConical, MapPin } from 'lucide-react'
+import { BoutonSelection } from '@/components/compte/bouton-selection'
+import { SurvolFiche } from '@/components/compte/survol-fiche'
 import { Etapes, discret, principal, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { CoquilleParcours, adresseDe, ficheOu404, garde, nomDe } from '@/app/(compte)/espace-pro/revendiquer/_commun'
@@ -18,17 +20,19 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
   const { slug } = await props.params
   const compte = await garde(`${LABO}/${slug}/etablissements/`, 'prothesiste')
   const fiche = await ficheOu404(slug, compte)
+  // Un résumé par établissement : la carte de gauche les montre tous et suit celui que l'on survole ou coche.
+  const etablissements = fiche.lieux.map((l) => ({ ...fiche.resume, lieuId: l.id, adresseLigne: l.adresseLigne, codePostal: l.codePostal, communeNom: l.communeNom, lon: l.lon, lat: l.lat }))
   return (
-    <CoquilleParcours profession="prothesiste" fiche={fiche} etiquette={`${fiche.lieux.length} établissements`} lieux={fiche.lieux.slice(1)} retour={`${LABO}/`} libelleRetour="Retour">
+    <CoquilleParcours profession="prothesiste" fiche={fiche} praticiens={etablissements} ensemble etiquette={`${fiche.lieux.length} établissements`} retour={`${LABO}/`} libelleRetour="Retour">
       <Etapes etape={1} libelle="Laboratoire" />
       <h1 className={titre}>Ce laboratoire a {fiche.lieux.length} établissements</h1>
       <p className="mt-2 text-sm text-fg-2">Choisissez ceux que vous gérez.</p>
       <form method="get" action={chemin(versLabo(fiche.slug))} className="mt-6">
         <div className="grid gap-2.5">
-          {fiche.lieux.map((l) => (
+          {fiche.lieux.map((l, i) => (
+            <SurvolFiche key={l.id} index={i}>
             <label
-              key={l.id}
-              className="group squircle-xl flex cursor-pointer items-center gap-3.5 border border-line bg-bg px-[18px] py-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:checked]:ring-[0.5px] has-[:checked]:ring-fg"
+              className="group squircle-xl flex cursor-pointer items-center gap-3.5 border border-line bg-bg px-[18px] py-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:checked]:ring-[0.5px] has-[:checked]:ring-fg has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action"
             >
               <input type="checkbox" name="lieu" value={l.id} defaultChecked className="sr-only" />
               <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-xl bg-bg-soft text-fg-2">
@@ -42,14 +46,14 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
                 </span>
                 {l.principal && <span className="mt-0.5 block text-[11px] text-fg-2">Siège</span>}
               </span>
-              <span aria-hidden className="grid size-5 shrink-0 place-items-center rounded-md border border-line-strong bg-bg group-has-[:checked]:border-fg group-has-[:checked]:bg-fg" />
+              <span aria-hidden className="grid size-5 shrink-0 place-items-center rounded-[5px] border border-line-strong bg-bg text-bg group-has-[:checked]:border-fg group-has-[:checked]:bg-fg">
+                <Check className="size-3.5" strokeWidth={3} />
+              </span>
             </label>
+            </SurvolFiche>
           ))}
         </div>
-        <button type="submit" className={`${principal} mt-4`}>
-          Gérer la sélection
-          <ArrowRight className="size-4" aria-hidden />
-        </button>
+        <BoutonSelection name="lieu" libelle="Gérer la sélection" consigne="Cochez au moins un établissement." className={`${principal} mt-4`} />
       </form>
       <Link href={chemin(`${LABO}/`)} className={`${discret} mt-1`}>
         Retour
