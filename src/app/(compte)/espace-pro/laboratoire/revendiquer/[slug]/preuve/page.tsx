@@ -23,7 +23,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   return (
     <CoquilleParcours profession="prothesiste"
       fiche={fiche}
-      etiquette="Vérification en cours"
+      etiquette="Fiche non revendiquée"
       encart={{ icone: 'document', ton: 'attention', titre: 'Extrait Kbis', texte: 'Examiné par l’équipe sous 48 heures ouvrées.' }}
       retour={fiche.gereeParUnAutre ? versLabo(fiche.slug, 'conflit') : versLabo(fiche.slug, '', lieuxDe(sp.lieux))}
       libelleRetour="Retour"

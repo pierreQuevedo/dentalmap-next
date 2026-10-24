@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Mail } from 'lucide-react'
+import { Download, Mail } from 'lucide-react'
 import { DepotJustificatif } from '@/components/compte/choix'
-import { Etapes, discret, pastille, saisie, titre } from '@/components/compte/ui'
+import { Etapes, pastille, saisie, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { deposerJustificatif } from '@/lib/espace-pro/actions-revendication'
 import { televersementDirect } from '@/lib/espace-pro/justificatif'
@@ -21,7 +21,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   return (
     <CoquilleParcours profession="prothesiste"
       fiche={fiche}
-      etiquette="Vérification en cours"
+      etiquette="Fiche non revendiquée"
       encart={{ icone: 'document', ton: 'attention', titre: 'Kbis et mandat', texte: 'Le gérant sera prévenu par email.' }}
       retour={versLabo(fiche.slug, '', lieuxDe(sp.lieux))}
       libelleRetour="Retour"
@@ -39,11 +39,16 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
           erreurInitiale={sp.erreur}
           emplacements={[
             { nom: 'document', titre: 'Extrait Kbis de moins de 3 mois', detail: 'PDF, 10 Mo au plus' },
-            { nom: 'mandat', titre: 'Mandat signé par le gérant', detail: 'PDF, 10 Mo au plus · modèle téléchargeable ci-dessous' },
+            { nom: 'mandat', titre: 'Mandat signé par le gérant', detail: 'PDF, 10 Mo au plus' },
           ]}
           libelle="Envoyer Kbis et mandat"
           apres={
-            <div className="mt-4">
+            <div className="mt-2">
+              {/* Le modèle, juste sous la zone du mandat : le gérant le signe, la personne le dépose. */}
+              <Link href={chemin('/espace-pro/laboratoire/modele-mandat/')} target="_blank" className="inline-flex items-center gap-1.5 text-xs font-medium text-fg underline underline-offset-2">
+                <Download className="size-3.5" aria-hidden /> Télécharger le modèle de mandat
+              </Link>
+              <div className="mt-4">
               <label htmlFor="mandat-gerant" className="mb-1.5 block text-sm font-medium text-fg">
                 Adresse du gérant
               </label>
@@ -51,13 +56,11 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
                 <Mail className="size-4 shrink-0 text-fg-2" aria-hidden />
                 <input id="mandat-gerant" name="gerantEmail" type="email" required autoComplete="off" placeholder="gerant@laboratoire.fr" className={saisie} />
               </div>
+              </div>
             </div>
           }
         />
       </div>
-      <Link href={chemin('/espace-pro/laboratoire/modele-mandat/')} target="_blank" className={`${discret} mt-1`}>
-        Télécharger le modèle de mandat
-      </Link>
     </CoquilleParcours>
   )
 }
