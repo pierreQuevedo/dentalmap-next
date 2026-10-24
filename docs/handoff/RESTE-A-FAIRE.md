@@ -1,39 +1,58 @@
-# Ce qui reste à faire (2026-10-13)
+# Ce qui reste à faire (2026-10-24)
 
-État après l’alignement des formations privées sur la maquette. Tableau d’avancement : 63 écrans faits, 38 à faire, 2 bloqués. Sur les 38 à faire, 33 relèvent de l’emploi (SE, CAND, ETU, OUV, D-EMPLOI, L-EMPLOI) : le reste du parcours compte est construit.
+Carte refaite après l’Emploi (offres, candidatures, profil candidat, alertes, profils disponibles), le parcours école et faculté (de l’inscription à Compte et sécurité), la gamification de l’espace établissement et les avis. Remplace l’état du 2026-10-13, où l’Emploi comptait encore 33 écrans à faire : ils sont construits (le tableau d’`AVANCEMENT.md` n’a pas été remis à jour pour ces lignes, voir § 6).
 
-## 1. Avant la mise en ligne : configuration (aucun code)
+## 1. Espace pro : écrans encore « Bientôt » ou non construits
 
-| Sujet | Effet tant que ce n’est pas fait | Action |
-|---|---|---|
-| `BLOB_READ_WRITE_TOKEN` sur Vercel | Justificatifs, Kbis, attestations et photos ne se déposent pas | Poser la variable |
-| `CRON_SECRET` sur Vercel | Aucune tâche planifiée ne tourne : ni rappels de fraîcheur, ni test des liens, ni purge des documents, ni filet des alertes | Poser la variable ; les cinq tâches sont déjà déclarées dans `vercel.json` |
-| Synchro n8n | Une fiche retirée peut revenir ; l’alerte `fiche_creee` dépend de l’appel à `/api/revalidate` | Respecter `praticiens.retire_le` dans le workflow |
-| `WP_ECRITURE` | Aucune écriture dans WordPress : diplômes des établissements et article minimal des formations privées sont à créer à la main | Décider de passer à `1` après un essai sur un article de test |
+| Profil | Écran | État | Remarque |
+|---|---|---|---|
+| Tous | Notifications | « Bientôt » dans le menu | Aucune donnée derrière : à définir (quels événements, email ou centre de notifications). |
+| Établissement | Statistiques | « Bientôt » | Les dentistes et laboratoires ont la leur (`/espace-pro/statistiques/`) : vues, visites par source. À décliner : vues de la page, clics site et téléphone, avis dans le temps. |
+| Établissement | Événements | « Bientôt » | Portes ouvertes, salons, journées d’information ; la page publique lit déjà les événements relevés. |
+| École | Admission et calendrier | « Bientôt » | Étapes de candidature, dates clés de la rentrée. |
+| Candidat | Points gagnés par les avis | Non affichés | Les points comptent déjà dans Profils disponibles ; le candidat ne les voit pas, et rien ne l’invite à donner un avis. |
+| Dentiste | P1 Personnaliser, P2 Retour à la fiche | Non construits | Écrans courts du parcours de revendication. |
+| Laboratoire | LCODE, code au siège | Bloqué | Attend un prestataire d’envoi postal. |
+| Dentiste | Distinction « Toujours à jour » | Non calculée | Il manque l’historique des reconfirmations. |
+| Tous | Clôture des contestations à J+7 | Non faite | Tâche planifiée à ajouter. |
 
-## 2. Décisions à prendre
+## 2. Site public
 
-- **Ouvrir les formations privées** : retirer `aVenir` de la famille quand la première formation est en ligne. La page bascule seule sur la liste dès qu’une formation existe ; reste à décider si l’on garde le bandeau d’alerte au-dessus de la liste.
-- **Vérification DPC, FIF PL, Qualiopi** : qui vérifie, avec quelle source, et sous quel délai. Le bouton existe en modération, pas la procédure.
-- **Prestataire d’envoi postal** : sans lui, LCODE (code au siège du laboratoire) reste bloqué ; sa sortie vers CE1, supprimé, est à trancher.
-- **Barème faculté** : les 10 points de l’alternance vont aux centres de soins, à confirmer dans `03-gamification.md`.
-- **Poids de B0S** (spécialité et domaines) et durée de conservation des candidatures (6 mois proposée).
+- **Formations privées** : la famille reste « Bientôt » (`aVenir`) tant qu’aucune formation n’est en ligne ; décider si le bandeau d’alerte reste au-dessus de la liste.
+- **Pages légales** : relecture par un juriste. Les CGU n’exposent plus les critères de classement, alors que la loi oblige une plateforme à les donner (art. L111-7 C. conso) ; plus pressant depuis que les avis font 80 % du classement des écoles et facultés. Les mentions sur le recueil des avis (art. L111-7-2) sont sur la page publique, avec les points accordés aux auteurs.
+- **Page établissement** : avertissement React « script tag » dans la console (balisage JSON-LD rendu côté client), sans effet visible, à corriger.
 
-## 3. Chantiers produit, par ordre conseillé
+## 3. Back-office (wp-admin, décision du 2026-10-15)
 
-1. **Preuve d’identité sans document** : fait le 2026-10-13 (voir AVANCEMENT). Reste : obtenir Pro Santé Connect en production (sans lui, l’équipe vérifie chaque dentiste à la main) et demander l’habilitation FranceConnect+ pour la carte d’identité.
-2. **B0S, Spécialité et domaines de soins** : fait le 2026-10-15. Reste à arbitrer son poids (aujourd’hui +8 % dès deux domaines, sans gain affiché).
-3. **Filtres de recherche laboratoire** : faits le 2026-10-15 (savoir-faire, matériau, usinage, STL, 3D, ramassage). Reste possible : « dessert ma zone » et un filtre par délai.
-4. **Tâches planifiées de l’espace pro** : rappels de fraîcheur, test des liens et purge des documents faits le 2026-10-15. Restent « Toujours à jour » (historique des reconfirmations) et la clôture des contestations à J+7.
-5. **CX4, clé d’accès** : faite le 2026-10-17. À tester sur dentalmap.fr avec un vrai compte (les clés sont liées au domaine : rien ne marche sur une prévisualisation Vercel).
-6. **P1 et P2** (personnaliser, retour à la fiche) : écrans courts, non construits.
-7. **Emploi** (SE1 à SE5, espaces candidat et étudiant, offres, candidatures) : le plus gros lot restant, 33 écrans. Seule la partie publique a une maquette de code (`/maquettes/emploi`) ; les écrans de l’espace n’ont pas de node id dans `parcours.json`. À dessiner et figer dans Figma avant de coder.
-8. **Statistiques et notifications** du tableau de bord : « Bientôt » dans la navigation, aucune donnée derrière.
-9. **Référentiel UAI** : l’UAI n’est connu que lorsque l’adresse académique le porte.
+L’administration vit dans WordPress, un plugin par espace, les données Neon passant par l’API Next (`x-dentalmap-admin`).
 
-## 4. Vérification et dette
+- **SAV** : écrans V2 à V10 et socle S1, S2, S4 ; brancher le formulaire de contact Next sur les tickets ; poser `DM_API_KEY` ; recherche d’un professionnel (V7, V8).
+- **Revendications** : brancher les actions de `lib/tunnel/actions.ts` sur `deciderRevendication`.
+- **Modération restée dans Next** : `/espace-pro/moderation/` (revendications, établissements, formations privées et, depuis le 2026-10-22, avis signalés) est à reprendre dans un plugin, avec des routes `/api/admin/` pour les avis (liste des signalements, décision).
+- `dm_api_url` pointe sur la prévisualisation `feat-vitrine` : à remettre sur la production.
 
-- **Parcours connectés non testés de bout en bout** : la base Neon est partagée et Resend envoie de vrais emails, donc aucun compte de test n’a été créé. Il faut une base de préproduction (branche Neon) et une clé Resend de test pour dérouler revendication, laboratoire, établissement et proposition de formation avec une vraie session.
-- **Figma** : deux écrans encore en capture aplatie (liste desktop de LAB-FICHE, bas de P2) ; node ids des nouveaux écrans à reporter dans `parcours.json`.
+## 4. Avant la mise en ligne : configuration et données
+
+- **Base principale** (`ep-polished-band`) : appliquer les migrations 0020 à 0030 (0030 : avis et signalements). Elles ne sont appliquées qu’à la préproduction (`ep-lively-feather`).
+- **Variables Vercel** : `BLOB_READ_WRITE_TOKEN` (dépôts de fichiers), `CRON_SECRET` (aucune tâche planifiée ne tourne sans), `DM_API_KEY`.
+- **WordPress** : décider de passer `WP_ECRITURE` à `1` après un essai sur un article de test.
+- **Synchro n8n** : respecter `praticiens.retire_le`.
+- **Identité** : Pro Santé Connect en production ; habilitation FranceConnect+ ; clés d’accès à tester sur dentalmap.fr (liées au domaine).
+- **Données de test à retirer** (préproduction) : photos de démonstration des deux établissements (`public/uploads/etablissements/demo-*`, crédit « Photos de démonstration (Pexels) »), six avis et un signalement de test, comptes `test-ecole@example.com` et `test-candidat-*@example.com`, offres et échanges de Dr Test.
+
+## 5. Décisions à prendre
+
+- Barème faculté : les 10 points de l’alternance vont aux centres de soins (à reporter dans `03-gamification.md`).
+- Poids de B0S (spécialité et domaines) ; durée de conservation des candidatures (6 mois proposée).
+- Points d’un avis pour son auteur : 20, deux avis au plus (valeurs par défaut).
+- Paliers de l’établissement et ce qu’ils débloquent (formules prudentes, sans mise en avant).
+- Vérification DPC, FIF PL, Qualiopi : qui, avec quelle source, sous quel délai.
+- Prestataire d’envoi postal (débloque LCODE).
+
+## 6. Figma, documentation, dette
+
+- **Figma** : le code fait foi. Sont codés sans écran Figma à jour : l’espace Emploi (offres, candidatures, profil candidat, alertes, profils disponibles), la gamification et les en-têtes de l’espace établissement, Partage et avis, les visuels d’avis, la coque (carte fixée en bas, barre fixée en haut sur mobile). Node ids à reporter dans `parcours.json`.
+- **`AVANCEMENT.md`** : les lignes SE, CAND, ETU, OUV, D-EMPLOI et L-EMPLOI sont encore « à faire » alors que les écrans existent.
 - **Docs** : `00`, `03`, `04` et `05` mentionnent encore le courrier, le code à 8 chiffres et le justificatif en Blob privé.
-- **Lint** : erreurs anciennes dans les maquettes (`_ouverts.tsx`, `emploi/_donnees.ts`), sans effet sur le site.
+- **Tests de bout en bout** : la préproduction et les comptes de test existent désormais ; restent à dérouler avec une vraie session la revendication dentiste et la proposition de formation privée.
+- **Lint** : erreurs anciennes dans les maquettes, sans effet sur le site.
