@@ -52,16 +52,34 @@ export async function envoyerCode(to: string, code: string, type: keyof typeof O
 /** Le mot d'accueil, selon le profil choisi à l'inscription : une école n'a pas de fiche de soignant à retrouver. */
 export async function envoyerBienvenue(to: string, nom?: string | null, role?: string | null) {
   const ecole = role === 'organisme'
+  const labo = role === 'prothesiste'
+  // Le compte d'un laboratoire porte le nom du laboratoire : pas de « Bonjour Laboratoire Dupont ».
+  const salutation = labo || !nom ? 'Bonjour,' : `Bonjour ${nom},`
+  const suite =
+    ecole
+      ? [
+          { type: 'texte' as const, texte: 'Votre espace établissement vous attend pour retrouver votre école ou votre faculté, compléter ses formations et la publier.' },
+          { type: 'bouton' as const, libelle: 'Ouvrir mon espace établissement', url: `${SITE}/espace-pro/organisme/` },
+        ]
+      : labo
+        ? [
+            {
+              type: 'texte' as const,
+              texte: `Votre espace laboratoire vous attend : retrouvez ${nom ? `« ${nom} »` : 'votre laboratoire'} par son SIREN, prouvez votre rôle avec un extrait Kbis, puis indiquez vos savoir-faire, vos délais et la zone que vous desservez pour apparaître dans les recherches des cabinets.`,
+            },
+            { type: 'bouton' as const, libelle: 'Retrouver mon laboratoire', url: `${SITE}/espace-pro/laboratoire/revendiquer/` },
+          ]
+        : [
+            { type: 'texte' as const, texte: 'Si vous êtes chirurgien-dentiste ou prothésiste, votre espace professionnel vous attend pour retrouver votre fiche et la compléter.' },
+            ESPACE,
+          ]
   await envoyer(to, 'Bienvenue sur DentalMap', {
     titre: 'Bienvenue sur DentalMap',
-    salutation: `Bonjour${nom ? ` ${nom}` : ''},`,
+    salutation,
     blocs: [
       { type: 'texte', texte: 'Votre compte DentalMap est ouvert. Vous pouvez y revenir à tout moment avec votre adresse et votre mot de passe.' },
       { type: 'lien', libelle: 'Se connecter à DentalMap', url: `${SITE}/connexion/` },
-      ecole
-        ? { type: 'texte', texte: 'Votre espace établissement vous attend pour retrouver votre école ou votre faculté, compléter ses formations et la publier.' }
-        : { type: 'texte', texte: 'Si vous êtes chirurgien-dentiste ou prothésiste, votre espace professionnel vous attend pour retrouver votre fiche et la compléter.' },
-      ecole ? { type: 'bouton', libelle: 'Ouvrir mon espace établissement', url: `${SITE}/espace-pro/organisme/` } : ESPACE,
+      ...suite,
     ],
     raison: 'Vous recevez cet email parce qu’un compte DentalMap vient d’être créé avec cette adresse.',
   })

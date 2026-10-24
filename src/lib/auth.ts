@@ -49,7 +49,18 @@ export const auth = betterAuth({
    * passe. La session s'ouvre dès que le code de l'inscription est bon.
    */
   emailAndPassword: { enabled: true, minPasswordLength: LONGUEUR_MOT_DE_PASSE, requireEmailVerification: true },
-  emailVerification: { autoSignInAfterVerification: true },
+  emailVerification: {
+    autoSignInAfterVerification: true,
+    /*
+     * La bienvenue part une fois l'adresse confirmée par le code, pas à la
+     * création du compte. Le même rappel suit un changement d'adresse : un
+     * compte de plus d'un jour ne la reçoit pas.
+     */
+    afterEmailVerification: async (u) => {
+      if (Date.now() - new Date(u.createdAt).getTime() > 86_400_000) return
+      await envoyerBienvenue(u.email, u.name, (u as { role?: string | null }).role)
+    },
+  },
   /*
    * Champs du tunnel sur le compte. `input: true` les rend modifiables par
    * `updateUser`, ce que font les actions du tunnel ; ils ne sont jamais
@@ -72,15 +83,6 @@ export const auth = betterAuth({
       const valeur = (ctx.body as Record<string, unknown> | undefined)?.[champ]
       if (typeof valeur === 'string' && !motDePasseValide(valeur)) throw new APIError('BAD_REQUEST', { message: MESSAGE_MOT_DE_PASSE, code: 'PASSWORD_TOO_WEAK' })
     }),
-  },
-  databaseHooks: {
-    user: {
-      create: {
-        after: async (u) => {
-          await envoyerBienvenue(u.email, u.name, (u as { role?: string | null }).role)
-        },
-      },
-    },
   },
   plugins: [
     emailOTP({

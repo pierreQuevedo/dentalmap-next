@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState, useSyncExternalStore, useTransition } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from 'react'
 import { ArrowRight, BriefcaseBusiness, Building2, Circle, CircleCheck, CreditCard, Eye, EyeOff, Hourglass, KeyRound, Lock, Mail, RefreshCw, UserRound } from 'lucide-react'
 import { emailOtp, signIn, signUp } from '@/lib/auth-client'
 import { chemin } from '@/lib/navigation'
@@ -67,6 +67,7 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
   const [email, setEmail] = useState('')
   const [motDePasse, setMotDePasse] = useState('')
   const [codeSaisi, setCodeSaisi] = useState('')
+  const formulaireCode = useRef<HTMLFormElement>(null)
   const [codeEnvoye, setCodeEnvoye] = useState(false)
   // Le profil demandé par le lien, sinon soignant quand on vient de l'espace pro.
   const [role, setRole] = useState<Role>(
@@ -522,13 +523,21 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
         )}
 
         {etat === 'verifier' && (
-          <form onSubmit={soumettreVerification}>
+          <form ref={formulaireCode} onSubmit={soumettreVerification}>
             <h1 className={titre}>Confirmez votre adresse</h1>
             <p className="mt-2 text-sm text-fg-2">
               Un code à six chiffres vient de partir à <span className="font-medium text-fg">{email || 'votre adresse'}</span>. Il vaut dix minutes.
             </p>
             <div className="mt-8">
-              <ChampCode valeur={codeSaisi} onChange={setCodeSaisi} invalide={echecs > 0} />
+              <ChampCode
+                valeur={codeSaisi}
+                onChange={(v) => {
+                  setCodeSaisi(v)
+                  // Le sixième chiffre, saisi ou collé, envoie le code : plus besoin de « Confirmer ».
+                  if (v.length === 6 && codeSaisi.length < 6 && !enCours) requestAnimationFrame(() => formulaireCode.current?.requestSubmit())
+                }}
+                invalide={echecs > 0}
+              />
             </div>
             {echecs > 0 && <CodeFaux restants={essaisRestants} />}
             {erreur && <Erreur>{erreur}</Erreur>}
