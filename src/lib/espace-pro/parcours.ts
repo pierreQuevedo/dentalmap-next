@@ -265,7 +265,8 @@ export async function chercherFiches(profession: Profession, saisie: string): Pr
 /**
  * L1 : retrouver un laboratoire. Un SIREN (9 chiffres) ou un SIRET (14, dont
  * les 9 premiers sont le SIREN) est cherché tel quel ; une raison sociale,
- * accents ignorés, avec une tolérance aux fautes. Vingt résultats au plus.
+ * accents ignorés, avec une tolérance aux fautes, le plus pertinent d'abord.
+ * Vingt résultats au plus.
  */
 export async function chercherLabos(saisie: string): Promise<ResultatRecherche[]> {
   const texte = saisie.trim()
@@ -274,23 +275,25 @@ export async function chercherLabos(saisie: string): Promise<ResultatRecherche[]
   const cherchable = (colonne: SQL) =>
     sql`lower(translate(${colonne}, 'ÀÂÄÉÈÊËÎÏÔÖÙÛÜÇàâäéèêëîïôöùûüç''-', 'AAAEEEEIIOOUUUCaaaeeeeiioouuuc  '))`
   const q = texte.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/['-]/g, ' ').replace(/\s+/g, ' ')
-  const filtre = /^\d{9}(\d{5})?$/.test(chiffres)
-    ? sql`p.siren = ${chiffres.slice(0, 9)}`
-    : sql`(${cherchable(sql`coalesce(p.raison_sociale, p.nom)`)} LIKE ${`%${q}%`} OR similarity(${cherchable(sql`coalesce(p.raison_sociale, p.nom)`)}, ${q}) > 0.45)`
-  const { rows } = await db.execute<LigneResume>(sql`
-    SELECT DISTINCT ON (p.id) ${colonnesResume}
-    FROM praticiens p
-    LEFT JOIN lieux_exercice l ON l.praticien_id = p.id
-    LEFT JOIN communes c ON c.code_insee = l.code_insee
-    LEFT JOIN departements d ON d.code = c.departement_code
-    WHERE p.deleted_at IS NULL AND p.profession = 'prothesiste' AND ${filtre}
-    ORDER BY p.id, l.principal DESC
-    LIMIT 40
+  const nom = cherchable(sql`coalesce(p.raison_sociale, p.nom)`)
+  const filtre = /^\d{9}(\d{5})?$/.test(chiffres) ? sql`p.siren = ${chiffres.slice(0, 9)}` : sql`(${nom} LIKE ${`%${q}%`} OR similarity(${nom}, ${q}) > 0.45)`
+  // La pertinence d'abord : le nom exact, puis ce qui commence par la saisie, puis ce qui la contient, puis le plus ressemblant.
+  // Sans elle, « Laboratoire Dupont » se perdait parmi tous les « laboratoire dentaire ».
+  const pertinence = sql`CASE WHEN ${nom} = ${q} THEN 0 WHEN ${nom} LIKE ${`${q}%`} THEN 1 WHEN ${nom} LIKE ${`%${q}%`} THEN 2 ELSE 3 END`
+  const { rows } = await db.execute<LigneResume & { pertinence: number; ressemblance: number }>(sql`
+    SELECT * FROM (
+      SELECT DISTINCT ON (p.id) ${colonnesResume}, ${pertinence} AS pertinence, similarity(${nom}, ${q}) AS ressemblance
+      FROM praticiens p
+      LEFT JOIN lieux_exercice l ON l.praticien_id = p.id
+      LEFT JOIN communes c ON c.code_insee = l.code_insee
+      LEFT JOIN departements d ON d.code = c.departement_code
+      WHERE p.deleted_at IS NULL AND p.profession = 'prothesiste' AND ${filtre}
+      ORDER BY p.id, l.principal DESC
+    ) t
+    ORDER BY t.pertinence, t.ressemblance DESC
+    LIMIT 20
   `)
-  return rows
-    .map((r) => ({ ...resumeDe(r), profession: r.profession, rpps: r.rpps }))
-    .sort((a, b) => (a.raisonSociale ?? a.nom).localeCompare(b.raisonSociale ?? b.nom, 'fr') || (a.communeNom ?? '').localeCompare(b.communeNom ?? '', 'fr'))
-    .slice(0, 20)
+  return rows.map((r) => ({ ...resumeDe(r), profession: r.profession, rpps: r.rpps }))
 }
 
 /** Le SIREN d'une fiche de laboratoire. */
