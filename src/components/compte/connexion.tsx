@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useSyncExternalStore, useTransition } from 'react'
+import { useEffect, useState, useSyncExternalStore, useTransition } from 'react'
 import { ArrowRight, BriefcaseBusiness, Building2, Circle, CircleCheck, CreditCard, Eye, EyeOff, Hourglass, KeyRound, Lock, Mail, RefreshCw, UserRound } from 'lucide-react'
 import { emailOtp, signIn, signUp } from '@/lib/auth-client'
 import { chemin } from '@/lib/navigation'
 import type { Role } from '@/lib/tunnel/etapes'
 import { CRITERES_MOT_DE_PASSE, LONGUEUR_MOT_DE_PASSE, MESSAGE_MOT_DE_PASSE, motDePasseValide } from '@/lib/tunnel/mot-de-passe'
+import { EVENEMENT_PROFIL } from './chiffres-profil'
 import { suggererAdresse } from './suggestion'
 import { CarteOption, Encart, Marque, Pictogramme, lien, pastille, pastilleInvalide, principal, saisie, secondaire, titre } from './ui'
 
@@ -41,6 +42,15 @@ const PROFILS: { role: Role; titre: string; detail: string }[] = [
   { role: 'organisme', titre: 'École', detail: 'École ou faculté : je gère la page de l’établissement.' },
 ]
 
+/** Le bouton d'inscription dit pour quel profil le compte est créé. */
+const BOUTON_INSCRIPTION: Record<Role, string> = {
+  patient: 'Créer mon compte patient',
+  dentiste: 'Créer mon compte dentiste',
+  prothesiste: 'Créer mon compte laboratoire',
+  medecin: 'Créer mon compte médecin',
+  organisme: 'Créer mon compte école',
+}
+
 /** Essais par code, comme `allowedAttempts` dans `src/lib/auth.ts`. */
 const ESSAIS_PAR_CODE = 5
 
@@ -69,6 +79,10 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
           ? 'dentiste'
           : 'patient',
   )
+  // Le volet de gauche suit le profil choisi tant qu'on s'inscrit (`ChiffresProfil`).
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(EVENEMENT_PROFIL, { detail: etat === 'inscription' ? role : null }))
+  }, [etat, role])
   const [nom, setNom] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
@@ -430,7 +444,7 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
             <Criteres motDePasse={motDePasse} />
             {erreur && <Erreur>{erreur}</Erreur>}
             <button type="submit" disabled={enCours || !motDePasseValide(motDePasse)} className={`${principal} mt-6`}>
-              {enCours ? <Point /> : 'Créer mon compte'}
+              {enCours ? <Point /> : BOUTON_INSCRIPTION[role]}
               {!enCours && <ArrowRight className="size-4" aria-hidden />}
             </button>
             <p className="mt-5 text-xs leading-relaxed text-fg-2">

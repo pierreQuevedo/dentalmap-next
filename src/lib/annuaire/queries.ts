@@ -1212,6 +1212,8 @@ export async function getFicheCompletee(slug: string): Promise<FicheCompletee | 
 export type ChiffresCles = {
   dentistes: number
   prothesistes: number
+  /** Chirurgiens maxillo-faciaux, stomatologues et ORL. */
+  medecins: number
   /** Communes ayant au moins un praticien vivant, arrondissements comptés à part. */
   communes: number
   /** Départements ayant au moins un praticien vivant. */
@@ -1236,6 +1238,7 @@ export async function getChiffresCles(): Promise<ChiffresCles> {
   const { rows } = await db.execute<{
     dentistes: number
     prothesistes: number
+    medecins: number
     communes: number
     departements: number
     synchronise_le: string | null
@@ -1243,6 +1246,7 @@ export async function getChiffresCles(): Promise<ChiffresCles> {
     SELECT
       (SELECT count(*)::int FROM praticiens WHERE profession = 'dentiste' AND deleted_at IS NULL) AS dentistes,
       (SELECT count(*)::int FROM praticiens WHERE profession = 'prothesiste' AND deleted_at IS NULL) AS prothesistes,
+      (SELECT count(*)::int FROM praticiens WHERE profession IN ('maxillo_facial', 'stomatologue', 'orl') AND deleted_at IS NULL) AS medecins,
       (SELECT count(DISTINCT l.code_insee)::int
          FROM lieux_exercice l JOIN praticiens p ON p.id = l.praticien_id AND p.deleted_at IS NULL
         WHERE l.code_insee IS NOT NULL) AS communes,
@@ -1256,6 +1260,7 @@ export async function getChiffresCles(): Promise<ChiffresCles> {
   return {
     dentistes: r?.dentistes ?? 0,
     prothesistes: r?.prothesistes ?? 0,
+    medecins: r?.medecins ?? 0,
     communes: r?.communes ?? 0,
     departements: r?.departements ?? 0,
     synchroniseLe: r?.synchronise_le ?? null,

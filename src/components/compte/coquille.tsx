@@ -3,7 +3,9 @@ import { Logo } from '@/components/site/logo'
 import { ArrowLeft, X } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 import { getChiffresCles } from '@/lib/annuaire/queries'
+import { getFormations } from '@/lib/wp/queries'
 import { CarteFrance } from './carte-france'
+import { ChiffresProfil, type VarianteChiffres } from './chiffres-profil'
 
 /**
  * La coquille des pages du compte : à gauche la carte, à droite le contenu.
@@ -47,9 +49,33 @@ export async function Coquille({
       </div>
     )
   }
-  const chiffres = accroche ? null : await getChiffresCles()
-  const professionnels = chiffres ? millierInferieur(chiffres.dentistes + chiffres.prothesistes) : ''
+  const [chiffres, formations] = accroche ? [null, []] : await Promise.all([getChiffresCles(), getFormations()])
   const communes = chiffres?.communes.toLocaleString('fr-FR') ?? ''
+  const ecoles = formations.filter((f) => f.type === 'ecole_prothese').length
+  const facultes = formations.filter((f) => f.type === 'faculte').length
+  // Les chiffres de chaque profil, lus en base : la carte suit le profil choisi à l'inscription.
+  const defaut: VarianteChiffres = {
+    titre: [`Plus de ${millierInferieur((chiffres?.dentistes ?? 0) + (chiffres?.prothesistes ?? 0))} professionnels`, `dans ${communes} communes.`],
+    texte: 'Chirurgiens-dentistes, laboratoires de prothèse et spécialistes du visage, rapprochés des registres officiels chaque semaine.',
+  }
+  const variantes: Record<string, VarianteChiffres> = {
+    dentiste: {
+      titre: [`Plus de ${millierInferieur(chiffres?.dentistes ?? 0)} chirurgiens-dentistes`, `dans ${communes} communes.`],
+      texte: 'Chaque fiche vient du registre RPPS et se met à jour chaque semaine : la vôtre existe sans doute déjà.',
+    },
+    prothesiste: {
+      titre: [`Plus de ${millierInferieur(chiffres?.prothesistes ?? 0)} laboratoires`, 'de prothèse dentaire recensés.'],
+      texte: 'Lus au répertoire Sirene de l’Insee et rapprochés chaque semaine : votre laboratoire y est sans doute déjà.',
+    },
+    medecin: {
+      titre: [`Plus de ${millierInferieur(chiffres?.medecins ?? 0)} spécialistes`, 'du visage et de la bouche.'],
+      texte: 'Chirurgiens maxillo-faciaux, stomatologues et ORL, lus au registre RPPS chaque semaine.',
+    },
+    organisme: {
+      titre: [`${ecoles} écoles de prothèse`, `et ${facultes} facultés d’odontologie.`],
+      texte: 'Leurs diplômes, leurs voies d’accès et leurs portes ouvertes, au même endroit.',
+    },
+  }
 
   return (
     <div className="grid min-h-dvh grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
@@ -76,21 +102,14 @@ export async function Coquille({
           </div>
           {/* Carte de verre, dans les marges du site : le titre sur deux lignes et le sous-titre. */}
           <blockquote className="mx-5 mb-8 rounded-2xl border border-line bg-bg/50 p-6 shadow-pop backdrop-blur-xl md:mx-10 xl:mx-20 xl:p-8">
-            <p className="text-balance text-2xl font-semibold leading-snug tracking-tight text-fg xl:text-3xl">
-              {accroche ? (
-                accroche.titre
-              ) : (
-                <>
-                  Plus de {professionnels} professionnels
-                  <br />
-                  dans {communes} communes.
-                </>
-              )}
-            </p>
-            <footer className="mt-3 max-w-lg text-sm text-fg-2">
-              {accroche?.texte ??
-                'Chirurgiens-dentistes, laboratoires de prothèse et spécialistes du visage, rapprochés des registres officiels chaque semaine.'}
-            </footer>
+            {accroche ? (
+              <>
+                <p className="text-balance text-2xl font-semibold leading-snug tracking-tight text-fg xl:text-3xl">{accroche.titre}</p>
+                <footer className="mt-3 max-w-lg text-sm text-fg-2">{accroche.texte}</footer>
+              </>
+            ) : (
+              <ChiffresProfil variantes={variantes} defaut={defaut} />
+            )}
           </blockquote>
         </div>
       </aside>
