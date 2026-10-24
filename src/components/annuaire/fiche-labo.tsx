@@ -36,6 +36,7 @@ import {
   Titre2,
   VerificationSombre,
   dateLongue,
+  LienFicheLiee,
   lienItineraire,
   type ContexteFiche,
 } from './fiche-blocs'
@@ -95,6 +96,7 @@ export function FicheLabo({ c }: { c: ContexteFiche }) {
             </div>
             <h1 className="mt-5 text-balance break-words text-5xl font-normal tracking-tight text-white md:text-6xl">{c.nom}</h1>
             {adresse && <p className="mt-3 text-lg text-white/75">{[adresse, zone].filter(Boolean).join(' · ')}</p>}
+            {c.liee && <LienFicheLiee liee={c.liee} labo />}
             <div className="mt-8 flex flex-wrap gap-2">
               {c.appel && <BoutonAppeler lieuId={c.appel.id} possede={c.appel.aTelephone} libelle="Appeler le laboratoire" className={BOUTON_PRINCIPAL} />}
               {f?.siteWeb && (

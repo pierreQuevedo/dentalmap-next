@@ -3,7 +3,7 @@ import { notFound, permanentRedirect } from 'next/navigation'
 import { connection } from 'next/server'
 import type { Metadata } from 'next'
 import { HeaderTransparent } from '@/components/home/HeaderTransparent'
-import { getFicheCompletee, getPraticien, getPraticiensProches, getRedirection } from '@/lib/annuaire/queries'
+import { getFicheCompletee, getFicheLiee, getPraticien, getPraticiensProches, getRedirection } from '@/lib/annuaire/queries'
 import { aDuContenu } from '@/lib/espace-pro/fiche-completee'
 import { momentParis } from '@/lib/annuaire/ouverture'
 import { LIBELLE as LIBELLE_PROFESSION } from '@/lib/annuaire/libelles'
@@ -82,8 +82,9 @@ export async function PageFiche({ profession, params }: { profession: Profession
   const situe = principal?.lon != null && principal.lat != null && !principal.approximative
   const personne = estPersonne(profession)
 
-  const [completee, compte, voisins, offres] = await Promise.all([
+  const [completee, liee, compte, voisins, offres] = await Promise.all([
     getFicheCompletee(slug),
+    getFicheLiee(slug, profession),
     getCompte(),
     situe ? getPraticiensProches(profession, principal.lon!, principal.lat!, RAYON_VOISINS, 4) : Promise.resolve([]),
     // Offres d'emploi en ligne : pastille « Recrute » et section en fin de fiche.
@@ -110,6 +111,7 @@ export async function PageFiche({ profession, params }: { profession: Profession
     appel: principal?.aTelephone ? principal : (p.lieux.find((l) => l.aTelephone) ?? principal),
     fiche: aDuContenu(completee) ? completee : null,
     geree: completee !== null,
+    liee,
     favori,
     recrute: offres.length > 0,
     radie: p.supprimeLe !== null,

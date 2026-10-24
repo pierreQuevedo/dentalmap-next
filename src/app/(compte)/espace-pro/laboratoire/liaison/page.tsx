@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowRight, Handshake } from 'lucide-react'
+import { ArrowRight, Eye, Handshake, Layers, Link2 } from 'lucide-react'
 import { FicheResume, Pictogramme, cadre, discret, principal, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { lierPraticien } from '@/lib/espace-pro/actions-fiche'
@@ -29,8 +29,19 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <Pictogramme icone={Handshake} />
       <h1 className={titre}>Laboratoire intégré à un cabinet ?</h1>
       <p className="mt-2 text-sm text-fg-2">
-        Le gérant du laboratoire porte le même nom qu’un chirurgien-dentiste de l’annuaire. Reliez les deux fiches si c’est le cas : elles restent distinctes.
+        Le gérant du laboratoire porte le même nom qu’un chirurgien-dentiste de l’annuaire. S’il s’agit de vous, reliez les deux fiches :
       </p>
+      <ul className="mt-4 space-y-2.5">
+        {[
+          { i: Link2, t: 'La fiche du laboratoire renvoie vers votre cabinet, et celle du cabinet vers le laboratoire.' },
+          { i: Eye, t: 'Les confrères voient d’un coup d’œil que le laboratoire travaille au sein d’un cabinet.' },
+          { i: Layers, t: 'Chaque fiche garde ses informations : rien n’est fusionné.' },
+        ].map(({ i: I, t }) => (
+          <li key={t} className="flex items-start gap-2.5 text-sm text-fg">
+            <I className="mt-0.5 size-4 shrink-0 text-teal" aria-hidden /> {t}
+          </li>
+        ))}
+      </ul>
       <div className={`${cadre} mt-6`}>
         <FicheResume profession="Laboratoire de prothèse" nom={nomDe(fiche)} adresse={adresseDe(fiche.resume)} rpps={libelleSiren(siren)} libelleIdentifiant="SIREN" />
       </div>

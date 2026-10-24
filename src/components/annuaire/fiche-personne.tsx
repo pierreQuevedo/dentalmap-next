@@ -51,6 +51,7 @@ import {
   Titre2,
   VerificationSombre,
   dateLongue,
+  LienFicheLiee,
   lienItineraire,
   type ContexteFiche,
 } from './fiche-blocs'
@@ -97,6 +98,7 @@ export function FichePersonne({ c }: { c: ContexteFiche }) {
             </div>
             <h1 className="mt-5 text-balance break-words text-5xl font-normal tracking-tight text-white md:text-6xl">{c.nom}</h1>
             {sousTitre && <p className="mt-3 text-lg text-white/75">{sousTitre}</p>}
+            {c.liee && <LienFicheLiee liee={c.liee} labo={false} />}
             <div className="mt-5 flex flex-wrap gap-2">
               <VerificationSombre statut={p.statutVerification} />
               {c.geree && <MarqueGeree labo={false} />}

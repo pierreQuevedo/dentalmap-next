@@ -315,6 +315,8 @@ export async function lierPraticien(donnees: FormData): Promise<never> {
   const cible = String(donnees.get('praticien') ?? '')
   const { rows } = cible ? await db.execute<{ id: string }>(sql`SELECT id FROM praticiens WHERE slug = ${cible} AND profession = 'dentiste' AND deleted_at IS NULL LIMIT 1`) : { rows: [] }
   if (!rows[0]) return erreur(donnees, 'Fiche praticien introuvable.')
+  // La fiche du praticien affiche aussi la liaison : on la rafraîchit avec celle du laboratoire.
+  updateTag(`praticien:${cible}`)
   return ecrire(donnees, () => ({ praticienLieId: rows[0].id }), '/espace-pro/')
 }
 

@@ -22,7 +22,7 @@ import {
 } from './emprise'
 import { EXERCICES, ORIENTATIONS, SPECIALITES, type Filtres } from './filtres'
 import type { BaseUrl, Praticien, PraticienResume, Profession } from './types'
-import { BASE_URL, PROFESSION_PAR_BASE } from './types'
+import { BASE_URL, PROFESSION_PAR_BASE, cheminPraticien, nomAffiche } from './types'
 import type { FicheCompletee } from '@/lib/espace-pro/fiche-completee'
 import { COLONNES_FICHE, ficheDepuisLigne, type LigneFiche } from '@/lib/espace-pro/fiche-lecture'
 import { marquerRecruteurs } from './recrutement'
@@ -1207,6 +1207,54 @@ export async function getFicheCompletee(slug: string): Promise<FicheCompletee | 
     LIMIT 1
   `)
   return rows[0] ? ficheDepuisLigne(rows[0]) : null
+}
+
+/** L'autre fiche d'un laboratoire intégré à un cabinet (LK1) : le nom affiché et le chemin de sa page. */
+export type FicheLiee = { nom: string; chemin: string }
+
+/**
+ * La fiche liée, dans les deux sens : pour un laboratoire, le cabinet du
+ * praticien qui le dirige ; pour un chirurgien-dentiste, le laboratoire
+ * intégré. Seulement si le laboratoire est attribué, comme le reste de sa
+ * saisie. Les deux pages portent le tag de la fiche : `lierPraticien` les
+ * invalide toutes les deux.
+ */
+export async function getFicheLiee(slug: string, profession: Profession): Promise<FicheLiee | null> {
+  'use cache'
+  cacheLife('praticien')
+  cacheTag('annuaire', `praticien:${slug}`)
+
+  const labo = profession === 'prothesiste'
+  const { rows } = await db.execute<{
+    slug: string
+    profession: Profession
+    nom: string
+    prenom: string | null
+    raison_sociale: string | null
+    commune_slug: string
+    departement_slug: string
+  }>(sql`
+    SELECT autre.slug, autre.profession, autre.nom, autre.prenom, autre.raison_sociale, c.slug AS commune_slug, d.slug AS departement_slug
+    FROM fiches_completees f
+    JOIN praticiens lab ON lab.id = f.praticien_id
+    JOIN praticiens autre ON autre.id = ${labo ? sql`f.praticien_lie_id` : sql`f.praticien_id`}
+    JOIN praticiens ici ON ici.id = ${labo ? sql`f.praticien_id` : sql`f.praticien_lie_id`}
+    JOIN LATERAL (
+      SELECT l.code_insee FROM lieux_exercice l WHERE l.praticien_id = autre.id ORDER BY l.principal DESC, l.id LIMIT 1
+    ) l ON true
+    JOIN communes c ON c.code_insee = l.code_insee
+    JOIN departements d ON d.code = c.departement_code
+    WHERE ici.slug = ${slug} AND f.praticien_lie_id IS NOT NULL
+      AND lab.deleted_at IS NULL AND autre.deleted_at IS NULL
+      AND EXISTS (SELECT 1 FROM revendications r WHERE r.praticien_id = lab.id AND r.statut = 'acceptee' AND r.objet = 'revendication')
+    LIMIT 1
+  `)
+  const r = rows[0]
+  if (!r) return null
+  return {
+    nom: nomAffiche({ profession: r.profession, nom: r.nom, prenom: r.prenom, raisonSociale: r.raison_sociale }),
+    chemin: cheminPraticien(BASE_URL[r.profession], r.departement_slug, r.commune_slug, r.slug),
+  }
 }
 
 export type ChiffresCles = {

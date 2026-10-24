@@ -8,12 +8,13 @@
  */
 import Image from 'next/image'
 import Link from 'next/link'
-import { BadgeCheck, Bookmark, BookmarkCheck, Navigation, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight, BadgeCheck, Bookmark, BookmarkCheck, Navigation, ShieldCheck } from 'lucide-react'
 import { Carte } from '@/components/map/carte'
 import { clePosition, empriseAutour } from '@/lib/annuaire/emprise'
 import { JOURS, LIBELLE_JOUR, type FicheCompletee, type Horaires, type Jour } from '@/lib/espace-pro/fiche-completee'
 import { plagesDuJour, type Ouverture } from '@/lib/annuaire/ouverture'
 import type { BaseUrl, Lieu, Praticien } from '@/lib/annuaire/types'
+import type { FicheLiee } from '@/lib/annuaire/queries'
 import { basculerFavori } from '@/lib/tunnel/actions'
 import { chemin, FilAriane } from './primitives'
 import { BoutonAppeler } from './telephone-protege'
@@ -173,6 +174,19 @@ export function ArianeSombre({ segments }: { segments: { libelle: string; href?:
     <div className="text-white/70 [&_a]:text-white/70 [&_span]:text-white/70">
       <FilAriane segments={segments} />
     </div>
+  )
+}
+
+/** Laboratoire intégré à un cabinet (LK1) : le lien vers l'autre fiche, sous l'adresse. */
+export function LienFicheLiee({ liee, labo }: { liee: FicheLiee; labo: boolean }) {
+  return (
+    <p className="mt-2 text-base text-white/75">
+      {labo ? 'Intégré au cabinet du ' : 'Laboratoire intégré : '}
+      <Link href={chemin(liee.chemin)} className="inline-flex items-center gap-0.5 font-medium text-white underline decoration-white/40 underline-offset-4 hover:decoration-white">
+        {liee.nom}
+        <ArrowUpRight className="size-4" aria-hidden />
+      </Link>
+    </p>
   )
 }
 
@@ -389,6 +403,8 @@ export type ContexteFiche = {
   appel: Lieu | undefined
   /** Déclaratif publié, seulement s'il porte au moins une information. */
   fiche: FicheCompletee | null
+  /** Laboratoire intégré à un cabinet : l'autre fiche (LK1). */
+  liee: FicheLiee | null
   geree: boolean
   favori: boolean
   recrute: boolean
