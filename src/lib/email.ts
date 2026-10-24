@@ -145,6 +145,22 @@ export async function envoyerRevendicationRefusee(to: string, fiche: string, mot
   )
 }
 
+/**
+ * Contestation : le titulaire d'une fiche est prévenu qu'un autre compte
+ * demande à la gérer, et a sept jours pour répondre.
+ */
+export async function envoyerContestationTitulaire(to: string, fiche: string, url: string) {
+  await envoyer(to, `Un autre compte demande à gérer « ${fiche} »`, {
+    titre: `Un autre compte demande à gérer « ${fiche} »`,
+    blocs: [
+      { type: 'texte', texte: `Un autre compte nous a transmis une preuve pour gérer la fiche « ${fiche} », que vous gérez aujourd’hui sur DentalMap.` },
+      { type: 'texte', texte: 'Dites-nous sous 7 jours si vous la gérez toujours. Sans réponse, l’équipe examine la demande et tranche.' },
+      { type: 'bouton', libelle: 'Répondre', url: `${SITE}${url}` },
+    ],
+    raison: 'Vous recevez cet email parce que vous gérez cette fiche sur DentalMap.',
+  })
+}
+
 /** Le gérant d'un laboratoire est prévenu qu'un salarié demande à gérer la fiche en son nom. */
 export async function envoyerMandatAuGerant(to: string, fiche: string, demandeur: string) {
   await envoyer(

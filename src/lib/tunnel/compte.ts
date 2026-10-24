@@ -270,6 +270,11 @@ export type RevendicationAModerer = {
   gerantEmail: string | null
   /** Une autre revendication acceptée existe : c'est une contestation. */
   contestation: boolean
+  /** Contestation : le titulaire prévenu le…, et sa réponse (il garde la fiche, ou la cède). */
+  titulaireAvertiLe: string | null
+  titulaireReponse: 'maintient' | 'cede' | null
+  /** Prévenu depuis plus de sept jours, sans réponse. */
+  titulaireSansReponse: boolean
   demandeLe: string
   compteEmail: string
   compteNom: string
@@ -289,6 +294,9 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     role_labo: string | null
     gerant_email: string | null
     contestation: boolean
+    titulaire_averti_le: string | null
+    titulaire_reponse: 'maintient' | 'cede' | null
+    titulaire_sans_reponse: boolean
     demande_le: string
     email: string
     name: string
@@ -302,6 +310,8 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     siret: string | null
   }>(sql`
     SELECT r.id, r.statut, r.methode, r.objet, r.message, r.justificatif_nom, r.mandat_nom, r.role_labo, r.gerant_email, r.demande_le, u.email, u.name,
+           r.titulaire_averti_le, r.titulaire_reponse,
+           (r.titulaire_reponse IS NULL AND r.titulaire_averti_le < now() - interval '7 days') AS titulaire_sans_reponse,
            EXISTS (SELECT 1 FROM revendications a WHERE a.praticien_id = r.praticien_id AND a.id <> r.id AND a.statut = 'acceptee' AND a.objet = 'revendication') AS contestation,
            p.slug, p.profession, p.nom, p.prenom, p.raison_sociale, p.rpps, p.siret, c.nom AS commune_nom
     FROM revendications r
@@ -324,6 +334,9 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     roleLabo: r.role_labo,
     gerantEmail: r.gerant_email,
     contestation: r.contestation,
+    titulaireAvertiLe: r.titulaire_averti_le,
+    titulaireReponse: r.titulaire_reponse,
+    titulaireSansReponse: !!r.titulaire_sans_reponse,
     demandeLe: r.demande_le,
     compteEmail: r.email,
     compteNom: r.name,

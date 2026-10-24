@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { ShieldCheck } from 'lucide-react'
+import { AutreCompte } from '@/components/compte/autre-compte'
 import { ChoixVoies } from '@/components/compte/choix'
 import { Etapes, FicheResume, Pictogramme, cadre, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
@@ -38,6 +40,18 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
         <ChoixVoies
           voies={[{ valeur: 'kbis', titre: 'Extrait Kbis', detail: 'De moins de 3 mois, à votre nom de gérant.', icone: 'document', badge: '48 h', bouton: 'Envoyer un extrait Kbis', href: versLabo(fiche.slug, 'preuve') }]}
         />
+      </div>
+      <div className="mt-5 space-y-2 text-sm text-fg-2">
+        <p>
+          C’est vous qui le gérez, avec une autre adresse ? <AutreCompte retour="/espace-pro/">Connectez-vous avec cet autre compte</AutreCompte>.
+        </p>
+        <p>
+          Vous y travaillez sans le représenter ?{' '}
+          <Link href={chemin(versLabo(fiche.slug, 'salarie'))} className="font-semibold text-fg underline underline-offset-2 hover:no-underline">
+            Créez votre profil de prothésiste
+          </Link>
+          .
+        </p>
       </div>
     </CoquilleParcours>
   )

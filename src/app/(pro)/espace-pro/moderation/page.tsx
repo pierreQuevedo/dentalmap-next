@@ -39,7 +39,22 @@ export default async function Page() {
               {new Date(r.demandeLe).toLocaleDateString('fr-FR')}
             </p>
             <p className="mt-1 text-sm text-fg">
-              {r.objet === 'retrait' ? 'Retrait de la fiche' : r.contestation ? 'Contestation : fiche déjà gérée par un autre compte' : 'Revendication'} ·{' '}
+              {r.objet === 'retrait'
+                ? 'Retrait de la fiche'
+                : r.contestation
+                  ? `Contestation : fiche déjà gérée par un autre compte${
+                      r.titulaireReponse === 'maintient'
+                        ? ' (le titulaire la garde)'
+                        : r.titulaireReponse === 'cede'
+                          ? ' (le titulaire la cède)'
+                          : r.titulaireSansReponse
+                            ? ' (titulaire sans réponse depuis 7 jours)'
+                            : r.titulaireAvertiLe
+                              ? ' (titulaire prévenu, en attente de sa réponse)'
+                              : ''
+                    }`
+                  : 'Revendication'}{' '}
+              ·{' '}
               {r.methode === 'justificatif' ? 'justificatif' : r.methode === 'pro_sante_connect' ? 'Pro Santé Connect' : 'demande manuelle'}
             </p>
             {r.justificatifNom && (

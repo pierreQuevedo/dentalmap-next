@@ -294,6 +294,14 @@ export const revendications = pgTable('revendications', {
   rppsVerifie: text('rpps_verifie'),
   /** Ce que le demandeur écrit pour justifier sa qualité. */
   message: text('message'),
+  /**
+   * Contestation (la fiche a déjà un titulaire) : le titulaire est prévenu et
+   * a sept jours pour répondre. Sans réponse, l'équipe est relancée et tranche.
+   */
+  titulaireAvertiLe: timestamp('titulaire_averti_le', { withTimezone: true }),
+  titulaireReponse: text('titulaire_reponse', { enum: ['maintient', 'cede'] }),
+  titulaireReponduLe: timestamp('titulaire_repondu_le', { withTimezone: true }),
+  moderationRelanceeLe: timestamp('moderation_relancee_le', { withTimezone: true }),
   demandeLe: timestamp('demande_le', { withTimezone: true }).defaultNow().notNull(),
   traiteLe: timestamp('traite_le', { withTimezone: true }),
 }, (t) => [

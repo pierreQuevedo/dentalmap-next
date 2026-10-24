@@ -8,6 +8,7 @@
     { "path": "/api/cron/alertes-cession/", "schedule": "30 7 * * *" },
     { "path": "/api/cron/alertes-emploi/", "schedule": "15 7 * * *" },
     { "path": "/api/cron/confirmations-offres/", "schedule": "45 6 * * *" },
-    { "path": "/api/cron/rappels-fraicheur/", "schedule": "0 8 * * *" }
+    { "path": "/api/cron/rappels-fraicheur/", "schedule": "0 8 * * *" },
+    { "path": "/api/cron/contestations/", "schedule": "30 8 * * *" }
   ]
 }

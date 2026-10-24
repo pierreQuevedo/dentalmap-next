@@ -1,5 +1,6 @@
 'use server'
 
+import { avertirTitulaire } from './contestation'
 import { randomUUID } from 'node:crypto'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -52,6 +53,7 @@ export async function confirmerPsc(): Promise<never> {
         identifiant_psc = EXCLUDED.identifiant_psc, rpps_verifie = EXCLUDED.rpps_verifie, message = EXCLUDED.message, demande_le = now()
     `)
     await envoyerAModerer(`contestation de ${nomAffiche(fiche)}`, `Le compte ${compte.email} a prouvé par Pro Santé Connect être ${nomAffiche(fiche)} (RPPS ${identite.rpps}), fiche déjà gérée par un autre compte. Délai de réponse : 7 jours.`)
+    await avertirTitulaire(fiche.id, compte.id, nomAffiche(fiche)).catch((e) => console.error('[contestation] titulaire', e))
     redirect(chemin(`${REVENDIQUER}/suivi/?fiche=${encodeURIComponent(fiche.slug)}`))
   }
 
@@ -136,6 +138,8 @@ export async function deposerJustificatif(donnees: FormData): Promise<never> {
   } catch (e) {
     console.error('[revendication] courriel du Kbis', e)
   }
+  // Contestation : le titulaire a sept jours pour répondre.
+  if (fiche.gereeParUnAutre && objet === 'revendication') await avertirTitulaire(fiche.id, compte.id, nom).catch((e) => console.error('[contestation] titulaire', e))
   // Comme côté dentiste, rien ne bloque : le laboratoire enchaîne sur sa fiche, en brouillon jusqu'à l'accord.
   // Un retrait, ou une contestation (la fiche a déjà un titulaire), attend la décision.
   const attendre = objet === 'retrait' || fiche.gereeParUnAutre
@@ -203,6 +207,7 @@ export async function demanderEquipe(donnees: FormData): Promise<never> {
   } catch (e) {
     console.error('[revendication] courriel de demande à l’équipe', e)
   }
+  if (fiche.gereeParUnAutre && objet === 'revendication') await avertirTitulaire(fiche.id, compte.id, nom).catch((e) => console.error('[contestation] titulaire', e))
   // Rien ne bloque : le praticien enchaîne sur sa fiche, en brouillon jusqu'à l'accord. Un retrait attend la décision.
   // Un retrait, ou une contestation (la fiche a déjà un titulaire), attend la décision.
   const attendre = objet === 'retrait' || fiche.gereeParUnAutre
