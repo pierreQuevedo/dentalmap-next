@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Building2, FlaskConical } from 'lucide-react'
+import { FlaskConical } from 'lucide-react'
 import { DepotJustificatif } from '@/components/compte/choix'
-import { Encart, Etapes, Pictogramme, discret, pastille, saisie, titre } from '@/components/compte/ui'
+import { ChampsSiret } from '@/components/compte/champs-siret'
+import { Encart, Etapes, Pictogramme, discret, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { demanderAjoutLabo } from '@/lib/espace-pro/actions-revendication'
 import { televersementDirect } from '@/lib/espace-pro/justificatif'
@@ -48,29 +49,25 @@ export default async function Page(props: { searchParams: Promise<{ siret?: stri
               erreurInitiale={sp.erreur}
               emplacements={[{ nom: 'document', titre: 'Extrait Kbis de moins de 3 mois', detail: 'PDF, 10 Mo au plus' }]}
               libelle="Envoyer la demande"
-              avant={
-                <div className="mb-4 space-y-4">
-                  <div>
-                    <label htmlFor="ajout-siret" className="mb-1.5 block text-sm font-medium text-fg">
-                      SIRET
-                    </label>
-                    <div className={pastille}>
-                      <Building2 className="size-4 shrink-0 text-fg-2" aria-hidden />
-                      <input id="ajout-siret" name="siret" required inputMode="numeric" defaultValue={sp.siret ?? ''} placeholder="912 004 118 00015" className={`${saisie} font-mono`} />
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="ajout-raison" className="mb-1.5 block text-sm font-medium text-fg">
-                      Raison sociale
-                    </label>
-                    <div className={pastille}>
-                      <FlaskConical className="size-4 shrink-0 text-fg-2" aria-hidden />
-                      <input id="ajout-raison" name="raison" required minLength={2} placeholder="Atelier Prothèse Garonne" className={saisie} />
-                    </div>
-                  </div>
-                </div>
+              avant={<ChampsSiret siretInitial={sp.siret ?? ''} />}
+              apres={
+                <>
+                  <p className="mt-2 text-xs text-fg-2">
+                    Pas d’extrait récent ? Le dirigeant l’obtient gratuitement sur{' '}
+                    <a href="https://www.monidenum.fr/" target="_blank" rel="noreferrer" className="font-medium text-fg underline underline-offset-2">
+                      MonIdenum
+                    </a>
+                    , ou sur{' '}
+                    <a href="https://www.infogreffe.fr/" target="_blank" rel="noreferrer" className="font-medium text-fg underline underline-offset-2">
+                      Infogreffe
+                    </a>
+                    .
+                  </p>
+                  <Encart className="mt-3">
+                    L’équipe vérifie l’établissement dans Sirene et votre Kbis, puis ajoute la fiche sous 48 heures ouvrées et vous écrit. Le Kbis n’est vu que par elle, et il est supprimé 30 jours après sa décision.
+                  </Encart>
+                </>
               }
-              apres={null}
             />
           </div>
           <Link href={chemin(`${LABO}/`)} className={`${discret} mt-1`}>
