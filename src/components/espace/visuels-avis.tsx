@@ -200,7 +200,7 @@ function Composition({ format, nom, faculte, qr, adresse, photo, points, onPret 
       ? { photo: 600, marge: 90, titre: 112, sous: 40, qr: 280, logo: 52, sceau: 280 }
       : { photo: 0, marge: 72, titre: 84, sous: 30, qr: 230, logo: 46, sceau: 220 }
   // Ce que vise l'étudiant, et qui recrute : l'alternance n'existe qu'en école de prothèse.
-  const objectif = faculte ? 'votre stage ou votre job étudiant' : 'votre stage ou votre alternance'
+  const objectif = faculte ? 'votre stage ou votre emploi' : 'votre stage, votre alternance ou votre emploi'
   const recruteurs = faculte ? 'cabinets' : 'laboratoires'
   const etapes = ['Scannez', 'Donnez votre avis', 'Passez devant']
 

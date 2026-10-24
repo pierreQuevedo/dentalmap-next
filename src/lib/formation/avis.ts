@@ -148,4 +148,4 @@ export const AVIS_COMPTES_MAX = 2
 export const pointsAvis = (avisPublies: number) => Math.min(AVIS_COMPTES_MAX, Math.max(0, avisPublies)) * POINTS_AVIS
 
 /** Ce que cherche un étudiant de cet établissement : l'alternance n'existe qu'en école de prothèse. */
-export const recherchePour = (type: 'ecole_prothese' | 'faculte') => (type === 'faculte' ? 'stage ou de job étudiant' : 'stage ou d’alternance')
+export const recherchePour = (type: 'ecole_prothese' | 'faculte') => (type === 'faculte' ? 'stage ou d’emploi' : 'stage, d’alternance ou d’emploi')
