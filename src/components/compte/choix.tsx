@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { upload } from '@vercel/blob/client'
-import { ArrowRight, Check, CreditCard, ExternalLink, FileText, IdCard, MapPin, MessageCircle, Search, Send, Upload, X, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Check, CreditCard, ExternalLink, FileText, IdCard, MapPin, MessageCircle, Search, Send, Upload, UserRound, X, type LucideIcon } from 'lucide-react'
 import { CarteOption, discret, principal } from './ui'
 
 /**
@@ -14,7 +14,7 @@ import { CarteOption, discret, principal } from './ui'
  * bouton principal qui dit ce que l'option cochée va faire, le dépôt d'un
  * document, la sélection des lieux.
  */
-const ICONES = { carte: CreditCard, recherche: Search, courrier: Send, document: FileText, identite: IdCard, equipe: MessageCircle } satisfies Record<string, LucideIcon>
+const ICONES = { carte: CreditCard, recherche: Search, courrier: Send, document: FileText, identite: IdCard, equipe: MessageCircle, personne: UserRound } satisfies Record<string, LucideIcon>
 
 export type Voie = {
   valeur: string

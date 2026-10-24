@@ -41,9 +41,9 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
       <ChoixVoies
         defaut="gerant"
         voies={[
-          { valeur: 'gerant', titre: 'Gérant ou dirigeant', detail: 'Vous figurez sur l’extrait Kbis.', icone: 'document', bouton: 'C’est mon laboratoire', href: versLabo(fiche.slug, 'preuve', lieux) },
-          { valeur: 'mandate', titre: 'Salarié mandaté', detail: 'Le gérant vous autorise à gérer la fiche.', icone: 'document', bouton: 'C’est mon laboratoire', href: versLabo(fiche.slug, 'mandat', lieux) },
-          { valeur: 'salarie', titre: 'Prothésiste salarié', detail: 'Vous travaillez au laboratoire sans le représenter.', icone: 'recherche', bouton: 'C’est mon laboratoire', href: versLabo(fiche.slug, 'salarie') },
+          { valeur: 'gerant', titre: 'Gérant ou dirigeant', detail: 'Vous figurez sur l’extrait Kbis.', icone: 'document', bouton: 'Déposer mon Kbis', href: versLabo(fiche.slug, 'preuve', lieux) },
+          { valeur: 'mandate', titre: 'Salarié mandaté', detail: 'Le gérant vous autorise à gérer la fiche.', icone: 'document', bouton: 'Préparer le mandat', href: versLabo(fiche.slug, 'mandat', lieux) },
+          { valeur: 'salarie', titre: 'Prothésiste salarié', detail: 'Vous travaillez au laboratoire sans le représenter.', icone: 'personne', bouton: 'Créer mon profil de prothésiste', href: versLabo(fiche.slug, 'salarie') },
         ]}
         secondaire={{ libelle: 'Ce n’est pas le bon établissement', href: `${LABO}/` }}
       />
