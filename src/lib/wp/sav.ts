@@ -21,7 +21,7 @@ export async function deposerTicketSav(d: {
   const graphql = process.env.WP_GRAPHQL_URL
   if (!cle || !graphql) return 'coupe'
 
-  const complements = [d.telephone && `Téléphone : ${d.telephone}`, d.fiche && `Fiche concernée : ${d.fiche}`].filter(Boolean)
+  const complements = [d.fiche && `Fiche concernée : ${d.fiche}`].filter(Boolean)
   const r = await fetch(`${new URL(graphql).origin}/wp-json/dentalmap/v1/sav/tickets`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-dentalmap-admin': cle },
@@ -30,7 +30,7 @@ export async function deposerTicketSav(d: {
       nom: [d.prenom, d.nom].map((s) => s.trim()).filter(Boolean).join(' '),
       email: d.email,
       message: complements.length ? `${d.message}\n\n${complements.join('\n')}` : d.message,
-      detail: d.telephone ? `Tél. ${d.telephone}` : undefined,
+      telephone: d.telephone || undefined,
     }),
     cache: 'no-store',
     signal: AbortSignal.timeout(8000),
