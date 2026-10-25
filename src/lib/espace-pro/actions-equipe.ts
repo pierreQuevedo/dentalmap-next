@@ -10,7 +10,7 @@ import { envoyerInvitation } from '@/lib/email'
 import { nomAffiche } from '@/lib/annuaire/types'
 import { exigerConnexion } from '@/lib/tunnel/compte'
 import { getFicheRevendication } from './parcours'
-import { getEquipe, hacherJeton, nouveauJeton } from './equipe'
+import { EQUIPE_OUVERTE, getEquipe, hacherJeton, nouveauJeton } from './equipe'
 
 /**
  * L'équipe d'une fiche (U-COL). Seul un titulaire invite, annule ou retire ;
@@ -28,6 +28,7 @@ async function titulaire(donnees: FormData) {
 }
 
 export async function inviter(donnees: FormData): Promise<never> {
+  if (!EQUIPE_OUVERTE) redirect(chemin('/espace-pro/'))
   const { compte, fiche, equipe, ici } = await titulaire(donnees)
   const email = String(donnees.get('email') ?? '').trim().toLowerCase()
   const fonction = String(donnees.get('fonction') ?? '').trim().slice(0, 60) || null
@@ -62,6 +63,7 @@ export async function retirerMembre(donnees: FormData): Promise<never> {
 /** Accepter : le compte connecté doit porter l'adresse invitée. */
 export async function accepterInvitation(donnees: FormData): Promise<never> {
   const jeton = String(donnees.get('jeton') ?? '')
+  if (!EQUIPE_OUVERTE) redirect(chemin(`/espace-pro/invitation/${jeton}/`))
   const compte = await exigerConnexion(`/espace-pro/invitation/${jeton}/`)
   const { rows } = await db.execute<{ id: string; praticien_id: string; email: string; slug: string }>(sql`
     SELECT i.id, i.praticien_id, i.email, p.slug FROM invitations_fiche i JOIN praticiens p ON p.id = i.praticien_id

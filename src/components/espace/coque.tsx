@@ -18,7 +18,6 @@ import {
   Images,
   PanelsTopLeft,
   Route,
-  Users,
   Wrench,
   FileText,
   Gavel,
@@ -116,7 +115,6 @@ function navigation(c: InfosCoque): { groupe: string | null; items: Entree[] }[]
   const h = (p: string) => `/espace-pro/${p}${p ? '/' : ''}${q}`
   const compte: Entree[] = [
     ...(c.labo ? [] : [{ cle: 'fraicheur' as const, libelle: 'Mises à jour', i: RefreshCw, href: h('fraicheur'), badge: c.aReconfirmer }]),
-    ...(c.labo ? [{ cle: 'equipe' as const, libelle: 'Équipe', i: Users, href: h('equipe') }] : []),
     { cle: 'compte', libelle: 'Compte et sécurité', i: Settings, href: h('compte') },
     ...(c.moderateur ? [{ cle: 'moderation' as const, libelle: 'Modération', i: Gavel, href: '/espace-pro/moderation/' }] : []),
   ]

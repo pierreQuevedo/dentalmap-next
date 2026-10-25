@@ -69,7 +69,9 @@ export function aujourdhui(): string {
 export function quand(date: string | Date | null): string {
   if (!date) return ''
   const d = new Date(date)
-  const jours = Math.floor((Date.now() - d.getTime()) / 86_400_000)
+  // En jours du calendrier de Paris : publiée hier soir, c'est « Hier », même moins de 24 heures après.
+  const jour = (x: Date) => Date.parse(x.toLocaleDateString('en-CA', { timeZone: 'Europe/Paris' }))
+  const jours = Math.round((jour(new Date()) - jour(d)) / 86_400_000)
   if (jours <= 0) return 'Aujourd’hui'
   if (jours === 1) return 'Hier'
   if (jours < 7) return `Il y a ${jours} jours`

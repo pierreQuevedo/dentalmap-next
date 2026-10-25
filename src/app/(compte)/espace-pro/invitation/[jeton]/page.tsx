@@ -8,7 +8,7 @@ import { db } from '@/db'
 import { chemin } from '@/lib/navigation'
 import { nomAffiche, type Profession } from '@/lib/annuaire/types'
 import { accepterInvitation } from '@/lib/espace-pro/actions-equipe'
-import { hacherJeton } from '@/lib/espace-pro/equipe'
+import { EQUIPE_OUVERTE, hacherJeton } from '@/lib/espace-pro/equipe'
 import { exigerConnexion } from '@/lib/tunnel/compte'
 
 export const metadata: Metadata = { title: 'Invitation', robots: { index: false, follow: false } }
@@ -26,7 +26,7 @@ export default async function Page(props: { params: Promise<{ jeton: string }> }
   const inv = rows[0]
   const fiche = inv ? nomAffiche({ profession: inv.profession, nom: inv.nom, prenom: inv.prenom, raisonSociale: inv.raison_sociale }) : null
   const bonCompte = inv && inv.email.toLowerCase() === compte.email.toLowerCase()
-  const valide = inv && inv.statut === 'envoyee' && !inv.expiree
+  const valide = EQUIPE_OUVERTE && inv && inv.statut === 'envoyee' && !inv.expiree
   return (
     <Coquille>
       <Marque />
@@ -34,7 +34,11 @@ export default async function Page(props: { params: Promise<{ jeton: string }> }
       {!inv || !valide ? (
         <>
           <h1 className={titre}>Cette invitation n’est plus valable</h1>
-          <p className="mt-2 text-sm text-fg-2">Elle a déjà servi, a été annulée, ou date de plus de trente jours. Demandez une nouvelle invitation à la personne qui gère la fiche.</p>
+          <p className="mt-2 text-sm text-fg-2">
+            {EQUIPE_OUVERTE
+              ? 'Elle a déjà servi, a été annulée, ou date de plus de trente jours. Demandez une nouvelle invitation à la personne qui gère la fiche.'
+              : 'Les invitations à gérer une fiche à plusieurs sont fermées. Pour gérer la fiche d’un laboratoire à la place du gérant, demandez-lui un mandat.'}
+          </p>
           <Link href={chemin('/espace-pro/')} className={`${discret} mt-4`}>
             Mon espace
           </Link>

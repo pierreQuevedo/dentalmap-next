@@ -7,6 +7,13 @@ import { db } from '@/db'
  * cours. Les titulaires sont ceux dont la revendication a été vérifiée ; les
  * invités gèrent la fiche mais n'invitent ni ne retirent personne.
  */
+/**
+ * L'équipe est fermée depuis le 2026-10-25 : plus d'invitation ni d'arrivée
+ * par lien, le mandat couvrant le salarié qui gère la fiche (décision du
+ * 2026-10-21). Les membres déjà là le restent. Le code reste pour la rouvrir.
+ */
+export const EQUIPE_OUVERTE = false
+
 export type Membre = { revendicationId: string; userId: string; nom: string; email: string; titulaire: boolean; fonction: string | null; depuis: string }
 export type Invitation = { id: string; email: string; fonction: string | null; creeLe: string }
 
