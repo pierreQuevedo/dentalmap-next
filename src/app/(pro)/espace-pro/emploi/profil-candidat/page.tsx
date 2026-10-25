@@ -12,7 +12,7 @@ import { getEcoles } from '@/lib/emploi/ecoles'
 import { initiales } from '@/lib/emploi/candidature'
 import { chargerEmploi } from '../../_commun'
 
-export const metadata: Metadata = { title: 'Mon profil candidat', robots: { index: false, follow: false } }
+export const metadata: Metadata = { title: 'Mon profil', robots: { index: false, follow: false } }
 export const instant = false
 
 /** CAND-PROFIL et ETU-PROFIL, dans l'espace pro sous « Mes candidatures » : le profil, et à côté ce qu'un recruteur en voit. */
@@ -25,7 +25,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const nom = compte.nom ?? ''
 
   return (
-    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Mon profil candidat : ce que les recruteurs voient quand vous postulez" sansLienFlottant>
+    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Mon profil : ce que les recruteurs voient quand vous postulez" sansLienFlottant>
       <OngletsEmploi actif="mes" q={q} sansFiche={!espace} />
       <SousOngletsCandidat actif="profil" q={q} />
       {sp.fait === 'profil' && (

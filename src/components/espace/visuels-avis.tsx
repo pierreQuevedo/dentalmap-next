@@ -264,7 +264,7 @@ function Composition({ format, nom, faculte, qr, adresse, photo, points, onPret 
           </p>
           {!carre && (
             <p className="mt-3 text-[#0B1F1D]/70" style={{ fontSize: m.sous * 0.7 }}>
-              Votre avis aide les futurs étudiants à choisir. Vos +{points} points vous attendent sur votre profil candidat DentalMap.
+              Votre avis aide les futurs étudiants à choisir. Vos +{points} points vous attendent sur votre profil DentalMap.
             </p>
           )}
           <p className="mt-3 font-mono text-[#0B8484]" style={{ fontSize: carre ? m.sous * 0.5 : m.sous * 0.6 }}>

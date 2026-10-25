@@ -32,7 +32,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const gain = gainMissions(t, ...t.missions.map((m) => m.cle))
 
   return (
-    <CoqueEspace c={coque} actif="ma-page" titre="Ma page" sousTitre="Les sections de la page publique, dans l’ordre où les candidats les lisent">
+    <CoqueEspace c={coque} actif="ma-page" titre="Ma page" sousTitre="Les sections de la page publique, dans l’ordre où les futurs étudiants les lisent">
       <EnTeteEtab
         i={PanelsTopLeft}
         etiquette="Ma page"

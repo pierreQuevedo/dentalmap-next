@@ -49,7 +49,7 @@ export function libelleQualification(p: { situation: Situation; qualification: s
   const s = situationDe(p.situation)
   if (p.situation === 'etudiant') return p.formation?.cursus ? `Étudiant(e), ${p.formation.cursus}${p.formation.annee ? `, ${p.formation.annee}` : ''}` : 'Étudiant(e)'
   if (p.qualification === 'titre') return TITRE[p.situation].qualifie
-  if (p.qualification === 'formation') return `${s?.libelle ?? 'Candidat(e)'}, en formation`
+  if (p.qualification === 'formation') return `${s?.libelle ?? 'Professionnel(le)'}, en formation`
   return s?.libelle ?? 'Candidat(e)'
 }
 

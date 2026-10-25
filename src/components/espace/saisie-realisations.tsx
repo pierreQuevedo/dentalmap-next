@@ -240,7 +240,7 @@ export function SaisieRealisations({
           <p className="flex items-center gap-2 text-sm font-semibold text-fg">
             <Eye className="size-4 text-fg-2" aria-hidden /> Sur la page
           </p>
-          <p className="mt-1 text-xs text-fg-2">Ce que les candidats verront, dans cet ordre. Glissez les photos, ou utilisez les flèches, pour le changer.</p>
+          <p className="mt-1 text-xs text-fg-2">Ce que les futurs étudiants verront, dans cet ordre. Glissez les photos, ou utilisez les flèches, pour le changer.</p>
           {/* Le haut de la page : la grande photo à côté du nom. */}
           <div className="squircle-2xl mt-4 grid items-center gap-5 bg-[#0e1317] p-5 text-white sm:grid-cols-[minmax(0,1fr)_16rem]">
             <div className="min-w-0">

@@ -83,6 +83,12 @@ export async function getChiffresClassement(): Promise<Map<string, ChiffresEtabl
   return m
 }
 
+/** Les pages où ce compte a un avis publié : les points de mise en avant de son profil en découlent (`pointsAvis`). */
+export async function getMesAvisPublies(userId: string): Promise<string[]> {
+  const { rows } = await db.execute<{ slug: string }>(sql`SELECT slug FROM avis_etablissement WHERE user_id = ${userId}::uuid AND statut = 'publie' ORDER BY cree_le`)
+  return rows.map((r) => r.slug)
+}
+
 /** L'avis de ce compte sur cette page, s'il en a déposé un. */
 export async function getMonAvis(slug: string, userId: string): Promise<{ id: string; lien: LienAvis; annee: string | null; note: number; texte: string; statut: 'publie' | 'retire' } | null> {
   const { rows } = await db.execute<{ id: string; lien: LienAvis; annee: string | null; note: number; texte: string; statut: 'publie' | 'retire' }>(sql`

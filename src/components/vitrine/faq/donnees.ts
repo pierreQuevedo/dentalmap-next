@@ -138,7 +138,7 @@ export const CATEGORIES: Categorie[] = [
   {
     slug: 'emploi',
     titre: 'Emploi',
-    pour: 'Candidats et recruteurs',
+    pour: 'Étudiants, salariés et recruteurs',
     questions: [
       {
         ordre: 1,

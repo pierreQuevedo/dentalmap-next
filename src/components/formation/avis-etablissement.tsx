@@ -20,7 +20,7 @@ export function AvisEtablissement({ lienPage, nom, type, avis, resume }: { lienP
   const mention = (
     <p className="text-xs leading-relaxed text-fg-2">
       Les avis sont déposés par des personnes connectées qui déclarent leur lien avec {nom}, sans vérification de leur scolarité. Ils paraissent dès leur dépôt, du plus récent au
-      plus ancien. Chaque auteur reçoit {POINTS_AVIS} points de mise en avant pour son profil candidat sur DentalMap, quelle que soit sa note. Un avis signalé est examiné par
+      plus ancien. Chaque auteur reçoit {POINTS_AVIS} points de mise en avant pour son profil sur DentalMap, quelle que soit sa note. Un avis signalé est examiné par
       l’équipe DentalMap ; il n’est jamais retiré pour sa note.
     </p>
   )

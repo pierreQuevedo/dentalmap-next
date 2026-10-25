@@ -37,7 +37,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         i={GraduationCap}
         etiquette="Formations"
         titre={!a.length ? 'Activez au moins une formation' : completes === a.length ? 'Vos formations sont complètes' : `${completes} formation${completes > 1 ? 's' : ''} complète${completes > 1 ? 's' : ''} sur ${a.length}`}
-        texte="Chaque formation active s’affiche sur votre page et dans la recherche des formations. Conditions d’accès, places et voies (initiale, alternance, continue) répondent aux premières questions des candidats."
+        texte="Chaque formation active s’affiche sur votre page et dans la recherche des formations. Conditions d’accès, places et voies (initiale, alternance, continue) répondent aux premières questions des futurs étudiants."
         pct={a.length ? Math.round((completes / a.length) * 100) : 0}
         legende="formations complètes"
         gain={gain === null ? null : { pct: gain, quand: 'quand chaque formation est complète' }}

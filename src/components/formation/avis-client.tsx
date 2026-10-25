@@ -27,9 +27,9 @@ function Retour() {
       <Check className="size-4 shrink-0" aria-hidden />
       {p === 'merci' ? (
         <span>
-          Merci, votre avis est en ligne : +{POINTS_AVIS} points de mise en avant sur votre profil candidat.{' '}
+          Merci, votre avis est en ligne : +{POINTS_AVIS} points de mise en avant sur votre profil.{' '}
           <Link href={chemin('/espace-pro/emploi/candidat/')} className="font-semibold underline underline-offset-2">
-            Voir mon profil candidat
+            Voir mon profil
           </Link>
         </span>
       ) : (

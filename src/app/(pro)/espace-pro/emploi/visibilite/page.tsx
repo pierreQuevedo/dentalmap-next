@@ -53,7 +53,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const masquees = new Set(profil.structuresMasquees.map((s) => s.slug))
 
   return (
-    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Visibilité de votre profil candidat : qui peut vous trouver et vous inviter à postuler" sansLienFlottant>
+    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Visibilité de votre profil : qui peut vous trouver et vous inviter à postuler" sansLienFlottant>
       <OngletsEmploi actif="mes" q={q} sansFiche={!espace} />
       <SousOngletsCandidat actif="visibilite" q={q} />
       {sp.fait && MESSAGES[sp.fait] && (

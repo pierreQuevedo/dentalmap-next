@@ -48,7 +48,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
     : !enLigne
       ? 'Votre identité est vérifiée. Publiez vos formations pour que la page soit complétée par vos informations.'
       : prochaine
-        ? `${publiees} section${publiees > 1 ? 's' : ''} déclarée${publiees > 1 ? 's' : ''} sur ${declarees.length} publiée${publiees > 1 ? 's' : ''}. ${prochaine.titre} rendrait la page plus complète pour les ${fac ? 'étudiants et les patients' : 'candidats'}.`
+        ? `${publiees} section${publiees > 1 ? 's' : ''} déclarée${publiees > 1 ? 's' : ''} sur ${declarees.length} publiée${publiees > 1 ? 's' : ''}. ${prochaine.titre} rendrait la page plus complète pour les ${fac ? 'étudiants et les patients' : 'futurs étudiants'}.`
         : 'Tout est renseigné. Il reste l’entretien : annoncer les prochaines portes ouvertes, reconfirmer les formations chaque année.'
 
   const fraicheur = [

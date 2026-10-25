@@ -97,7 +97,7 @@ export function SousOngletsCandidat({ actif, q }: { actif: 'vue' | 'pour-vous' |
     { cle: 'vue', libelle: 'Vue d’ensemble', href: `/espace-pro/emploi/candidat/${q}` },
     { cle: 'pour-vous', libelle: 'Offres pour vous', href: `/espace-pro/emploi/pour-vous/${q}` },
     { cle: 'candidatures', libelle: 'Candidatures', href: `/espace-pro/emploi/mes-candidatures/${q}` },
-    { cle: 'profil', libelle: 'Mon profil candidat', href: `/espace-pro/emploi/profil-candidat/${q}` },
+    { cle: 'profil', libelle: 'Mon profil', href: `/espace-pro/emploi/profil-candidat/${q}` },
     { cle: 'alertes', libelle: 'Alertes', href: `/espace-pro/emploi/alertes/${q}` },
     { cle: 'visibilite', libelle: 'Visibilité', href: `/espace-pro/emploi/visibilite/${q}` },
   ] as const

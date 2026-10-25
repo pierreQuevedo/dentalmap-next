@@ -40,7 +40,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         texte={
           fac
             ? 'La première photo fait la grande image de la page et de la carte de la faculté. Les cinq premières forment la galerie que voient les futurs étudiants et les patients : amphithéâtres, salles de travaux pratiques, centres de soins.'
-            : 'La première photo fait la grande image de la page et de la carte de formation. Les cinq premières forment la galerie que voient les candidats : ateliers, salles, travaux d’étudiants.'
+            : 'La première photo fait la grande image de la page et de la carte de formation. Les cinq premières forment la galerie que voient les futurs étudiants : ateliers, salles, travaux d’étudiants.'
         }
         pct={Math.round((Math.min(n, 5) / 5) * 100)}
         legende="photos affichées"

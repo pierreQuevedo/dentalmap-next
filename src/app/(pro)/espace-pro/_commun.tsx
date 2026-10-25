@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation'
+import { getProfilCandidat } from '@/lib/emploi/candidat-donnees'
+import { situationDe } from '@/lib/emploi/profil-candidat'
 import type { CleNav, InfosCoque } from '@/components/espace/coque'
 import { chemin } from '@/lib/navigation'
 import { getEspace, type Espace } from '@/lib/espace-pro/espace'
@@ -96,10 +98,12 @@ export async function chargerEmploi(sousPage: string, slug?: string): Promise<Ta
     return { compte: t.compte, espace: t.espace, coque: t.coque, q: t.q }
   }
   const mots = (compte.nom ?? '').split(/\s+/).filter(Boolean)
+  // La carte du menu dit la situation déclarée (étudiant, assistant…), jamais « candidat ».
+  const situation = situationDe((await getProfilCandidat(compte.id))?.situation)
   const coque: InfosCoque = {
     mono: ((mots[0]?.[0] ?? '') + (mots.length > 1 ? mots[mots.length - 1][0] : '')).toUpperCase() || 'DM',
     nom: compte.nom || compte.email,
-    ligne2: 'Espace candidat',
+    ligne2: situation?.libelle ?? 'Emploi',
     pagePublique: null,
     enLigne: false,
     missionsRestantes: 0,

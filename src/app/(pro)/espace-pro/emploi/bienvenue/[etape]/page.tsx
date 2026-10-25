@@ -10,7 +10,7 @@ import { TITRES_ETAPE, etapesBienvenue, lireCriteres } from '@/lib/emploi/profil
 import { ApercuCandidat } from '@/components/emploi/apercu-candidat'
 import { chargerEmploi } from '../../../_commun'
 
-export const metadata: Metadata = { title: 'Votre profil candidat', robots: { index: false, follow: false } }
+export const metadata: Metadata = { title: 'Votre profil', robots: { index: false, follow: false } }
 export const instant = false
 
 const INTRO: Record<string, string> = {
@@ -44,7 +44,7 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
   const criteres = profil?.criteres ?? lireCriteres({})
 
   return (
-    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Votre profil candidat, en cinq étapes" sansLienFlottant>
+    <CoqueEspace c={coque} actif="emploi" titre="Emploi" sousTitre="Votre profil, en cinq étapes" sansLienFlottant>
       <OngletsEmploi actif="mes" q={q} sansFiche={!espace} />
       {/* Toute la largeur, comme le reste de l'espace : l'intro reste lisible, les choix s'étalent en encarts. */}
       <div>
@@ -54,7 +54,7 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
         ))}
       </div>
       <p className="mt-6 text-xs font-semibold uppercase tracking-wider text-fg-2">
-        Profil candidat · étape {n} sur {etapes.length}
+        Votre profil · étape {n} sur {etapes.length}
       </p>
       <h2 className="mt-1 text-2xl font-semibold tracking-tight text-fg md:text-3xl">
         {e === 'situation' && compte.nom ? `Bonjour ${compte.nom.split(' ')[0]}, ` : ''}

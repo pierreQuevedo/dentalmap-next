@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, BellRing, GraduationCap, ListChecks, Plus, Sparkles } from 'lucide-react'
+import { ArrowRight, BellRing, GraduationCap, ListChecks, Plus, Sparkles, Star } from 'lucide-react'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
 import { CarteOffre } from '@/components/emploi/blocs'
 import { OngletsEmploi, SousOngletsCandidat } from '@/components/emploi/espace-offres'
@@ -13,6 +13,9 @@ import { getOffresPourVous } from '@/lib/emploi/pour-vous'
 import { VISIBILITES, completudeProfil, libelleQualification } from '@/lib/emploi/profil-candidat'
 import { Frise } from '@/components/emploi/frise-candidature'
 import { chargerEmploi } from '../../_commun'
+import { AVIS_COMPTES_MAX, POINTS_AVIS, pointsAvis } from '@/lib/formation/avis'
+import { getMesAvisPublies } from '@/lib/formation/avis-donnees'
+import { getSourceEtablissement } from '@/lib/espace-pro/etablissement-donnees'
 
 export const metadata: Metadata = { title: 'Emploi, vue d’ensemble', robots: { index: false, follow: false } }
 export const instant = false
@@ -25,7 +28,10 @@ export const instant = false
 export default async function Page(props: { searchParams: Promise<{ fiche?: string }> }) {
   const sp = await props.searchParams
   const { compte, coque, q, espace } = await chargerEmploi('candidat', sp.fiche)
-  const [profil, candidatures, alertes] = await Promise.all([getProfilCandidat(compte.id), getCandidaturesEnvoyees(compte.id), getAlertesCompte(compte.id)])
+  const [profil, candidatures, alertes, mesAvis] = await Promise.all([getProfilCandidat(compte.id), getCandidaturesEnvoyees(compte.id), getAlertesCompte(compte.id), getMesAvisPublies(compte.id)])
+  // L'avis sur son école ou sa faculté : le lien direct si l'école est connue et pas encore notée, sinon la liste des établissements.
+  const ecole = profil?.formation?.ecole && !mesAvis.includes(profil.formation.ecole) ? await getSourceEtablissement(profil.formation.ecole) : null
+  const acquis = pointsAvis(mesAvis.length)
   const pourVous = profil ? await getOffresPourVous(profil, compte.id) : null
   const enCours = candidatures.filter((k) => k.statut !== 'non_retenue')
   const retenues = candidatures.filter((k) => k.statut === 'retenue').length
@@ -95,15 +101,35 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           ) : (
             <>
               <h2 className="text-2xl font-semibold tracking-tight">Bonjour {prenom || 'à vous'}</h2>
-              <p className="mt-2 max-w-xl text-sm text-white/75">Créez votre profil candidat en une minute : il accompagne vos candidatures, et vous recevez les offres qui vous correspondent, triées par distance.</p>
+              <p className="mt-2 max-w-xl text-sm text-white/75">Créez votre profil en une minute : il accompagne vos candidatures, et vous recevez les offres qui vous correspondent, triées par distance.</p>
               <Link href={chemin(lien('bienvenue/situation'))} className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-[#0B1F1D] hover:bg-[#BFE3D6]">
-                Créer mon profil candidat <ArrowRight className="size-4" aria-hidden />
+                Créer mon profil <ArrowRight className="size-4" aria-hidden />
               </Link>
             </>
           )}
         </section>
 
         <aside className="space-y-4">
+          <Tuile>
+            <TitreTuile i={Star}>{mesAvis.length >= AVIS_COMPTES_MAX ? 'Vos avis' : `Votre avis vaut +${POINTS_AVIS} points`}</TitreTuile>
+            {mesAvis.length >= AVIS_COMPTES_MAX ? (
+              <p className="mt-4 text-sm text-fg-2">
+                <span className="font-semibold text-teal">+{acquis} points acquis.</span> Votre profil passe devant dans les profils que consultent les cabinets et laboratoires qui recrutent.
+              </p>
+            ) : (
+              <>
+                <p className="mt-4 text-sm text-fg-2">
+                  Donnez votre avis sur {ecole ? <span className="font-medium text-fg">{ecole.titre}</span> : 'votre école ou votre faculté'} : votre profil passe devant dans les profils que consultent les cabinets et laboratoires qui recrutent, quelle que soit votre note.
+                </p>
+                {acquis > 0 && <p className="mt-2 text-xs font-semibold text-teal">+{acquis} points déjà acquis · un autre avis en rapporte {POINTS_AVIS} de plus</p>}
+                <Link href={chemin(ecole ? `${ecole.lien}avis/` : '/formation/')} className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-full bg-fg px-4 text-xs font-semibold text-bg">
+                  {ecole ? 'Donner mon avis' : 'Choisir mon école ou ma faculté'} <ArrowRight className="size-3.5" aria-hidden />
+                </Link>
+              </>
+            )}
+            {!profil && <p className="mt-3 text-xs text-fg-2">Les points s’ajoutent à votre profil, même si vous le créez plus tard.</p>}
+            {profil?.visibilite === 'discret' && <p className="mt-3 text-xs text-fg-2">Votre profil est discret : rendez-le visible pour profiter de ces points.</p>}
+          </Tuile>
           {etudiant && profil?.formation && (
             <Tuile>
               <TitreTuile i={GraduationCap}>Votre formation</TitreTuile>
@@ -150,7 +176,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
               ))}
             </ul>
           ) : (
-            <p className="mt-4 text-sm text-fg-2">{profil ? (pourVous ? 'Aucune offre dans votre rayon pour l’instant.' : 'Indiquez votre ville dans votre profil pour voir les offres autour de vous.') : 'Votre profil candidat permet de vous proposer des offres.'}</p>
+            <p className="mt-4 text-sm text-fg-2">{profil ? (pourVous ? 'Aucune offre dans votre rayon pour l’instant.' : 'Indiquez votre ville dans votre profil pour voir les offres autour de vous.') : 'Votre profil permet de vous proposer des offres.'}</p>
           )}
         </Tuile>
         <Tuile>

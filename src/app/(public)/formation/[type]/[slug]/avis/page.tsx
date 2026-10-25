@@ -68,7 +68,7 @@ export default async function Page(props: { params: Promise<{ type: string; slug
             <div>
               <p className="font-semibold">{monAvis ? 'Vos points de mise en avant sont acquis' : `+${POINTS_AVIS} points de mise en avant pour votre recherche de ${recherchePour(source.type)}`}</p>
               <p className="mt-1 text-sm text-white/70">
-                Ils s’ajoutent à votre profil candidat sur DentalMap, même si vous le créez plus tard, et vous font apparaître plus haut auprès des recruteurs. Les mêmes points quelle que soit
+                Ils s’ajoutent à votre profil sur DentalMap, même si vous le créez plus tard, et vous font apparaître plus haut auprès des recruteurs. Les mêmes points quelle que soit
                 votre note.
               </p>
             </div>

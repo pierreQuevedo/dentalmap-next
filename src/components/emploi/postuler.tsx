@@ -68,7 +68,7 @@ export async function TiroirPostuler({ o, etat }: { o: OffreDetail; etat: string
             <div className="space-y-5">
               {!profil && (
                 <div className="squircle-xl border border-teal/30 bg-teal/[0.06] p-4 text-sm">
-                  <p className="font-semibold text-fg">Ajoutez votre profil candidat</p>
+                  <p className="font-semibold text-fg">Ajoutez votre profil</p>
                   <p className="mt-1 text-fg-2">Une minute : il accompagne votre candidature, et vous recevez les offres qui vous correspondent. Facultatif.</p>
                   <Link
                     href={chemin(`/espace-pro/emploi/bienvenue/situation/?retour=${encodeURIComponent(cheminPostuler(o.slug))}`)}

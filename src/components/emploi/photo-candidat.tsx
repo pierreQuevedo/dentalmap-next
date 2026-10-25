@@ -53,11 +53,11 @@ export function PhotoCandidat({ compte, perso, initiales, direct }: { compte: st
       <input type="hidden" name="photoSource" value={url ? 'perso' : 'compte'} />
       <input type="hidden" name="photo" value={url} />
       <span className="squircle-xl relative grid size-20 shrink-0 place-items-center overflow-hidden bg-bg-soft text-lg font-bold text-fg ring-1 ring-line">
-        {affichee ? <Image src={affichee} alt="Photo du profil candidat" fill sizes="80px" className="object-cover" unoptimized={affichee.startsWith('blob:')} /> : initiales}
+        {affichee ? <Image src={affichee} alt="Photo de votre profil" fill sizes="80px" className="object-cover" unoptimized={affichee.startsWith('blob:')} /> : initiales}
       </span>
       <div className="min-w-0 space-y-2">
         <p className="text-xs text-fg-2">
-          {url ? 'Photo propre à votre profil candidat.' : compte ? 'La photo de profil de votre fiche.' : 'Pas encore de photo.'} Elle n’apparaît qu’aux recruteurs des offres auxquelles vous postulez.
+          {url ? 'Photo propre à votre profil emploi.' : compte ? 'La photo de profil de votre fiche.' : 'Pas encore de photo.'} Elle n’apparaît qu’aux recruteurs des offres auxquelles vous postulez.
         </p>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <button type="button" onClick={() => entree.current?.click()} className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line px-4 font-medium text-fg hover:border-line-strong">
@@ -72,7 +72,7 @@ export function PhotoCandidat({ compte, perso, initiales, direct }: { compte: st
           {etat === 'erreur' && <span className="text-destructive">La photo n’a pas pu être préparée. Essayez un autre fichier.</span>}
         </div>
       </div>
-      <input ref={entree} type="file" accept="image/*" className="sr-only" onChange={(e) => choisir(e.target.files?.[0])} aria-label="Photo du profil candidat" />
+      <input ref={entree} type="file" accept="image/*" className="sr-only" onChange={(e) => choisir(e.target.files?.[0])} aria-label="Photo de votre profil" />
     </div>
   )
 }

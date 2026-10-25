@@ -669,7 +669,7 @@ export async function envoyerInvitationAPostuler(to: string, d: { recruteur: str
       { type: 'bouton', libelle: 'Voir l’offre et postuler', url: `${SITE}${d.url}` },
       { type: 'texte', texte: 'Le recruteur n’a pas vos coordonnées : elles ne lui sont transmises que si vous postulez.' },
     ],
-    raison: 'Vous recevez cet email parce que votre profil candidat est visible des recruteurs vérifiés sur DentalMap. Vous pouvez le rendre discret à tout moment.',
+    raison: 'Vous recevez cet email parce que votre profil est visible des recruteurs vérifiés sur DentalMap. Vous pouvez le rendre discret à tout moment.',
   })
 }
 

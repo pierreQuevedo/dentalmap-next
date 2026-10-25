@@ -53,7 +53,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <SousOngletsCandidat actif="pour-vous" q={q} />
       {!resultat ? (
         <Tuile>
-          <p className="text-sm text-fg">Indiquez votre ville dans votre profil candidat pour voir les offres autour de vous.</p>
+          <p className="text-sm text-fg">Indiquez votre ville dans votre profil pour voir les offres autour de vous.</p>
           <Link href={chemin(`/espace-pro/emploi/profil-candidat/${q}#recherche`)} className="mt-4 inline-flex h-10 items-center rounded-full bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">
             Compléter mon profil
           </Link>
