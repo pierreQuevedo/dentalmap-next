@@ -36,7 +36,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   return (
     <CoquilleParcours
       fiche={fiche}
-      etiquette={retrait ? 'Retrait demandé' : 'Vérification en cours'}
+      etiquette={retrait ? 'Retrait demandé' : 'Fiche non revendiquée'}
       recherche={fiche.rpps ?? nomDe(fiche)}
       encart={{ icone: 'confrere', titre: 'Vérification par l’équipe', texte: 'Une personne de l’équipe vous répond sous 48 heures ouvrées.' }}
       retour={versMethode}
