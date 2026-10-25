@@ -96,7 +96,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                       {a.minutes ? ` · ${a.minutes} min` : ''}
                     </p>
                   </div>
-                  <span className={`squircle-full shrink-0 px-2 py-0.5 font-mono text-xs font-semibold ${a.points ? 'bg-teal/10 text-teal' : 'bg-bg-soft text-fg-2'}`}>{a.points ? `+${a.points} pts` : 'Hors barème'}</span>
+                  <span className={`squircle-full shrink-0 px-2 py-0.5 font-mono text-xs font-semibold ${a.points ? 'bg-teal/10 text-teal' : 'bg-bg-soft text-fg-2'}`}>{a.points ? `+${a.points} pts` : 'Pour les patients'}</span>
                   <ArrowRight className="size-4 shrink-0 text-fg-2" aria-hidden />
                 </Link>
               </li>

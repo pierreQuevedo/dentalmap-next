@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { lireSaisie } from '@/lib/espace-pro/saisie'
-import { CalendarCheck, ExternalLink, Globe, Info } from 'lucide-react'
+import { CalendarCheck, Globe, Info } from 'lucide-react'
+import { BoutonsLiens } from '@/components/espace/boutons-liens'
 import { Encart, pastille, saisie } from '@/components/compte/ui'
 import { ECHECS_MASQUE } from '@/lib/espace-pro/fiche-completee'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
@@ -11,7 +12,7 @@ import { chargerTableau } from '../../_commun'
 export const metadata: Metadata = { title: 'Liens du cabinet', robots: { index: false, follow: false } }
 export const instant = false
 
-/** MIS-L : le site du cabinet et la prise de rendez-vous en ligne. Hors barème : un service, pas des points. */
+/** MIS-L : le site du cabinet et la prise de rendez-vous en ligne. Sans points : un service rendu aux patients, que l'écran dit plutôt que « hors barème ». */
 export default async function Page(props: { searchParams: Promise<{ fiche?: string; erreur?: string }> }) {
   const sp = await props.searchParams
   const { espace, coque, q } = await chargerTableau('missions', sp.fiche, 'liens')
@@ -21,11 +22,11 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const enEchec = (['site', 'rdv'] as const).filter((k) => (c?.liensEchecs[k] ?? 0) > 0 && (k === 'site' ? c?.siteWeb : c?.rdvEnLigne))
   const libelleLien = { site: 'Le site du cabinet', rdv: 'La prise de rendez-vous en ligne' }
   return (
-    <CoqueEspace c={coque} actif="progression" titre="Liens du cabinet" sousTitre="hors barème · 1 min" parent={{ libelle: 'Progression', href: `/espace-pro/progression/${q}` }}>
+    <CoqueEspace c={coque} actif="progression" titre="Liens du cabinet" sousTitre="Les patients prennent rendez-vous depuis votre fiche · 1 min" parent={{ libelle: 'Progression', href: `/espace-pro/progression/${q}` }}>
       <PanneauMission
         cle="liens"
         titre="Liens du cabinet"
-        meta="Mission · hors barème · 1 min"
+        meta="Mission · rendez-vous en un clic · 1 min"
         intro="Deux boutons sur votre fiche. Le lien mène directement chez vous, sans intermédiaire ni suivi."
         action={enregistrerLiens}
         fiche={espace.fiche.slug}
@@ -35,12 +36,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         cote={
           <Tuile>
             <TitreTuile i={Info}>Sur la fiche</TitreTuile>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex h-9 items-center gap-2 rounded-full bg-action px-4 text-xs font-semibold text-action-foreground">Appeler le cabinet</span>
-              <span className="inline-flex h-9 items-center gap-2 rounded-full border border-line bg-bg px-4 text-xs font-medium text-fg">
-                <Globe className="size-3.5" aria-hidden /> Site du cabinet <ExternalLink className="size-3" aria-hidden />
-              </span>
-            </div>
+            <BoutonsLiens site={gardee.texte('site') ?? c?.siteWeb ?? ''} rdv={gardee.texte('rdv') ?? c?.rdvEnLigne ?? ''} />
             <p className="mt-3 text-xs text-fg-2">Laissez un champ vide pour ne pas afficher son bouton.</p>
           </Tuile>
         }

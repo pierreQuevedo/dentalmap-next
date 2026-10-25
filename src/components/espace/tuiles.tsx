@@ -104,7 +104,7 @@ export function TuileMissions({ missions, q }: { missions: Mission[]; q: string 
                     {m.minutes} min
                   </span>
                 </span>
-                <span className={`squircle-full px-2 py-0.5 text-xs font-medium ${m.gain ? 'bg-teal/10 text-teal' : 'bg-bg-soft text-fg-2'}`}>{m.gain ? `+${m.gain} pts` : 'Hors barème'}</span>
+                <span className={`squircle-full px-2 py-0.5 text-xs font-medium ${m.gain ? 'bg-teal/10 text-teal' : 'bg-bg-soft text-fg-2'}`}>{m.gain ? `+${m.gain} pts` : 'Pour les patients'}</span>
                 <ChevronRight className="size-4 text-fg-2" aria-hidden />
               </Link>
             </li>
