@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Landmark, Mail, Send, UserRound } from 'lucide-react'
-import { Encart, discret, pastille, principal, saisie, titre } from '@/components/compte/ui'
+import { Encart, Puce, discret, pastille, principal, saisie, titre } from '@/components/compte/ui'
+import { TYPES_PARTENARIAT } from '@/lib/espace-pro/etablissement'
 import { chemin } from '@/lib/navigation'
 import { proposerPartenariat } from '@/lib/espace-pro/actions-etablissement'
 import { ACCROCHE_PARTENARIAT, CoquilleOrganisme, ORGANISME, gardeOrganisme } from '../_commun'
@@ -56,6 +57,18 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
             </div>
           </div>
         ))}
+        <fieldset>
+          <legend className="mb-1.5 block text-sm font-medium text-fg">
+            Type de partenariat <span className="font-normal text-fg-2">(facultatif)</span>
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {TYPES_PARTENARIAT.map((t) => (
+              <Puce key={t} name="types" value={t} multiple>
+                {t}
+              </Puce>
+            ))}
+          </div>
+        </fieldset>
         <div>
           <label htmlFor="partenariat-projet" className="mb-1.5 block text-sm font-medium text-fg">
             Votre projet

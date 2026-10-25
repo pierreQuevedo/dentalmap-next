@@ -18,7 +18,7 @@ import {
 import { enregistrerProfil, estModerateur, exigerConnexion, type Compte } from '@/lib/tunnel/compte'
 import { synchroniserFormation } from '@/lib/wp/ecriture'
 import { deciderAjoutEtablissement, deciderAttestation as deciderAttestationModeration } from '@/lib/moderation/decisions'
-import { COOKIE_PARTENARIAT, SPECIALITES, adresseReconnue, controlerUai, CentreSoins, Cycle, Donnees, FormationDeclaree, Photo, VoieAcces, type Bloc } from './etablissement'
+import { COOKIE_PARTENARIAT, SPECIALITES, TYPES_PARTENARIAT, adresseReconnue, controlerUai, CentreSoins, Cycle, Donnees, FormationDeclaree, Photo, VoieAcces, type Bloc } from './etablissement'
 import { ESPACE_ETAB, ORGANISME, getFicheEtablissement, getGestions, getSourceEtablissement, initialiserFiche, type Gestion } from './etablissement-donnees'
 import { controlerJustificatif, rangerJustificatif, typeDepuisNom } from './justificatif'
 
@@ -198,9 +198,12 @@ export async function proposerPartenariat(donnees: FormData): Promise<never> {
     const garder = Object.entries(brut).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&')
     redirect(chemin(`${ici}?${garder}&erreur=${encodeURIComponent(r.error.issues[0]?.message ?? 'Formulaire incomplet.')}`))
   }
+  // Les types cochés passent en tête du message : l'équipe voit d'emblée l'orientation du projet.
+  const types = donnees.getAll('types').map(String).filter((t) => (TYPES_PARTENARIAT as readonly string[]).includes(t))
+  const message = types.length ? `Type de partenariat : ${types.join(', ')}\n\n${r.data.projet}` : r.data.projet
   try {
     // Même circuit que le formulaire de l'accueil : un courriel à l'équipe, rien de stocké, aucun compte pro.
-    await envoyerDemandePartenariat({ prenom: '', nom: compte.nom, email: r.data.email, organisme: r.data.organisme, fonction: r.data.fonction, message: r.data.projet, origine: 'espace-pro' })
+    await envoyerDemandePartenariat({ prenom: '', nom: compte.nom, email: r.data.email, organisme: r.data.organisme, fonction: r.data.fonction, message, origine: 'espace-pro' })
     await envoyerAccusePartenariat(r.data.email, r.data.organisme)
   } catch (e) {
     console.error('[partenariat] envoi impossible', e)

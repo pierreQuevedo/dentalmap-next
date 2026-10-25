@@ -101,6 +101,6 @@ export { ORGANISME }
 
 /** Le volet des pages de partenariat (O2b, O3b). */
 export const ACCROCHE_PARTENARIAT = {
-  titre: 'Un annuaire sans logo acheté.',
-  texte: 'Une demande de partenariat ne crée ni compte professionnel ni affichage.',
+  titre: 'Des partenaires au service des praticiens.',
+  texte: 'Ordres, syndicats, éditeurs : relayez auprès de vos adhérents un annuaire vérifié par les registres officiels.',
 }

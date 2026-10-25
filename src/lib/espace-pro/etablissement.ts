@@ -23,6 +23,9 @@ export const COOKIE_PARTENARIAT = 'dm_partenariat'
  */
 export { THEMES_FORMATION as SPECIALITES } from '@/lib/formation/themes'
 
+/** O2b : ce qu'un partenaire peut proposer, pour orienter sa demande ; le projet reste libre. */
+export const TYPES_PARTENARIAT = ['Relais auprès des adhérents', 'Contenus et ressources', 'Données et études', 'Événements'] as const
+
 export const LIBELLE_TYPE: Record<TypeEtablissement, string> = {
   ecole_prothese: 'École de prothèse',
   faculte: 'Faculté',
