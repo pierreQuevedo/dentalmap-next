@@ -22,7 +22,7 @@ export default async function Page() {
         <fieldset className="grid gap-2.5">
           <legend className="sr-only">Type d’organisme</legend>
           <CarteOption name="organisme" value="etablissement" defaultChecked required icone={Landmark} titre="École ou faculté" badge="Fiche publiée" detail="Formation initiale : odontologie, prothèse dentaire." />
-          <CarteOption name="organisme" value="continue" icone={GraduationCap} titre="Formation continue" badge="Liste d’attente" detail="Organisme de DPC ou de formation professionnelle." />
+          <CarteOption name="organisme" value="continue" icone={GraduationCap} titre="Formation continue" badge="Après vérification" detail="Organisme de DPC ou de formation professionnelle." />
           <CarteOption name="organisme" value="partenaire" icone={Handshake} titre="Ordre, syndicat, éditeur" badge="Sur demande" detail="Partenariat, sans fiche publiée." />
         </fieldset>
         <button type="submit" className={`${principal} mt-5`}>
