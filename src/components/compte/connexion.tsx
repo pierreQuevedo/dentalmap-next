@@ -126,6 +126,9 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
       return
     }
     setEchecs((n) => n + 1)
+    // Les six cases se vident et la première reprend la main : on ressaisit sans effacer chiffre par chiffre.
+    setCodeSaisi('')
+    requestAnimationFrame(() => document.getElementById('connexion-code-0')?.focus())
   }
 
   /** Mène là où l'on voulait aller : la page de profil relit le compte et décide de la suite. */
