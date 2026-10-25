@@ -285,6 +285,7 @@ export function CoqueEspace({
   titre,
   sousTitre,
   sansLienFlottant = false,
+  sansBandeauVerification = false,
   children,
 }: {
   c: InfosCoque
@@ -293,6 +294,8 @@ export function CoqueEspace({
   sousTitre: string
   /** Un formulaire à boutons en bas (Créer un poste) : pas de « Voir ma fiche » flottant par-dessus. */
   sansLienFlottant?: boolean
+  /** La vue d'ensemble dit elle-même la vérification en cours : pas de bandeau en plus. */
+  sansBandeauVerification?: boolean
   children: React.ReactNode
 }) {
   // L'état de la fiche, en une ligne : pastille, statut, fin d'adresse ; la carte entière mène à la page publique.
@@ -404,7 +407,7 @@ export function CoqueEspace({
           </Link>
         )}
         <div className="mt-3">
-          {c.enVerification && <EnVerification labo={c.labo} className="mb-6" />}
+          {c.enVerification && !sansBandeauVerification && <EnVerification labo={c.labo} className="mb-6" />}
           {/* L'espace établissement a son propre retour, bloc par bloc. */}
           {!c.etablissement && (
             <Suspense fallback={null}>

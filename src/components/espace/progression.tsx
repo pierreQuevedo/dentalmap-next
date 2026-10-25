@@ -88,14 +88,15 @@ export function CarteProgression({ points, distinctions, q }: { points: Points; 
         <div className="mt-3">
           <BarreProgression part={p.part} claire />
           <p className="mt-1.5 text-[11px] text-white/70">
+            <b className="text-white">Fiche à {points.detail.fiche} %</b> ·{' '}
             {!p.verifiee ? (
-              'Publiée et au palier 1 dès la vérification'
+              'publiée et au palier 1 dès la vérification'
             ) : p.suivant ? (
               <>
-                Plus que <b className="text-white">{p.reste} pts</b> avant {p.suivant.nom}
+                plus que <b className="text-white">{p.reste} pts</b> avant {p.suivant.nom}
               </>
             ) : (
-              'Tous les paliers atteints'
+              'tous les paliers atteints'
             )}
           </p>
         </div>
@@ -244,6 +245,11 @@ export function Confettis() {
 /** La carte de résultat de la fiche, pour la montrer s'améliorer d'un palier à l'autre. */
 export type CarteAMontrer = { praticien: PraticienProche; profession: Profession; photo: string | null }
 
+/** Les gains d'un palier dits à un laboratoire : sa fiche est lue par des cabinets, et c'est lui qui la gère. */
+export function gainsDuPalier(palier: Palier, labo: boolean): string[] {
+  return labo ? palier.gains.map((g) => g.replace('filtres patients', 'filtres cabinets').replace('Gérée par le praticien', 'Gérée par le laboratoire')) : palier.gains
+}
+
 /**
  * Le passage de palier, plein écran, une fois par palier, sur le fond des
  * stories : la carte de résultat de la fiche, d'abord telle qu'au palier
@@ -310,7 +316,7 @@ export function PassagePalier({ palier, fermer, lon, lat, partager, distinctions
             )}
 
             <ul className="mt-5 flex flex-wrap justify-center gap-1.5 text-xs">
-              {palier.gains.map((g, i) => (
+              {gainsDuPalier(palier, carte?.profession === 'prothesiste').map((g, i) => (
                 <li key={g} data-anime className="squircle-full inline-flex items-center gap-1.5 bg-[#0B1F1D]/60 px-2.5 py-1 text-white/90 ring-1 ring-white/15 backdrop-blur-sm" style={{ animation: `dm-monte .4s ${1.2 + i * 0.12}s ease-out both` }}>
                   <Check className="size-3 text-[#BFE3D6]" strokeWidth={3} aria-hidden />
                   {g}

@@ -12,7 +12,7 @@ import { Anneau } from './anneau'
  */
 export const EVENEMENT_FORCE = 'dm-force-saisie'
 
-export function BandeauForce({ force, verifiee = true, className = '' }: { force: number; verifiee?: boolean; className?: string }) {
+export function BandeauForce({ force, points, verifiee = true, className = '' }: { force: number; /** Les points de progression, quand l'appelant les a : le palier se lit sur eux. */ points?: number; verifiee?: boolean; className?: string }) {
   const [gain, setGain] = useState(0)
   useEffect(() => {
     const ecouter = (e: Event) => setGain((e as CustomEvent<number>).detail)
@@ -20,7 +20,9 @@ export function BandeauForce({ force, verifiee = true, className = '' }: { force
     return () => window.removeEventListener(EVENEMENT_FORCE, ecouter)
   }, [])
   const total = Math.min(100, force + gain)
-  const p = progressionDe(total, verifiee)
+  // Un point par pour cent : la saisie en cours fait monter les deux d'autant.
+  const pts = points === undefined ? null : points + gain
+  const p = progressionDe(pts ?? total, verifiee)
   const palier = !verifiee
     ? 'palier 1 dès la vérification'
     : p.actuel
@@ -31,7 +33,8 @@ export function BandeauForce({ force, verifiee = true, className = '' }: { force
       <Anneau pct={total} taille={44} />
       <div className="min-w-0">
         <p className="text-sm font-semibold text-fg">
-          Fiche à {total} %{gain > 0 && <span className="ml-1.5 text-xs font-semibold text-teal">+{gain} %</span>}
+          Fiche à {total} %{pts !== null && <span className="font-normal text-fg-2"> · {pts} pts</span>}
+          {gain > 0 && <span className="ml-1.5 text-xs font-semibold text-teal">+{gain}</span>}
         </p>
         <p className="text-xs text-fg-2">{palier.charAt(0).toUpperCase() + palier.slice(1)}</p>
       </div>

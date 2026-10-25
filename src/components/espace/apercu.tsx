@@ -24,6 +24,7 @@ export function ApercuPatient({
   completee,
   enCours,
   force,
+  points,
   verifiee = true,
 }: {
   nom: string
@@ -33,6 +34,8 @@ export function ApercuPatient({
   completee: FicheCompletee | null
   enCours?: BlocApercu
   force: number
+  /** Les points de progression, affichés à côté du pourcentage. */
+  points?: number
   /** Identité vérifiée : sans elle, aucun palier n'est tenu. */
   verifiee?: boolean
 }) {
@@ -89,7 +92,7 @@ export function ApercuPatient({
           </ul>
         </div>
       </div>
-      <BandeauForce force={force} verifiee={verifiee} className="mt-3" />
+      <BandeauForce force={force} points={points} verifiee={verifiee} className="mt-3" />
     </div>
   )
 }
@@ -107,6 +110,7 @@ export function ApercuCabinet({
   lignes,
   enCours = [],
   force,
+  points,
   verifiee = true,
 }: {
   nom: string
@@ -115,6 +119,8 @@ export function ApercuCabinet({
   lignes: Record<BlocCabinet, string | null>
   enCours?: BlocCabinet[]
   force: number
+  /** Les points de progression, affichés à côté du pourcentage. */
+  points?: number
   /** Identité vérifiée : sans elle, aucun palier n'est tenu. */
   verifiee?: boolean
 }) {
@@ -169,7 +175,7 @@ export function ApercuCabinet({
           })}
         </ul>
       </div>
-      <BandeauForce force={force} verifiee={verifiee} className="mt-3" />
+      <BandeauForce force={force} points={points} verifiee={verifiee} className="mt-3" />
     </div>
   )
 }

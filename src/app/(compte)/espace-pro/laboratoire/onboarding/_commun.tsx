@@ -8,6 +8,7 @@ import { EnVerification } from '@/components/espace/en-verification'
 import { chemin } from '@/lib/navigation'
 import { getEspace, type Espace } from '@/lib/espace-pro/espace'
 import { resumesLabo } from '@/lib/espace-pro/resumes'
+import { pointsDeLEspace } from '@/lib/espace-pro/progression-donnees'
 import { adresseDe, garde, nomDe } from '@/app/(compte)/espace-pro/revendiquer/_commun'
 
 /**
@@ -37,8 +38,9 @@ export async function chargerOnboardingLabo(etape: EtapeLabo | 'liaison', slug?:
   return espace
 }
 
-export function CoquilleOnboardingLabo({ espace, enCours, children }: { espace: Espace; enCours?: BlocCabinet[]; children: React.ReactNode }) {
-  const apercu = <ApercuCabinet nom={nomDe(espace.fiche)} adresse={adresseDe(espace.fiche.resume)} lignes={resumesLabo(espace.completee)} enCours={enCours} force={espace.force.total} verifiee={(espace.force.items.find((i) => i.cle === 'identite')?.points ?? 0) > 0} />
+export async function CoquilleOnboardingLabo({ espace, enCours, children }: { espace: Espace; enCours?: BlocCabinet[]; children: React.ReactNode }) {
+  const { total: points } = await pointsDeLEspace(espace)
+  const apercu = <ApercuCabinet points={points} nom={nomDe(espace.fiche)} adresse={adresseDe(espace.fiche.resume)} lignes={resumesLabo(espace.completee)} enCours={enCours} force={espace.force.total} verifiee={(espace.force.items.find((i) => i.cle === 'identite')?.points ?? 0) > 0} />
   return (
     <Coquille
       retour="/espace-pro/"

@@ -5,6 +5,7 @@ import { Eye } from 'lucide-react'
 import { Coquille } from '@/components/compte/coquille'
 import { ApercuPatient, type BlocApercu } from '@/components/espace/apercu'
 import { EnVerification } from '@/components/espace/en-verification'
+import { pointsDeLEspace } from '@/lib/espace-pro/progression-donnees'
 import { chemin } from '@/lib/navigation'
 import { getEspace, type Espace } from '@/lib/espace-pro/espace'
 import { adresseDe, garde, libelleProfession, nomDe } from '../revendiquer/_commun'
@@ -38,10 +39,12 @@ export async function chargerOnboarding(etape: EtapeOnboarding, slug?: string): 
 }
 
 /** La coquille : l'aperçu patient à gauche, la question à droite. */
-export function CoquilleOnboarding({ espace, enCours, children }: { espace: Espace; enCours?: BlocApercu; children: React.ReactNode }) {
+export async function CoquilleOnboarding({ espace, enCours, children }: { espace: Espace; enCours?: BlocApercu; children: React.ReactNode }) {
   const { fiche, completee, force } = espace
+  const { total: points } = await pointsDeLEspace(espace)
   const apercu = (
     <ApercuPatient
+      points={points}
       nom={nomDe(fiche)}
       profession={fiche.profession}
       libelleProfession={libelleProfession(fiche)}

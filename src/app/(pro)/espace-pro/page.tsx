@@ -37,15 +37,20 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const enAttente = fiche.demande?.statut === 'en_attente'
   const publics = espace.labo ? 'cabinets' : 'patients'
 
-  const titre = enAttente ? `Votre fiche est prête, ${coque.nom}` : sp.publiee ? `Votre fiche est en ligne, ${coque.nom}` : `Bon retour, ${coque.nom}`
+  // Le jour de la publication, l'accueil le dit, même sans passer par le lien de l'email.
+  const jour = (d: Date | string) => new Date(d).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })
+  const publieeAujourdhui = !!completee?.publieeLe && jour(completee.publieeLe) === jour(new Date())
+  const titre = enAttente ? `Votre fiche est prête, ${coque.nom}` : sp.publiee || publieeAujourdhui ? `Votre fiche est en ligne, ${coque.nom}` : `Bon retour, ${coque.nom}`
   const texte = enAttente
-    ? 'Votre fiche est prête. Elle sera publiée dès que la vérification de votre identité aboutit ; vous pouvez la compléter en attendant.'
+    ? espace.labo
+      ? 'Elle sera publiée dès que l’équipe aura validé votre Kbis, sous 48 heures ouvrées. Vous pouvez la compléter en attendant.'
+      : 'Elle sera publiée dès que votre identité sera vérifiée. Vous pouvez la compléter en attendant.'
     : p.suivant
       ? `Plus que ${p.reste} points avant ${p.suivant.nom}. À la clé : ${p.suivant.gains[0].charAt(0).toLowerCase()}${p.suivant.gains[0].slice(1)}.`
       : 'Tous les paliers sont atteints. Tenez votre fiche à jour et continuez à la partager pour les garder.'
   const evolution = stats.precedent ? Math.round(((stats.total - stats.precedent) / stats.precedent) * 100) : null
   const chiffresCles: { valeur: string; libelle: string; detail?: string }[] = [
-    { valeur: `${points.total}`, libelle: 'points de progression' },
+    { valeur: `${points.total}`, libelle: `points · fiche à ${points.detail.fiche} %` },
     { valeur: `${stats.total}`, libelle: 'visites par vos liens, 30 j', detail: evolution === null ? undefined : `${evolution >= 0 ? '+' : ''}${evolution} %` },
     { valeur: `${parrainage.reussis}`, libelle: parrainage.reussis > 1 ? 'parrainages réussis' : 'parrainage réussi' },
     { valeur: `${filtres.filter((f) => f.actif).length}/${filtres.length}`, libelle: `filtres ${publics} actifs` },
@@ -55,7 +60,13 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const meilleure = stats.parSource[0]
 
   return (
-    <CoqueEspace c={coque} actif="vue" titre="Vue d’ensemble" sousTitre={`${aujourdhui()}${completee?.publieeLe ? ` · fiche publiée ${quand(completee.publieeLe).toLowerCase()}` : ''}`}>
+    <CoqueEspace
+      c={coque}
+      actif="vue"
+      titre="Vue d’ensemble"
+      sousTitre={`${aujourdhui()}${!enAttente && completee?.publieeLe ? ` · fiche publiée ${quand(completee.publieeLe).toLowerCase()}` : ''}`}
+      sansBandeauVerification
+    >
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <section className="squircle-2xl relative overflow-hidden text-white">
           <FondCarte lon={fiche.resume.lon} lat={fiche.resume.lat} zoom={14.2} decalage={{ x: 220, y: -40 }} />
@@ -89,6 +100,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 </div>
               ))}
             </dl>
+            <p className="mt-3 text-xs text-white/55">Un point par pour cent de fiche remplie, plus les informations à jour, le lien Google, le badge, les partages et les parrainages.</p>
             {prochaine && (
               <Link href={chemin(prochaine.href)} className="squircle-xl group mt-8 flex flex-wrap items-center gap-4 bg-[#0B1F1D]/55 p-4 ring-1 ring-white/15 backdrop-blur-sm hover:bg-[#0B1F1D]/70">
                 <span className="squircle-lg grid size-10 place-items-center bg-[#BFE3D6] text-[#0B1F1D]">
