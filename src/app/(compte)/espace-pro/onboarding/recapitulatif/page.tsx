@@ -5,7 +5,8 @@ import { Encart, discret, principal, titre } from '@/components/compte/ui'
 import { Anneau } from '@/components/espace/apercu'
 import { chemin } from '@/lib/navigation'
 import { publierFiche } from '@/lib/espace-pro/actions-fiche'
-import { LIBELLE_PALIER } from '@/lib/espace-pro/force'
+import { progressionDe } from '@/lib/espace-pro/progression'
+import { pointsDeLEspace } from '@/lib/espace-pro/progression-donnees'
 import { resumeAccueil, resumeConventionnement, resumeSemaine, resumeSoins } from '@/lib/espace-pro/resumes'
 import { CoquilleOnboarding, chargerOnboarding, versEtape } from '../_commun'
 
@@ -20,8 +21,17 @@ export const instant = false
  */
 export default async function Page(props: { searchParams: Promise<{ fiche?: string }> }) {
   const espace = await chargerOnboarding('recapitulatif', (await props.searchParams).fiche)
-  const { fiche, completee, force, palier, missions } = espace
+  const { fiche, completee, force, missions } = espace
   const verifiee = espace.ctx.identiteVerifiee
+  // Les paliers de la progression, comme partout dans l'espace : pas l'ancien « Débutant, Intermédiaire ».
+  const { total: points } = await pointsDeLEspace(espace)
+  const p = progressionDe(points, verifiee)
+  const legende = !verifiee ? 'en vérification' : p.actuel ? `palier ${p.actuel.niveau}` : 'en route'
+  const etat = !verifiee
+    ? `Fiche à ${force.total} % · ${points} pts : publiée et au palier 1 dès la vérification de votre identité.`
+    : p.actuel
+      ? `Palier ${p.actuel.niveau} · ${p.actuel.nom}.${p.suivant ? ` Plus que ${p.reste} points avant ${p.suivant.nom}.` : ''}`
+      : `Fiche à ${force.total} % · ${points} pts.${p.suivant ? ` Plus que ${p.reste} points avant ${p.suivant.nom}.` : ''}`
   const reponses = [
     { titre: 'Domaines de soins', valeur: resumeSoins(completee, fiche.profession), etape: 'specialite' as const },
     { titre: 'Horaires', valeur: resumeSemaine(completee), etape: 'horaires' as const },
@@ -31,13 +41,13 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const plusTard = missions.filter((m) => ['photo', 'presentation'].includes(m.cle) && !m.faite)
 
   return (
-    <CoquilleOnboarding espace={espace}>
+    <CoquilleOnboarding espace={espace} sansBandeau>
       <h1 className={titre}>Voici ce que verront les patients</h1>
       <p className="mt-2 text-sm text-fg-2">Vérifiez l’aperçu, puis publiez. Photo et présentation se complètent ensuite depuis votre espace, à votre rythme.</p>
       <div className="mt-6 flex items-center gap-4">
-        <Anneau pct={force.total} taille={72} legende={LIBELLE_PALIER[palier]} />
+        <Anneau pct={force.total} taille={72} legende={legende} />
         <p className="text-sm text-fg-2">
-          Fiche {LIBELLE_PALIER[palier].toLowerCase()} : les patients vous trouvent par horaires, secteur et accueil.
+          {etat}
           {plusTard.length > 0 && ` ${plusTard.length === 1 ? 'Une mission vous attend' : `${plusTard.length} missions vous attendent`} dans votre espace pour aller plus loin.`}
         </p>
       </div>
@@ -59,7 +69,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             <Sparkles className="size-5 shrink-0 text-amber-600" aria-hidden />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-fg">{m.titre}</span>
-              <span className="block text-xs text-fg-2">Mission dans votre espace · +{m.gain} %</span>
+              <span className="block text-xs text-fg-2">Mission dans votre espace · +{m.gain} pts</span>
             </span>
             <span className="text-sm text-fg-2">Plus tard</span>
           </li>
