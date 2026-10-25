@@ -9,9 +9,9 @@ Carte refaite après le parcours laboratoire complet (entrée, branches, onboard
 | Inscription et connexion | CX1, CX2, CX3, T3 (inscription par profil, code, email de bienvenue) | Repassés (2026-10-24) |
 | Connexion, cas annexes | CX1-E, CX2-E, CX4 clé d’accès, CX5 lien expiré, CX6 plus accès à l’email | **À repasser** |
 | Patient | P1 Personnaliser, P2 Retour à la fiche | **Non construits** |
-| Dentiste, revendication | S0, PSC1, PSC2, PSC-E, PSC-0, M1, S1, S1-0, H1, S2, S3a, S3b, C1, JD1, K, L, REMP, R1, R2 | **À repasser** |
-| Dentiste, onboarding | B0, B0S, B1 à B7, J | **À repasser** |
-| Dentiste, tableau de bord | Vue d’ensemble, Ma fiche, Horaires, Accueil, Photo, Présentation, Soins, Galerie, Mises à jour, Progression, Partager, Statistiques, Registre, Compte | **À repasser** (vue d’ensemble touchée par la revue labo : pourcentage et points, doublons en vérification) |
+| Dentiste, revendication | S0, S1, H1, S1-0 (avec demande d’ajout), S2, S3b, C1, JD1, K, L, REMP, R1, R2 | Repassés (2026-10-25). PSC1, PSC2, PSC-E, PSC-0 et M1 attendent Pro Santé Connect ; S3a (lien sur l’email du registre) non rencontré, aucune fiche de test n’a d’email |
+| Dentiste, onboarding | B0, B0S, B1, B2, B3, B7 | Repassés (2026-10-25) : aperçu et taux en direct, domaine libre. B4 à B6 sont devenus des missions |
+| Dentiste, tableau de bord | Vue d’ensemble, Ma fiche, Progression, missions (photo, présentation, galerie, marques, liens), Partager, Statistiques, Registre, Mises à jour, Compte | Repassés (2026-10-25), en attente de vérification. À revoir une fois la fiche vérifiée : paliers atteints, célébrations. Galerie et Marques sont du travail en cours non commité (titres et marques en cartes ajoutés dans ces fichiers) |
 | Laboratoire, entrée | L1, L2, L3, KL, LREF, LK1, LE1, MAN, LA1, LINFO, LC1 | Repassés (2026-10-24 et 25). LCODE bloqué (envoi postal) |
 | Laboratoire, onboarding | LO0, LO1, LO2, LO4 | Repassés. LO3 est devenue les missions Réalisations et Conformité, repassées avec le tableau de bord |
 | Laboratoire, tableau de bord | Vue d’ensemble, Délais, Savoir-faire, Zone, Réalisations, Conformité | Repassés (2026-10-25). Équipe retirée (`EQUIPE_OUVERTE`) |
@@ -57,7 +57,7 @@ L’administration vit dans WordPress, un plugin par espace, les données Neon p
 - **WordPress** : décider de passer `WP_ECRITURE` à `1` après un essai sur un article de test.
 - **Synchro n8n** : respecter `praticiens.retire_le`.
 - **Identité** : Pro Santé Connect en production ; habilitation FranceConnect+ ; clés d’accès à tester sur dentalmap.fr (liées au domaine).
-- **Données de test à retirer** (préproduction) : photos de démonstration des deux établissements (`public/uploads/etablissements/demo-*`, crédit « Photos de démonstration (Pexels) »), six avis et un signalement de test, comptes `test-ecole@example.com` et `test-candidat-*@example.com`, offres et échanges de Dr Test. Laboratoire : comptes `test-labo@example.com` (renommé « Test Dentalmap ») et `test-labo-bis@example.com`, fiches `laboratoire-essai-dentalmap` (SIREN 999999997, revendication acceptée, liée à Dr Test, ANSM factice, photo de démo) et `laboratoire-mandat-dentalmap`, contestation sur `laboratoire-test-dentalmap-2`.
+- **Données de test à retirer** (préproduction) : photos de démonstration des deux établissements (`public/uploads/etablissements/demo-*`, crédit « Photos de démonstration (Pexels) »), six avis et un signalement de test, comptes `test-ecole@example.com` et `test-candidat-*@example.com`, offres et échanges de Dr Test. Laboratoire : comptes `test-labo@example.com` (renommé « Test Dentalmap ») et `test-labo-bis@example.com`, fiches `laboratoire-essai-dentalmap` (SIREN 999999997, revendication acceptée, liée à Dr Test, ANSM factice, photo de démo) et `laboratoire-mandat-dentalmap`, contestation sur `laboratoire-test-dentalmap-2`. Dentiste : compte `test-dentiste@example.com`, fiche factice `dr-essai-revendication-0046` (RPPS 10999990046, retirée par le test de R2), demande d’ajout pour le RPPS 10999990053.
 
 ## 5. Décisions à prendre
 
