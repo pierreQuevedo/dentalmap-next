@@ -1,6 +1,6 @@
 # Ce qui reste à faire (2026-10-25)
 
-Carte refaite le 2026-10-25, une fois tout l’espace pro repassé écran par écran avec Pierre (validation ou retours) : inscription et connexion, dentiste, laboratoire, école et faculté, formation continue et partenariat, Emploi. Ce qui reste : quelques écrans non construits ou « Bientôt », le site public, le back-office, la mise en ligne, des décisions et de la dette.
+Carte refaite le 2026-10-25 au soir : tout l’espace pro est repassé écran par écran avec Pierre, le site public relu (fiche complète qui remonte, plus de gratuité), les pages légales remplies et validées, les durées de conservation appliquées chaque nuit. Ce qui reste : quelques écrans non construits ou « Bientôt », le back-office, la mise en ligne, des décisions et de la dette.
 
 ## 0. Revue écran par écran de l’espace pro
 
@@ -38,7 +38,8 @@ Vocabulaire (2026-10-25) : l’espace des étudiants et salariés ne dit jamais 
 ## 2. Site public
 
 - **Formations privées** : la famille reste « Bientôt » (`aVenir`) tant qu’aucune formation n’est en ligne ; décider si le bandeau d’alerte reste au-dessus de la liste.
-- **Pages légales** : relecture par un juriste. Les CGU n’exposent plus les critères de classement, alors que la loi oblige une plateforme à les donner (art. L111-7 C. conso) ; plus pressant depuis que les avis font 80 % du classement des écoles et facultés. Les mentions sur le recueil des avis (art. L111-7-2) sont sur la page publique, avec les points accordés aux auteurs.
+- **Pages légales** : remplies (éditeur RINIA, hébergeurs et localisations, durées) et validées par Pierre le 2026-10-25, sans juriste pour l’instant. Plus tard, une relecture : les CGU n’exposent plus les critères de classement, alors que la loi oblige une plateforme à les donner (art. L111-7 C. conso) ; plus pressant depuis que les avis font 80 % du classement des écoles et facultés. Les mentions sur le recueil des avis (art. L111-7-2) sont sur la page publique, avec les points accordés aux auteurs.
+- **Boîte `dpo@dentalmap.fr`** : citée dans les pages légales, à créer.
 - **Page établissement** : avertissement React « script tag » dans la console (balisage JSON-LD rendu côté client), sans effet visible, à corriger.
 
 ## 3. Back-office (wp-admin, décision du 2026-10-15)
@@ -48,12 +49,13 @@ L’administration vit dans WordPress, un plugin par espace, les données Neon p
 - **SAV** : écrans V2 à V10 et socle S1, S2, S4 ; brancher le formulaire de contact Next sur les tickets ; poser `DM_API_KEY` ; recherche d’un professionnel (V7, V8).
 - **Revendications** : brancher les actions de `lib/tunnel/actions.ts` sur `deciderRevendication`.
 - **Modération restée dans Next** : `/espace-pro/moderation/` (revendications, établissements, formations privées et, depuis le 2026-10-22, avis signalés) est à reprendre dans un plugin, avec des routes `/api/admin/` pour les avis (liste des signalements, décision).
+- **Messages de contact, 1 an** : annoncé dans la politique de confidentialité, mais ni les tickets SAV ni la boîte de l’équipe ne sont purgés. À ajouter au plugin SAV (son code n’est pas dans ce dépôt).
 - `dm_api_url` pointe sur la prévisualisation `feat-vitrine` : à remettre sur la production.
 
 ## 4. Avant la mise en ligne : configuration et données
 
-- **Base principale** (`ep-polished-band`) : appliquer les migrations 0020 à 0034 (0030 avis, 0033 étendue de la zone, 0034 contestations). Elles ne sont appliquées qu’à la préproduction (`ep-lively-feather`). Les entrées 0033 et 0034 du journal `meta/` sont à commiter avec 0031 et 0032.
-- **Tâche planifiée** `/api/cron/contestations/` (8 h 30) : relance la modération à J+7, demande `CRON_SECRET`.
+- **Base principale** (`ep-polished-band`) : appliquer les migrations 0020 à 0035 (0030 avis, 0033 étendue de la zone, 0034 contestations, 0035 activité des comptes). Elles ne sont appliquées qu’à la préproduction (`ep-lively-feather`). Les entrées 0033 à 0035 du journal sont commitées ; 0032 (marques) attend la fin du travail sur Galerie et Marques.
+- **Tâches planifiées** : `/api/cron/contestations/` (8 h 30, relance la modération à J+7) et `/api/cron/conservation/` (2 h 30 : offres closes et candidatures après 6 mois, comptes sans connexion après 2 ans et un email d’avertissement). Toutes demandent `CRON_SECRET`. Fonctions Vercel à Francfort (`fra1`).
 - **Variables Vercel** : `BLOB_READ_WRITE_TOKEN` (dépôts de fichiers), `CRON_SECRET` (aucune tâche planifiée ne tourne sans), `DM_API_KEY`.
 - **WordPress** : décider de passer `WP_ECRITURE` à `1` après un essai sur un article de test.
 - **Synchro n8n** : respecter `praticiens.retire_le`.
@@ -63,7 +65,7 @@ L’administration vit dans WordPress, un plugin par espace, les données Neon p
 ## 5. Décisions à prendre
 
 - Barème faculté : les 10 points de l’alternance vont aux centres de soins (à reporter dans `03-gamification.md`).
-- Poids de B0S (spécialité et domaines) ; durée de conservation des candidatures (6 mois proposée).
+- Poids de B0S (spécialité et domaines).
 - Points d’un avis pour son auteur : 20, deux avis au plus (valeurs par défaut).
 - Paliers de l’établissement et ce qu’ils débloquent (formules prudentes, sans mise en avant).
 - Vérification DPC, FIF PL, Qualiopi : qui, avec quelle source, sous quel délai.
