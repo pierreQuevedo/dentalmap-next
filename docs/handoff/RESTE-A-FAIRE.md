@@ -18,9 +18,11 @@ Carte refaite le 2026-10-25, une fois tout l’espace pro repassé écran par é
 | École et faculté | O1, O2a, OA1, OAT, O3a, OEND, espace établissement complet, Partage et avis | Repassés |
 | Formation continue, partenariat | W1, O2b, O3b | Repassés (2026-10-25) : proposer sa formation avant la liste d’attente, accroche partenaire corrigée, type de partenariat |
 | Emploi | SE1 à SE5, offres, candidatures, profil, alertes, profils disponibles | Repassés |
-| Candidat | Points gagnés par les avis | **Non affichés** (voir § 1) |
 
 ## 1. Espace pro : écrans encore « Bientôt » ou non construits
+
+Vocabulaire (2026-10-25) : l’espace des étudiants et salariés ne dit jamais « candidat » (« Mon profil », la situation dans la carte du menu) ; côté recruteur, le mot reste.
+
 
 | Profil | Écran | État | Remarque |
 |---|---|---|---|
@@ -28,7 +30,6 @@ Carte refaite le 2026-10-25, une fois tout l’espace pro repassé écran par é
 | Établissement | Statistiques | « Bientôt » | Les dentistes et laboratoires ont la leur (`/espace-pro/statistiques/`) : vues, visites par source. À décliner : vues de la page, clics site et téléphone, avis dans le temps. |
 | Établissement | Événements | « Bientôt » | Portes ouvertes, salons, journées d’information ; la page publique lit déjà les événements relevés. |
 | École | Admission et calendrier | « Bientôt » | Étapes de candidature, dates clés de la rentrée. |
-| Candidat | Points gagnés par les avis | Non affichés | Les points comptent déjà dans Profils disponibles ; le candidat ne les voit pas, et rien ne l’invite à donner un avis. |
 | Patient | P1 Personnaliser, P2 Retour à la fiche | Non construits | Écrans courts du parcours patient. |
 | Laboratoire | LCODE, code au siège | Bloqué | Attend un prestataire d’envoi postal. |
 | Dentiste | Distinction « Toujours à jour » | Non calculée | Il manque l’historique des reconfirmations. |
