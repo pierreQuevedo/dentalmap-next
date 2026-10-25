@@ -16,7 +16,7 @@ Carte refaite après le parcours dentiste (revendication, onboarding, tableau de
 | Laboratoire, onboarding | LO0, LO1, LO2, LO4 | Repassés. LO3 est devenue les missions Réalisations et Conformité, repassées avec le tableau de bord |
 | Laboratoire, tableau de bord | Vue d’ensemble, Délais, Savoir-faire, Zone, Réalisations, Conformité | Repassés (2026-10-25). Équipe retirée (`EQUIPE_OUVERTE`) |
 | École et faculté | O1, O2a, OA1, OAT, O3a, OEND, espace établissement complet, Partage et avis | Repassés |
-| Formation continue, partenariat | W1 liste d’attente, O2b, O3b | **À confirmer** : non repassés dans cette série |
+| Formation continue, partenariat | W1, O2b, O3b | Repassés (2026-10-25) : proposer sa formation avant la liste d’attente, accroche partenaire corrigée, type de partenariat |
 | Emploi | SE1 à SE5, offres, candidatures, profil, alertes, profils disponibles | Repassés |
 | Candidat | Points gagnés par les avis | **Non affichés** (voir § 1) |
 
