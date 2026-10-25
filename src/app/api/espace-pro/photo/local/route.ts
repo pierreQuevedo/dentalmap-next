@@ -21,9 +21,15 @@ export async function POST(request: NextRequest) {
   if (!(fichier instanceof File) || fichier.type !== 'image/jpeg' || fichier.size > 5 * 1024 * 1024) return new NextResponse('Photo refusée.', { status: 400 })
   const nom = `${randomUUID()}.jpg`
   if (blob) {
-    // Le stockage est privé : la photo y est rangée en privé, et le site la sert par `/photos/<nom>`.
-    await put(`photos/${nom}`, fichier, { access: 'private', contentType: 'image/jpeg', addRandomSuffix: false })
-    return NextResponse.json({ url: `/photos/${nom}` })
+    try {
+      // Le stockage est privé : la photo y est rangée en privé, et le site la sert par `/photos/<nom>`.
+      await put(`photos/${nom}`, fichier, { access: 'private', contentType: 'image/jpeg', addRandomSuffix: false })
+      return NextResponse.json({ url: `/photos/${nom}` })
+    } catch (e) {
+      // En local, le jeton OIDC de Vercel expire en quelques heures : la photo va sur le disque plutôt que d'échouer.
+      if (process.env.NODE_ENV === 'production') throw e
+      console.warn('[dev] Vercel Blob indisponible, photo rangée en local :', (e as Error).message)
+    }
   }
   const dossier = join(process.cwd(), 'public', 'uploads', 'cabinets')
   await mkdir(dossier, { recursive: true })

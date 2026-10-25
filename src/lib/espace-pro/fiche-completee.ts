@@ -305,7 +305,8 @@ export type FicheCompletee = {
   transporteur: boolean | null
   /** Toute la France, ou la France et l'étranger ; sans valeur, le rayon seul. */
   zoneEtendue: 'france' | 'international' | null
-  realisations: { url: string; legende: string }[]
+  /** Pour un laboratoire, chaque photo peut dire sa pièce et son matériau (codes des listes, ou `perso:`). */
+  realisations: { url: string; legende: string; piece?: string; materiau?: string }[]
   creditPhotos: string | null
   ansmNumero: string | null
   ansmDeclareLe: string | null

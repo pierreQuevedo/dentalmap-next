@@ -116,6 +116,15 @@ export function libelleDe<T extends { code: string; libelle: string }>(liste: re
   return code.startsWith(PREFIXE_PERSO) ? code.slice(PREFIXE_PERSO.length) : (liste.find((e) => e.code === code)?.libelle ?? code)
 }
 
+/** Un code d'une liste, ou un nom libre nettoyé et préfixé ; `null` sinon. */
+export function codeValide<T extends { code: string }>(code: string, liste: readonly T[]): string | null {
+  if (code.startsWith(PREFIXE_PERSO)) {
+    const nom = nomLibre(code.slice(PREFIXE_PERSO.length))
+    return nom ? PREFIXE_PERSO + nom : null
+  }
+  return liste.some((e) => e.code === code) ? code : null
+}
+
 /** Les choix cochés d'une liste fermée, plus cinq noms libres au plus. */
 export function lireChoix<T extends { code: string }>(valeurs: string[], liste: readonly T[]): string[] {
   const codes = new Set(liste.map((e) => e.code))

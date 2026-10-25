@@ -11,7 +11,7 @@ import { Cpu, ExternalLink, FileCheck2, Gem, Globe, Languages, Navigation, Quote
 import { formaterAdresse } from '@/lib/annuaire/nom'
 import { aDesHoraires } from '@/lib/annuaire/ouverture'
 import { LANGUES, libelle, type FicheCompletee } from '@/lib/espace-pro/fiche-completee'
-import { JOURS_RAMASSAGE, MATERIAUX, TECHNIQUES, formaterSiret, libelleDe } from '@/lib/espace-pro/labo'
+import { JOURS_RAMASSAGE, MATERIAUX, TECHNIQUES, formaterSiret, libelleDe, libellePiece } from '@/lib/espace-pro/labo'
 import { chemin } from './primitives'
 import { BadgeRecruteFiche } from './recrutement'
 import { BoutonAppeler } from './telephone-protege'
@@ -219,7 +219,11 @@ function SectionLabo({ f }: { f: FicheCompletee }) {
   }
   if (f.langues.length) lignes.push({ i: Languages, k: 'Langues parlées', v: f.langues.map((l) => libelle(LANGUES, l)).join(', ') })
 
-  const photos = [...(f.photoUrl ? [{ url: f.photoUrl, legende: 'Le laboratoire' }] : []), ...f.realisations]
+  // La légende d'une réalisation : sa pièce et son matériau, puis la précision du laboratoire.
+  const photos = [
+    ...(f.photoUrl ? [{ url: f.photoUrl, legende: 'Le laboratoire' }] : []),
+    ...f.realisations.map((r) => ({ url: r.url, legende: [r.piece && libellePiece(r.piece), r.materiau && libelleDe(MATERIAUX, r.materiau), r.legende].filter(Boolean).join(' · ') })),
+  ]
   const [accroche, suite] = f.presentation ? decouper(f.presentation) : ['', '']
   const confirme = f.presentation ? f.presentationConfirmeeLe : (f.savoirFaireConfirmeLe ?? f.zoneConfirmeeLe)
 

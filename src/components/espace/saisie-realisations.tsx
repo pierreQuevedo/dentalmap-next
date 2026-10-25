@@ -3,17 +3,19 @@
 import { useRef, useState } from 'react'
 import Image from 'next/image'
 import { upload } from '@vercel/blob/client'
-import { ArrowLeft, ArrowRight, Eye, GripVertical, ImagePlus, Maximize2, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Eye, GripVertical, ImagePlus, Maximize2, Trash2 } from 'lucide-react'
 import { Galerie } from '@/components/formation/galerie-etablissement'
-import { REALISATIONS_MAX } from '@/lib/espace-pro/labo'
+import { MATERIAUX, REALISATIONS_MAX, libelleDe, libellePiece } from '@/lib/espace-pro/labo'
 
 /**
  * Les réalisations d'un laboratoire : une à huit photos de pièces, chacune
  * recadrée (4:3), réduite et ré-encodée dans le navigateur (métadonnées
  * retirées), puis téléversée en stockage public. Une légende par photo ;
- * la première est la grande. Le formulaire reçoit la liste en JSON.
+ * la première est la grande. Le formulaire reçoit la liste en JSON. Pour un
+ * laboratoire (`choix`), chaque photo dit aussi sa pièce et son matériau,
+ * pris dans ses délais et son savoir-faire.
  */
-type Photo = { url: string; legende: string; apercu?: string }
+type Photo = { url: string; legende: string; piece?: string; materiau?: string; apercu?: string }
 
 async function preparer(fichier: File): Promise<Blob> {
   const image = await createImageBitmap(fichier)
@@ -41,8 +43,10 @@ export function SaisieRealisations({
   mention = 'La première est la grande photo de la fiche. Aucun patient reconnaissable.',
   apres,
   apercu,
+  choix,
+  conseils,
 }: {
-  initiales: { url: string; legende: string }[]
+  initiales: { url: string; legende: string; piece?: string; materiau?: string }[]
   direct: boolean
   /** Nombre de photos au plus : huit réalisations, vingt-quatre pour la galerie d'un établissement. */
   max?: number
@@ -54,6 +58,10 @@ export function SaisieRealisations({
   apres?: React.ReactNode
   /** L'aperçu de la page publique d'un établissement : le haut de page et la mosaïque, à jour à chaque geste. */
   apercu?: { titre: string; type: string; credit: string | null }
+  /** Laboratoire : les pièces et matériaux proposés sous chaque photo (codes). */
+  choix?: { pieces: string[]; materiaux: string[] }
+  /** Sans photo, ce qu'il vaut la peine de montrer. */
+  conseils?: string[]
 }) {
   const entree = useRef<HTMLInputElement>(null)
   const [photos, setPhotos] = useState<Photo[]>(initiales)
@@ -74,6 +82,7 @@ export function SaisieRealisations({
 
   const ajouter = async (fichiers: FileList | null) => {
     if (!fichiers) return
+    setErreur(false)
     const place = max - photos.length
     for (const f of [...fichiers].slice(0, place)) {
       if (!f.type.startsWith('image/')) continue
@@ -106,7 +115,7 @@ export function SaisieRealisations({
 
   return (
     <div>
-      <input type="hidden" name={nom} value={JSON.stringify(photos.map(({ url, legende }) => ({ url, legende })))} />
+      <input type="hidden" name={nom} value={JSON.stringify(photos.map(({ url, legende, piece, materiau }) => ({ url, legende, piece, materiau })))} />
       {photos.length === 0 && (
         // Sans photo, une grande zone de dépôt sur toute la largeur.
         <button
@@ -122,6 +131,18 @@ export function SaisieRealisations({
             <span className="mt-1 block text-xs">JPEG, PNG ou HEIC · {max} au plus</span>
           </span>
         </button>
+      )}
+      {photos.length === 0 && conseils && (
+        <div className="squircle-2xl mt-3 border border-line bg-bg-soft p-4">
+          <p className="text-sm font-semibold text-fg">Ce que les cabinets aiment voir</p>
+          <ul className="mt-2 space-y-1.5">
+            {conseils.map((c) => (
+              <li key={c} className="flex items-start gap-2 text-sm text-fg-2">
+                <Check className="mt-0.5 size-4 shrink-0 text-teal" aria-hidden /> {c}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       <ol className={`grid grid-cols-2 gap-3 md:grid-cols-4 ${photos.length === 0 ? 'hidden' : ''}`}>
         {photos.map((p, i) => (
@@ -162,10 +183,35 @@ export function SaisieRealisations({
                 </button>
               </span>
             </div>
+            {choix && (
+              <div className="grid grid-cols-2 gap-1.5 px-2.5 pt-2.5">
+                {(
+                  [
+                    ['piece', 'Pièce', choix.pieces.map((c) => [c, libellePiece(c)])],
+                    ['materiau', 'Matériau', choix.materiaux.map((c) => [c, libelleDe(MATERIAUX, c)])],
+                  ] as const
+                ).map(([cle, libelle, options]) => (
+                  <select
+                    key={cle}
+                    value={p[cle] ?? ''}
+                    onChange={(e) => setPhotos((x) => x.map((q, k) => (k === i ? { ...q, [cle]: e.target.value || undefined } : q)))}
+                    aria-label={`${libelle} de la ${mot} ${i + 1}`}
+                    className={`squircle-lg h-8 min-w-0 cursor-pointer border border-line bg-bg px-2 text-xs outline-none focus:border-line-strong ${p[cle] ? 'text-fg' : 'text-fg-2'}`}
+                  >
+                    <option value="">{libelle}</option>
+                    {options.map(([c, l]) => (
+                      <option key={c} value={c}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                ))}
+              </div>
+            )}
             <input
               value={p.legende}
               onChange={(e) => setPhotos((x) => x.map((q, k) => (k === i ? { ...q, legende: e.target.value } : q)))}
-              placeholder="Ajouter une légende"
+              placeholder={choix ? 'Précision, facultative' : 'Ajouter une légende'}
               aria-label={`Légende de la ${mot} ${i + 1}`}
               maxLength={120}
               className="w-full bg-transparent p-2.5 text-xs text-fg outline-none placeholder:text-amber-700"

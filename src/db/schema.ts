@@ -390,7 +390,7 @@ export const fichesCompletees = pgTable('fiches_completees', {
   /** Au-delà du rayon : toute la France, ou la France et l'étranger (envoi des pièces). Sans valeur, le rayon seul. */
   zoneEtendue: text('zone_etendue', { enum: ['france', 'international'] }),
   /** Réalisations : photos publiques, une à huit, avec légende ; crédit commun. */
-  realisations: jsonb('realisations').$type<{ url: string; legende: string }[]>(),
+  realisations: jsonb('realisations').$type<{ url: string; legende: string; piece?: string; materiau?: string }[]>(),
   creditPhotos: text('credit_photos'),
   /** Déclaration de fabricant de dispositifs sur mesure auprès de l'ANSM. */
   ansmNumero: text('ansm_numero'),

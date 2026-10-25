@@ -56,7 +56,7 @@ export type LigneFiche = {
   jours_ramassage: string[] | null
   zone_etendue: 'france' | 'international' | null
   transporteur: boolean | null
-  realisations: { url: string; legende: string }[] | null
+  realisations: { url: string; legende: string; piece?: string; materiau?: string }[] | null
   credit_photos: string | null
   ansm_numero: string | null
   ansm_declare_le: string | null
