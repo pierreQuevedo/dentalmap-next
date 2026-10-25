@@ -17,7 +17,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const gardee = await lireSaisie('/espace-pro/missions/photo/', sp.erreur)
   const photoGardee = gardee.texte('photo')
   return (
-    <CoqueEspace c={coque} actif="progression" titre="Progression" sousTitre="Photo de profil · +12 pts · 2 min">
+    <CoqueEspace c={coque} actif="progression" titre="Photo de profil" sousTitre="+12 pts · 2 min" parent={{ libelle: 'Progression', href: `/espace-pro/progression/${q}` }}>
       <PanneauMission
         cle="photo"
         titre="Photo de profil"
@@ -28,7 +28,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         avant={espace.force.total}
         q={q}
         erreur={sp.erreur}
-        cote={<ApercuPublic praticien={espace.fiche.resume} profession={espace.fiche.profession} photo={espace.completee?.photoUrl} />}
+        cote={<ApercuPublic praticien={espace.fiche.resume} profession={espace.fiche.profession} photo={espace.completee?.photoUrl} enDirect />}
       >
         <SaisiePhoto
           initiale={photoGardee || espace.completee?.photoUrl || null}

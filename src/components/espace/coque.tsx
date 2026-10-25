@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { EnVerification } from './en-verification'
 import { DefilementActif } from './defilement-actif'
 import {
+  ArrowLeft,
   GraduationCap,
   HeartPulse,
   Map as Plan,
@@ -285,6 +286,7 @@ export function CoqueEspace({
   sousTitre,
   sansLienFlottant = false,
   sansBandeauVerification = false,
+  parent,
   children,
 }: {
   c: InfosCoque
@@ -295,6 +297,8 @@ export function CoqueEspace({
   sansLienFlottant?: boolean
   /** La vue d'ensemble dit elle-même la vérification en cours : pas de bandeau en plus. */
   sansBandeauVerification?: boolean
+  /** Une page rangée sous une autre (une mission sous Progression) : le lien retour au-dessus du titre. */
+  parent?: { libelle: string; href: string }
   children: React.ReactNode
 }) {
   // L'état de la fiche, en une ligne : pastille, statut, fin d'adresse ; la carte entière mène à la page publique.
@@ -388,6 +392,11 @@ export function CoqueEspace({
         {/* Sur ordinateur, l'en-tête reste visible au défilement : où l'on est, et la fiche publique à un clic. En dessous, c'est la barre du menu qui reste. */}
         <header className="z-30 -mx-4 flex lg:sticky lg:top-0 flex-wrap items-center justify-between gap-4 border-b border-transparent bg-bg/85 px-4 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-bg/75 sm:-mx-8 sm:px-8">
           <div className="min-w-0">
+            {parent && (
+              <Link href={chemin(parent.href)} className="inline-flex items-center gap-1 text-xs font-medium text-fg-2 hover:text-fg">
+                <ArrowLeft className="size-3.5" aria-hidden /> {parent.libelle}
+              </Link>
+            )}
             <h1 className="text-2xl font-semibold tracking-tight text-fg">{titre}</h1>
             <p className="truncate text-sm text-fg-2">{sousTitre}</p>
           </div>

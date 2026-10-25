@@ -16,7 +16,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { espace, coque, q } = await chargerTableau('missions', sp.fiche, 'soins')
   const choisis = new Set(espace.completee?.orientations ?? [])
   return (
-    <CoqueEspace c={coque} actif="progression" titre="Progression" sousTitre="Domaines de soins · +8 pts · 1 min">
+    <CoqueEspace c={coque} actif="progression" titre="Domaines de soins" sousTitre="+8 pts · 1 min" parent={{ libelle: 'Progression', href: `/espace-pro/progression/${q}` }}>
       <PanneauMission
         cle="soins"
         titre="Domaines de soins"

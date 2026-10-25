@@ -1,23 +1,28 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useFormStatus } from 'react-dom'
 import { upload } from '@vercel/blob/client'
-import { CheckCircle2, Crop, ImagePlus, Trash2, Upload } from 'lucide-react'
+import { Check, CheckCircle2, Crop, ImagePlus, Move, Trash2, Upload, ZoomIn } from 'lucide-react'
+import { EVENEMENT_PHOTO } from './carte-fixe'
 
 /**
  * MIS-1 : la photo de profil, au format de la carte de résultat (portrait
  * 4:5, celui de l'aperçu public).
  *
- * Le navigateur recadre l'image au centre en 4:5, la réduit à 1200 pixels de
- * large et la ré-encode en JPEG : les métadonnées (lieu, appareil) ne partent
- * jamais. Elle est ensuite téléversée en stockage public, et le formulaire
- * n'envoie que son adresse.
+ * Le praticien cadre lui-même : il glisse la photo dans le cadre 4:5 et
+ * zoome. Le navigateur découpe ce cadre, le réduit à 1200 pixels de large et
+ * le ré-encode en JPEG : les métadonnées (lieu, appareil) ne partent jamais.
+ * La photo est ensuite téléversée en stockage public, et le formulaire
+ * n'envoie que son adresse ; l'aperçu de la page la montre aussitôt.
  */
 const LARGEUR = 1200
 
-export async function recadrer(fichier: File): Promise<Blob> {
+/** Une zone de l'image d'origine, en pixels : celle que le praticien a cadrée. */
+type Zone = { x: number; y: number; l: number; h: number }
+
+export async function recadrer(fichier: File, zone?: Zone): Promise<Blob> {
   const image = await createImageBitmap(fichier)
   const ratio = 4 / 5
   let sw = image.width
@@ -26,8 +31,10 @@ export async function recadrer(fichier: File): Promise<Blob> {
     sh = image.height
     sw = sh * ratio
   }
-  const sx = (image.width - sw) / 2
-  const sy = (image.height - sh) / 2
+  // Sans cadrage choisi, le centre.
+  let sx = (image.width - sw) / 2
+  let sy = (image.height - sh) / 2
+  if (zone) ({ x: sx, y: sy, l: sw, h: sh } = zone)
   const largeur = Math.min(LARGEUR, Math.round(sw))
   const canvas = document.createElement('canvas')
   canvas.width = largeur
@@ -50,23 +57,41 @@ export function SaisiePhoto({
   const [url, setUrl] = useState(initiale ?? '')
   const [apercu, setApercu] = useState<string | null>(initiale)
   const [etat, setEtat] = useState<'repos' | 'envoi' | 'erreur'>('repos')
+  const [cadrage, setCadrage] = useState<{ fichier: File; src: string; l: number; h: number } | null>(null)
+
+  // L'aperçu de la page suit la photo enregistrable : son adresse une fois téléversée, rien si retirée.
+  const annoncer = (u: string | null) => window.dispatchEvent(new CustomEvent(EVENEMENT_PHOTO, { detail: u }))
 
   const choisir = async (f: File | undefined) => {
     if (!f) return
     if (!f.type.startsWith('image/')) return setEtat('erreur')
+    try {
+      const image = await createImageBitmap(f)
+      setCadrage({ fichier: f, src: URL.createObjectURL(f), l: image.width, h: image.height })
+      setEtat('repos')
+    } catch {
+      setEtat('erreur')
+    }
+  }
+
+  const envoyer = async (f: File, zone: Zone) => {
+    setCadrage(null)
     setEtat('envoi')
     try {
-      const jpeg = await recadrer(f)
+      const jpeg = await recadrer(f, zone)
       setApercu(URL.createObjectURL(jpeg))
       if (direct) {
         const blob = await upload(`cabinets/photo.jpg`, jpeg, { access: 'public', handleUploadUrl: '/api/espace-pro/photo/televerser/', contentType: 'image/jpeg' })
         setUrl(blob.url)
+        annoncer(blob.url)
       } else {
         const corps = new FormData()
         corps.set('photo', new File([jpeg], 'photo.jpg', { type: 'image/jpeg' }))
         const r = await fetch('/api/espace-pro/photo/local/', { method: 'POST', body: corps })
         if (!r.ok) throw new Error()
-        setUrl(((await r.json()) as { url: string }).url)
+        const u = ((await r.json()) as { url: string }).url
+        setUrl(u)
+        annoncer(u)
       }
       setEtat('repos')
     } catch {
@@ -79,11 +104,13 @@ export function SaisiePhoto({
       <input type="hidden" name="photo" value={url} />
       <div>
         <div className="squircle-2xl relative aspect-[4/5] w-full max-w-[19.25rem] overflow-hidden border border-line bg-bg-soft">
-          {apercu ? (
+          {cadrage ? (
+            <Cadreur cadrage={cadrage} annuler={() => setCadrage(null)} valider={(zone) => envoyer(cadrage.fichier, zone)} />
+          ) : apercu ? (
             <>
               <Image src={apercu} alt="Photo de profil" fill sizes="50vw" className="object-cover" unoptimized={apercu.startsWith('blob:')} />
               <span className="squircle-full absolute bottom-3 left-3 inline-flex items-center gap-1.5 bg-black/60 px-3 py-1 text-xs text-white">
-                <Crop className="size-3.5" aria-hidden /> Cadrage portrait au centre
+                <Crop className="size-3.5" aria-hidden /> Format portrait de la fiche
               </span>
             </>
           ) : (
@@ -101,12 +128,13 @@ export function SaisiePhoto({
           <button type="button" onClick={() => entree.current?.click()} className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line px-4 font-medium text-fg hover:border-line-strong">
             <Upload className="size-4" aria-hidden /> {apercu ? 'Remplacer' : 'Choisir'}
           </button>
-          {apercu && (
+          {apercu && !cadrage && (
             <button
               type="button"
               onClick={() => {
                 setUrl('')
                 setApercu(null)
+                annoncer(null)
               }}
               className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-destructive/30 px-4 text-destructive hover:border-destructive/50 hover:bg-destructive/10"
             >
@@ -131,6 +159,81 @@ export function SaisiePhoto({
           Je détiens les droits de cette photo.
         </label>
         <Bloque envoi={etat === 'envoi'} />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Le cadrage : la photo couvre le cadre 4:5, on la glisse à la souris ou au
+ * doigt, on zoome au curseur. Elle ne laisse jamais de vide dans le cadre.
+ */
+function Cadreur({ cadrage, annuler, valider }: { cadrage: { src: string; l: number; h: number }; annuler: () => void; valider: (zone: Zone) => void }) {
+  const cadre = useRef<HTMLDivElement>(null)
+  const [largeur, setLargeur] = useState(0)
+  const [zoom, setZoom] = useState(1)
+  const [decalage, setDecalage] = useState<{ x: number; y: number } | null>(null)
+  const prise = useRef<{ x: number; y: number; dx: number; dy: number } | null>(null)
+  useEffect(() => {
+    const el = cadre.current
+    if (!el) return
+    const mesurer = () => setLargeur(el.clientWidth)
+    mesurer()
+    const suivi = new ResizeObserver(mesurer)
+    suivi.observe(el)
+    return () => suivi.disconnect()
+  }, [])
+  const L = largeur
+  const H = (largeur * 5) / 4
+  // L'échelle qui couvre le cadre, multipliée par le zoom.
+  const echelle = L ? Math.max(L / cadrage.l, H / cadrage.h) * zoom : 0
+  const dl = cadrage.l * echelle
+  const dh = cadrage.h * echelle
+  const borner = (x: number, y: number) => ({ x: Math.min(0, Math.max(L - dl, x)), y: Math.min(0, Math.max(H - dh, y)) })
+  // Centré à l'arrivée, puis gardé dans le cadre à chaque zoom.
+  const pos = borner(decalage?.x ?? (L - dl) / 2, decalage?.y ?? (H - dh) / 2)
+  return (
+    <div ref={cadre} className="absolute inset-0 select-none">
+      {L > 0 && (
+        // eslint-disable-next-line @next/next/no-img-element -- image locale du navigateur (blob), hors de l'optimisation de Next
+        <img
+          src={cadrage.src}
+          alt="Photo à cadrer"
+          draggable={false}
+          onPointerDown={(e) => {
+            e.currentTarget.setPointerCapture(e.pointerId)
+            prise.current = { x: e.clientX, y: e.clientY, dx: pos.x, dy: pos.y }
+          }}
+          onPointerMove={(e) => {
+            if (!prise.current) return
+            setDecalage(borner(prise.current.dx + e.clientX - prise.current.x, prise.current.dy + e.clientY - prise.current.y))
+          }}
+          onPointerUp={() => (prise.current = null)}
+          className="absolute max-w-none cursor-grab touch-none active:cursor-grabbing"
+          style={{ width: dl, height: dh, left: pos.x, top: pos.y }}
+        />
+      )}
+      <span className="squircle-full pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 bg-black/60 px-3 py-1 text-xs text-white">
+        <Move className="size-3.5" aria-hidden /> Glissez pour cadrer
+      </span>
+      <div className="absolute inset-x-3 bottom-3 space-y-2 rounded-xl bg-black/60 p-2.5 text-white backdrop-blur">
+        <label className="flex items-center gap-2 text-xs">
+          <ZoomIn className="size-3.5 shrink-0" aria-hidden />
+          <span className="sr-only">Zoom</span>
+          <input type="range" min={1} max={3} step={0.01} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-full accent-white" />
+        </label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => valider({ x: -pos.x / echelle, y: -pos.y / echelle, l: L / echelle, h: H / echelle })}
+            className="inline-flex h-8 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-white text-xs font-semibold text-[#0e1317] hover:bg-[#BFE3D6]"
+          >
+            <Check className="size-3.5" aria-hidden /> Valider le cadrage
+          </button>
+          <button type="button" onClick={annuler} className="inline-flex h-8 cursor-pointer items-center rounded-full px-3 text-xs text-white/80 hover:text-white">
+            Annuler
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -21,7 +21,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const enEchec = (['site', 'rdv'] as const).filter((k) => (c?.liensEchecs[k] ?? 0) > 0 && (k === 'site' ? c?.siteWeb : c?.rdvEnLigne))
   const libelleLien = { site: 'Le site du cabinet', rdv: 'La prise de rendez-vous en ligne' }
   return (
-    <CoqueEspace c={coque} actif="progression" titre="Progression" sousTitre="Liens du cabinet · hors barème · 1 min">
+    <CoqueEspace c={coque} actif="progression" titre="Liens du cabinet" sousTitre="hors barème · 1 min" parent={{ libelle: 'Progression', href: `/espace-pro/progression/${q}` }}>
       <PanneauMission
         cle="liens"
         titre="Liens du cabinet"

@@ -69,12 +69,12 @@ export function TuileSombre({
 }
 
 /** L'aperçu public : la carte de résultat telle que la recherche du site la montre. */
-export function ApercuPublic({ praticien, profession, photo }: { praticien: PraticienProche; profession: Profession; photo?: string | null }) {
+export function ApercuPublic({ praticien, profession, photo, enDirect = false }: { praticien: PraticienProche; profession: Profession; photo?: string | null; /** La carte suit la photo choisie dans la page (mission Photo). */ enDirect?: boolean }) {
   return (
     <Tuile>
       <TitreTuile i={Eye}>Aperçu public</TitreTuile>
       <ul className="mt-4 [&_li]:min-h-[24rem]">
-        <CarteFixe praticien={praticien} profession={profession} photo={photo} />
+        <CarteFixe praticien={praticien} profession={profession} photo={photo} enDirect={enDirect} />
       </ul>
       <p className="mt-3 text-center text-xs text-fg-2">Mis à jour en direct à chaque modification.</p>
     </Tuile>
