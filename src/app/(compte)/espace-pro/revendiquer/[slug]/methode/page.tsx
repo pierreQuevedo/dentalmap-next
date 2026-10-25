@@ -33,7 +33,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   return (
     <CoquilleParcours
       fiche={fiche}
-      etiquette={retrait ? 'Retrait demandé' : 'Vérification en cours'}
+      etiquette={retrait ? 'Retrait demandé' : 'Fiche non revendiquée'}
       retour={versFiche(fiche, retrait ? 'retrait' : '')}
       libelleRetour="Retour"
     >
