@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, ArrowRight, Bell, Search } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bell, ChevronDown, Search } from 'lucide-react'
 import { Encart, Etapes, FicheResume, Pictogramme, Puce, lien, pastille, pastilleInvalide, principal, saisie, secondaire, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { LIBELLE } from '@/lib/annuaire/libelles'
@@ -11,6 +11,7 @@ import { ouvrirFiche, poserAlerte } from '@/lib/espace-pro/actions-revendication
 import { chercherFiches } from '@/lib/espace-pro/parcours'
 import { nettoyerRpps, ressembleRpps, rppsMasque, rppsValide } from '@/lib/espace-pro/rpps'
 import { SurvolFiche } from '@/components/compte/survol-fiche'
+import { RechercheDirecte } from '@/components/compte/recherche-directe'
 import { CoquilleParcours, adresseDe, garde } from '../_commun'
 
 export const metadata: Metadata = { title: 'Retrouvons votre fiche', robots: { index: false, follow: false } }
@@ -43,7 +44,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
 
   const estNumero = ressembleRpps(q)
   const cleFausse = estNumero && !rppsValide(q)
-  const resultats = q && !cleFausse && sp.resultats !== 'aucun' ? await chercherFiches(profession, q) : []
+  const { resultats, total, exact } = q && !cleFausse && sp.resultats !== 'aucun' ? await chercherFiches(profession, q) : { resultats: [], total: 0, exact: false }
   if (resultats.length === 1) redirect(chemin(`${REVENDIQUER}/${encodeURIComponent(resultats[0].slug)}/`))
 
   // S1-0 : rien ne correspond, ou aucune des fiches proposées n'est la bonne.
@@ -95,14 +96,24 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
     )
   }
 
-  // H1 : plusieurs fiches portent ce nom. Vingt au plus : au-delà, mieux vaut le RPPS.
+  // H1 : plusieurs fiches correspondent. Vingt au plus, les plus proches de la saisie : au-delà, mieux vaut le RPPS.
   if (resultats.length > 1) {
-    const plafond = resultats.length >= 20
-    const titreH1 = plafond ? 'Au moins 20 fiches portent ce nom' : `${resultats.length} fiches portent ce nom`
+    const plafond = total > resultats.length
+    const titreH1 = exact ? 'C’est sans doute vous' : `${total} fiches correspondent`
+    const carte = (r: (typeof resultats)[number], i: number) => (
+      <SurvolFiche key={r.slug} index={i}>
+        <label className="group squircle-xl relative flex cursor-pointer items-center border border-line bg-bg px-[18px] py-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:checked]:ring-[0.5px] has-[:checked]:ring-fg has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action">
+          <input type="radio" name="fiche" value={r.slug} defaultChecked={i === 0} required className="sr-only" />
+          <FicheResume profession={LIBELLE[r.profession].singulier.replace(/^./, (c) => c.toUpperCase())} nom={nomAffiche({ ...r, profession: r.profession })} adresse={adresseDe(r)} rpps={rppsMasque(r.rpps)}>
+            <span aria-hidden className="size-5 shrink-0 rounded-full border border-line-strong bg-bg transition-[border-width,border-color] group-has-[:checked]:border-[6px] group-has-[:checked]:border-fg" />
+          </FicheResume>
+        </label>
+      </SurvolFiche>
+    )
     return (
       <CoquilleParcours
         praticiens={resultats}
-        etiquette={titreH1}
+        etiquette={exact ? 'Une fiche porte ce nom' : titreH1}
         recherche={q}
         retour={`${REVENDIQUER}/recherche/?profession=${profession}&q=${encodeURIComponent(q)}&mode=modifier`}
         libelleRetour="Nouvelle recherche"
@@ -110,27 +121,31 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
         <Etapes etape={2} libelle="Identification" />
         <h1 className={titre}>{titreH1}</h1>
         <p className="mt-2 text-sm text-fg-2">
-          Choisissez la vôtre
-          {plafond ? ', ou précisez : prénom et nom, ou votre numéro RPPS.' : '.'}
+          {exact
+            ? `Une fiche porte exactement ce nom. Ce n’est pas vous ? ${total - 1} autre${total - 1 > 1 ? 's' : ''} ressemble${total - 1 > 1 ? 'nt' : ''} à votre saisie.`
+            : plafond
+              ? `Voici les ${resultats.length} plus proches de votre saisie. Choisissez la vôtre, ou précisez : prénom et nom, ou votre numéro RPPS.`
+              : 'Choisissez la vôtre.'}
         </p>
         <form action={ouvrirFiche} className="mt-6">
           <fieldset>
             <legend className="sr-only">Votre fiche</legend>
-            {/* Hauteur bornée : le haut de la page et les boutons restent visibles, la liste défile. */}
-            <div className="-mx-1 grid max-h-[min(46dvh,26rem)] gap-2.5 overflow-y-auto overscroll-contain px-1 py-1">
-              {resultats.map((r, i) => (
-                <SurvolFiche key={r.slug} index={i}>
-                <label
-                  className="group squircle-xl relative flex cursor-pointer items-center border border-line bg-bg px-[18px] py-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:checked]:ring-[0.5px] has-[:checked]:ring-fg has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-action"
-                >
-                  <input type="radio" name="fiche" value={r.slug} defaultChecked={i === 0} required className="sr-only" />
-                  <FicheResume profession={LIBELLE[r.profession].singulier.replace(/^./, (c) => c.toUpperCase())} nom={nomAffiche({ ...r, profession: r.profession })} adresse={adresseDe(r)} rpps={rppsMasque(r.rpps)}>
-                    <span aria-hidden className="size-5 shrink-0 rounded-full border border-line-strong bg-bg transition-[border-width,border-color] group-has-[:checked]:border-[6px] group-has-[:checked]:border-fg" />
-                  </FicheResume>
-                </label>
-                </SurvolFiche>
-              ))}
-            </div>
+            {exact ? (
+              <div className="grid gap-2.5">
+                {carte(resultats[0]!, 0)}
+                <details className="group/autres">
+                  <summary className="flex cursor-pointer list-none items-center gap-1.5 py-2 text-sm font-medium text-fg-2 hover:text-fg">
+                    <ChevronDown className="size-4 transition-transform group-open/autres:rotate-180" aria-hidden />
+                    {plafond ? `Voir les ${resultats.length - 1} plus proches de votre saisie` : `Voir ${resultats.length - 1 > 1 ? `les ${resultats.length - 1} autres` : 'l’autre'}`}
+                  </summary>
+                  {/* Hauteur bornée : le haut de la page et les boutons restent visibles, la liste défile. */}
+                  <div className="-mx-1 grid max-h-[min(36dvh,20rem)] gap-2.5 overflow-y-auto overscroll-contain px-1 py-1">{resultats.slice(1).map((r, i) => carte(r, i + 1))}</div>
+                </details>
+              </div>
+            ) : (
+              // Hauteur bornée : le haut de la page et les boutons restent visibles, la liste défile.
+              <div className="-mx-1 grid max-h-[min(46dvh,26rem)] gap-2.5 overflow-y-auto overscroll-contain px-1 py-1">{resultats.map(carte)}</div>
+            )}
           </fieldset>
           <button type="submit" className={`${principal} mt-4`}>
             C’est ma fiche
@@ -197,6 +212,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
                 : '11 chiffres, sur votre carte CPS ou votre attestation d’inscription à l’Ordre.'}
           </p>
         </div>
+        <RechercheDirecte champ="recherche-q" profession="profession" vers={`${REVENDIQUER}/`} />
         <button type="submit" className={`${principal} mt-5`}>
           <Search className="size-4" aria-hidden />
           Rechercher ma fiche

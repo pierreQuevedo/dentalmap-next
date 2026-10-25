@@ -217,49 +217,54 @@ export type ResultatRecherche = PraticienProche & { profession: Profession; rpps
  * confondues : il désigne une personne, la profession cochée n'a pas à le
  * contredire. Un nom l'est dans la profession choisie, en « prénom nom » ou
  * « nom prénom », accents et tirets ignorés, avec une tolérance aux fautes.
- * Vingt résultats au plus, par ordre alphabétique puis commune.
+ * Vingt résultats au plus, le plus pertinent d'abord : le nom exact, puis
+ * ce qui commence par la saisie, puis ce qui la contient, puis le plus
+ * ressemblant ; à pertinence égale, alphabétique puis commune.
  */
-export async function chercherFiches(profession: Profession, saisie: string): Promise<ResultatRecherche[]> {
+export async function chercherFiches(profession: Profession, saisie: string): Promise<{ resultats: ResultatRecherche[]; total: number; exact: boolean }> {
   const texte = saisie.trim()
-  if (texte.length < 2) return []
+  if (texte.length < 2) return { resultats: [], total: 0, exact: false }
   const cherchable = (colonne: SQL) =>
     sql`lower(translate(${colonne}, 'ÀÂÄÉÈÊËÎÏÔÖÙÛÜÇàâäéèêëîïôöùûüç''-', 'AAAEEEEIIOOUUUCaaaeeeeiioouuuc  '))`
   const q = texte
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/['-]/g, ' ')
     .replace(/\s+/g, ' ')
+  const prenomNom = cherchable(sql`coalesce(p.prenom, '') || ' ' || p.nom`)
+  const nomPrenom = cherchable(sql`p.nom || ' ' || coalesce(p.prenom, '')`)
 
   const filtre = ressembleRpps(texte)
     ? sql`p.rpps = ${nettoyerRpps(texte)} AND p.profession IN (${sql.join(
         PROFESSIONS_RPPS.map((x) => sql`${x}`),
         sql`, `,
       )})`
-    : sql`p.profession = ${profession} AND (
-        ${cherchable(sql`coalesce(p.prenom, '') || ' ' || p.nom`)} LIKE ${`%${q}%`}
-        OR ${cherchable(sql`p.nom || ' ' || coalesce(p.prenom, '')`)} LIKE ${`%${q}%`}
-        OR similarity(${cherchable(sql`coalesce(p.prenom, '') || ' ' || p.nom`)}, ${q}) > 0.5
-      )`
+    : sql`p.profession = ${profession} AND (${prenomNom} LIKE ${`%${q}%`} OR ${nomPrenom} LIKE ${`%${q}%`} OR similarity(${prenomNom}, ${q}) > 0.5)`
+  // Sans elle, « Marie Martin » se perdait parmi tous les « Martin » de France.
+  const pertinence = sql`CASE WHEN ${prenomNom} = ${q} OR ${nomPrenom} = ${q} OR trim(${prenomNom}) = ${q} THEN 0
+    WHEN ${prenomNom} LIKE ${`${q}%`} OR ${nomPrenom} LIKE ${`${q}%`} OR trim(${prenomNom}) LIKE ${`${q}%`} THEN 1
+    WHEN ${prenomNom} LIKE ${`%${q}%`} OR ${nomPrenom} LIKE ${`%${q}%`} THEN 2 ELSE 3 END`
 
-  const { rows } = await db.execute<LigneResume>(sql`
-    SELECT DISTINCT ON (p.id) ${colonnesResume}
-    FROM praticiens p
-    LEFT JOIN lieux_exercice l ON l.praticien_id = p.id
-    LEFT JOIN communes c ON c.code_insee = l.code_insee
-    LEFT JOIN departements d ON d.code = c.departement_code
-    WHERE p.deleted_at IS NULL AND ${filtre}
-    ORDER BY p.id, l.principal DESC
-    LIMIT 60
+  const { rows } = await db.execute<LigneResume & { pertinence: number; ressemblance: number; total: number }>(sql`
+    SELECT *, count(*) OVER ()::int AS total FROM (
+      SELECT DISTINCT ON (p.id) ${colonnesResume}, ${pertinence} AS pertinence, greatest(similarity(${prenomNom}, ${q}), similarity(${nomPrenom}, ${q})) AS ressemblance
+      FROM praticiens p
+      LEFT JOIN lieux_exercice l ON l.praticien_id = p.id
+      LEFT JOIN communes c ON c.code_insee = l.code_insee
+      LEFT JOIN departements d ON d.code = c.departement_code
+      WHERE p.deleted_at IS NULL AND ${filtre}
+      ORDER BY p.id, l.principal DESC
+    ) t
+    ORDER BY t.pertinence, t.ressemblance DESC, t.nom, t.prenom, t.commune_nom
+    LIMIT 20
   `)
-  return rows
-    .map((r) => ({ ...resumeDe(r), profession: r.profession, rpps: r.rpps }))
-    .sort(
-      (a, b) =>
-        `${a.nom} ${a.prenom ?? ''}`.localeCompare(`${b.nom} ${b.prenom ?? ''}`, 'fr') ||
-        (a.communeNom ?? '').localeCompare(b.communeNom ?? '', 'fr'),
-    )
-    .slice(0, 20)
+  return {
+    resultats: rows.map((r) => ({ ...resumeDe(r), profession: r.profession, rpps: r.rpps })),
+    total: rows[0]?.total ?? 0,
+    // Une seule fiche porte exactement le nom saisi : c'est sans doute la bonne.
+    exact: rows.filter((r) => r.pertinence === 0).length === 1,
+  }
 }
 
 /**
