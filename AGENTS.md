@@ -6,7 +6,7 @@ Annuaire dentaire vérifié par registres officiels. Deux sources de données, j
 
 Règles :
 - Tout accès données passe par une fonction `'use cache'` avec `cacheLife` et `cacheTag` (profils : editorial, praticien, listing).
-- Tri des listes de résultats : points de progression des fiches (force de fiche, un point par pour cent, plus lien Google, badge, partages, parrainages, fraîcheur ; bonus des paliers 4 et 5 et des parrainages, `src/lib/annuaire/remplissage.ts`), puis distance au centre de la recherche, puis alphabétique. Ne pas l'expliquer sur le site. La copie ne promet ni gratuité ni absence de mise en avant payante : une rémunération des professionnels est prévue, ne pas écrire le contraire.
+- Tri des listes de résultats : points de progression des fiches (force de fiche, un point par pour cent, plus lien Google, badge, partages, parrainages, fraîcheur ; bonus des paliers 4 et 5 et des parrainages, `src/lib/annuaire/remplissage.ts`), puis distance au centre de la recherche, puis alphabétique. Le site le dit aux pros, de façon directe : plus une fiche est complète, plus elle remonte dans les recherches ; sans détailler le barème ni les bonus. La copie ne promet ni gratuité ni absence de mise en avant payante : une rémunération des professionnels est prévue, ne pas écrire le contraire.
 - Copie en français, vouvoiement, pas de tirets cadratins.
 - Après modification d'une requête GraphQL : `pnpm codegen`. Après modification du schéma Drizzle : `pnpm db:generate`.
 - Node 22 (voir `.nvmrc`), pnpm 10. Les positions PostGIS utilisent `point4326` de `src/db/columns.ts`, jamais `geometry()` de drizzle-orm (qui perd le SRID).
