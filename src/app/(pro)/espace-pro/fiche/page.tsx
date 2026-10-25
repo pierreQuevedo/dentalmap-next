@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { CheckCircle2, Lock, Pencil } from 'lucide-react'
 import { CoqueEspace, Statut, TitreTuile, Tuile } from '@/components/espace/coque'
 import { chemin } from '@/lib/navigation'
-import { LIBELLE_PALIER } from '@/lib/espace-pro/force'
+import { progressionDe } from '@/lib/espace-pro/progression'
 import { libelleAge } from '@/lib/espace-pro/fiche-completee'
 import { resumeAccueil, resumeConventionnement, resumeSemaine, resumeSoins, resumesLabo } from '@/lib/espace-pro/resumes'
 import { chargerTableau } from '../_commun'
@@ -13,8 +13,10 @@ export const instant = false
 
 /** Les blocs de la fiche publique, dans l'ordre où les patients les lisent, chacun avec son état et son action. */
 export default async function Page(props: { searchParams: Promise<{ fiche?: string }> }) {
-  const { espace, coque, q } = await chargerTableau('fiche', (await props.searchParams).fiche)
-  const { fiche, completee: c, force, palier, fraicheur } = espace
+  const { espace, coque, q, points } = await chargerTableau('fiche', (await props.searchParams).fiche)
+  const { fiche, completee: c, force, fraicheur } = espace
+  // Les paliers de la progression, comme la vue d'ensemble : pas l'ancien « Intermédiaire, Avancé ».
+  const p = progressionDe(points.total, points.verifiee)
   const retour = encodeURIComponent(`/espace-pro/fiche/${q}`)
   const onb = (etape: string) => `/espace-pro/onboarding/${etape}/?fiche=${encodeURIComponent(fiche.slug)}&suite=${retour}`
   const mis = (m: string) => `/espace-pro/missions/${m}/${q}`
@@ -79,10 +81,13 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <aside className="space-y-4">
           <Tuile>
             <TitreTuile i={CheckCircle2}>Force de la fiche</TitreTuile>
-            <p className="mt-4 text-4xl font-semibold tracking-tight text-fg">{force.total} %</p>
+            <p className="mt-4 text-4xl font-semibold tracking-tight text-fg">
+              {force.total} %<span className="ml-2 text-base font-normal text-fg-2">· {points.total} pts</span>
+            </p>
             <p className="text-sm text-fg-2">
-              Palier {LIBELLE_PALIER[palier]}
-              {force.total < 90 ? ` · prochain palier à ${force.total < 40 ? 40 : force.total < 70 ? 70 : 90} %` : ''}
+              {!p.verifiee
+                ? 'Palier 1 dès la vérification'
+                : `${p.actuel ? `Palier ${p.actuel.niveau} · ${p.actuel.nom}` : 'En route'}${p.suivant ? ` · plus que ${p.reste} points avant ${p.suivant.nom}` : ''}`}
             </p>
             <span className="mt-4 block h-2 rounded-full bg-line">
               <span className="block h-full rounded-full bg-teal" style={{ width: `${force.total}%` }} />
