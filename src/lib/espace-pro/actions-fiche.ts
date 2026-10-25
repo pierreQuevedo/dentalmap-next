@@ -27,7 +27,7 @@ import {
   type CodeAccesPmr,
 } from './fiche-completee'
 import type { CleFraicheur } from './force'
-import { DELAI_MAX, DELAI_MIN, JOURS_RAMASSAGE, MATERIAUX, PIECES, PIECES_PERSO_MAX, PREFIXE_PIECE, RAYON_MAX, RAYON_MIN, REALISATIONS_MAX, TECHNIQUES, nomPiece } from './labo'
+import { DELAI_MAX, DELAI_MIN, JOURS_RAMASSAGE, MATERIAUX, PIECES, PERSO_MAX, PREFIXE_PERSO, RAYON_MAX, RAYON_MIN, REALISATIONS_MAX, TECHNIQUES, lireChoix, nomLibre } from './labo'
 
 /**
  * Les écritures de la fiche d'un soignant : onboarding, missions,
@@ -213,10 +213,9 @@ const codesDe = (liste: readonly { code: string }[]) => new Set(liste.map((e) =>
 
 /** LO1 : techniques, matériaux, usinage CFAO. Trois techniques au moins pour les points. */
 export async function enregistrerSavoirFaire(donnees: FormData): Promise<never> {
-  const t = codesDe(TECHNIQUES)
-  const m = codesDe(MATERIAUX)
-  const techniques = donnees.getAll('technique').map(String).filter((c) => t.has(c))
-  const materiaux = donnees.getAll('materiau').map(String).filter((c) => m.has(c))
+  // Les cases cochées, plus les techniques et matériaux nommés par le laboratoire.
+  const techniques = lireChoix(donnees.getAll('technique').map(String), TECHNIQUES)
+  const materiaux = lireChoix(donnees.getAll('materiau').map(String), MATERIAUX)
   if (!techniques.length && !materiaux.length) return erreur(donnees, 'Choisissez au moins une technique ou un matériau, ou passez cette étape.')
   return ecrire(
     donnees,
@@ -241,10 +240,10 @@ function lireDelais(donnees: FormData): Record<string, number> | null {
     if (!cle.startsWith('delai_')) continue
     let code = cle.slice(6)
     // Une pièce nommée par le laboratoire : le nom repasse par le nettoyage, cinq au plus.
-    if (code.startsWith(PREFIXE_PIECE)) {
-      const nom = nomPiece(code.slice(PREFIXE_PIECE.length))
-      if (!nom || ++perso > PIECES_PERSO_MAX) continue
-      code = PREFIXE_PIECE + nom
+    if (code.startsWith(PREFIXE_PERSO)) {
+      const nom = nomLibre(code.slice(PREFIXE_PERSO.length))
+      if (!nom || ++perso > PERSO_MAX) continue
+      code = PREFIXE_PERSO + nom
     } else if (!codes.has(code)) continue
     const j = Math.round(Number(valeur))
     if (!Number.isFinite(j)) continue

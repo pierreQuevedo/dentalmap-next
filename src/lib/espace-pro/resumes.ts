@@ -1,7 +1,7 @@
 import { JOURS, LANGUES, SECTEURS, TIERS_PAYANT_COURT, libelleAge, orientationsDe, type FicheCompletee, type Jour } from './fiche-completee'
 import { horairesRenseignes } from './force'
 import type { Profession } from '@/lib/annuaire/types'
-import { MATERIAUX, TECHNIQUES, resumeZone } from './labo'
+import { MATERIAUX, TECHNIQUES, libelleDe, resumeZone } from './labo'
 import { resumeDelais } from './force-labo'
 
 /**
@@ -68,7 +68,7 @@ export { libelleAge }
 
 export function resumesLabo(f: FicheCompletee | null): Record<'savoir_faire' | 'materiaux' | 'delais' | 'zone' | 'realisations' | 'ansm', string | null> {
   const liste = (codes: string[], vocab: readonly { code: string; libelle: string }[]) =>
-    codes.length ? codes.map((c) => vocab.find((v) => v.code === c)?.libelle ?? c).join(', ') : null
+    codes.length ? codes.map((c) => libelleDe(vocab, c)).join(', ') : null
   const materiaux = [liste(f?.materiaux ?? [], MATERIAUX), f?.usinage ? 'usinage' : null].filter(Boolean).join(' · ') || null
   return {
     savoir_faire: liste(f?.techniques ?? [], TECHNIQUES),

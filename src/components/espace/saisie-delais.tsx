@@ -12,12 +12,12 @@ import {
   PIECES_DEMANDEES,
   PIECES_DEPART,
   PIECES_ONBOARDING,
-  PIECES_PERSO_MAX,
-  PREFIXE_PIECE,
+  PERSO_MAX,
+  PREFIXE_PERSO,
   RAYON_MAX,
   RAYON_MIN,
   libellePiece,
-  nomPiece,
+  nomLibre,
   resumeZone,
 } from '@/lib/espace-pro/labo'
 import { CarteRayon } from './carte-rayon'
@@ -45,16 +45,16 @@ export function SaisieDelais({ initiaux, toutes = false }: { initiaux: Record<st
   const demandees = toutes ? reste.filter((p) => PIECES_DEMANDEES.includes(p.code)) : reste
   const autres = toutes ? reste.filter((p) => !PIECES_DEMANDEES.includes(p.code)) : []
   // Le catalogue dans son ordre, puis les pièces nommées par le laboratoire.
-  const lignes = [...PIECES.filter((p) => p.code in delais).map((p) => p.code), ...Object.keys(delais).filter((c) => c.startsWith(PREFIXE_PIECE))]
-  const persos = lignes.filter((c) => c.startsWith(PREFIXE_PIECE)).length
+  const lignes = [...PIECES.filter((p) => p.code in delais).map((p) => p.code), ...Object.keys(delais).filter((c) => c.startsWith(PREFIXE_PERSO))]
+  const persos = lignes.filter((c) => c.startsWith(PREFIXE_PERSO)).length
   const regler = (code: string, pas: number) => {
     const defaut = PIECES.find((x) => x.code === code)?.defaut ?? DELAI_PERSO_DEFAUT
     setDelais((d) => ({ ...d, [code]: d[code] == null ? defaut : Math.min(DELAI_MAX, Math.max(DELAI_MIN, d[code]! + pas)) }))
   }
-  const nomValide = nom === null ? null : nomPiece(nom)
+  const nomValide = nom === null ? null : nomLibre(nom)
   const ajouterPerso = () => {
     if (!nomValide) return
-    setDelais((d) => ({ ...d, [PREFIXE_PIECE + nomValide]: d[PREFIXE_PIECE + nomValide] ?? null }))
+    setDelais((d) => ({ ...d, [PREFIXE_PERSO + nomValide]: d[PREFIXE_PERSO + nomValide] ?? null }))
     setNom(null)
   }
   useEffect(() => {
@@ -108,7 +108,7 @@ export function SaisieDelais({ initiaux, toutes = false }: { initiaux: Record<st
       {(demandees.length > 0 || toutes) && (
         <div className="mt-3 flex flex-wrap gap-2">
           {demandees.map(pastille)}
-          {toutes && persos < PIECES_PERSO_MAX && nom === null && (
+          {toutes && persos < PERSO_MAX && nom === null && (
             <button type="button" onClick={() => setNom('')} className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-full border border-dashed border-teal/50 px-3 text-xs font-medium text-teal hover:border-teal">
               <Plus className="size-3.5" aria-hidden /> Pièce non listée
             </button>

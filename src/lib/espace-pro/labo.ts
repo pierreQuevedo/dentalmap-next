@@ -55,15 +55,17 @@ export const PIECES_DEPART = ['couronne_unitaire', 'bridge_3', 'protheses_amovib
 export const PIECES_DEMANDEES = ['couronne_unitaire', 'bridge_3', 'couronne_implant', 'protheses_amovible', 'gouttiere']
 
 /**
- * Une pièce hors catalogue, nommée par le laboratoire : son code est le
- * préfixe suivi du nom, gardé tel quel dans `delais`.
+ * Une pièce, une technique ou un matériau hors liste, nommé par le
+ * laboratoire : son code est le préfixe suivi du nom, gardé tel quel
+ * (`delais`, `techniques`, `materiaux`). Cinq au plus par liste ; il
+ * s'affiche sur la fiche mais ne sert à aucun filtre.
  */
-export const PREFIXE_PIECE = 'perso:'
-export const PIECES_PERSO_MAX = 5
+export const PREFIXE_PERSO = 'perso:'
+export const PERSO_MAX = 5
 export const DELAI_PERSO_DEFAUT = 5
 
-/** Le nom d'une pièce libre, nettoyé : lettres, chiffres et ponctuation simple, 2 à 40 caractères ; `null` sinon. */
-export function nomPiece(saisie: string): string | null {
+/** Un nom libre, nettoyé : lettres, chiffres et ponctuation simple, 2 à 40 caractères ; `null` sinon. */
+export function nomLibre(saisie: string): string | null {
   const nom = saisie.replace(/\s+/g, ' ').trim()
   if (nom.length < 2 || nom.length > 40 || !/^[\p{L}\p{N} '’()\/.,+-]+$/u.test(nom)) return null
   return nom.charAt(0).toUpperCase() + nom.slice(1)
@@ -71,7 +73,7 @@ export function nomPiece(saisie: string): string | null {
 
 /** Le libellé d'une pièce, du catalogue ou nommée par le laboratoire. */
 export function libellePiece(code: string): string {
-  return code.startsWith(PREFIXE_PIECE) ? code.slice(PREFIXE_PIECE.length) : (PIECES.find((p) => p.code === code)?.libelle ?? code)
+  return code.startsWith(PREFIXE_PERSO) ? code.slice(PREFIXE_PERSO.length) : (PIECES.find((p) => p.code === code)?.libelle ?? code)
 }
 
 export const DELAI_MIN = 1
@@ -111,7 +113,17 @@ export const ROLES_LABO = [
 export type RoleLabo = (typeof ROLES_LABO)[number]['code']
 
 export function libelleDe<T extends { code: string; libelle: string }>(liste: readonly T[], code: string): string {
-  return liste.find((e) => e.code === code)?.libelle ?? code
+  return code.startsWith(PREFIXE_PERSO) ? code.slice(PREFIXE_PERSO.length) : (liste.find((e) => e.code === code)?.libelle ?? code)
+}
+
+/** Les choix cochés d'une liste fermée, plus cinq noms libres au plus. */
+export function lireChoix<T extends { code: string }>(valeurs: string[], liste: readonly T[]): string[] {
+  const codes = new Set(liste.map((e) => e.code))
+  const libres = valeurs
+    .filter((v) => v.startsWith(PREFIXE_PERSO))
+    .map((v) => nomLibre(v.slice(PREFIXE_PERSO.length)))
+    .filter((n): n is string => !!n)
+  return [...new Set([...valeurs.filter((v) => codes.has(v)), ...libres.slice(0, PERSO_MAX).map((n) => PREFIXE_PERSO + n)])]
 }
 
 /* ------------------------------------------------------------------ */

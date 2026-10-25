@@ -3,6 +3,7 @@ import { twMerge } from 'tailwind-merge'
 import Link from 'next/link'
 import Image from 'next/image'
 import { EnVerification } from './en-verification'
+import { DefilementActif } from './defilement-actif'
 import {
   GraduationCap,
   HeartPulse,
@@ -358,6 +359,7 @@ export function CoqueEspace({
           <div className="mt-6">{identite}</div>
         </div>
         <div className="mt-5 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-2">
+          <DefilementActif actif={actif} />
           <Nav c={c} actif={actif} />
           <div className="mt-0.5">
             <Deconnexion />
