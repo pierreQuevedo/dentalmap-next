@@ -1,6 +1,24 @@
-# Ce qui reste à faire (2026-10-24)
+# Ce qui reste à faire (2026-10-25)
 
-Carte refaite après l’Emploi (offres, candidatures, profil candidat, alertes, profils disponibles), le parcours école et faculté (de l’inscription à Compte et sécurité), la gamification de l’espace établissement et les avis. Remplace l’état du 2026-10-13, où l’Emploi comptait encore 33 écrans à faire : ils sont construits (le tableau d’`AVANCEMENT.md` n’a pas été remis à jour pour ces lignes, voir § 6).
+Carte refaite après le parcours laboratoire complet (entrée, branches, onboarding, tableau de bord). Avant lui : l’Emploi, le parcours école et faculté, la gamification de l’espace établissement et les avis. Tous les écrans sont construits ; ce qui suit dit ceux qui ont été repassés écran par écran avec Pierre (validation ou retours), et ceux qui ne l’ont pas encore été.
+
+## 0. Revue écran par écran de l’espace pro
+
+| Parcours | Écrans | État |
+|---|---|---|
+| Inscription et connexion | CX1, CX2, CX3, T3 (inscription par profil, code, email de bienvenue) | Repassés (2026-10-24) |
+| Connexion, cas annexes | CX1-E, CX2-E, CX4 clé d’accès, CX5 lien expiré, CX6 plus accès à l’email | **À repasser** |
+| Patient | P1 Personnaliser, P2 Retour à la fiche | **Non construits** |
+| Dentiste, revendication | S0, PSC1, PSC2, PSC-E, PSC-0, M1, S1, S1-0, H1, S2, S3a, S3b, C1, JD1, K, L, REMP, R1, R2 | **À repasser** |
+| Dentiste, onboarding | B0, B0S, B1 à B7, J | **À repasser** |
+| Dentiste, tableau de bord | Vue d’ensemble, Ma fiche, Horaires, Accueil, Photo, Présentation, Soins, Galerie, Mises à jour, Progression, Partager, Statistiques, Registre, Compte | **À repasser** (vue d’ensemble touchée par la revue labo : pourcentage et points, doublons en vérification) |
+| Laboratoire, entrée | L1, L2, L3, KL, LREF, LK1, LE1, MAN, LA1, LINFO, LC1 | Repassés (2026-10-24 et 25). LCODE bloqué (envoi postal) |
+| Laboratoire, onboarding | LO0, LO1, LO2, LO4 | Repassés. **LO3 Réalisations et ANSM à repasser** (le tableau de bord a changé : pièce et matériau par photo, aide ANSM) |
+| Laboratoire, tableau de bord | Vue d’ensemble, Délais, Savoir-faire, Zone, Réalisations, Conformité | Repassés (2026-10-25). Équipe retirée (`EQUIPE_OUVERTE`) |
+| École et faculté | O1, O2a, OA1, OAT, O3a, OEND, espace établissement complet, Partage et avis | Repassés |
+| Formation continue, partenariat | W1 liste d’attente, O2b, O3b | **À confirmer** : non repassés dans cette série |
+| Emploi | SE1 à SE5, offres, candidatures, profil, alertes, profils disponibles | Repassés |
+| Candidat | Points gagnés par les avis | **Non affichés** (voir § 1) |
 
 ## 1. Espace pro : écrans encore « Bientôt » ou non construits
 
@@ -14,7 +32,7 @@ Carte refaite après l’Emploi (offres, candidatures, profil candidat, alertes,
 | Dentiste | P1 Personnaliser, P2 Retour à la fiche | Non construits | Écrans courts du parcours de revendication. |
 | Laboratoire | LCODE, code au siège | Bloqué | Attend un prestataire d’envoi postal. |
 | Dentiste | Distinction « Toujours à jour » | Non calculée | Il manque l’historique des reconfirmations. |
-| Tous | Clôture des contestations à J+7 | Non faite | Tâche planifiée à ajouter. |
+| Laboratoire | Équipe | Retirée le 2026-10-25 | Menu, invitations et arrivée par lien fermés ; code et table gardés pour la rouvrir. |
 
 ## 2. Site public
 
@@ -33,12 +51,13 @@ L’administration vit dans WordPress, un plugin par espace, les données Neon p
 
 ## 4. Avant la mise en ligne : configuration et données
 
-- **Base principale** (`ep-polished-band`) : appliquer les migrations 0020 à 0030 (0030 : avis et signalements). Elles ne sont appliquées qu’à la préproduction (`ep-lively-feather`).
+- **Base principale** (`ep-polished-band`) : appliquer les migrations 0020 à 0034 (0030 avis, 0033 étendue de la zone, 0034 contestations). Elles ne sont appliquées qu’à la préproduction (`ep-lively-feather`). Les entrées 0033 et 0034 du journal `meta/` sont à commiter avec 0031 et 0032.
+- **Tâche planifiée** `/api/cron/contestations/` (8 h 30) : relance la modération à J+7, demande `CRON_SECRET`.
 - **Variables Vercel** : `BLOB_READ_WRITE_TOKEN` (dépôts de fichiers), `CRON_SECRET` (aucune tâche planifiée ne tourne sans), `DM_API_KEY`.
 - **WordPress** : décider de passer `WP_ECRITURE` à `1` après un essai sur un article de test.
 - **Synchro n8n** : respecter `praticiens.retire_le`.
 - **Identité** : Pro Santé Connect en production ; habilitation FranceConnect+ ; clés d’accès à tester sur dentalmap.fr (liées au domaine).
-- **Données de test à retirer** (préproduction) : photos de démonstration des deux établissements (`public/uploads/etablissements/demo-*`, crédit « Photos de démonstration (Pexels) »), six avis et un signalement de test, comptes `test-ecole@example.com` et `test-candidat-*@example.com`, offres et échanges de Dr Test.
+- **Données de test à retirer** (préproduction) : photos de démonstration des deux établissements (`public/uploads/etablissements/demo-*`, crédit « Photos de démonstration (Pexels) »), six avis et un signalement de test, comptes `test-ecole@example.com` et `test-candidat-*@example.com`, offres et échanges de Dr Test. Laboratoire : comptes `test-labo@example.com` (renommé « Test Dentalmap ») et `test-labo-bis@example.com`, fiches `laboratoire-essai-dentalmap` (SIREN 999999997, revendication acceptée, liée à Dr Test, ANSM factice, photo de démo) et `laboratoire-mandat-dentalmap`, contestation sur `laboratoire-test-dentalmap-2`.
 
 ## 5. Décisions à prendre
 
