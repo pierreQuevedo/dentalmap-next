@@ -21,7 +21,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const candidat = !completee?.praticienLieId && compte ? await candidatLiaison(fiche, compte.nom) : null
   const suite = candidat ? `/espace-pro/laboratoire/liaison/?fiche=${encodeURIComponent(fiche.slug)}` : suivanteLabo('recuperation', fiche.slug)
   return (
-    <CoquilleOnboardingLabo espace={espace}>
+    <CoquilleOnboardingLabo espace={espace} sansBandeau={!!sp.demande}>
       <Etapes etape={1} total={3} libelle="Avant de commencer · 2 questions" />
       {sp.demande && (
         <p role="status" className="squircle-xl mb-5 flex items-start gap-2 bg-teal/10 px-4 py-3 text-sm text-teal">

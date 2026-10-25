@@ -15,7 +15,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const espace = await chargerOnboarding('recuperation', sp.fiche)
   const { fiche } = espace
   return (
-    <CoquilleOnboarding espace={espace}>
+    <CoquilleOnboarding espace={espace} sansBandeau={!!sp.demande}>
       <Etapes etape={0} libelle="Avant de commencer · 4 questions" />
       {sp.demande && (
         <p role="status" className="squircle-xl mb-5 flex items-start gap-2 bg-teal/10 px-4 py-3 text-sm text-teal">

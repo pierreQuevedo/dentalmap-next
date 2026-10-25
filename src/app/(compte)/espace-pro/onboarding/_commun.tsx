@@ -39,7 +39,7 @@ export async function chargerOnboarding(etape: EtapeOnboarding, slug?: string): 
 }
 
 /** La coquille : l'aperçu patient à gauche, la question à droite. */
-export async function CoquilleOnboarding({ espace, enCours, children }: { espace: Espace; enCours?: BlocApercu; children: React.ReactNode }) {
+export async function CoquilleOnboarding({ espace, enCours, sansBandeau = false, children }: { espace: Espace; enCours?: BlocApercu; /** L'écran dit déjà la demande partie (arrivée après l'envoi) : pas de bandeau de vérification en plus. */ sansBandeau?: boolean; children: React.ReactNode }) {
   const { fiche, completee, force } = espace
   const { total: points } = await pointsDeLEspace(espace)
   const apercu = (
@@ -78,7 +78,7 @@ export async function CoquilleOnboarding({ espace, enCours, children }: { espace
         </summary>
         <div className="mt-4">{apercu}</div>
       </details>
-      {!espace.ctx.identiteVerifiee && <EnVerification className="mb-6" />}
+      {!espace.ctx.identiteVerifiee && !sansBandeau && <EnVerification className="mb-6" />}
       <div className="animate-fiche-entree">{children}</div>
     </Coquille>
   )

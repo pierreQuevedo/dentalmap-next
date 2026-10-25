@@ -44,7 +44,8 @@ export async function pointsDeLEspace(espace: {
   return pointsDe({
     force: espace.force.total,
     google: etatLienGoogle(espace.completee).etat === 'actif',
-    aJour: espace.fraicheur.every((f) => f.etat !== 'expire'),
+    // Sans bloc renseigné, pas de « Toujours à jour » : 0 % de fiche ne vaut pas 10 points.
+    aJour: espace.fraicheur.length > 0 && espace.fraicheur.every((f) => f.etat !== 'expire'),
     verifiee: espace.ctx.identiteVerifiee,
     ...d,
   })

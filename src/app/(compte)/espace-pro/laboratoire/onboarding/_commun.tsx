@@ -38,7 +38,7 @@ export async function chargerOnboardingLabo(etape: EtapeLabo | 'liaison', slug?:
   return espace
 }
 
-export async function CoquilleOnboardingLabo({ espace, enCours, children }: { espace: Espace; enCours?: BlocCabinet[]; children: React.ReactNode }) {
+export async function CoquilleOnboardingLabo({ espace, enCours, sansBandeau = false, children }: { espace: Espace; enCours?: BlocCabinet[]; /** L'écran dit déjà la demande partie (arrivée après l'envoi) : pas de bandeau de vérification en plus. */ sansBandeau?: boolean; children: React.ReactNode }) {
   const { total: points } = await pointsDeLEspace(espace)
   const apercu = <ApercuCabinet points={points} nom={nomDe(espace.fiche)} adresse={adresseDe(espace.fiche.resume)} lignes={resumesLabo(espace.completee)} enCours={enCours} force={espace.force.total} verifiee={(espace.force.items.find((i) => i.cle === 'identite')?.points ?? 0) > 0} />
   return (
@@ -67,7 +67,7 @@ export async function CoquilleOnboardingLabo({ espace, enCours, children }: { es
         </summary>
         <div className="mt-4">{apercu}</div>
       </details>
-      {!espace.ctx.identiteVerifiee && <EnVerification labo className="mb-6" />}
+      {!espace.ctx.identiteVerifiee && !sansBandeau && <EnVerification labo className="mb-6" />}
       <div className="animate-fiche-entree">{children}</div>
     </Coquille>
   )

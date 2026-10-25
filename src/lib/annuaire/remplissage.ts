@@ -66,7 +66,9 @@ export async function getRemplissages(profession: Profession, praticiens: { id: 
   for (const id of attribuees) {
     const f = fiches.get(id) ?? null
     const force = scores.get(id) ?? 0
-    const points = pointsDe({ force, google: etatLienGoogle(f).etat === 'actif', aJour: fraicheur(f, maintenant).every((x) => x.etat !== 'expire'), ...diffusion.get(id)! })
+    // « Toujours à jour » suppose une fiche renseignée : sans bloc daté, rien n'est à jour, rien n'est expiré.
+    const blocs = fraicheur(f, maintenant)
+    const points = pointsDe({ force, google: etatLienGoogle(f).etat === 'actif', aJour: blocs.length > 0 && blocs.every((x) => x.etat !== 'expire'), ...diffusion.get(id)! })
     scores.set(id, points.total + bonusPalier(points.total) + (parrainages.get(id) ?? 0))
     const palier = progressionDe(points.total).actuel?.niveau
     if (palier) paliers.set(id, palier)
