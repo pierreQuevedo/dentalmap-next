@@ -7,7 +7,7 @@ Carte refaite après le parcours dentiste (revendication, onboarding, tableau de
 | Parcours | Écrans | État |
 |---|---|---|
 | Inscription et connexion | CX1, CX2, CX3, T3 (inscription par profil, code, email de bienvenue) | Repassés (2026-10-24) |
-| Connexion, cas annexes | CX1-E, CX2-E, CX4 clé d’accès, CX5 lien expiré, CX6 plus accès à l’email | **À repasser** |
+| Connexion, cas annexes | CX1-E, CX2-E, CX4 clé d’accès, CX5 code expiré ou annulé, CX6 plus accès à l’email | Repassés (2026-10-25) |
 | Patient | P1 Personnaliser, P2 Retour à la fiche | **Non construits** |
 | Dentiste, revendication | S0, S1, H1, S1-0 (avec demande d’ajout), S2, S3b, C1, JD1, K, L, REMP, R1, R2 | Repassés (2026-10-25). PSC1, PSC2, PSC-E, PSC-0 et M1 attendent Pro Santé Connect ; S3a (lien sur l’email du registre) non rencontré, aucune fiche de test n’a d’email |
 | Dentiste, onboarding | B0, B0S, B1, B2, B3, B7 | Repassés (2026-10-25) : aperçu et taux en direct, domaine libre. B4 à B6 sont devenus des missions |
