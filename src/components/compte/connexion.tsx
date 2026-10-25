@@ -67,6 +67,8 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
   const [email, setEmail] = useState('')
   const [motDePasse, setMotDePasse] = useState('')
   const [codeSaisi, setCodeSaisi] = useState('')
+  /** Le code est mort de trop d'essais, pas de son âge : l'écran d'expiration le dit. */
+  const [tropDEssais, setTropDEssais] = useState(false)
   const formulaireCode = useRef<HTMLFormElement>(null)
   const [codeEnvoye, setCodeEnvoye] = useState(false)
   // Le profil demandé par le lien, sinon soignant quand on vient de l'espace pro.
@@ -121,6 +123,7 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
   const codeRefuse = (code?: string) => {
     if (codeMort(code) || echecs + 1 >= ESSAIS_PAR_CODE) {
       const e = email
+      setTropDEssais(code === 'TOO_MANY_ATTEMPTS' || (code !== 'OTP_EXPIRED' && echecs + 1 >= ESSAIS_PAR_CODE))
       aller('expire')
       setEmail(e)
       return
@@ -569,8 +572,10 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
         {etat === 'expire' && (
           <form onSubmit={redemanderCode}>
             <Pictogramme icone={Hourglass} ton="attention" />
-            <h1 className={titre}>Ce code a expiré</h1>
-            <p className="mt-2 text-sm text-fg-2">Il valait dix minutes, ou il a déjà servi. Votre adresse est gardée : un clic suffit pour en recevoir un autre.</p>
+            <h1 className={titre}>{tropDEssais ? 'Ce code est annulé' : 'Ce code a expiré'}</h1>
+            <p className="mt-2 text-sm text-fg-2">
+              {tropDEssais ? 'Trop d’essais : par sécurité, il ne vaut plus.' : 'Il valait dix minutes, ou il a déjà servi.'} Votre adresse est gardée : un clic suffit pour en recevoir un autre.
+            </p>
             <div className="mt-6">
               <Champ id="expire-email" icone={Mail} libelle="Adresse électronique">
                 <input
