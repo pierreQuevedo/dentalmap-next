@@ -1,6 +1,6 @@
 # Ce qui reste à faire (2026-10-25)
 
-Carte refaite après le parcours laboratoire complet (entrée, branches, onboarding, tableau de bord). Avant lui : l’Emploi, le parcours école et faculté, la gamification de l’espace établissement et les avis. Tous les écrans sont construits ; ce qui suit dit ceux qui ont été repassés écran par écran avec Pierre (validation ou retours), et ceux qui ne l’ont pas encore été.
+Carte refaite après le parcours dentiste (revendication, onboarding, tableau de bord, branches) et le parcours laboratoire complet. Avant eux : l’Emploi, le parcours école et faculté, la gamification de l’espace établissement et les avis. Tous les écrans sont construits ; ce qui suit dit ceux qui ont été repassés écran par écran avec Pierre (validation ou retours), et ceux qui ne l’ont pas encore été.
 
 ## 0. Revue écran par écran de l’espace pro
 
@@ -29,7 +29,7 @@ Carte refaite après le parcours laboratoire complet (entrée, branches, onboard
 | Établissement | Événements | « Bientôt » | Portes ouvertes, salons, journées d’information ; la page publique lit déjà les événements relevés. |
 | École | Admission et calendrier | « Bientôt » | Étapes de candidature, dates clés de la rentrée. |
 | Candidat | Points gagnés par les avis | Non affichés | Les points comptent déjà dans Profils disponibles ; le candidat ne les voit pas, et rien ne l’invite à donner un avis. |
-| Dentiste | P1 Personnaliser, P2 Retour à la fiche | Non construits | Écrans courts du parcours de revendication. |
+| Patient | P1 Personnaliser, P2 Retour à la fiche | Non construits | Écrans courts du parcours patient. |
 | Laboratoire | LCODE, code au siège | Bloqué | Attend un prestataire d’envoi postal. |
 | Dentiste | Distinction « Toujours à jour » | Non calculée | Il manque l’historique des reconfirmations. |
 | Laboratoire | Équipe | Retirée le 2026-10-25 | Menu, invitations et arrivée par lien fermés ; code et table gardés pour la rouvrir. |
@@ -70,8 +70,9 @@ L’administration vit dans WordPress, un plugin par espace, les données Neon p
 
 ## 6. Figma, documentation, dette
 
-- **Figma** : le code fait foi. Sont codés sans écran Figma à jour : l’espace Emploi (offres, candidatures, profil candidat, alertes, profils disponibles), la gamification et les en-têtes de l’espace établissement, Partage et avis, les visuels d’avis, la coque (carte fixée en bas, barre fixée en haut sur mobile). Node ids à reporter dans `parcours.json`.
+- **Figma** : le code fait foi. Sont codés sans écran Figma à jour : l’espace Emploi (offres, candidatures, profil candidat, alertes, profils disponibles), la gamification et les en-têtes de l’espace établissement, Partage et avis, les visuels d’avis, la coque (carte fixée en bas, barre fixée en haut sur mobile) ; et, depuis le 2026-10-24, la recherche en direct (S1), la demande d’ajout d’un praticien, le recadrage de la photo, l’aperçu en direct de l’onboarding, les choix libres (pièces, techniques, matériaux, domaines, marques), la carte des établissements (LE1) et le plan de la zone desservie. Node ids à reporter dans `parcours.json`.
 - **`AVANCEMENT.md`** : les lignes SE, CAND, ETU, OUV, D-EMPLOI et L-EMPLOI sont encore « à faire » alors que les écrans existent.
 - **Docs** : `00`, `03`, `04` et `05` mentionnent encore le courrier, le code à 8 chiffres et le justificatif en Blob privé.
-- **Tests de bout en bout** : la préproduction et les comptes de test existent désormais ; restent à dérouler avec une vraie session la revendication dentiste et la proposition de formation privée.
+- **Tests de bout en bout** : revendication dentiste (justificatif, refus, retrait) et laboratoire (Kbis, refus, contestation) déroulés en préproduction le 2026-10-25 ; reste la proposition de formation privée, et le tableau de bord d’une fiche dentiste vérifiée (paliers atteints, célébrations).
+- **Code mort** : `demanderCreationFiche` (`lib/tunnel/actions.ts`) n’a plus de page ; la demande d’ajout d’un praticien passe par `demanderAjoutPraticien` (S1-0).
 - **Lint** : erreurs anciennes dans les maquettes, sans effet sur le site.
