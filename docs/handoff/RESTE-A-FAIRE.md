@@ -13,7 +13,7 @@ Carte refaite après le parcours laboratoire complet (entrée, branches, onboard
 | Dentiste, onboarding | B0, B0S, B1 à B7, J | **À repasser** |
 | Dentiste, tableau de bord | Vue d’ensemble, Ma fiche, Horaires, Accueil, Photo, Présentation, Soins, Galerie, Mises à jour, Progression, Partager, Statistiques, Registre, Compte | **À repasser** (vue d’ensemble touchée par la revue labo : pourcentage et points, doublons en vérification) |
 | Laboratoire, entrée | L1, L2, L3, KL, LREF, LK1, LE1, MAN, LA1, LINFO, LC1 | Repassés (2026-10-24 et 25). LCODE bloqué (envoi postal) |
-| Laboratoire, onboarding | LO0, LO1, LO2, LO4 | Repassés. **LO3 Réalisations et ANSM à repasser** (le tableau de bord a changé : pièce et matériau par photo, aide ANSM) |
+| Laboratoire, onboarding | LO0, LO1, LO2, LO4 | Repassés. LO3 est devenue les missions Réalisations et Conformité, repassées avec le tableau de bord |
 | Laboratoire, tableau de bord | Vue d’ensemble, Délais, Savoir-faire, Zone, Réalisations, Conformité | Repassés (2026-10-25). Équipe retirée (`EQUIPE_OUVERTE`) |
 | École et faculté | O1, O2a, OA1, OAT, O3a, OEND, espace établissement complet, Partage et avis | Repassés |
 | Formation continue, partenariat | W1 liste d’attente, O2b, O3b | **À confirmer** : non repassés dans cette série |
