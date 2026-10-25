@@ -353,3 +353,34 @@ export async function ouvrirFicheLabo(donnees: FormData): Promise<never> {
   const slug = String(donnees.get('fiche') ?? '')
   redirect(chemin(slug ? `/espace-pro/laboratoire/revendiquer/${encodeURIComponent(slug)}/` : '/espace-pro/laboratoire/revendiquer/'))
 }
+
+/**
+ * S1-0 : un chirurgien-dentiste ou un spécialiste installé depuis la dernière
+ * synchronisation de l'Annuaire Santé demande sa fiche. Rien n'est créé sans
+ * examen : l'équipe retrouve le RPPS dans l'Annuaire Santé, crée la fiche, et
+ * le praticien la revendique ensuite comme les autres.
+ */
+export async function demanderAjoutPraticien(donnees: FormData): Promise<never> {
+  const ici = '/espace-pro/revendiquer/ajout/'
+  const compte = await exigerConnexion(ici)
+  const champ = (n: string, max = 200) => String(donnees.get(n) ?? '').trim().slice(0, max)
+  const profession = (['dentiste', 'stomatologue', 'maxillo_facial', 'orl'] as const).find((p) => p === donnees.get('profession')) ?? 'dentiste'
+  const rpps = nettoyerRpps(champ('rpps', 20))
+  const [prenom, nom, adresse, codePostal, ville, message] = [champ('prenom', 100), champ('nom', 100), champ('adresse'), champ('code_postal', 5), champ('ville', 100), champ('message', 1000)]
+  const garder = `profession=${profession}&rpps=${encodeURIComponent(rpps)}&prenom=${encodeURIComponent(prenom)}&nom=${encodeURIComponent(nom)}&adresse=${encodeURIComponent(adresse)}&code_postal=${encodeURIComponent(codePostal)}&ville=${encodeURIComponent(ville)}`
+  const avecErreur = (m: string) => chemin(`${ici}?${garder}&erreur=${encodeURIComponent(m)}`)
+  if (!rppsValide(rpps)) redirect(avecErreur('Ce numéro RPPS ne passe pas le contrôle de clé : vérifiez les onze chiffres.'))
+  if (nom.length < 2) redirect(avecErreur('Indiquez votre nom, comme à l’Ordre.'))
+  if (adresse.length < 4 || !/^\d{5}$/.test(codePostal) || ville.length < 2) redirect(avecErreur('Indiquez l’adresse complète du cabinet : rue, code postal, ville.'))
+  const { rows: existe } = await db.execute<{ slug: string }>(sql`SELECT slug FROM praticiens WHERE rpps = ${rpps} AND deleted_at IS NULL LIMIT 1`)
+  if (existe[0]) redirect(chemin(`${REVENDIQUER}/${encodeURIComponent(existe[0].slug)}/`))
+  const { rows: deja } = await db.execute<{ id: string }>(sql`SELECT id FROM demandes_creation_fiche WHERE rpps = ${rpps} AND statut = 'en_attente' LIMIT 1`)
+  if (!deja[0]) {
+    await db.execute(sql`
+      INSERT INTO demandes_creation_fiche (id, user_id, profession, nom, prenom, rpps, adresse, code_postal, ville, email, message)
+      VALUES (${randomUUID()}, ${compte.id}::uuid, ${profession}, ${nom}, ${prenom || null}, ${rpps}, ${adresse}, ${codePostal}, ${ville}, ${compte.email}, ${message || null})
+    `)
+    await envoyerAModerer(`ajout de la fiche de ${[prenom, nom].filter(Boolean).join(' ')}`, `Le compte ${compte.email} demande l'ajout de sa fiche : RPPS ${rpps}, ${adresse}, ${codePostal} ${ville}. À retrouver dans l'Annuaire Santé avant création.`)
+  }
+  redirect(chemin(`${ici}?envoyee=1`))
+}

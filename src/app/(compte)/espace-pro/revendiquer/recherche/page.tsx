@@ -92,6 +92,9 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
         <Link href={chemin(`${REVENDIQUER}/recherche/?profession=${profession}&q=${encodeURIComponent(q)}&mode=modifier`)} className={`${secondaire} mt-3`}>
           Modifier ma recherche
         </Link>
+        <Link href={chemin(`${REVENDIQUER}/ajout/?profession=${profession}${rpps ? `&rpps=${rpps}` : ''}`)} className="mt-4 block text-center text-sm font-medium text-fg underline underline-offset-4 hover:no-underline">
+          Je viens de m’installer : demander l’ajout de ma fiche
+        </Link>
       </CoquilleParcours>
     )
   }
