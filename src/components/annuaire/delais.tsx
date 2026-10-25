@@ -6,7 +6,7 @@
  * de douze mois sans confirmation, ils ne sont plus affichés (voir `delaisAffiches`).
  */
 import { CircleCheck } from 'lucide-react'
-import { PIECES, libelleDe } from '@/lib/espace-pro/labo'
+import { PIECES, libellePiece } from '@/lib/espace-pro/labo'
 import type { FicheCompletee } from '@/lib/espace-pro/fiche-completee'
 import { dateLongue } from './fiche-blocs'
 
@@ -24,7 +24,7 @@ export function delaisAffiches(f: FicheCompletee, maintenant: Date): { piece: st
   return Object.entries(delais)
     .filter(([, j]) => Number.isFinite(j) && j > 0)
     .sort(([a], [b]) => ordre(a) - ordre(b))
-    .map(([code, jours]) => ({ piece: libelleDe(PIECES, code), jours }))
+    .map(([code, jours]) => ({ piece: libellePiece(code), jours }))
 }
 
 export function SectionDelais({ delais, confirmeLe }: { delais: { piece: string; jours: number }[]; confirmeLe: string }) {

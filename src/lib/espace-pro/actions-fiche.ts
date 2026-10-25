@@ -27,7 +27,7 @@ import {
   type CodeAccesPmr,
 } from './fiche-completee'
 import type { CleFraicheur } from './force'
-import { DELAI_MAX, DELAI_MIN, JOURS_RAMASSAGE, MATERIAUX, PIECES, RAYON_MAX, RAYON_MIN, REALISATIONS_MAX, TECHNIQUES } from './labo'
+import { DELAI_MAX, DELAI_MIN, JOURS_RAMASSAGE, MATERIAUX, PIECES, PIECES_PERSO_MAX, PREFIXE_PIECE, RAYON_MAX, RAYON_MIN, REALISATIONS_MAX, TECHNIQUES, nomPiece } from './labo'
 
 /**
  * Les écritures de la fiche d'un soignant : onboarding, missions,
@@ -236,11 +236,18 @@ export async function enregistrerSavoirFaire(donnees: FormData): Promise<never> 
 function lireDelais(donnees: FormData): Record<string, number> | null {
   const codes = codesDe(PIECES)
   const delais: Record<string, number> = {}
+  let perso = 0
   for (const [cle, valeur] of donnees.entries()) {
     if (!cle.startsWith('delai_')) continue
-    const code = cle.slice(6)
+    let code = cle.slice(6)
+    // Une pièce nommée par le laboratoire : le nom repasse par le nettoyage, cinq au plus.
+    if (code.startsWith(PREFIXE_PIECE)) {
+      const nom = nomPiece(code.slice(PREFIXE_PIECE.length))
+      if (!nom || ++perso > PIECES_PERSO_MAX) continue
+      code = PREFIXE_PIECE + nom
+    } else if (!codes.has(code)) continue
     const j = Math.round(Number(valeur))
-    if (!codes.has(code) || !Number.isFinite(j)) continue
+    if (!Number.isFinite(j)) continue
     if (j < DELAI_MIN || j > DELAI_MAX) return null
     delais[code] = j
   }

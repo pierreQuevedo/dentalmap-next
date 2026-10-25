@@ -1,6 +1,6 @@
 import { PRESENTATION_MAX, PRESENTATION_MIN, type FicheCompletee } from './fiche-completee'
 import { presentationValide, type Contexte, type Distinction, type Filtre, type Force, type Fraicheur, type Mission } from './force'
-import { PIECES } from './labo'
+import { libellePiece } from './labo'
 
 /**
  * La force d'une fiche de laboratoire. Même principe que pour un soignant :
@@ -117,6 +117,6 @@ export function resumeDelais(f: FicheCompletee | null): string | null {
   if (!delaisRenseignes(f)) return null
   return Object.entries(f!.delais!)
     .slice(0, 2)
-    .map(([c, j]) => `${(PIECES.find((p) => p.code === c)?.libelle ?? c).split(' ')[0]} ${j} j`)
+    .map(([c, j]) => `${libellePiece(c).split(' ')[0]} ${j} j`)
     .join(' · ')
 }

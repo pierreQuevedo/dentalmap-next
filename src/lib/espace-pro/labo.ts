@@ -51,6 +51,29 @@ export const PIECES_ONBOARDING = ['couronne_unitaire', 'bridge_3', 'couronne_imp
 /** Les quatre pièces proposées d'emblée à l'onboarding. */
 export const PIECES_DEPART = ['couronne_unitaire', 'bridge_3', 'protheses_amovible', 'gouttiere']
 
+/** Les pièces que les cabinets cherchent le plus : proposées en tête dans « Délais de fabrication », les autres repliées. */
+export const PIECES_DEMANDEES = ['couronne_unitaire', 'bridge_3', 'couronne_implant', 'protheses_amovible', 'gouttiere']
+
+/**
+ * Une pièce hors catalogue, nommée par le laboratoire : son code est le
+ * préfixe suivi du nom, gardé tel quel dans `delais`.
+ */
+export const PREFIXE_PIECE = 'perso:'
+export const PIECES_PERSO_MAX = 5
+export const DELAI_PERSO_DEFAUT = 5
+
+/** Le nom d'une pièce libre, nettoyé : lettres, chiffres et ponctuation simple, 2 à 40 caractères ; `null` sinon. */
+export function nomPiece(saisie: string): string | null {
+  const nom = saisie.replace(/\s+/g, ' ').trim()
+  if (nom.length < 2 || nom.length > 40 || !/^[\p{L}\p{N} '’()\/.,+-]+$/u.test(nom)) return null
+  return nom.charAt(0).toUpperCase() + nom.slice(1)
+}
+
+/** Le libellé d'une pièce, du catalogue ou nommée par le laboratoire. */
+export function libellePiece(code: string): string {
+  return code.startsWith(PREFIXE_PIECE) ? code.slice(PREFIXE_PIECE.length) : (PIECES.find((p) => p.code === code)?.libelle ?? code)
+}
+
 export const DELAI_MIN = 1
 export const DELAI_MAX = 60
 export const RAYON_MIN = 5

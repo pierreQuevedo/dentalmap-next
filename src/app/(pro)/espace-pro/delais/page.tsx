@@ -5,7 +5,7 @@ import { Encart, principal } from '@/components/compte/ui'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
 import { SaisieDelais } from '@/components/espace/saisie-delais'
 import { enregistrerDelais, reconfirmer } from '@/lib/espace-pro/actions-fiche'
-import { PIECES } from '@/lib/espace-pro/labo'
+import { PIECES, libellePiece } from '@/lib/espace-pro/labo'
 import { Caches, chargerLabo } from '../_labo'
 
 export const metadata: Metadata = { title: 'Délais de fabrication', robots: { index: false, follow: false } }
@@ -59,7 +59,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
               {delais.map(([code, j]) => (
                 <li key={code}>
                   <div className="flex justify-between gap-3 text-xs">
-                    <span className="truncate text-fg">{PIECES.find((p) => p.code === code)?.libelle ?? code}</span>
+                    <span className="truncate text-fg">{libellePiece(code)}</span>
                     <span className="shrink-0 font-semibold tabular-nums text-fg">{j} j ouvrés</span>
                   </div>
                   <span className="mt-1.5 block h-2 rounded-full bg-line">

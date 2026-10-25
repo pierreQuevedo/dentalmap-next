@@ -1,8 +1,25 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Minus, Plus, X } from 'lucide-react'
-import { DELAI_MAX, DELAI_MIN, ETENDUES, JOURS_RAMASSAGE, PIECES, PIECES_DEPART, PIECES_ONBOARDING, RAYON_MAX, RAYON_MIN, resumeZone } from '@/lib/espace-pro/labo'
+import { ChevronDown, Minus, Plus, X } from 'lucide-react'
+import {
+  DELAI_MAX,
+  DELAI_MIN,
+  DELAI_PERSO_DEFAUT,
+  ETENDUES,
+  JOURS_RAMASSAGE,
+  PIECES,
+  PIECES_DEMANDEES,
+  PIECES_DEPART,
+  PIECES_ONBOARDING,
+  PIECES_PERSO_MAX,
+  PREFIXE_PIECE,
+  RAYON_MAX,
+  RAYON_MIN,
+  libellePiece,
+  nomPiece,
+  resumeZone,
+} from '@/lib/espace-pro/labo'
 import { CarteRayon } from './carte-rayon'
 import { EVENEMENT_APERCU } from './valeur-en-direct'
 
@@ -15,26 +32,45 @@ const annoncer = (cle: string, valeur: string | null) => window.dispatchEvent(ne
  * prérempli : une pièce proposée reste « à indiquer » tant que le
  * laboratoire n'a pas réglé son délai, et seuls les délais réglés partent
  * dans le formulaire, en `delai_<pièce>`. Après l'onboarding (`toutes`),
- * toutes les pièces du catalogue s'ajoutent.
+ * toutes les pièces du catalogue s'ajoutent, les plus demandées en tête,
+ * et le laboratoire peut nommer une pièce absente du catalogue.
  */
 export function SaisieDelais({ initiaux, toutes = false }: { initiaux: Record<string, number> | null; toutes?: boolean }) {
   const [delais, setDelais] = useState<Record<string, number | null>>(() =>
     initiaux && Object.keys(initiaux).length ? { ...initiaux } : Object.fromEntries(PIECES_DEPART.map((c) => [c, null])),
   )
+  const [nom, setNom] = useState<string | null>(null)
   const catalogue = toutes ? PIECES : PIECES.filter((p) => PIECES_ONBOARDING.includes(p.code))
   const reste = catalogue.filter((p) => !(p.code in delais))
+  const demandees = toutes ? reste.filter((p) => PIECES_DEMANDEES.includes(p.code)) : reste
+  const autres = toutes ? reste.filter((p) => !PIECES_DEMANDEES.includes(p.code)) : []
+  // Le catalogue dans son ordre, puis les pièces nommées par le laboratoire.
+  const lignes = [...PIECES.filter((p) => p.code in delais).map((p) => p.code), ...Object.keys(delais).filter((c) => c.startsWith(PREFIXE_PIECE))]
+  const persos = lignes.filter((c) => c.startsWith(PREFIXE_PIECE)).length
   const regler = (code: string, pas: number) => {
-    const p = PIECES.find((x) => x.code === code)!
-    setDelais((d) => ({ ...d, [code]: d[code] == null ? p.defaut : Math.min(DELAI_MAX, Math.max(DELAI_MIN, d[code]! + pas)) }))
+    const defaut = PIECES.find((x) => x.code === code)?.defaut ?? DELAI_PERSO_DEFAUT
+    setDelais((d) => ({ ...d, [code]: d[code] == null ? defaut : Math.min(DELAI_MAX, Math.max(DELAI_MIN, d[code]! + pas)) }))
+  }
+  const nomValide = nom === null ? null : nomPiece(nom)
+  const ajouterPerso = () => {
+    if (!nomValide) return
+    setDelais((d) => ({ ...d, [PREFIXE_PIECE + nomValide]: d[PREFIXE_PIECE + nomValide] ?? null }))
+    setNom(null)
   }
   useEffect(() => {
     const regles = Object.entries(delais).filter((e): e is [string, number] => e[1] != null)
-    annoncer('delais', regles.length ? regles.slice(0, 2).map(([c, j]) => `${(PIECES.find((p) => p.code === c)?.libelle ?? c).split(' ')[0]} ${j} j`).join(' · ') : null)
+    annoncer('delais', regles.length ? regles.slice(0, 2).map(([c, j]) => `${libellePiece(c).split(' ')[0]} ${j} j`).join(' · ') : null)
   }, [delais])
+  const pastille = (p: { code: string; libelle: string }) => (
+    <button key={p.code} type="button" onClick={() => setDelais((d) => ({ ...d, [p.code]: null }))} className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-full border border-dashed border-line px-3 text-xs font-medium text-fg-2 hover:border-line-strong hover:text-fg">
+      <Plus className="size-3.5" aria-hidden /> {p.libelle}
+    </button>
+  )
   return (
     <div>
       <ul className="divide-y divide-line border-y border-line">
-        {PIECES.filter((p) => p.code in delais).map((p) => {
+        {lignes.map((code) => {
+          const p = { code, libelle: libellePiece(code) }
           const j = delais[p.code]
           return (
             <li key={p.code} className="flex items-center gap-3 py-2">
@@ -69,14 +105,53 @@ export function SaisieDelais({ initiaux, toutes = false }: { initiaux: Record<st
           )
         })}
       </ul>
-      {reste.length > 0 && (
+      {(demandees.length > 0 || toutes) && (
         <div className="mt-3 flex flex-wrap gap-2">
-          {reste.map((p) => (
-            <button key={p.code} type="button" onClick={() => setDelais((d) => ({ ...d, [p.code]: null }))} className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-full border border-dashed border-line px-3 text-xs font-medium text-fg-2 hover:border-line-strong hover:text-fg">
-              <Plus className="size-3.5" aria-hidden /> {p.libelle}
+          {demandees.map(pastille)}
+          {toutes && persos < PIECES_PERSO_MAX && nom === null && (
+            <button type="button" onClick={() => setNom('')} className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-full border border-dashed border-teal/50 px-3 text-xs font-medium text-teal hover:border-teal">
+              <Plus className="size-3.5" aria-hidden /> Pièce non listée
             </button>
-          ))}
+          )}
         </div>
+      )}
+      {nom !== null && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <label htmlFor="piece-perso" className="sr-only">
+            Nom de la pièce
+          </label>
+          <input
+            id="piece-perso"
+            autoFocus
+            value={nom}
+            maxLength={40}
+            placeholder="Ex. : Couronne zircone stratifiée"
+            onChange={(e) => setNom(e.target.value)}
+            onKeyDown={(e) => {
+              // Entrée ajoute la pièce sans envoyer le formulaire ; Échap annule.
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                ajouterPerso()
+              } else if (e.key === 'Escape') setNom(null)
+            }}
+            className="squircle-full h-9 min-w-0 flex-1 border border-line bg-bg px-4 text-sm text-fg outline-none placeholder:text-fg-2 focus:border-line-strong"
+          />
+          <button type="button" onClick={ajouterPerso} disabled={!nomValide} className="inline-flex h-9 cursor-pointer items-center rounded-full bg-fg px-4 text-sm font-semibold text-bg disabled:cursor-not-allowed disabled:opacity-40">
+            Ajouter
+          </button>
+          <button type="button" onClick={() => setNom(null)} className="inline-flex h-9 cursor-pointer items-center rounded-full px-3 text-sm text-fg-2 hover:text-fg">
+            Annuler
+          </button>
+        </div>
+      )}
+      {autres.length > 0 && (
+        <details className="group mt-3">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-fg-2 hover:text-fg [&::-webkit-details-marker]:hidden">
+            Autres pièces ({autres.length})
+            <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden />
+          </summary>
+          <div className="mt-2 flex flex-wrap gap-2">{autres.map(pastille)}</div>
+        </details>
       )}
       <p className="mt-2 text-xs text-fg-2">
         Réglez chaque délai avec − et + : un délai moyen, pas un engagement, la fiche le dit aux cabinets.{!toutes && ' D’autres pièces s’ajoutent ensuite dans votre espace.'}
