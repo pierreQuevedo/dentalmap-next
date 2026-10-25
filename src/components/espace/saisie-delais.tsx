@@ -20,7 +20,7 @@ import {
   nomLibre,
   resumeZone,
 } from '@/lib/espace-pro/labo'
-import { CarteRayon } from './carte-rayon'
+import { CarteRayon, EVENEMENT_RAYON } from './carte-rayon'
 import { EVENEMENT_APERCU } from './valeur-en-direct'
 
 /** L'aperçu de l'onboarding se met à jour pendant la saisie : `ValeurEnDirect` écoute cet événement. */
@@ -184,22 +184,41 @@ export function SaisieZone({
   const [km, setKm] = useState(rayon ?? 40)
   const [passe, setPasse] = useState(ramassage ?? true)
   const [portee, setPortee] = useState<'' | 'france' | 'international'>(etendue ?? '')
+  const [coches, setCoches] = useState<string[]>(jours)
   useEffect(() => {
     annoncer('zone', resumeZone({ rayonKm: km, ramassage: passe, zoneEtendue: portee || null }))
+    window.dispatchEvent(new CustomEvent(EVENEMENT_RAYON, { detail: km }))
   }, [km, passe, portee])
+  const basculerJour = (code: string) => setCoches((j) => (j.includes(code) ? j.filter((x) => x !== code) : [...j, code]))
   return (
     <div>
       <fieldset className="mb-4">
         <legend className="mb-2 text-sm text-fg">Vous desservez</legend>
-        <div className="squircle-full inline-flex flex-wrap gap-1 bg-bg-soft p-1 text-sm">
-          {ETENDUES.map((e) => (
-            <label key={e.code} className="squircle-full cursor-pointer px-3.5 py-1.5 font-medium text-fg-2 has-[:checked]:bg-bg has-[:checked]:text-fg has-[:checked]:shadow-sm">
-              <input type="radio" name="etendue" value={e.code} checked={portee === e.code} onChange={() => setPortee(e.code)} className="sr-only" />
-              {e.libelle}
-            </label>
-          ))}
-        </div>
-        {portee && <p className="mt-2 text-xs text-fg-2">Les pièces partent par transporteur{portee === 'international' ? ', en France comme à l’étranger' : ' dans toute la France'}. Le rayon ci-dessous reste celui du ramassage au cabinet.</p>}
+        {complete ? (
+          // Dans la colonne du tableau de bord, une liste : chaque choix dit ce qu'il implique.
+          <div className="grid gap-1.5">
+            {ETENDUES.map((e) => (
+              <label key={e.code} className="squircle-xl flex cursor-pointer items-start gap-2.5 border border-line px-3 py-2.5 has-[:checked]:border-fg has-[:checked]:bg-bg-soft has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-action">
+                <input type="radio" name="etendue" value={e.code} checked={portee === e.code} onChange={() => setPortee(e.code)} className="peer sr-only" />
+                <span aria-hidden className="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border border-line-strong peer-checked:border-[5px] peer-checked:border-fg" />
+                <span>
+                  <span className="block text-sm font-medium text-fg">{e.libelle}</span>
+                  <span className="block text-xs text-fg-2">{e.code === '' ? 'Les cabinets dans le rayon de ramassage.' : e.code === 'france' ? 'Envoi par transporteur dans toute la France.' : 'Envoi par transporteur, en France comme à l’étranger.'}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <div className="squircle-full inline-flex flex-wrap gap-1 bg-bg-soft p-1 text-sm">
+            {ETENDUES.map((e) => (
+              <label key={e.code} className="squircle-full cursor-pointer px-3.5 py-1.5 font-medium text-fg-2 has-[:checked]:bg-bg has-[:checked]:text-fg has-[:checked]:shadow-sm">
+                <input type="radio" name="etendue" value={e.code} checked={portee === e.code} onChange={() => setPortee(e.code)} className="sr-only" />
+                {e.libelle}
+              </label>
+            ))}
+          </div>
+        )}
+        {portee && <p className="mt-2 text-xs text-fg-2">{complete ? 'Le rayon ci-dessous reste celui du ramassage au cabinet.' : `Les pièces partent par transporteur${portee === 'international' ? ', en France comme à l’étranger' : ' dans toute la France'}. Le rayon ci-dessous reste celui du ramassage au cabinet.`}</p>}
       </fieldset>
       <div className="flex items-center justify-between text-sm">
         <label htmlFor="zone-rayon" className="text-fg">
@@ -223,19 +242,29 @@ export function SaisieZone({
           <legend className="mb-2 text-xs text-fg-2">Jours de passage</legend>
           <div className="flex flex-wrap gap-1.5">
             {JOURS_RAMASSAGE.map((j) => (
-              <label key={j.code} className="squircle-lg grid h-10 w-14 cursor-pointer place-items-center border border-line text-sm text-fg-2 has-[:checked]:border-teal/40 has-[:checked]:bg-teal/10 has-[:checked]:font-medium has-[:checked]:text-teal">
-                <input type="checkbox" name="jour" value={j.code} defaultChecked={jours.includes(j.code)} className="sr-only" />
+              <label key={j.code} className="squircle-lg grid h-10 w-14 cursor-pointer place-items-center border border-line text-sm text-fg-2 has-[:checked]:border-teal/40 has-[:checked]:bg-teal/10 has-[:checked]:font-medium has-[:checked]:text-teal has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-action">
+                <input type="checkbox" name="jour" value={j.code} checked={coches.includes(j.code)} onChange={() => basculerJour(j.code)} className="sr-only" />
                 {j.court}
               </label>
             ))}
           </div>
+          {coches.length === 0 && (
+            <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-amber-800 dark:text-amber-300">
+              Cochez vos jours de passage : les cabinets savent quand vous venez.
+              <button type="button" onClick={() => setCoches(JOURS_RAMASSAGE.filter((j) => j.code !== 'samedi').map((j) => j.code))} className="cursor-pointer font-semibold text-fg underline underline-offset-4">
+                Du lundi au vendredi
+              </button>
+            </p>
+          )}
         </fieldset>
       )}
       {complete && (
-        <label className="mt-4 flex cursor-pointer items-center gap-2.5 text-sm text-fg">
-          <input type="checkbox" name="transporteur" defaultChecked={transporteur ?? false} className="peer sr-only" />
-          <span aria-hidden className="relative h-5 w-9 shrink-0 rounded-full bg-line transition-colors peer-checked:bg-teal after:absolute after:left-0.5 after:top-0.5 after:size-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4" />
-          Envoi par transporteur au-delà de la zone
+        <label className={`mt-4 flex items-center gap-2.5 text-sm text-fg ${portee ? 'cursor-default' : 'cursor-pointer'}`}>
+          {/* Toute la France ou l'étranger passent par transporteur : l'interrupteur est allumé et figé. */}
+          {portee && <input type="hidden" name="transporteur" value="on" />}
+          <input key={portee ? 'fige' : 'libre'} type="checkbox" name={portee ? undefined : 'transporteur'} {...(portee ? { checked: true, disabled: true, readOnly: true } : { defaultChecked: transporteur ?? false })} className="peer sr-only" />
+          <span aria-hidden className="relative h-5 w-9 shrink-0 rounded-full bg-line transition-colors peer-checked:bg-teal peer-disabled:opacity-60 after:absolute after:left-0.5 after:top-0.5 after:size-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4" />
+          {portee ? 'Envoi par transporteur, compris dans votre zone' : 'Envoi par transporteur au-delà de la zone'}
         </label>
       )}
     </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LngLatBounds, Map as MapLibre, Marker, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { styleCarteInitial } from '@/components/map/style'
@@ -24,15 +24,26 @@ const geojson = (lon: number, lat: number, km: number) => ({
   geometry: { type: 'Polygon' as const, coordinates: [cercle(lon, lat, km)] },
 })
 
+/** Le curseur du rayon annonce sa valeur : un plan placé ailleurs sur la page (Zone et logistique) la suit. */
+export const EVENEMENT_RAYON = 'dm-rayon'
+
 /**
  * La zone desservie sur le plan : le laboratoire au centre, le cercle du
  * rayon qui suit le curseur, le cadrage qui s'ajuste. Sans position connue,
- * rien n'est affiché.
+ * rien n'est affiché. Avec `suivre`, le rayon vient de `EVENEMENT_RAYON`.
  */
-export function CarteRayon({ lon, lat, km }: { lon: number; lat: number; km: number }) {
+export function CarteRayon({ lon, lat, km: initial, suivre = false, className = 'mt-3 h-44' }: { lon: number; lat: number; km: number; suivre?: boolean; className?: string }) {
   const conteneur = useRef<HTMLDivElement>(null)
   const carte = useRef<MapLibre | null>(null)
+  const [annonce, setAnnonce] = useState<number | null>(null)
+  const km = suivre && annonce !== null ? annonce : initial
   const kmCourant = useRef(km)
+  useEffect(() => {
+    if (!suivre) return
+    const ecouter = (e: Event) => setAnnonce((e as CustomEvent<number>).detail)
+    window.addEventListener(EVENEMENT_RAYON, ecouter)
+    return () => window.removeEventListener(EVENEMENT_RAYON, ecouter)
+  }, [suivre])
 
   const cadrer = (m: MapLibre, rayon: number) => {
     const b = new LngLatBounds()
@@ -69,5 +80,5 @@ export function CarteRayon({ lon, lat, km }: { lon: number; lat: number; km: num
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [km])
 
-  return <div ref={conteneur} className="squircle-xl mt-3 h-44 w-full overflow-hidden ring-1 ring-line" aria-label={`Zone desservie : ${km} km autour du laboratoire`} role="img" />
+  return <div ref={conteneur} className={`squircle-xl w-full overflow-hidden ring-1 ring-line ${className}`} aria-label={`Zone desservie : ${km} km autour du laboratoire`} role="img" />
 }

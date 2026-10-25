@@ -5,6 +5,7 @@ import { Encart, principal } from '@/components/compte/ui'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
 import { SaisieZone } from '@/components/espace/saisie-delais'
 import { VoletCarte } from '@/components/compte/volet-carte'
+import { CarteRayon } from '@/components/espace/carte-rayon'
 import { enregistrerZone } from '@/lib/espace-pro/actions-fiche'
 import { Caches, chargerLabo } from '../_labo'
 
@@ -18,20 +19,24 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const c = t.espace.completee
   const gardee = await lireSaisie('/espace-pro/zone/', sp.erreur)
   const garde = gardee.texte('rayon') !== undefined
+  const { lon, lat } = t.espace.fiche.resume
+  const rayon = garde ? Number(gardee.texte('rayon')) : (c?.rayonKm ?? null)
   return (
     <CoqueEspace c={t.coque} actif="zone" titre="Zone et logistique" sousTitre="Les cabinets de la zone vous voient dans leurs recherches">
-      <form action={enregistrerZone} className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      <form action={enregistrerZone} className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <Caches t={t} page="zone" />
-        <div className="squircle-2xl relative h-[30rem] overflow-hidden border border-line">
-          <VoletCarte praticiens={[t.espace.fiche.resume]} profession="prothesiste" sansMarque />
+        {/* Le plan occupe toute la hauteur sous l'en-tête ; les réglages restent à portée en défilant. */}
+        <div className="squircle-2xl relative h-[30rem] overflow-hidden border border-line xl:sticky xl:top-24 xl:h-[calc(100dvh-7.5rem)]">
+          {/* Le rayon de ramassage sur le plan, qui suit le curseur de droite. */}
+          {lon !== null && lat !== null ? <CarteRayon lon={lon} lat={lat} km={rayon ?? 40} suivre className="h-full" /> : <VoletCarte praticiens={[t.espace.fiche.resume]} profession="prothesiste" sansMarque />}
         </div>
-        <aside className="space-y-4">
+        <aside className="space-y-4 xl:sticky xl:top-24">
           {sp.erreur && <Encart ton="erreur">{sp.erreur}</Encart>}
           <Tuile>
             <TitreTuile i={Truck}>Ramassage et rayon</TitreTuile>
             <div className="mt-4">
               <SaisieZone
-                rayon={garde ? Number(gardee.texte('rayon')) : (c?.rayonKm ?? null)}
+                rayon={rayon}
                 ramassage={garde ? gardee.texte('ramassage') === 'on' : (c?.ramassage ?? null)}
                 jours={garde ? (gardee.liste('jour') ?? []) : (c?.joursRamassage ?? [])}
                 transporteur={garde ? gardee.texte('transporteur') === 'on' : (c?.transporteur ?? null)}
