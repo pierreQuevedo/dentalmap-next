@@ -1,7 +1,7 @@
 import { JOURS, LANGUES, SECTEURS, TIERS_PAYANT_COURT, libelleAge, orientationsDe, type FicheCompletee, type Jour } from './fiche-completee'
 import { horairesRenseignes } from './force'
 import type { Profession } from '@/lib/annuaire/types'
-import { MATERIAUX, TECHNIQUES, libelleDe, resumeZone } from './labo'
+import { MATERIAUX, PREFIXE_PERSO, TECHNIQUES, libelleDe, resumeZone } from './labo'
 import { resumeDelais } from './force-labo'
 
 /**
@@ -51,7 +51,8 @@ export function resumeAccueil(f: FicheCompletee | null): string | null {
 export function resumeSoins(f: FicheCompletee | null, profession: Profession): string | null {
   if (!f?.orientations.length) return null
   const dispo = orientationsDe(profession)
-  return f.orientations.map((c) => dispo.find((o) => o.code === c)?.court ?? c).join(', ')
+  // Un domaine nommé par le praticien s'affiche sous son nom.
+  return f.orientations.map((c) => (c.startsWith(PREFIXE_PERSO) ? c.slice(PREFIXE_PERSO.length) : (dispo.find((o) => o.code === c)?.court ?? c))).join(', ')
 }
 
 export function resumePresentation(f: FicheCompletee | null): string | null {

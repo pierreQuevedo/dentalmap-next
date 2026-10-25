@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { EVENEMENT_APERCU } from './valeur-en-direct'
 import { JOURS, LIBELLE_JOUR, type Horaires, type Jour } from '@/lib/espace-pro/fiche-completee'
 
 /**
@@ -34,10 +35,21 @@ export function SaisieHoraires({ initiales }: { initiales: Horaires | null }) {
   const [semaine, setSemaine] = useState<Semaine>(() => depart(initiales))
   const maj = (j: Jour, f: (d: Jour_) => Jour_) => setSemaine((s) => ({ ...s, [j]: f(s[j]) }))
   const json: Horaires = Object.fromEntries(JOURS.filter((j) => semaine[j].ouvert).map((j) => [j, semaine[j].plages])) as Horaires
+  const ouverts = JOURS.filter((j) => semaine[j].ouvert)
+  // L'aperçu de l'onboarding : aujourd'hui, comme la carte publique.
+  useEffect(() => {
+    const jour = JOURS[(new Date().getDay() + 6) % 7] as Jour
+    const plages = semaine[jour].ouvert ? semaine[jour].plages : []
+    const [hh, mm] = (plages[plages.length - 1]?.fin ?? '').split(':')
+    const valeur = !ouverts.length ? null : plages.length ? `Ouvert aujourd’hui jusqu’à ${Number(hh)} h${mm === '00' ? '' : ` ${mm}`}` : 'Fermé aujourd’hui'
+    window.dispatchEvent(new CustomEvent(EVENEMENT_APERCU, { detail: { cle: 'horaires', valeur } }))
+  }, [semaine, ouverts.length])
 
   return (
     <div>
       <input type="hidden" name="horaires" value={JSON.stringify(json)} />
+      {/* Repère pour le taux en direct (`SaisieEnDirect`) : présent dès qu'un jour est ouvert. */}
+      {ouverts.length > 0 && <input type="hidden" name="horaires_ouverts" value={ouverts.length} />}
       <ul className="space-y-2">
         {JOURS.map((j) => {
           const d = semaine[j]

@@ -5,6 +5,8 @@ import { Encart, Etapes, Puce, discret, pastille, principal, titre } from '@/com
 import { chemin } from '@/lib/navigation'
 import { enregistrerAccueil } from '@/lib/espace-pro/actions-fiche'
 import { ACCES_PMR, AGES_MINIMUM, LANGUES, libelleAge } from '@/lib/espace-pro/fiche-completee'
+import { SaisieEnDirect } from '@/components/espace/bandeau-force'
+import { AnnonceChoix } from '@/components/espace/valeur-en-direct'
 import { CoquilleOnboarding, Gain, chargerOnboarding, etapeSuivante, gainRestant, versEtape } from '../_commun'
 
 export const metadata: Metadata = { title: 'Qui pouvez-vous accueillir ?', robots: { index: false, follow: false } }
@@ -32,6 +34,20 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <input type="hidden" name="fiche" value={fiche.slug} />
         <input type="hidden" name="suite" value={sp.suite?.startsWith('/espace-pro/') ? sp.suite : etapeSuivante('accueil', fiche.slug)} />
         <input type="hidden" name="ici" value={versEtape('accueil', fiche.slug)} />
+        <SaisieEnDirect
+          regles={[
+            { champ: 'langue', min: 1, points: gainRestant(espace, ['langues']) },
+            { champ: 'pmr', min: 1, points: gainRestant(espace, ['pmr']) },
+          ]}
+        />
+        <AnnonceChoix
+          cle="accueil"
+          groupes={[
+            { champ: 'langue', libelles: Object.fromEntries(LANGUES.map((l) => [l.code, l.libelle.toLowerCase()])) },
+            { champ: 'pmr', libelles: { oui: 'PMR', partiel: 'PMR partiel', non: 'sans accès PMR' } },
+            { champ: 'age', libelles: Object.fromEntries(AGES_MINIMUM.map((a) => [String(a), a === 0 ? 'tous âges' : `dès ${a} ans`])) },
+          ]}
+        />
         <fieldset>
           <legend className="mb-2 text-[11px] font-medium uppercase tracking-[0.08em] text-fg-2">Langues parlées au cabinet</legend>
           <div className="flex flex-wrap gap-2">

@@ -3,10 +3,13 @@ import Link from 'next/link'
 import { ArrowRight, Lock } from 'lucide-react'
 import { Encart, Etapes, Puce, discret, principal, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
+import { SaisieEnDirect } from '@/components/espace/bandeau-force'
+import { AnnonceChoix } from '@/components/espace/valeur-en-direct'
+import { ChoixLibres } from '@/components/espace/choix-libres'
 import { enregistrerSoins } from '@/lib/espace-pro/actions-fiche'
 import { orientationsDe } from '@/lib/espace-pro/fiche-completee'
 import { lireSaisie } from '@/lib/espace-pro/saisie'
-import { CoquilleOnboarding, chargerOnboarding, etapeSuivante, versEtape } from '../_commun'
+import { CoquilleOnboarding, chargerOnboarding, etapeSuivante, gainRestant, versEtape } from '../_commun'
 
 export const metadata: Metadata = { title: 'Quelle est votre spécialité ?', robots: { index: false, follow: false } }
 export const instant = false
@@ -52,6 +55,9 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <input type="hidden" name="profession" value={fiche.profession} />
         <input type="hidden" name="suite" value={suite} />
         <input type="hidden" name="ici" value={versEtape('specialite', fiche.slug)} />
+        {/* L'aperçu et le taux suivent la saisie : deux domaines rapportent les points. */}
+        <SaisieEnDirect regles={[{ champ: 'orientation', min: 2, points: gainRestant(espace, ['soins']) }]} />
+        <AnnonceChoix cle="soins" groupes={[{ champ: 'orientation', libelles: Object.fromEntries(orientationsDe(fiche.profession).map((o) => [o.code, o.court])) }]} />
         <fieldset>
           <legend className="text-sm font-medium text-fg">Vos domaines d’exercice</legend>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -60,6 +66,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 {o.court}
               </Puce>
             ))}
+            <ChoixLibres name="orientation" initiaux={[...choisis]} ajout="Domaine non listé" exemple="Dentisterie du sport" />
           </div>
         </fieldset>
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-1">

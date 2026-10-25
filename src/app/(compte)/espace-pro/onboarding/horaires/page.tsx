@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { Encart, Etapes, discret, principal, titre } from '@/components/compte/ui'
 import { SaisieHoraires } from '@/components/espace/saisie-horaires'
+import { SaisieEnDirect } from '@/components/espace/bandeau-force'
 import { chemin } from '@/lib/navigation'
 import { enregistrerHoraires } from '@/lib/espace-pro/actions-fiche'
 import { CoquilleOnboarding, Gain, chargerOnboarding, etapeSuivante, gainRestant, versEtape } from '../_commun'
@@ -44,6 +45,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <input type="hidden" name="fiche" value={fiche.slug} />
         <input type="hidden" name="suite" value={suite} />
         <input type="hidden" name="ici" value={versEtape('horaires', fiche.slug)} />
+        <SaisieEnDirect regles={[{ champ: 'horaires_ouverts', min: 1, points: gain }]} />
         <SaisieHoraires initiales={horairesGardes ?? completee?.horaires ?? null} />
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-1">
           <button type="submit" className={`${principal} sm:w-auto sm:px-8`}>

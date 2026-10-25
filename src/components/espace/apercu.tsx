@@ -79,7 +79,8 @@ export function ApercuPatient({
                   <b.i className={`size-4 shrink-0 ${b.valeur || actif ? 'text-fg' : 'text-fg-2/60'}`} aria-hidden />
                   <span className="min-w-0 flex-1">
                     <span className="block text-[10px] font-medium uppercase tracking-[0.08em] text-fg-2">{b.titre}</span>
-                    <span className={`block truncate text-xs ${b.valeur ? 'text-fg' : 'text-fg-2'}`}>{b.valeur ?? 'À compléter'}</span>
+                    {/* Le bloc en cours de saisie suit le formulaire, sans attendre l'enregistrement. */}
+                    {actif ? <ValeurEnDirect cle={b.cle} initiale={b.valeur} /> : <span className={`block truncate text-xs ${b.valeur ? 'text-fg' : 'text-fg-2'}`}>{b.valeur ?? 'À compléter'}</span>}
                   </span>
                   {actif ? (
                     <span className="shrink-0 rounded-full bg-teal px-2 py-0.5 text-[10px] font-medium text-white">En cours</span>

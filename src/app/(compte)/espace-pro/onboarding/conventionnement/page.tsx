@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { CarteOption, Encart, Etapes, Puce, discret, principal, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
+import { SaisieEnDirect } from '@/components/espace/bandeau-force'
+import { AnnonceChoix } from '@/components/espace/valeur-en-direct'
 import { enregistrerConventionnement } from '@/lib/espace-pro/actions-fiche'
 import { SECTEURS, TIERS_PAYANT_COURT } from '@/lib/espace-pro/fiche-completee'
 import { Euro } from 'lucide-react'
@@ -28,6 +30,20 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <input type="hidden" name="fiche" value={fiche.slug} />
         <input type="hidden" name="suite" value={sp.suite?.startsWith('/espace-pro/') ? sp.suite : etapeSuivante('conventionnement', fiche.slug)} />
         <input type="hidden" name="ici" value={versEtape('conventionnement', fiche.slug)} />
+        {/* Secteur et tiers payant valent 5 points chacun ; l'aperçu les résume comme la carte publique. */}
+        <SaisieEnDirect
+          regles={[
+            { champ: 'secteur', min: 1, points: completee?.secteur ? 0 : 5 },
+            { champ: 'tiersPayant', min: 1, points: completee?.tiersPayant ? 0 : 5 },
+          ]}
+        />
+        <AnnonceChoix
+          cle="conventionnement"
+          groupes={[
+            { champ: 'secteur', libelles: Object.fromEntries(SECTEURS.map((s) => [s.code, s.libelle])) },
+            { champ: 'tiersPayant', libelles: { securite_sociale_et_mutuelle: 'tiers payant', securite_sociale: 'tiers payant partiel', aucun: 'sans tiers payant' } },
+          ]}
+        />
         <fieldset>
           <legend className="mb-2 text-[11px] font-medium uppercase tracking-[0.08em] text-fg-2">Secteur</legend>
           <div className="grid gap-2.5">

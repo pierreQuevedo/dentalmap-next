@@ -159,8 +159,8 @@ export async function enregistrerPresentation(donnees: FormData): Promise<never>
 export async function enregistrerSoins(donnees: FormData): Promise<never> {
   const slug = String(donnees.get('fiche') ?? '')
   const profession = String(donnees.get('profession') ?? 'dentiste') as Parameters<typeof orientationsDe>[0]
-  const permis = new Set(orientationsDe(profession).map((o) => o.code))
-  const orientations = donnees.getAll('orientation').map(String).filter((c) => permis.has(c))
+  // Les domaines de la liste, plus cinq nommés par le praticien : affichés sur la fiche, sans servir de filtre.
+  const orientations = lireChoix(donnees.getAll('orientation').map(String), orientationsDe(profession))
   if (!slug) return erreur(donnees, 'Fiche introuvable.')
   return ecrire(donnees, () => ({ orientations }), '/espace-pro/progression/')
 }

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { JOURS, type Horaires, type Jour, type Plage } from '@/db/schema'
 import { estPersonne, type Profession } from '@/lib/annuaire/types'
+import { PREFIXE_PERSO } from './labo'
 
 /**
  * Vocabulaire et validation de ce que le praticien complète sur sa fiche.
@@ -401,6 +402,8 @@ export function aDuContenu(f: FicheCompletee | null): f is FicheCompletee {
 }
 
 export function libelle<T extends string>(liste: readonly { code: T; libelle: string }[], code: string): string {
+  // Un choix nommé par le praticien (`perso:<nom>`, voir `PREFIXE_PERSO`) s'affiche sous son nom.
+  if (code.startsWith(PREFIXE_PERSO)) return code.slice(PREFIXE_PERSO.length)
   return liste.find((e) => e.code === code)?.libelle ?? code
 }
 
