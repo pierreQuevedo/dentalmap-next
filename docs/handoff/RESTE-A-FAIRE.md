@@ -1,6 +1,6 @@
 # Ce qui reste à faire (2026-10-25)
 
-Carte refaite après le parcours dentiste (revendication, onboarding, tableau de bord, branches) et le parcours laboratoire complet. Avant eux : l’Emploi, le parcours école et faculté, la gamification de l’espace établissement et les avis. Tous les écrans sont construits ; ce qui suit dit ceux qui ont été repassés écran par écran avec Pierre (validation ou retours), et ceux qui ne l’ont pas encore été.
+Carte refaite le 2026-10-25, une fois tout l’espace pro repassé écran par écran avec Pierre (validation ou retours) : inscription et connexion, dentiste, laboratoire, école et faculté, formation continue et partenariat, Emploi. Ce qui reste : quelques écrans non construits ou « Bientôt », le site public, le back-office, la mise en ligne, des décisions et de la dette.
 
 ## 0. Revue écran par écran de l’espace pro
 
