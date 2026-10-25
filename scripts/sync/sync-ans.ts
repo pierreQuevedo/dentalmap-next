@@ -15,6 +15,8 @@
  *     si le praticien change de nom : il fait partie de l'URL publique ;
  *   - un praticien absent du fichier n'est pas supprimé, `deleted_at` est
  *     renseigné et sa page basculera en 410 ;
+ *   - une fiche retirée par le praticien (`retire_le`) n'est jamais remise en
+ *     ligne par l'import, même s'il figure toujours au registre ;
  *   - un run qui supprimerait plus de 5 % de l'effectif n'applique rien et
  *     s'arrête en statut `bloque`, protection contre un fichier tronqué.
  */
@@ -272,7 +274,10 @@ async function principal() {
             statutVerification: sql`excluded.statut_verification`,
             sourceSnapshotId: sql`excluded.source_snapshot_id`,
             updatedAt: sql`now()`,
-            deletedAt: sql`null`,
+            // Une fiche retirée à la demande du praticien reste retirée, même
+            // s'il figure toujours au registre : seul son retour sur le site
+            // (annulation du retrait) la remet en ligne.
+            deletedAt: sql`CASE WHEN ${praticiens.retireLe} IS NOT NULL THEN ${praticiens.deletedAt} ELSE null END`,
             // slug volontairement absent : il est écrit une fois pour toutes.
           },
         })

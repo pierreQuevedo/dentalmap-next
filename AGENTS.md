@@ -1,7 +1,7 @@
 # DentalMap v2
 
 Annuaire dentaire vérifié par registres officiels. Deux sources de données, jamais mélangées :
-- Neon Postgres (Drizzle, PostGIS) : praticiens, lieux, communes, espace pro. Source : registres ANS/INSEE via n8n.
+- Neon Postgres (Drizzle, PostGIS) : praticiens, lieux, communes, espace pro. Source : registres ANS/INSEE, importés par les scripts de `scripts/sync/` (GitHub Actions, `.github/workflows/sync.yml`).
 - WordPress headless (WPGraphQL) : conseils, annonces, formation, pages, FAQ.
 
 Règles :
