@@ -5,7 +5,7 @@ import { Etapes, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { pscOuvert } from '@/lib/psc/config'
 import { REVENDIQUER } from '@/lib/espace-pro/chemins'
-import { CoquilleParcours, dejaEngage, ficheOu404, garde, versFiche, voiesIdentite } from '../../_commun'
+import { CoquilleParcours, dejaEngage, etatFiche, ficheOu404, garde, versFiche, voiesIdentite } from '../../_commun'
 
 export const metadata: Metadata = { title: 'Comment prouver que c’est vous ?', robots: { index: false, follow: false } }
 export const instant = false
@@ -33,7 +33,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   return (
     <CoquilleParcours
       fiche={fiche}
-      etiquette={retrait ? 'Retrait demandé' : 'Fiche non revendiquée'}
+      etiquette={etatFiche(fiche)}
       retour={versFiche(fiche, retrait ? 'retrait' : '')}
       libelleRetour="Retour"
     >

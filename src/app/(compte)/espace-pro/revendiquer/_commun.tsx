@@ -111,6 +111,14 @@ export function voiesIdentite(fiche: { slug: string; gereeParUnAutre?: boolean }
 
 export const versFiche = (fiche: { slug: string }, suite = '') => cheminFiche(fiche.slug, suite)
 
+/** L'état réel de la fiche, pour la carte du volet tant que rien n'est envoyé : un retrait ou une preuve en préparation ne change rien encore. */
+export function etatFiche(fiche: FicheRevendication): string {
+  if (fiche.gereeParUnAutre) return 'Gérée par un autre compte'
+  if (fiche.demande?.statut === 'acceptee' && fiche.demande.objet === 'revendication') return 'Gérée par vous'
+  if (fiche.demande?.statut === 'en_attente') return 'Vérification en cours'
+  return 'Fiche non revendiquée'
+}
+
 /**
  * La coquille du parcours : le volet carte à gauche, la vignette sur mobile
  * quand une fiche est désignée, la marque sinon.

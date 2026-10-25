@@ -8,7 +8,7 @@ import { televersementDirect } from '@/lib/espace-pro/justificatif'
 import { chemin } from '@/lib/navigation'
 import { REVENDIQUER } from '@/lib/espace-pro/chemins'
 import { demanderEquipe } from '@/lib/espace-pro/actions-revendication'
-import { CoquilleParcours, dejaEngage, ficheOu404, garde, nomDe, versFiche } from '../../_commun'
+import { CoquilleParcours, dejaEngage, etatFiche, ficheOu404, garde, nomDe, versFiche } from '../../_commun'
 
 export const metadata: Metadata = { title: 'Demander à l’équipe', robots: { index: false, follow: false } }
 export const instant = false
@@ -36,7 +36,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
   return (
     <CoquilleParcours
       fiche={fiche}
-      etiquette={retrait ? 'Retrait demandé' : 'Fiche non revendiquée'}
+      etiquette={etatFiche(fiche)}
       recherche={fiche.rpps ?? nomDe(fiche)}
       encart={{ icone: 'confrere', titre: 'Vérification par l’équipe', texte: 'Une personne de l’équipe vous répond sous 48 heures ouvrées.' }}
       retour={versMethode}

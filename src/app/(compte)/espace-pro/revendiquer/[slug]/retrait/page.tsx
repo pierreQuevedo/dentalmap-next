@@ -4,7 +4,7 @@ import { ArrowRight, CircleX } from 'lucide-react'
 import { Etapes, FicheResume, Pictogramme, cadre, discret, principal, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { DELAI_ANNULATION_RETRAIT_JOURS, REVENDIQUER } from '@/lib/espace-pro/chemins'
-import { CoquilleParcours, adresseDe, ficheOu404, garde, libelleProfession, nomDe, versFiche } from '../../_commun'
+import { CoquilleParcours, adresseDe, etatFiche, ficheOu404, garde, libelleProfession, nomDe, versFiche } from '../../_commun'
 
 export const metadata: Metadata = { title: 'Retirer votre fiche de DentalMap', robots: { index: false, follow: false } }
 export const instant = false
@@ -20,7 +20,7 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
   const fiche = await ficheOu404(slug, compte)
 
   return (
-    <CoquilleParcours fiche={fiche} etiquette="Retrait demandé" retour={versFiche(fiche)} libelleRetour="Retour à la fiche">
+    <CoquilleParcours fiche={fiche} etiquette={etatFiche(fiche)} retour={versFiche(fiche)} libelleRetour="Retour à la fiche">
       <Etapes etape={2} libelle="Retrait" />
       <Pictogramme icone={CircleX} ton="erreur" />
       <h1 className={titre}>Retirer votre fiche de DentalMap</h1>
