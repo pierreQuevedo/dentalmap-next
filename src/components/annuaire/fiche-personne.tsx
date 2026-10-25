@@ -195,11 +195,11 @@ function SectionCabinet({ c }: { c: ContexteFiche }) {
             <p>Horaires, soins pratiqués, langues, accès et paiement ne viennent d’aucun registre : seul le cabinet peut les donner. Il ne l’a pas encore fait.</p>
             {!c.radie && (
               <p className="mt-3 text-sm">
-                Vous êtes ce praticien ?{' '}
+                C’est votre fiche ?{' '}
                 <Link href={chemin(`/espace-pro/revendiquer/?fiche=${encodeURIComponent(c.p.slug)}`)} className="font-medium text-fg underline underline-offset-4">
-                  Revendiquez la fiche
+                  Revendiquez-la
                 </Link>{' '}
-                pour les renseigner.
+                et complétez-la : plus elle est complète, plus elle remonte dans les recherches.
               </p>
             )}
           </div>

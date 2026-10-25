@@ -89,7 +89,7 @@ export const OFFRES: Offre[] = [
 ]
 
 /** Ce qu'aucun partenariat n'achète. */
-export const JAMAIS = ['Un meilleur rang dans les résultats', 'Un logo sur les fiches des praticiens', 'Des données personnelles']
+export const JAMAIS = ['Un logo sur les fiches des praticiens', 'Des données personnelles']
 
 export const ETAPES = [
   { titre: 'Votre demande', texte: 'Six champs, sans compte, depuis cette page.', image: '/images/demo/pexels-3881296.jpg' },

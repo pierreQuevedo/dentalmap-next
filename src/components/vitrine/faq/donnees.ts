@@ -108,27 +108,32 @@ export const CATEGORIES: Categorie[] = [
         ordre: 1,
         question: 'Comment revendiquer ma fiche ?',
         reponse:
-          'Avec Pro Santé Connect (carte CPS ou e-CPS), en une minute. Sans carte, l’équipe vérifie votre identité avec vous. Il vous demande alors un justificatif en PDF, qu’il contrôle sous 48 heures ouvrées. Bientôt, la carte d’identité par l’application France Identité.',
+          'Avec Pro Santé Connect (carte CPS ou e-CPS), en une minute. Sans carte, l’équipe vérifie votre identité sur un justificatif PDF, sous 48 heures ouvrées. Vous préparez votre fiche pendant ce temps : plus elle est complète, plus elle remonte dans les recherches.',
         lien: { texte: 'Revendiquer ma fiche', href: '/espace-pro/revendiquer' },
       },
       {
         ordre: 2,
         question: 'Dois-je envoyer un document ?',
-        reponse: 'Non. Votre identité est confirmée à la source, par Pro Santé Connect ou bientôt par FranceConnect+ : nous ne recevons ni copie de carte ni attestation. Seul un laboratoire joint un extrait Kbis.',
+        reponse: 'Pas avec Pro Santé Connect : votre identité est confirmée à la source. Sans carte CPS, un justificatif PDF (attestation de l’Ordre ou carte CPS). Un laboratoire joint un extrait Kbis.',
       },
       {
         ordre: 3,
+        question: 'Comment ma fiche remonte-t-elle dans les résultats ?',
+        reponse: 'En se complétant. Horaires, photo, présentation, informations tenues à jour, partages et parrainages : chaque ajout compte, et une fiche complète passe devant dans les recherches de son secteur.',
+      },
+      {
+        ordre: 4,
         question: 'Je gère un laboratoire de prothèse : comment faire ?',
         reponse:
           'La base Sirene ne publie pas d’email : la vérification passe par un Kbis ou par un courrier au siège. Si vous êtes salarié du laboratoire, un mandat signé vous est demandé.',
       },
       {
-        ordre: 4,
+        ordre: 5,
         question: 'Je représente une école ou une faculté : comment faire ?',
         reponse: 'Avec une adresse email sur le domaine de l’établissement, immédiatement, ou avec une attestation de fonction, sous 48 h.',
       },
       {
-        ordre: 5,
+        ordre: 6,
         question: 'Puis-je faire retirer ma fiche ?',
         reponse:
           'Oui, à tout moment, après la même vérification d’identité qu’une revendication. La page disparaît du site et n’est pas recréée par la synchronisation des registres.',

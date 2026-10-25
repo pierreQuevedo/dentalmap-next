@@ -172,11 +172,11 @@ function SectionVide({ c }: { c: ContexteFiche }) {
         </p>
         {!c.radie && (
           <p className="mt-3 text-sm">
-            Vous gérez ce laboratoire ?{' '}
+            C’est votre laboratoire ?{' '}
             <Link href={chemin(`/espace-pro/revendiquer/?fiche=${encodeURIComponent(c.p.slug)}`)} className="font-medium text-fg underline underline-offset-4">
               Revendiquez la fiche
             </Link>{' '}
-            pour les renseigner.
+            et complétez-la : plus elle est complète, plus elle remonte dans les recherches des cabinets.
           </p>
         )}
       </div>

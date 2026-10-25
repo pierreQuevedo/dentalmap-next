@@ -348,12 +348,12 @@ export function AsideFiche({
         <div className="squircle-2xl border border-line bg-bg-soft p-5">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-fg">
             <BadgeCheck className="size-4 text-teal" aria-hidden />
-            {labo ? 'Vous gérez ce laboratoire ?' : 'Vous êtes ce professionnel ?'}
+            {labo ? 'C’est votre laboratoire ?' : 'C’est votre fiche ?'}
           </h2>
           <p className="mt-2 text-sm text-fg-2">
             {labo
-              ? 'Revendiquez la fiche pour présenter votre savoir-faire, vos délais et votre zone aux cabinets qui cherchent un laboratoire.'
-              : 'Revendiquez votre fiche pour ajouter vos horaires, vos langues et l’accessibilité de votre cabinet, et pour être joint par les patients qui vous cherchent.'}
+              ? 'Revendiquez-la et complétez-la : plus elle est complète, plus elle passe devant dans les recherches des cabinets. Savoir-faire, délais, zone : ils vous choisissent en connaissance de cause.'
+              : 'Revendiquez-la et complétez-la : plus elle est complète, plus elle passe devant dans les recherches de votre secteur. Horaires, langues, accès, photo : les patients vous trouvent en premier.'}
           </p>
           {/*
             Un seul point d'entrée : la revendication s'ouvre sur cette fiche,

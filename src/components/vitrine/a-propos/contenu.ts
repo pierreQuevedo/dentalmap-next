@@ -121,7 +121,11 @@ export const FAQ = [
   },
   {
     q: 'Faut-il envoyer un document pour revendiquer une fiche ?',
-    r: 'Non, pour un praticien : son identité est confirmée par Pro Santé Connect, bientôt par FranceConnect+, ou avec l’équipe. Un laboratoire joint un extrait Kbis.',
+    r: 'Pas avec Pro Santé Connect : l’identité est confirmée en une minute. Sans carte CPS, un justificatif PDF vérifié par l’équipe sous 48 heures ouvrées. Un laboratoire joint un extrait Kbis.',
+  },
+  {
+    q: 'Comment une fiche remonte-t-elle dans les résultats ?',
+    r: 'En se complétant. Horaires, photo, présentation, informations tenues à jour, partages : chaque ajout compte, et une fiche complète passe devant dans les recherches de son secteur.',
   },
   {
     q: 'Un professionnel peut-il faire retirer sa fiche ?',

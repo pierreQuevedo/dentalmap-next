@@ -243,7 +243,7 @@ export function Fin() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/10 md:bg-gradient-to-r md:from-black/80 md:via-black/50" />
         <div className="relative flex min-h-[inherit] max-w-xl flex-col justify-end p-6 md:p-12">
           <h2 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">Votre fiche existe déjà.</h2>
-          <p className="mt-4 text-lg text-white/80">Revendiquez-la pour la compléter. Une erreur ? Signalez-la, sans compte.</p>
+          <p className="mt-4 text-lg text-white/80">Complétez-la : plus elle est complète, plus elle remonte dans les recherches. Une erreur ? Signalez-la, sans compte.</p>
           <div className="mt-8 flex flex-wrap gap-2">
             <Bouton href={LIENS.revendiquer}>
               Revendiquer ma fiche <ArrowRight className="size-4" aria-hidden />
