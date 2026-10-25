@@ -47,7 +47,8 @@ export async function historiqueDe(espace: Espace, limite = 8): Promise<Evenemen
   const reussites = await reussitesDuParrain(fiche.id)
   const evenements = [
     fiche.demande?.statut === 'acceptee' && fiche.demande.traiteLe && { texte: 'Identité vérifiée', le: fiche.demande.traiteLe, points: 30, source: 'identite' as const },
-    completee?.publieeLe && { texte: 'Fiche publiée', le: completee.publieeLe, points: 0, source: 'publication' as const },
+    // Terminée avant l'accord, la fiche est prête mais pas encore en ligne.
+    completee?.publieeLe && { texte: espace.ctx.identiteVerifiee ? 'Fiche publiée' : 'Fiche prête, en attente de vérification', le: completee.publieeLe, points: 0, source: 'publication' as const },
     completee?.lienGoogleLe && { texte: 'Lien vérifié sur votre fiche Google', le: completee.lienGoogleLe, points: 20, source: 'google' as const },
     completee?.photoUrl && completee.photoConfirmeeLe && { texte: 'Photo de profil ajoutée', le: completee.photoConfirmeeLe, points: 12, source: 'fiche' as const },
     completee?.presentation && completee.presentationConfirmeeLe && { texte: 'Présentation rédigée', le: completee.presentationConfirmeeLe, points: 10, source: 'fiche' as const },

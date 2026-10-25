@@ -55,11 +55,12 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
             <h2 className="mt-1 text-3xl font-extrabold tracking-tight">{p.actuel?.nom ?? 'En route vers la publication'}</h2>
             <div className="mt-4 max-w-md">
               <div className="flex justify-between text-xs text-white/70">
-                <span>{p.actuel?.seuil ?? 0} pts</span>
+                {/* En attente de vérification, la barre montre les points déjà comptés vers le palier 1. */}
+                <span>{p.verifiee ? (p.actuel?.seuil ?? 0) : points.total} pts</span>
                 <span>{p.suivant ? `${p.suivant.seuil} pts · ${p.suivant.nom}` : 'Sommet'}</span>
               </div>
               <div className="mt-1.5">
-                <BarreProgression part={p.part} epaisse claire />
+                <BarreProgression part={p.verifiee ? p.part : Math.min(1, points.total / PALIERS[0].seuil)} epaisse claire />
               </div>
               <p className="mt-2 text-sm text-white/85">
                 {!p.verifiee ? 'Votre fiche sera publiée, et le premier palier atteint, dès que la vérification de votre identité aboutit. Préparez-la en attendant : vos points sont déjà comptés.' : p.suivant ? `Plus que ${p.reste} points. À la clé : ${p.suivant.gains[0].charAt(0).toLowerCase()}${p.suivant.gains[0].slice(1)}.` : 'Vous avez tout débloqué : tenez vos paliers à jour pour garder leurs gains.'}
@@ -129,7 +130,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 <CarteFixe praticien={fiche.resume} profession={fiche.profession} photo={completee?.photoUrl} palier={p.suivant.niveau} />
               </ul>
               <span className="squircle-full absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 bg-[#0B1F1D]/85 px-3 py-1.5 text-xs font-semibold text-[#BFE3D6] shadow-pop backdrop-blur">
-                <Lock className="size-3.5" aria-hidden /> Plus que {p.reste} pts
+                <Lock className="size-3.5" aria-hidden /> {p.verifiee ? <>Plus que {p.reste} pts</> : 'Après vérification'}
               </span>
               <figcaption className="text-center text-xs text-fg-2">Au palier {p.suivant.niveau} · {p.suivant.nom}</figcaption>
             </figure>
