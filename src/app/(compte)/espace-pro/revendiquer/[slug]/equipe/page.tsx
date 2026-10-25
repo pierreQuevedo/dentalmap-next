@@ -67,9 +67,10 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
                   Elle ne vous empêche pas de prendre la main sur votre fiche : après l’envoi, vous continuez directement (horaires, conventionnement, accueil). Tout reste en brouillon et sera publié dès que l’équipe aura validé votre identité.
                 </Encart>
               )}
-              <p className="mb-2 text-sm font-medium text-fg">
+              <p className="mb-1 text-sm font-medium text-fg">
                 Votre justificatif <span className="font-normal text-fg-2">(obligatoire)</span>
               </p>
+              <p className="mb-2 text-xs text-fg-2">Votre attestation d’inscription à l’Ordre, ou le recto de votre carte CPS. En PDF, votre nom bien lisible.</p>
             </>
           }
           apres={

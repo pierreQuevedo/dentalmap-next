@@ -97,10 +97,10 @@ export function voiesIdentite(fiche: { slug: string; gereeParUnAutre?: boolean }
       valeur: 'equipe',
       titre: 'Demander à l’équipe',
       // Une contestation ne se prépare pas : la fiche reste à son titulaire jusqu'à la décision.
-      // Le justificatif accepté est dit ici, avant le dépôt : attestation de l'Ordre ou carte CPS, le nom lisible.
+      // Une ligne : les justificatifs acceptés sont détaillés à l'écran du dépôt.
       detail: fiche.gereeParUnAutre || o.retrait
-        ? 'Sans carte CPS ni e-CPS : votre attestation d’inscription à l’Ordre ou le recto de votre carte CPS, en PDF, votre nom lisible. Vérifié par l’équipe sous 48 heures ouvrées.'
-        : 'Sans carte CPS ni e-CPS : votre attestation d’inscription à l’Ordre ou le recto de votre carte CPS, en PDF, votre nom lisible. Vous préparez votre fiche tout de suite ; elle est publiée dès que l’équipe a vérifié votre justificatif, sous 48 heures ouvrées.',
+        ? 'Un justificatif en PDF, vérifié par l’équipe sous 48 heures ouvrées.'
+        : 'Un justificatif en PDF. Vous préparez votre fiche tout de suite, publiée sous 48 heures ouvrées.',
       icone: 'equipe',
       badge: '48 h',
       bouton: 'Demander à l’équipe',
