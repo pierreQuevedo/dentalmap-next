@@ -31,7 +31,7 @@ export type PageLegale = {
 }
 
 const VERSION = 'Version 0.1'
-const MAJ = '12 octobre 2026'
+const MAJ = '25 octobre 2026'
 
 export const PAGES: PageLegale[] = [
   {
@@ -41,10 +41,10 @@ export const PAGES: PageLegale[] = [
     version: VERSION,
     majLe: MAJ,
     enBref: [
-      'DentalMap est édité par [À compléter : raison sociale].',
-      'Le site est hébergé par Vercel ; la base de l’annuaire, par Neon.',
+      'DentalMap est édité par RINIA, SARL immatriculée au RCS d’Angoulême.',
+      'Le site est hébergé par Vercel et la base de l’annuaire par Neon, tous deux à Francfort.',
       'Les fiches viennent de registres publics : Annuaire Santé de l’ANS et base Sirene de l’INSEE.',
-      'Pour toute question : [À compléter : email de contact].',
+      'Pour toute question : contact@dentalmap.fr.',
     ],
     articles: [
       {
@@ -55,13 +55,13 @@ export const PAGES: PageLegale[] = [
             tableau: {
               entetes: ['', ''],
               lignes: [
-                ['Raison sociale', '[À compléter : raison sociale]'],
-                ['Forme juridique et capital', '[À compléter : forme juridique, capital social]'],
-                ['Siège social', '[À compléter : adresse du siège]'],
-                ['SIREN et RCS', '[À compléter : SIREN, ville du RCS]'],
-                ['Numéro de TVA intracommunautaire', '[À compléter : numéro de TVA]'],
-                ['Directeur de la publication', '[À compléter : nom et qualité]'],
-                ['Contact', '[À compléter : email de contact]'],
+                ['Raison sociale', 'RINIA'],
+                ['Forme juridique et capital', 'Société à responsabilité limitée (SARL) au capital de 2 500 €'],
+                ['Siège social', 'ZAE Lot La Triquedondaine, 14 D route de la Cigogne, 16300 Barbezieux-Saint-Hilaire'],
+                ['SIREN et RCS', '920 221 579 R.C.S. Angoulême'],
+                ['Numéro de TVA intracommunautaire', 'FR32920221579'],
+                ['Directeur de la publication', 'Pierre Quevedo, gérant'],
+                ['Contact', 'contact@dentalmap.fr'],
               ],
             },
           },
@@ -75,11 +75,11 @@ export const PAGES: PageLegale[] = [
             tableau: {
               entetes: ['Service', 'Prestataire', 'Localisation des données'],
               lignes: [
-                ['Site dentalmap.fr', 'Vercel Inc. [À compléter : adresse]', '[À confirmer : région d’exécution]'],
-                ['Base de l’annuaire et des comptes', 'Neon [À compléter : raison sociale et adresse]', 'Francfort, Allemagne [À confirmer]'],
-                ['Contenus éditoriaux (WordPress)', 'OVH [À compléter : raison sociale et adresse]', '[À confirmer : localisation]'],
+                ['Site dentalmap.fr', 'Vercel Inc., 440 N Barranca Avenue #4133, Covina, CA 91723, États-Unis', 'Francfort, Allemagne'],
+                ['Base de l’annuaire et des comptes', 'Neon, LLC (groupe Databricks), 160 Spear Street, Suite 1300, San Francisco, CA 94105, États-Unis', 'Francfort, Allemagne'],
+                ['Contenus éditoriaux (WordPress)', 'OVH SAS, 2 rue Kellermann, 59100 Roubaix, France', 'France'],
                 ['Photos déposées par les professionnels', 'Vercel Blob', '[À confirmer : localisation]'],
-                ['Envoi des emails', 'Resend [À compléter : raison sociale et adresse]', '[À confirmer : localisation]'],
+                ['Envoi des emails', 'Resend, édité par Plus Five Five, Inc., États-Unis', 'Irlande'],
               ],
             },
           },
@@ -92,10 +92,10 @@ export const PAGES: PageLegale[] = [
           'Les fiches de l’annuaire sont construites à partir de registres publics, en lecture seule, et rapprochées chaque jour :',
           {
             liste: [
-              'Annuaire Santé de l’Agence du Numérique en Santé (ANS) : identité, profession, spécialité et lieux d’exercice des praticiens (numéros RPPS et ADELI). [À compléter : licence de réutilisation]',
-              'Base Sirene de l’Institut national de la statistique et des études économiques (INSEE) : établissements, adresses et cessations d’activité. [À compléter : licence de réutilisation]',
-              'Référentiel UAI de l’Éducation nationale, pour les établissements de formation. [À compléter : licence de réutilisation]',
-              'Base Adresse Nationale et API Géo de l’État, pour placer les adresses sur la carte et rattacher les communes. [À compléter : licence de réutilisation]',
+              'Annuaire Santé de l’Agence du Numérique en Santé (ANS) : identité, profession, spécialité et lieux d’exercice des praticiens (numéros RPPS et ADELI). Données en libre accès, réutilisées selon les conditions d’usage publiées par l’ANS.',
+              'Base Sirene de l’Institut national de la statistique et des études économiques (INSEE) : établissements, adresses et cessations d’activité. Licence Ouverte 2.0 (Etalab).',
+              'Référentiel UAI de l’Éducation nationale, pour les établissements de formation. Licence Ouverte 2.0 (Etalab).',
+              'Base Adresse Nationale et API Géo de l’État, pour placer les adresses sur la carte et rattacher les communes. Licence Ouverte 2.0 (Etalab).',
             ],
           },
           'Ce que les professionnels ajoutent à leur fiche est affiché à part, avec la mention « renseigné par le praticien » et sa date de confirmation.',
@@ -106,7 +106,7 @@ export const PAGES: PageLegale[] = [
         id: 'propriete',
         titre: 'Propriété intellectuelle',
         blocs: [
-          'La structure du site, ses textes, ses visuels et sa marque sont la propriété de [À compléter : raison sociale] ou de leurs auteurs, sauf mention contraire. Toute reproduction sans autorisation est interdite.',
+          'La structure du site, ses textes, ses visuels et sa marque sont la propriété de RINIA ou de leurs auteurs, sauf mention contraire. Toute reproduction sans autorisation est interdite.',
           'Les données issues des registres publics restent soumises aux conditions de réutilisation de leurs producteurs. Les photos et textes déposés par un professionnel restent sa propriété ; il autorise leur affichage sur sa fiche.',
         ],
       },
@@ -151,7 +151,7 @@ export const PAGES: PageLegale[] = [
               'Les contenus du site ne remplacent pas l’avis d’un professionnel de santé.',
             ],
           },
-          'Les conditions financières du service pour les professionnels : [À compléter : offre et tarifs, le cas échéant].',
+          'Des services payants pourront être proposés aux professionnels. Leurs conditions et tarifs seront communiqués avant toute souscription.',
         ],
       },
       {
@@ -160,7 +160,7 @@ export const PAGES: PageLegale[] = [
         blocs: [
           {
             liste: [
-              'Les fiches sont créées uniquement par la synchronisation des registres publics. Aucune fiche n’est créée à la demande.',
+              'Les fiches sont créées à partir des registres publics. Un professionnel absent du registre peut demander l’ajout de sa fiche : l’équipe vérifie son inscription au registre avant de la créer.',
               'Les données de registre sont en lecture seule, y compris pour le professionnel concerné.',
               'Les informations déclarées par un professionnel sont enregistrées à part, affichées « renseigné par le praticien » et datées. Des rappels l’invitent à les reconfirmer ; des horaires non confirmés depuis six mois sont signalés comme tels.',
               'Chacun peut signaler une erreur, sans compte. Quand la correction dépend d’un registre, DentalMap l’indique publiquement.',
@@ -173,7 +173,7 @@ export const PAGES: PageLegale[] = [
         titre: 'Compte utilisateur',
         blocs: [
           'Un compte se crée avec une adresse email et un mot de passe ; un code à six chiffres envoyé par email confirme l’adresse. L’utilisateur garde ses identifiants confidentiels et répond de leur usage.',
-          '[À compléter : conditions de suspension ou de suppression d’un compte par l’éditeur]',
+          'DentalMap peut suspendre ou supprimer un compte en cas de manquement à ces conditions, d’usurpation d’identité, de fausse déclaration ou d’usage frauduleux, après en avoir informé l’utilisateur sauf urgence. Un compte inactif depuis deux ans est supprimé, après un email d’avertissement.',
         ],
       },
       {
@@ -223,7 +223,7 @@ export const PAGES: PageLegale[] = [
         id: 'droit',
         titre: 'Modification et droit applicable',
         blocs: [
-          'Ces conditions peuvent évoluer ; la version en vigueur et sa date sont affichées en haut de page. Elles sont soumises au droit français. À défaut d’accord amiable, les tribunaux compétents sont ceux de [À compléter : ressort], sous réserve des règles protectrices du consommateur.',
+          'Ces conditions peuvent évoluer ; la version en vigueur et sa date sont affichées en haut de page. Elles sont soumises au droit français. À défaut d’accord amiable, les tribunaux compétents sont ceux d’Angoulême, sous réserve des règles protectrices du consommateur.',
         ],
       },
     ],
@@ -236,7 +236,7 @@ export const PAGES: PageLegale[] = [
     majLe: MAJ,
     enBref: [
       'Un compte patient ne demande que votre email. Aucune donnée de santé n’est demandée.',
-      'Aucun document d’identité n’est demandé à un praticien : son identité est confirmée par Pro Santé Connect, qui ne nous transmet que son nom et son numéro RPPS.',
+      'Avec Pro Santé Connect, l’identité d’un praticien est confirmée sans document : nous ne recevons que son nom et son numéro RPPS. Sans carte CPS, un justificatif PDF est demandé, puis supprimé 30 jours après la décision.',
       'Le site ne dépose ni cookie publicitaire, ni cookie de mesure d’audience.',
       'Vous pouvez accéder à vos données, les corriger ou les faire supprimer.',
     ],
@@ -245,7 +245,7 @@ export const PAGES: PageLegale[] = [
         id: 'responsable',
         titre: 'Responsable du traitement',
         blocs: [
-          '[À compléter : raison sociale, adresse du siège], représentée par [À compléter : nom]. Contact pour vos données : [À compléter : email dédié]. Délégué à la protection des données : [À compléter : DPO, s’il est désigné].',
+          'RINIA, SARL, ZAE Lot La Triquedondaine, 14 D route de la Cigogne, 16300 Barbezieux-Saint-Hilaire, représentée par Pierre Quevedo, gérant. Contact pour vos données : dpo@dentalmap.fr. Aucun délégué à la protection des données n’est désigné ; cette adresse est suivie par le responsable du traitement.',
         ],
       },
       {
@@ -303,10 +303,10 @@ export const PAGES: PageLegale[] = [
                 ['Session de connexion', '30 jours'],
                 ['Code de connexion envoyé par email', '10 minutes'],
                 ['Candidatures et CV', '6 mois après la clôture de l’offre [À valider]'],
-                ['Offres d’emploi', 'Publiées 30 jours [À compléter : durée de conservation après retrait]'],
-                ['Compte inactif', '[À compléter : durée]'],
-                ['Messages de contact', '[À compléter : durée]'],
-                ['Données de registre d’une fiche retirée', '[À compléter : durée, et conservation du seul marqueur de retrait]'],
+                ['Offres d’emploi', 'Publiées 30 jours, conservées 6 mois après leur retrait ou leur expiration'],
+                ['Compte inactif', '2 ans sans connexion, après un email d’avertissement'],
+                ['Messages de contact', '1 an'],
+                ['Fiche retirée', 'Ajouts du professionnel supprimés aussitôt ; seul un marqueur de retrait est conservé, pour que la synchronisation ne recrée pas la fiche'],
               ],
             },
           },
@@ -319,10 +319,10 @@ export const PAGES: PageLegale[] = [
           'Vos données ne sont ni vendues ni louées. Elles sont traitées par les prestataires techniques suivants, pour le compte de DentalMap :',
           {
             liste: [
-              'Vercel : hébergement du site et des photos déposées. [À confirmer : localisation et garanties de transfert]',
-              'Neon : base de données, région de Francfort. [À confirmer]',
-              'Resend : envoi des emails. [À confirmer : localisation et garanties de transfert]',
-              'OVH : hébergement des contenus éditoriaux (WordPress), qui ne contient pas de données de compte. [À confirmer]',
+              'Vercel : hébergement du site (Francfort) et des photos déposées. Société américaine : les transferts éventuels sont encadrés par le Data Privacy Framework et les clauses contractuelles types de la Commission européenne.',
+              'Neon : base de données, à Francfort.',
+              'Resend : envoi des emails, depuis l’Irlande. Société américaine : transferts éventuels encadrés par les clauses contractuelles types.',
+              'OVH : hébergement des contenus éditoriaux (WordPress), en France ; il ne contient pas de données de compte.',
               'Agence du Numérique en Santé, pour Pro Santé Connect, si vous choisissez cette méthode : DentalMap reçoit votre numéro RPPS et votre profession.',
               'OpenFreeMap : votre navigateur télécharge le fond de plan de la carte depuis ses serveurs, qui reçoivent donc votre adresse IP. [À confirmer : mention exacte]',
             ],
@@ -356,7 +356,7 @@ export const PAGES: PageLegale[] = [
         titre: 'Vos droits',
         blocs: [
           'Vous disposez d’un droit d’accès, de rectification, d’effacement, d’opposition, de limitation du traitement et de portabilité de vos données, ainsi que du droit de définir des directives sur leur sort après votre décès.',
-          'Pour les exercer : [À compléter : email dédié] ou le formulaire de contact. Une réponse vous est apportée dans un délai d’un mois. [À valider]',
+          'Pour les exercer : dpo@dentalmap.fr ou le formulaire de contact. Une réponse vous est apportée dans un délai d’un mois. [À valider]',
           'Vous pouvez introduire une réclamation auprès de la Commission nationale de l’informatique et des libertés (CNIL), www.cnil.fr.',
         ],
       },
@@ -364,7 +364,7 @@ export const PAGES: PageLegale[] = [
         id: 'securite',
         titre: 'Sécurité',
         blocs: [
-          'Les échanges sont chiffrés (HTTPS). Les codes envoyés par courrier aux laboratoires sont comparés sur empreinte. Les photos déposées sont débarrassées de leurs métadonnées (EXIF). [À compléter : autres mesures]',
+          'Les échanges sont chiffrés (HTTPS). Les mots de passe ne sont jamais stockés en clair. Les codes envoyés par email valent dix minutes et cinq essais. Les justificatifs (Kbis, attestations) sont rangés en stockage privé, lisibles par l’équipe seule, et supprimés 30 jours après la décision. Les photos déposées sont débarrassées de leurs métadonnées (EXIF). La connexion par clé d’accès (Face ID, Touch ID) est proposée.',
         ],
       },
     ],

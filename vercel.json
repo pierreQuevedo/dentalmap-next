@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["fra1"],
   "crons": [
     { "path": "/api/cron/purge-documents/", "schedule": "0 2 * * *" },
     { "path": "/api/cron/liens/", "schedule": "0 3 * * *" },
