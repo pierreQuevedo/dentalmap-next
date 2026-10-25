@@ -35,7 +35,9 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       ORDER BY r.demande_le DESC LIMIT 1
     `)
     const memoire = rows[0]?.slug ?? (await cookies()).get(COOKIE_FICHE)?.value
-    if (memoire && (await getFicheRevendication(memoire, compte.id))) redirect(chemin(`${REVENDIQUER}/?fiche=${encodeURIComponent(memoire)}`))
+    const visee = memoire ? await getFicheRevendication(memoire, compte.id) : null
+    // Le cookie vit dans le navigateur, pas dans le compte : sur un poste partagé, la fiche d'un autre profil (un laboratoire pour un dentiste) ne compte pas.
+    if (visee && (rows[0] || (visee.profession === 'prothesiste') === (compte.role === 'prothesiste'))) redirect(chemin(`${REVENDIQUER}/?fiche=${encodeURIComponent(visee.slug)}`))
   }
   const fiche = slug ? await getFicheRevendication(slug, compte.id) : null
   // Un laboratoire a son propre parcours : SIREN, rôle, Kbis.
