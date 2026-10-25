@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { lireSaisie } from '@/lib/espace-pro/saisie'
-import { FileCheck2, Hash } from 'lucide-react'
+import { ExternalLink, FileCheck2, Hash } from 'lucide-react'
+import { MarqueSombre, PastilleSombre, dateLongue } from '@/components/annuaire/fiche-blocs'
 import { Encart, pastille, principal, saisie } from '@/components/compte/ui'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
 import { enregistrerAnsm } from '@/lib/espace-pro/actions-fiche'
@@ -9,7 +10,11 @@ import { Caches, chargerLabo } from '../_labo'
 export const metadata: Metadata = { title: 'Conformité', robots: { index: false, follow: false } }
 export const instant = false
 
-/** Mission ANSM : tout fabricant de dispositifs médicaux sur mesure se déclare auprès de l'ANSM. */
+/**
+ * Mission ANSM : tout fabricant de dispositifs médicaux sur mesure se déclare
+ * auprès de l'ANSM. À droite, la pastille et la ligne de la fiche telles que
+ * les cabinets les verront.
+ */
 export default async function Page(props: { searchParams: Promise<{ fiche?: string; erreur?: string }> }) {
   const sp = await props.searchParams
   const t = await chargerLabo('conformite', sp.fiche)
@@ -33,8 +38,15 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
               </label>
               <div className={pastille}>
                 <Hash className="size-4 shrink-0 text-fg-2" aria-hidden />
-                <input id="ansm-numero" name="numero" defaultValue={gardee.texte('numero') ?? c?.ansmNumero ?? ''} placeholder="Référence de la déclaration" className={`${saisie} font-mono uppercase`} />
+                <input id="ansm-numero" name="numero" aria-describedby="ansm-aide" defaultValue={gardee.texte('numero') ?? c?.ansmNumero ?? ''} placeholder="Référence de la déclaration" className={`${saisie} font-mono uppercase`} />
               </div>
+              <p id="ansm-aide" className="mt-1.5 text-xs text-fg-2">
+                Il figure sur l’accusé de réception que l’ANSM vous a envoyé après votre déclaration.{' '}
+                <a href="https://ansm.sante.fr/" target="_blank" rel="noopener" className="inline-flex items-center gap-0.5 font-medium text-fg underline underline-offset-4">
+                  Pas encore déclaré ? La démarche sur le site de l’ANSM
+                  <ExternalLink className="size-3" aria-hidden />
+                </a>
+              </p>
             </div>
             <div>
               <label htmlFor="ansm-date" className="mb-1.5 block font-medium text-fg">
@@ -51,9 +63,24 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         </form>
         <Tuile>
           <TitreTuile i={FileCheck2}>Sur la fiche</TitreTuile>
-          <p className="mt-3 text-sm text-fg-2">
-            {c?.ansmNumero ? 'La fiche indique « Fabricant déclaré à l’ANSM ». Le numéro n’est pas affiché aux cabinets.' : 'La mention « Fabricant déclaré à l’ANSM » s’affiche une fois la référence renseignée. Elle ouvre le filtre « Déclaré ANSM ».'}
-          </p>
+          {/* L'en-tête de la fiche et sa ligne Conformité, en clair une fois la référence enregistrée, en attente sinon. */}
+          <div className={`mt-4 ${c?.ansmNumero ? '' : 'opacity-50'}`}>
+            <div className="dark squircle-xl flex flex-wrap gap-2 bg-[#0e1317] p-3">
+              <PastilleSombre>Laboratoire de prothèse</PastilleSombre>
+              <MarqueSombre icone={FileCheck2}>Déclaré ANSM</MarqueSombre>
+            </div>
+            <div className="mt-3 flex gap-2.5 text-sm">
+              <FileCheck2 className="mt-0.5 size-4 shrink-0 text-teal" aria-hidden />
+              <p>
+                <span className="block text-xs text-fg-2">Conformité</span>
+                <span className="text-fg">
+                  Déclaré auprès de l’ANSM comme fabricant de dispositifs médicaux sur mesure, n° {c?.ansmNumero ?? '…'}
+                  {c?.ansmDeclareLe ? `, déclaration du ${dateLongue(c.ansmDeclareLe)}` : ''}
+                </span>
+              </p>
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-fg-2">{c?.ansmNumero ? 'Votre fiche ouvre le filtre « Déclaré ANSM » des cabinets.' : 'S’affiche une fois la référence enregistrée, et ouvre le filtre « Déclaré ANSM » des cabinets.'}</p>
           <p className="mt-3 text-xs text-fg-2">Déclaration renseignée par le laboratoire. L’équipe peut la vérifier sur demande.</p>
         </Tuile>
       </div>
