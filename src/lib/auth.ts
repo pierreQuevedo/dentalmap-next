@@ -4,6 +4,7 @@ import { emailOTP } from 'better-auth/plugins'
 import { passkey } from '@better-auth/passkey'
 import { nextCookies } from 'better-auth/next-js'
 import { APIError, createAuthMiddleware } from 'better-auth/api'
+import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { envoyerBienvenue, envoyerCode } from '@/lib/email'
 import { SITE_URL } from '@/lib/seo/site'
@@ -84,6 +85,18 @@ export const auth = betterAuth({
       if (typeof valeur === 'string' && !motDePasseValide(valeur)) throw new APIError('BAD_REQUEST', { message: MESSAGE_MOT_DE_PASSE, code: 'PASSWORD_TOO_WEAK' })
     }),
   },
+  /*
+   * L'activité du compte : chaque session ouverte ou prolongée (une fois par
+   * jour au plus, `updateAge`) la date, et lève un avertissement
+   * d'inactivité en cours. La session est effacée à la déconnexion : sa date
+   * ne suffit pas.
+   */
+  databaseHooks: {
+    session: {
+      create: { after: async (s) => noterActivite(s.userId) },
+      update: { after: async (s) => noterActivite((s as { userId?: string } | null)?.userId) },
+    },
+  },
   plugins: [
     emailOTP({
       sendVerificationOTP: async ({ email, otp, type }) => envoyerCode(email, otp, type),
@@ -105,5 +118,10 @@ export const auth = betterAuth({
   session: { expiresIn: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },
   advanced: { database: { generateId: 'uuid' } },
 })
+
+async function noterActivite(userId: string | undefined) {
+  if (!userId) return
+  await db.execute(sql`UPDATE "user" SET derniere_activite_le = now(), inactivite_averti_le = NULL WHERE id = ${userId}::uuid`).catch((e) => console.error('[auth] activité non notée', e))
+}
 
 export type Session = typeof auth.$Infer.Session

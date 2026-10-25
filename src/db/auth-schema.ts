@@ -27,6 +27,13 @@ export const user = pgTable("user", {
   /** CX4 : combien de fois la clé d'accès a été proposée (deux au plus : la proposition et une relance), et la dernière. */
   cleProposeeFois: integer("cle_proposee_fois").default(0).notNull(),
   cleProposeeLe: timestamp("cle_proposee_le"),
+  /**
+   * Dernière connexion ou session prolongée, tenue par les crochets de
+   * `src/lib/auth.ts`. Deux ans sans activité, le compte est supprimé, un mois
+   * après un email d'avertissement (`src/lib/conservation.ts`).
+   */
+  derniereActiviteLe: timestamp("derniere_activite_le").defaultNow().notNull(),
+  inactiviteAvertiLe: timestamp("inactivite_averti_le"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

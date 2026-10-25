@@ -85,6 +85,21 @@ export async function envoyerBienvenue(to: string, nom?: string | null, role?: s
   })
 }
 
+/** Deux ans sans connexion moins un mois : le compte sera supprimé si personne ne se connecte d'ici là. */
+export async function envoyerAvertissementInactivite(to: string, nom: string | null, suppression: Date) {
+  const date = suppression.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' })
+  await envoyer(to, 'Votre compte DentalMap sera supprimé dans un mois', {
+    titre: 'Gardez-vous votre compte ?',
+    salutation: nom ? `Bonjour ${nom},` : 'Bonjour,',
+    blocs: [
+      { type: 'texte', texte: `Votre compte DentalMap n’a pas servi depuis bientôt deux ans. Sans connexion d’ici le ${date}, votre compte et ses données seront supprimés, comme le prévoit notre politique de confidentialité.` },
+      { type: 'bouton', libelle: 'Me connecter pour le garder', url: `${SITE}/connexion/` },
+      { type: 'texte', texte: 'Une connexion suffit. Si vous ne souhaitez plus utiliser DentalMap, vous n’avez rien à faire.' },
+    ],
+    raison: 'Vous recevez cet email parce qu’un compte DentalMap est ouvert à cette adresse.',
+  })
+}
+
 /* ------------------------------------------------------------------ */
 /* Revendication d'une fiche                                            */
 /* ------------------------------------------------------------------ */

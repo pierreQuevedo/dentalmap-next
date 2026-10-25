@@ -225,6 +225,27 @@
       "when": 1792742887597,
       "tag": "0031_bent_millenium_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792862776092,
+      "tag": "0033_polite_earthquake",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1792865508090,
+      "tag": "0034_opposite_caretaker",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1792961226365,
+      "tag": "0035_salty_mongu",
+      "breakpoints": true
     }
   ]
 }

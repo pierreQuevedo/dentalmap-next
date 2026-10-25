@@ -3,6 +3,7 @@
   "regions": ["fra1"],
   "crons": [
     { "path": "/api/cron/purge-documents/", "schedule": "0 2 * * *" },
+    { "path": "/api/cron/conservation/", "schedule": "30 2 * * *" },
     { "path": "/api/cron/liens/", "schedule": "0 3 * * *" },
     { "path": "/api/cron/alertes/", "schedule": "0 6 * * *" },
     { "path": "/api/cron/alertes-formation/", "schedule": "0 7 * * *" },
