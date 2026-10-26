@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { envoyerAlertesFicheCreee } from '@/lib/espace-pro/alertes'
+import { memeSecret } from '@/lib/secret'
 
 /**
  * Envoi des alertes « fiche créée », en secours de l'appel fait après chaque
@@ -8,6 +9,6 @@ import { envoyerAlertesFicheCreee } from '@/lib/espace-pro/alertes'
  */
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
-  if (!secret || req.headers.get('authorization') !== `Bearer ${secret}`) return Response.json({ ok: false }, { status: 401 })
+  if (!secret || !memeSecret(`Bearer ${secret}`, req.headers.get('authorization'))) return Response.json({ ok: false }, { status: 401 })
   return Response.json({ ok: true, ...(await envoyerAlertesFicheCreee()) })
 }

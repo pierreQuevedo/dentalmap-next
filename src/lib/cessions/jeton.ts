@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
+import { secretSignature } from '@/lib/secret'
 
 export { condensat, nouveauJeton } from '@/lib/formation/jeton'
 
@@ -9,8 +10,7 @@ export { condensat, nouveauJeton } from '@/lib/formation/jeton'
  * signature porte son propre préfixe : un lien de désinscription des
  * formations ne vaut pas pour les cessions.
  */
-const SECRET = process.env.BETTER_AUTH_SECRET ?? 'dentalmap-dev'
-const signature = (id: string) => createHmac('sha256', SECRET).update(`alerte-cession:${id}`).digest('base64url').slice(0, 32)
+const signature = (id: string) => createHmac('sha256', secretSignature()).update(`alerte-cession:${id}`).digest('base64url').slice(0, 32)
 
 export const jetonDesinscription = (id: string) => `${id}~${signature(id)}`
 

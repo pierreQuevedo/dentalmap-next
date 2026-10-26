@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import type { Fraicheur } from './force'
+import { secretSignature } from '@/lib/secret'
 
 /**
  * Les règles pures des tâches planifiées de l'espace pro : quels blocs
@@ -48,8 +49,7 @@ export function adresseTestable(url: string): boolean {
 }
 
 /* Lien de coupure des rappels : l'identifiant de la fiche signé, valable dans chaque email. */
-const SECRET = process.env.BETTER_AUTH_SECRET ?? 'dentalmap-dev'
-const signature = (id: string) => createHmac('sha256', SECRET).update(`rappels-fiche:${id}`).digest('base64url').slice(0, 32)
+const signature = (id: string) => createHmac('sha256', secretSignature()).update(`rappels-fiche:${id}`).digest('base64url').slice(0, 32)
 export const jetonRappels = (praticienId: string) => `${praticienId}~${signature(praticienId)}`
 export function ficheDuJetonRappels(jeton: string): string | null {
   const [id, sig] = decodeURIComponent(jeton).split('~')

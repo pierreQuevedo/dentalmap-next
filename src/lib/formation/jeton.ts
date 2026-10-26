@@ -1,4 +1,5 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
+import { secretSignature } from '@/lib/secret'
 
 /**
  * Les jetons des alertes sans compte (formations, emploi) : confirmation
@@ -13,9 +14,8 @@ export const nouveauJeton = () => randomBytes(24).toString('base64url')
  * Le lien de désinscription : l'identifiant de l'alerte signé. Il reste
  * valable dans chaque email envoyé, sans jeton à garder en base.
  */
-const SECRET = process.env.BETTER_AUTH_SECRET ?? 'dentalmap-dev'
 export type PorteeAlerte = 'alerte-formation' | 'alerte-emploi'
-const signature = (id: string, portee: PorteeAlerte) => createHmac('sha256', SECRET).update(`${portee}:${id}`).digest('base64url').slice(0, 32)
+const signature = (id: string, portee: PorteeAlerte) => createHmac('sha256', secretSignature()).update(`${portee}:${id}`).digest('base64url').slice(0, 32)
 export const jetonDesinscription = (id: string, portee: PorteeAlerte = 'alerte-formation') => `${id}~${signature(id, portee)}`
 export function alerteDesinscription(jeton: string, portee: PorteeAlerte = 'alerte-formation'): string | null {
   const [id, sig] = decodeURIComponent(jeton).split('~')

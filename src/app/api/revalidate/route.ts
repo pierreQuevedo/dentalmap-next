@@ -3,11 +3,12 @@ import { after, NextRequest } from 'next/server'
 import { z } from 'zod'
 import { envoyerAlertesFicheCreee } from '@/lib/espace-pro/alertes'
 import { envoyerAlertesFormation } from '@/lib/formation/alertes'
+import { memeSecret } from '@/lib/secret'
 
 const Body = z.object({ tags: z.array(z.string().min(1)).min(1).max(100) })
 
 export async function POST(req: NextRequest) {
-  if (req.headers.get('x-revalidate-secret') !== process.env.REVALIDATE_SECRET) {
+  if (!memeSecret(process.env.REVALIDATE_SECRET, req.headers.get('x-revalidate-secret'))) {
     return Response.json({ ok: false }, { status: 401 })
   }
   const parsed = Body.safeParse(await req.json().catch(() => null))

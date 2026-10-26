@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { SignJWT, exportJWK, generateKeyPair, type JWK } from 'jose'
+import { secretSignature } from '@/lib/secret'
 
 /**
  * Cœur du simulateur de Pro Santé Connect.
@@ -26,7 +27,7 @@ export type IdentiteSimulee = {
 const DUREE_SECONDES = 300
 
 function secret(): string {
-  return process.env.BETTER_AUTH_SECRET ?? 'simulateur-sans-secret'
+  return secretSignature()
 }
 
 function signer(corps: string): string {

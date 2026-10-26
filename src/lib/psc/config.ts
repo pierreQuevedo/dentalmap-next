@@ -36,11 +36,12 @@ export type ConfigPsc = {
  * parcours. Le simulateur, servi par l'application elle-même sous
  * `/api/psc-simulateur/`, joue le rôle du fournisseur d'identité : mêmes
  * points de terminaison, mêmes jetons, même UserInfo, mais avec l'identité que
- * l'on tape dans un formulaire. Il n'existe que si `PSC_SIMULATEUR=1` et jamais
- * en production Vercel, quelle que soit la variable.
+ * l'on tape dans un formulaire. Il n'existe qu'en développement local, avec
+ * `PSC_SIMULATEUR=1` : jamais sur Vercel, prévisualisations comprises, qui
+ * partagent la base de production (audit du 2026-10-26).
  */
 export function simulateurActif(): boolean {
-  return process.env.PSC_SIMULATEUR === '1' && process.env.VERCEL_ENV !== 'production'
+  return process.env.PSC_SIMULATEUR === '1' && process.env.NODE_ENV !== 'production' && !process.env.VERCEL
 }
 
 function base(): string {

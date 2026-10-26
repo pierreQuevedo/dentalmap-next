@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { testerLiens } from '@/lib/espace-pro/taches'
+import { memeSecret } from '@/lib/secret'
 
 /**
  * Test des liens du cabinet. Appelée chaque jour, elle ne reprend que les
@@ -10,6 +11,6 @@ export const maxDuration = 300
 
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
-  if (!secret || req.headers.get('authorization') !== `Bearer ${secret}`) return Response.json({ ok: false }, { status: 401 })
+  if (!secret || !memeSecret(`Bearer ${secret}`, req.headers.get('authorization'))) return Response.json({ ok: false }, { status: 401 })
   return Response.json({ ok: true, ...(await testerLiens(50)) })
 }
