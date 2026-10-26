@@ -9,6 +9,7 @@ import { db } from '@/db'
 import { envoyerBienvenue, envoyerCode } from '@/lib/email'
 import { SITE_URL } from '@/lib/seo/site'
 import { LONGUEUR_MOT_DE_PASSE, MESSAGE_MOT_DE_PASSE, motDePasseValide } from '@/lib/tunnel/mot-de-passe'
+import { ETAPES_TUNNEL, ROLES } from '@/lib/tunnel/etapes'
 
 /**
  * Origines acceptées.
@@ -28,6 +29,9 @@ const CHAMP_MOT_DE_PASSE: Record<string, string> = {
   '/reset-password': 'newPassword',
   '/change-password': 'newPassword',
 }
+
+/** Les profils qu'un compte peut se donner : ceux de l'inscription. */
+const ROLES_CHOISIS: readonly string[] = ROLES.filter((r) => r !== 'patient')
 
 const brancheVercel = process.env.VERCEL_BRANCH_URL && `https://${process.env.VERCEL_BRANCH_URL}`
 // En développement, `test.localhost` : une seconde adresse locale, aux cookies séparés, pour tester un autre compte.
@@ -79,6 +83,16 @@ export const auth = betterAuth({
    */
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
+      /*
+       * Le rôle se choisit parmi les profils proposés, jamais une valeur
+       * libre : l'API de Better Auth l'accepte à l'inscription et à la mise
+       * à jour du compte (audit du 2026-10-26). Plus de nouveau compte patient.
+       */
+      if (ctx.path === '/sign-up/email' || ctx.path === '/update-user') {
+        const corps = ctx.body as Record<string, unknown> | undefined
+        if (corps && 'role' in corps && !ROLES_CHOISIS.includes(corps.role as string)) throw new APIError('BAD_REQUEST', { message: 'Profil inconnu.', code: 'ROLE_INVALIDE' })
+        if (corps && 'etapeTunnel' in corps && ![...ETAPES_TUNNEL, 'attente'].includes(corps.etapeTunnel as string)) throw new APIError('BAD_REQUEST', { message: 'Étape inconnue.', code: 'ETAPE_INVALIDE' })
+      }
       const champ = CHAMP_MOT_DE_PASSE[ctx.path]
       if (!champ) return
       const valeur = (ctx.body as Record<string, unknown> | undefined)?.[champ]
