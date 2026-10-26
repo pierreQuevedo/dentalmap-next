@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache'
 import { lignes } from '@/lib/conseils/metier'
+import { nettoyerHtml } from '@/lib/wp/html'
 
 /**
  * Article modulaire des Ressources.
@@ -181,7 +182,7 @@ export function lireModule(brut: unknown, medias: ReadonlyMap<number, ImageArtic
   switch (s.type) {
     case 'texte': {
       const html = lireContenu(s.contenu)
-      return html ? { type: 'texte', titre, html } : null
+      return html ? { type: 'texte', titre, html: nettoyerHtml(html) } : null
     }
     case 'a_retenir': {
       const points = lignes(s.points)

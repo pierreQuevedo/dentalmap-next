@@ -4,6 +4,7 @@ import { aUnType } from '@/lib/formation/types'
 import { DETAILS_VIDES, lireDetails, type DetailsFormation } from '@/lib/formation/details'
 import { graphql } from './generated'
 import { wp } from './client'
+import { nettoyerHtml } from './html'
 
 const ConseilsRecentsDocument = graphql(`
   query ConseilsRecents($first: Int = 5) {
@@ -129,7 +130,7 @@ export async function getConseil(slug: string): Promise<ConseilComplet | null> {
     slug: n.slug,
     titre: n.title ?? '',
     extrait: texteBrut(n.excerpt),
-    contenu: n.content ?? null,
+    contenu: nettoyerHtml(n.content),
     date: n.date ?? null,
     modifie: n.modified ?? null,
     categorie: n.conseilFields?.categorie?.[0] ?? null,
@@ -552,7 +553,7 @@ export async function getFormation(slug: string): Promise<FormationComplete | nu
   return {
     ...resumeFormation(n, data.logo),
     creditImage: texteBrut(n.featuredImage?.node?.caption),
-    contenu: n.content ?? null,
+    contenu: nettoyerHtml(n.content),
     date: n.date ?? null,
     modifie: n.modified ?? null,
     siteWeb: n.formationFields?.siteWeb?.trim() || null,
