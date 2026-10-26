@@ -106,7 +106,8 @@ export async function inscrireAlerteCession(_e: EtatAlerteCession, donnees: Form
   })
   if (!r.success) return { ok: false, message: r.error.issues[0]?.message ?? 'Formulaire incomplet.' }
   const jeton = nouveauJeton()
-  await db.execute(sql`
+  // Une alerte déjà confirmée n'est pas touchée : sinon n'importe qui coupait l'alerte d'un autre en réinscrivant son adresse (audit du 2026-10-26).
+  const { rows: inscrite } = await db.execute<{ id: string }>(sql`
     INSERT INTO alertes_cession (id, email, departements, types, jeton_hash)
     VALUES (${randomUUID()}, ${r.data.email},
             ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(r.data.departements)}::jsonb))::text[],
@@ -114,14 +115,16 @@ export async function inscrireAlerteCession(_e: EtatAlerteCession, donnees: Form
             ${condensat(jeton)})
     ON CONFLICT (email) DO UPDATE SET departements = EXCLUDED.departements, types = EXCLUDED.types,
       jeton_hash = EXCLUDED.jeton_hash, confirmee_le = NULL
+      WHERE alertes_cession.confirmee_le IS NULL
+    RETURNING id
   `)
   try {
-    await envoyerConfirmationAlerteCession(r.data.email, jeton)
+    if (inscrite.length) await envoyerConfirmationAlerteCession(r.data.email, jeton)
   } catch (e) {
     console.error('[alertes-cession] confirmation impossible', e)
     return { ok: false, message: 'L’email de confirmation n’a pas pu partir. Réessayez dans quelques minutes.' }
   }
-  return { ok: true, message: `Un email de confirmation vient de partir à ${r.data.email}. L’alerte s’active dès que vous cliquez sur son lien.` }
+  return { ok: true, message: `Un email de confirmation vient de partir à ${r.data.email}. L’alerte s’active dès que vous cliquez sur son lien. Une alerte déjà active à cette adresse reste inchangée.` }
 }
 
 /** Confirmation par un bouton (pas à l'ouverture du lien : les antivirus des messageries ouvrent les liens). */

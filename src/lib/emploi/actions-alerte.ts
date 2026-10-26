@@ -25,7 +25,12 @@ export async function inscrireAlerteEmploi(_e: EtatAlerteEmploi, donnees: FormDa
   const { email, criteres } = r.data
   const jeton = nouveauJeton()
   const json = JSON.stringify(criteres)
-  // Même adresse, mêmes critères : l'alerte existante reprend un jeton neuf et redemande la confirmation.
+  // Même adresse, mêmes critères et déjà active : rien ne change. Sinon n'importe qui coupait l'alerte d'un autre en réinscrivant son adresse (audit du 2026-10-26).
+  const { rows: active } = await db.execute<{ id: string }>(sql`
+    SELECT id FROM alertes_emploi WHERE user_id IS NULL AND email = ${email} AND criteres = ${json}::jsonb AND confirmee_le IS NOT NULL AND active
+  `)
+  if (active.length) return { ok: true, message: `Un email de confirmation vient de partir à ${email}. Une alerte déjà active à cette adresse reste inchangée.` }
+  // Même adresse, mêmes critères, pas encore confirmée ou coupée : elle reprend un jeton neuf et redemande la confirmation.
   const { rows } = await db.execute<{ id: string }>(sql`
     UPDATE alertes_emploi SET jeton_hash = ${condensat(jeton)}, confirmee_le = NULL, active = true
     WHERE user_id IS NULL AND email = ${email} AND criteres = ${json}::jsonb

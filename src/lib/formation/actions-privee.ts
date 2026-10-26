@@ -179,7 +179,8 @@ export async function inscrireAlerteFormation(_e: EtatAlerte, donnees: FormData)
   if (!r.success) return { ok: false, message: r.error.issues[0]?.message ?? 'Formulaire incomplet.' }
   const jeton = nouveauJeton()
   // Une adresse, une alerte : une nouvelle inscription remplace les critères et redemande la confirmation.
-  await db.execute(sql`
+  // Une alerte déjà confirmée n'est pas touchée : sinon n'importe qui coupait l'alerte d'un autre en réinscrivant son adresse (audit du 2026-10-26).
+  const { rows: inscrite } = await db.execute<{ id: string }>(sql`
     INSERT INTO alertes_formation (id, email, themes, regions, publics, jeton_hash)
     VALUES (${randomUUID()}, ${r.data.email},
             ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(r.data.themes)}::jsonb))::text[],
@@ -188,14 +189,16 @@ export async function inscrireAlerteFormation(_e: EtatAlerte, donnees: FormData)
             ${condensat(jeton)})
     ON CONFLICT (email) DO UPDATE SET themes = EXCLUDED.themes, regions = EXCLUDED.regions, publics = EXCLUDED.publics,
       jeton_hash = EXCLUDED.jeton_hash, confirmee_le = NULL
+      WHERE alertes_formation.confirmee_le IS NULL
+    RETURNING id
   `)
   try {
-    await envoyerConfirmationAlerteFormation(r.data.email, jeton)
+    if (inscrite.length) await envoyerConfirmationAlerteFormation(r.data.email, jeton)
   } catch (e) {
     console.error('[alertes-formation] confirmation impossible', e)
     return { ok: false, message: 'L’email de confirmation n’a pas pu partir. Réessayez dans quelques minutes.' }
   }
-  return { ok: true, message: `Un email de confirmation vient de partir à ${r.data.email}. L’alerte s’active dès que vous cliquez sur son lien.` }
+  return { ok: true, message: `Un email de confirmation vient de partir à ${r.data.email}. L’alerte s’active dès que vous cliquez sur son lien. Une alerte déjà active à cette adresse reste inchangée.` }
 }
 
 export async function confirmerAlerteFormation(donnees: FormData): Promise<never> {
