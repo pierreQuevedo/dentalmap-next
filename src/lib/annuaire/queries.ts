@@ -654,7 +654,8 @@ export async function getTotalProfession(profession: Profession): Promise<{ tota
   return rows[0] ?? { total: 0, communes: 0 }
 }
 
-export type EntreeSitemap = { chemin: string; majLe: string }
+/** `majLe` absent quand la page n'a pas de vraie date de modification. */
+export type EntreeSitemap = { chemin: string; majLe?: string }
 
 /**
  * URL de fiches indexables, par tranche.
@@ -663,8 +664,10 @@ export type EntreeSitemap = { chemin: string; majLe: string }
  * l'identité n'est pas confirmée n'a rien à faire dans un sitemap. La règle
  * vit dans la colonne, pas ici.
  *
- * La pagination se fait par identifiant croissant et non par OFFSET : sur
- * 50 000 lignes, un OFFSET élevé fait relire toute la table à chaque tranche.
+ * Le lieu principal de chaque fiche est choisi en une seule lecture de
+ * `lieux_exercice` (DISTINCT ON), puis joint par hachage. Une sous-requête
+ * LATERAL par fiche relisait toute la table à chaque ligne, faute d'index sur
+ * `praticien_id` : plus de 300 secondes par tranche, contre une demi-seconde.
  */
 export async function getFichesIndexables(
   profession: Profession,
@@ -675,15 +678,17 @@ export async function getFichesIndexables(
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
+    WITH lp AS (
+      SELECT DISTINCT ON (l.praticien_id) l.praticien_id, l.code_insee
+      FROM lieux_exercice l
+      WHERE l.code_insee IS NOT NULL
+      ORDER BY l.praticien_id, l.principal DESC, l.id
+    )
     SELECT '/' || ${BASE_URL[profession]} || '/' ||
            d.slug || '/' || c.slug || '/' || p.slug || '/' AS chemin,
            to_char(p.updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
     FROM praticiens p
-    JOIN LATERAL (
-      SELECT l.code_insee FROM lieux_exercice l
-      WHERE l.praticien_id = p.id AND l.code_insee IS NOT NULL
-      ORDER BY l.principal DESC, l.id LIMIT 1
-    ) lp ON TRUE
+    JOIN lp ON lp.praticien_id = p.id
     JOIN communes c ON c.code_insee = lp.code_insee
     JOIN departements d ON d.code = c.departement_code
     WHERE p.profession = ${profession} AND p.deleted_at IS NULL AND p.indexable
@@ -730,15 +735,16 @@ export async function getDepartementsIndexables(): Promise<EntreeSitemap[]> {
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
-    SELECT DISTINCT
+    SELECT
       '/' || CASE p.profession WHEN 'dentiste' THEN 'dentistes' ELSE 'prothesistes' END
         || '/' || d.slug || '/' AS chemin,
-      to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
+      to_char(max(p.updated_at) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
     FROM praticiens p
     JOIN lieux_exercice l ON l.praticien_id = p.id
     JOIN communes c ON c.code_insee = l.code_insee
     JOIN departements d ON d.code = c.departement_code
     WHERE p.deleted_at IS NULL AND p.indexable
+    GROUP BY 1
   `)
   return rows.map((r) => ({ chemin: r.chemin, majLe: r.maj }))
 }
@@ -755,10 +761,10 @@ export async function getRegionsIndexables(): Promise<EntreeSitemap[]> {
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
-    SELECT DISTINCT
+    SELECT
       '/' || CASE p.profession WHEN 'dentiste' THEN 'dentistes' ELSE 'prothesistes' END
         || '/' || r.slug || '/' AS chemin,
-      to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
+      to_char(max(p.updated_at) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
     FROM praticiens p
     JOIN lieux_exercice l ON l.praticien_id = p.id
     JOIN communes c ON c.code_insee = l.code_insee
@@ -766,6 +772,7 @@ export async function getRegionsIndexables(): Promise<EntreeSitemap[]> {
     JOIN regions r ON r.code = d.region_code
     WHERE p.deleted_at IS NULL AND p.indexable
       AND NOT EXISTS (SELECT 1 FROM departements x WHERE x.slug = r.slug)
+    GROUP BY 1
   `)
   return rows.map((r) => ({ chemin: r.chemin, majLe: r.maj }))
 }
