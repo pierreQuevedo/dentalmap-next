@@ -430,3 +430,39 @@ export async function getOffresRayon(options: {
   `)
   return rows.map(resumeDepuisLigne)
 }
+
+/* ------------------------------------------------------------------ */
+/* Sitemap                                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Les offres visibles, réduites à ce qu'il faut pour bâtir le sitemap de la
+ * rubrique : chaque offre, et les listes métier × département, métier ×
+ * commune et remplacements × département qui en ont au moins une. Les listes
+ * vides sont en `noindex` (`robotsListe`) et n'y figurent donc pas.
+ */
+export async function getOffresPourSitemap(): Promise<
+  { slug: string; metier: CodeMetier; contrat: CodeContrat; departement: string; commune: string; maj: string }[]
+> {
+  'use cache'
+  cacheLife('listing')
+  cacheTag('emploi')
+  const { rows } = await db.execute<{
+    slug: string
+    metier: CodeMetier
+    contrat: CodeContrat
+    departement: string
+    commune: string
+    maj: string
+  }>(sql`
+    SELECT o.slug, o.metier, o.contrat, d.slug AS departement, m.slug AS commune,
+           to_char(coalesce(o.confirmee_le, o.publiee_le) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
+    FROM offres o
+    JOIN praticiens p ON p.id = o.praticien_id
+    JOIN departements d ON d.code = o.departement_code
+    JOIN communes c ON c.code_insee = o.commune_code
+    JOIN communes m ON m.code_insee = coalesce(c.commune_parente_code, c.code_insee)
+    WHERE ${VISIBLE}
+  `)
+  return rows
+}

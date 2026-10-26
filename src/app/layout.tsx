@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Figtree } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
+import { SCRIPT_AXEPTIO, SCRIPT_CONSENTEMENT } from '@/lib/consentement'
 import { SITE_DESCRIPTION, SITE_NOM, SITE_URL } from '@/lib/seo/site'
 import './globals.css'
 
@@ -31,6 +32,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     // signalerait sinon comme une divergence.
     <html lang="fr" suppressHydrationWarning className={`${figtree.variable} h-full`}>
       <head>
+        {/* Consentement par défaut, avant GTM : rien ne part sans accord. */}
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_CONSENTEMENT }} />
+        {/* Bandeau Axeptio, qui met à jour ce consentement. */}
+        {SCRIPT_AXEPTIO && <script dangerouslySetInnerHTML={{ __html: SCRIPT_AXEPTIO }} />}
         {/* Google Tag Manager */}
         <script dangerouslySetInnerHTML={{ __html: GTM_SCRIPT }} />
       </head>

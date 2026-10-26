@@ -4,8 +4,8 @@ import { getAccesRapide } from '@/lib/annuaire/acces-rapide'
 import { getDerniereSync, getLabosPanel, getRegionsPanel } from '@/lib/annuaire/footer'
 import { getFormationPanel } from '@/lib/wp/footer'
 import { chemin, exploreStatic, footerCols, legalNav, type ExplorePanel } from '@/lib/navigation'
-import { FooterExplore } from './footer-explore'
 import { GererCookies } from './gerer-cookies'
+import { FooterExplore } from './footer-explore'
 
 const dateLongue = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' })
 

@@ -12,9 +12,7 @@
  * `06`, `docs/phase-1-donnees.md`, `docs/pro-sante-connect.md`, et `src/`
  * pour les cookies réels (`src/lib/auth.ts`, `src/lib/psc/etat.ts`,
  * `src/lib/espace-pro/saisie.ts`, `src/lib/espace-pro/etablissement.ts`,
- * `next-themes`, `src/components/map/style.ts`). Mesure d'audience et
- * publicité : bandeau Axeptio (projet « Dentalmap ») et Google Tag Manager
- * GTM-WLZHVRCH, dont chaque balise n'est déclenchée qu'après accord.
+ * `next-themes`, `src/components/map/style.ts`).
  */
 
 /** Un bloc d'article : un paragraphe, ou une liste de puces. */
@@ -239,7 +237,7 @@ export const PAGES: PageLegale[] = [
     enBref: [
       'Un compte patient ne demande que votre email. Aucune donnée de santé n’est demandée.',
       'Avec Pro Santé Connect, l’identité d’un praticien est confirmée sans document : nous ne recevons que son nom et son numéro RPPS. Sans carte CPS, un justificatif PDF est demandé, puis supprimé 30 jours après la décision.',
-      'Les cookies de mesure d’audience (Google Analytics, Microsoft Clarity) et de publicité (Meta, LinkedIn) ne sont déposés qu’avec votre accord, donné dans le bandeau et modifiable à tout moment depuis « Gérer mes cookies », en bas de chaque page.',
+      'Les cookies de mesure d’audience et de publicité ne sont déposés qu’avec votre accord, modifiable à tout moment par le lien « Gérer les cookies » en pied de page.',
       'Vous pouvez accéder à vos données, les corriger ou les faire supprimer.',
     ],
     articles: [
@@ -287,7 +285,7 @@ export const PAGES: PageLegale[] = [
             liste: [
               'Exécution du service demandé : compte, favoris, espace pro, candidatures.',
               'Intérêt légitime : annuaire construit depuis les registres, sécurité du site, réponse aux signalements.',
-              'Consentement : alertes emploi par email, visibilité de votre profil emploi, cookies de mesure d’audience et de publicité.',
+              'Consentement : alertes emploi par email, visibilité de votre profil emploi, et cookies de mesure d’audience et de publicité.',
               'Obligation légale : conservation de certaines données à la demande des autorités.',
             ],
           },
@@ -327,8 +325,8 @@ export const PAGES: PageLegale[] = [
               'OVH : hébergement des contenus éditoriaux (WordPress), en France ; il ne contient pas de données de compte.',
               'Agence du Numérique en Santé, pour Pro Santé Connect, si vous choisissez cette méthode : DentalMap reçoit votre numéro RPPS et votre profession.',
               'OpenFreeMap : votre navigateur télécharge le fond de plan de la carte depuis ses serveurs, qui reçoivent donc votre adresse IP, sans autre donnée.',
-              'Axeptio (société française) : bandeau de consentement aux cookies et registre de vos choix.',
-              'Google (Google Tag Manager, Google Analytics), Microsoft (Clarity), Meta (Pixel) et LinkedIn (Insight Tag), seulement si vous les acceptez dans le bandeau : voir « Cookies et traceurs ». Sociétés américaines : transferts encadrés par le Data Privacy Framework.',
+              'Axeptio : recueil et preuve de votre choix sur les cookies.',
+              'Google, Microsoft (Clarity), Meta et LinkedIn, seulement si vous les acceptez dans le bandeau cookies : voir « Cookies et stockage local ».',
             ],
           },
           'Un recruteur ne reçoit vos coordonnées que si vous postulez à son offre.',
@@ -336,23 +334,44 @@ export const PAGES: PageLegale[] = [
       },
       {
         id: 'cookies',
-        titre: 'Cookies et traceurs',
+        titre: 'Cookies et stockage local',
         blocs: [
-          'Au premier passage, un bandeau vous demande votre accord pour la mesure d’audience et la publicité. Sans accord, aucun de ces cookies n’est déposé et les services concernés ne sont pas chargés. Refuser est aussi simple qu’accepter, et ne vous prive d’aucune page. Vous pouvez changer d’avis à tout moment avec « Gérer mes cookies », en bas de chaque page.',
+          'Les cookies nécessaires au fonctionnement du site, ou qui mémorisent un choix de votre part, ne demandent pas de consentement. Les cookies de mesure d’audience et de publicité ne sont déposés qu’avec votre accord, recueilli par le bandeau Axeptio affiché à votre première visite. Refuser est aussi simple qu’accepter, et ne limite pas l’accès au site.',
+          'Votre choix est conservé 6 mois, puis vous est redemandé. Il vous est aussi redemandé si un nouvel outil s’ajoute à la liste. Vous pouvez le modifier à tout moment par le lien « Gérer les cookies » en pied de page.',
+          'Chaque outil est soumis à votre accord, outil par outil : refuser Meta n’empêche pas d’accepter Google Analytics ou Clarity, et inversement. Les outils sont chargés par Google Tag Manager, qui ne dépose lui-même aucun cookie.',
           {
             tableau: {
-              entetes: ['Service', 'À quoi il sert', 'Base légale'],
+              entetes: ['Finalité', 'Outil et éditeur', 'Cookies', 'Durée'],
               lignes: [
-                ['Google Analytics 4 (Google)', 'Compter les visites et les pages vues, pour savoir ce qui est utile', 'Votre consentement'],
-                ['Microsoft Clarity (Microsoft)', 'Comprendre la navigation (clics, défilement, enregistrements de session) pour améliorer les pages ; les saisies sensibles sont masquées', 'Votre consentement'],
-                ['Meta Pixel (Meta)', 'Mesurer et cibler nos campagnes sur Facebook et Instagram', 'Votre consentement'],
-                ['LinkedIn Insight Tag (LinkedIn)', 'Mesurer et cibler nos campagnes sur LinkedIn', 'Votre consentement'],
+                [
+                  'Mesure d’audience : visites, pages consultées, parcours',
+                  'Google Analytics 4 (Google Ireland Limited)',
+                  '_ga, _ga_C5ZCXFPQB8',
+                  '13 mois',
+                ],
+                [
+                  'Mesure d’audience : clics, défilement et enregistrements de session pour améliorer les pages, les saisies sensibles étant masquées',
+                  'Microsoft Clarity (Microsoft Corporation)',
+                  '_clck, _clsk',
+                  '1 an (_clck), 1 jour (_clsk)',
+                ],
+                [
+                  'Mesure de nos campagnes et publicité sur Facebook et Instagram',
+                  'Meta Pixel (Meta Platforms Ireland Limited)',
+                  '_fbp',
+                  '90 jours',
+                ],
+                [
+                  'Mesure de nos campagnes et publicité sur LinkedIn',
+                  'LinkedIn Insight Tag (LinkedIn Ireland Unlimited Company)',
+                  'Cookies déposés par LinkedIn sur son propre domaine',
+                  'Fixée par LinkedIn, jusqu’à 1 an',
+                ],
               ],
             },
           },
-          'La liste des cookies de chaque service et leur durée sont affichées dans le bandeau, service par service. Votre choix est conservé par Axeptio pour la durée indiquée dans le bandeau, et vous est redemandé si un nouveau service est ajouté.',
-          'Ces services sont chargés par Google Tag Manager, qui ne dépose lui-même aucun cookie : chaque outil n’y est déclenché qu’après votre accord pour lui.',
-          'D’autres cookies et stockages sont nécessaires au fonctionnement du site ou mémorisent un choix de votre part ; ils ne demandent pas de consentement :',
+          'Google, Meta et LinkedIn peuvent transférer ces données vers leurs sociétés mères établies aux États-Unis, et Microsoft les traite aux États-Unis. Ces transferts sont encadrés par le Data Privacy Framework, auquel les quatre sociétés adhèrent.',
+          'Aucune donnée d’identification (nom, email, téléphone) n’est transmise à ces outils : la collecte automatique de données fournies par les utilisateurs est désactivée.',
           {
             tableau: {
               entetes: ['Nom', 'Rôle', 'Durée'],
@@ -362,7 +381,7 @@ export const PAGES: PageLegale[] = [
                 ['dm_psc_identite', 'Retenir l’identité renvoyée par Pro Santé Connect le temps de la confirmer', '10 minutes'],
                 ['dm_saisie', 'Conserver une saisie de l’espace pro entre deux écrans', '1 minute'],
                 ['dm_partenariat', 'Afficher la confirmation d’une demande de partenariat', '10 minutes'],
-                ['axeptio_cookies, axeptio_authorized_vendors, axeptio_all_vendors', 'Retenir vos choix de cookies', 'Durée indiquée dans le bandeau'],
+                ['axeptio_cookies, axeptio_authorized_vendors, axeptio_all_vendors (Axeptio)', 'Retenir votre choix sur les cookies', '6 mois'],
                 ['theme (stockage local)', 'Retenir le thème clair ou sombre choisi', 'Jusqu’à effacement par le navigateur'],
               ],
             },

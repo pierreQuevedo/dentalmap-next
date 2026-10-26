@@ -8,6 +8,19 @@ import {
 } from '@/lib/annuaire/queries'
 import { url } from '@/lib/seo/site'
 import { CONSEIL_CATEGORIES } from '@/lib/navigation'
+import {
+  ALTERNANCE,
+  EMPLOI,
+  RECRUTER,
+  REMPLACEMENTS,
+  cheminCommune,
+  cheminDepartement,
+  cheminMetier,
+  cheminOffre,
+  cheminRemplacementsDepartement,
+} from '@/lib/emploi/chemins'
+import { METIERS, PARCOURS } from '@/lib/emploi/metiers'
+import { getOffresPourSitemap } from '@/lib/emploi/queries'
 
 /**
  * Tranches de sitemap.
@@ -50,10 +63,36 @@ function xml(entrees: EntreeSitemap[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${corps}\n</urlset>\n`
 }
 
-async function contenu(id: string): Promise<string | null> {
-  const maintenant = new Date().toISOString().replace(/\.\d+Z$/, 'Z')
+/**
+ * La rubrique Emploi : ses pages fixes, puis les offres visibles et les listes
+ * qui en contiennent au moins une. Une liste prend la date de sa dernière
+ * offre publiée ou confirmée.
+ */
+async function entreesEmploi(): Promise<EntreeSitemap[]> {
+  const offres = await getOffresPourSitemap()
+  const slugMetier = new Map(METIERS.map((m) => [m.code, m.slug]))
+  const listes = new Map<string, string>()
+  const ajouter = (chemin: string, maj: string) => {
+    const avant = listes.get(chemin)
+    if (!avant || maj > avant) listes.set(chemin, maj)
+  }
+  for (const o of offres) {
+    const metier = slugMetier.get(o.metier)
+    if (!metier) continue
+    ajouter(cheminDepartement(metier, o.departement), o.maj)
+    ajouter(cheminCommune(metier, o.departement, o.commune), o.maj)
+    if (PARCOURS.remplacements.contrats.includes(o.contrat)) ajouter(cheminRemplacementsDepartement(o.departement), o.maj)
+  }
+  return [
+    ...[EMPLOI, ALTERNANCE, REMPLACEMENTS, RECRUTER, ...METIERS.map((m) => cheminMetier(m.slug))].map((chemin) => ({ chemin })),
+    ...[...listes].map(([chemin, majLe]) => ({ chemin, majLe })),
+    ...offres.map((o) => ({ chemin: cheminOffre(o.slug), majLe: o.maj })),
+  ]
+}
 
-  if (id === 'pages') return xml(PAGES_FIXES.map((chemin) => ({ chemin, majLe: maintenant })))
+async function contenu(id: string): Promise<string | null> {
+  if (id === 'pages') return xml(PAGES_FIXES.map((chemin) => ({ chemin })))
+  if (id === 'emploi') return xml(await entreesEmploi())
   if (id === 'regions') return xml(await getRegionsIndexables())
   if (id === 'departements') return xml(await getDepartementsIndexables())
   if (id === 'communes') return xml(await getCommunesIndexables())
