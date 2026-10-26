@@ -61,7 +61,8 @@ export default async function Page(props: { searchParams: Promise<{ profil?: str
   const rayonKm = RAYONS.find((r) => String(r) === sp.rayon) ?? 30
   const commune = sp.commune && /^[0-9AB]{5}$/.test(sp.commune) ? await getCommuneParCode(sp.commune) : null
   const centre = commune?.lon != null && commune.lat != null ? { lon: commune.lon, lat: commune.lat, ville: commune.nom } : (recruteur?.centre ?? null)
-  const profils = await getProfilsDisponibles({ situation, contrat, centre, rayonKm, vuPar: recruteur?.slug ?? null })
+  // Réservés aux recruteurs vérifiés (audit du 2026-10-26) : sans quoi un employeur masqué retrouvait son salarié en se déconnectant.
+  const profils = recruteur ? await getProfilsDisponibles({ situation, contrat, centre, rayonKm, vuPar: recruteur.slug }) : []
   const ouvert = sp.inviter ? profils.find((p) => p.id === sp.inviter) : undefined
   const params = new URLSearchParams(Object.entries({ profil: sp.profil, contrat: sp.contrat, commune: sp.commune, rayon: sp.rayon }).filter((e): e is [string, string] => Boolean(e[1])))
   const base = `${ICI}${params.toString() ? `?${params}` : ''}`
@@ -131,8 +132,8 @@ export default async function Page(props: { searchParams: Promise<{ profil?: str
         {!recruteur && (
           <div className="squircle-2xl mb-6 flex flex-wrap items-center justify-between gap-4 border border-line bg-bg-soft p-5">
             <p className="text-sm text-fg">
-              <span className="block font-semibold">Vous recrutez ?</span>
-              <span className="text-fg-2">Avec une fiche vérifiée et une offre en ligne, vous invitez à postuler les profils qui vous intéressent.</span>
+              <span className="block font-semibold">Réservé aux recruteurs vérifiés</span>
+              <span className="text-fg-2">Les profils ne s’affichent qu’aux cabinets et laboratoires dont la fiche est vérifiée. Avec une offre en ligne, vous invitez à postuler les profils qui vous intéressent.</span>
             </p>
             <Link
               href={chemin(compte ? '/espace-pro/emploi/' : `/connexion/?retour=${encodeURIComponent(ICI)}`)}
@@ -142,11 +143,13 @@ export default async function Page(props: { searchParams: Promise<{ profil?: str
             </Link>
           </div>
         )}
+        {recruteur && (
         <p className="border-b border-line pb-4 text-sm font-semibold text-fg">
           {profils.length} profil{profils.length > 1 ? 's' : ''}
           {centre ? <span className="font-normal text-fg-2"> à {rayonKm} km autour de {centre.ville ?? 'votre cabinet'}, les plus proches d’abord</span> : <span className="font-normal text-fg-2"> en France, les plus récents d’abord</span>}
         </p>
-        {profils.length === 0 ? (
+        )}
+        {!recruteur ? null : profils.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-14 text-center">
             <span className="grid size-12 place-items-center rounded-full bg-bg-soft text-fg-2">
               <Users className="size-5" aria-hidden />
