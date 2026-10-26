@@ -237,7 +237,7 @@ export const PAGES: PageLegale[] = [
     enBref: [
       'Un compte patient ne demande que votre email. Aucune donnée de santé n’est demandée.',
       'Avec Pro Santé Connect, l’identité d’un praticien est confirmée sans document : nous ne recevons que son nom et son numéro RPPS. Sans carte CPS, un justificatif PDF est demandé, puis supprimé 30 jours après la décision.',
-      'Le site ne dépose ni cookie publicitaire, ni cookie de mesure d’audience.',
+      'Les cookies de mesure d’audience et de publicité ne sont déposés qu’avec votre accord, modifiable à tout moment par le lien « Gérer les cookies » en pied de page.',
       'Vous pouvez accéder à vos données, les corriger ou les faire supprimer.',
     ],
     articles: [
@@ -334,7 +334,22 @@ export const PAGES: PageLegale[] = [
         id: 'cookies',
         titre: 'Cookies et stockage local',
         blocs: [
-          'DentalMap ne dépose aucun cookie publicitaire ni de mesure d’audience. Les seuls cookies et stockages utilisés sont nécessaires au fonctionnement du site ou mémorisent un choix de votre part ; ils ne demandent pas de consentement.',
+          'Les cookies nécessaires au fonctionnement du site, ou qui mémorisent un choix de votre part, ne demandent pas de consentement. Les cookies de mesure d’audience et de publicité ne sont déposés qu’avec votre accord, recueilli par le bandeau Axeptio affiché à votre première visite. Refuser est aussi simple qu’accepter, et ne limite pas l’accès au site.',
+          'Votre choix est conservé [À confirmer : durée réglée dans la console Axeptio, six mois recommandés par la CNIL], puis vous est redemandé. Vous pouvez le modifier à tout moment par le lien « Gérer les cookies » en pied de page.',
+          {
+            tableau: {
+              entetes: ['Finalité', 'Outils', 'Durée'],
+              lignes: [
+                ['Mesure d’audience', '[À confirmer : Google Analytics 4, via Google Tag Manager]', '[À confirmer : 13 mois au plus]'],
+                [
+                  'Publicité et réseaux sociaux',
+                  '[À confirmer : Meta Pixel, LinkedIn Insight Tag, Google Ads, selon les balises publiées dans Google Tag Manager]',
+                  '[À confirmer : 13 mois au plus]',
+                ],
+              ],
+            },
+          },
+          'Ces outils peuvent transférer des données hors de l’Union européenne, vers des sociétés établies aux États-Unis, dans le cadre du Data Privacy Framework. [À valider : par un juriste]',
           {
             tableau: {
               entetes: ['Nom', 'Rôle', 'Durée'],
@@ -344,6 +359,7 @@ export const PAGES: PageLegale[] = [
                 ['dm_psc_identite', 'Retenir l’identité renvoyée par Pro Santé Connect le temps de la confirmer', '10 minutes'],
                 ['dm_saisie', 'Conserver une saisie de l’espace pro entre deux écrans', '1 minute'],
                 ['dm_partenariat', 'Afficher la confirmation d’une demande de partenariat', '10 minutes'],
+                ['axeptio_cookies, axeptio_authorized_vendors, axeptio_all_vendors (Axeptio)', 'Retenir votre choix sur les cookies', '[À confirmer : durée réglée dans la console Axeptio]'],
                 ['theme (stockage local)', 'Retenir le thème clair ou sombre choisi', 'Jusqu’à effacement par le navigateur'],
               ],
             },

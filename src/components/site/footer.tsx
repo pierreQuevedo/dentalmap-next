@@ -4,6 +4,7 @@ import { getAccesRapide } from '@/lib/annuaire/acces-rapide'
 import { getDerniereSync, getLabosPanel, getRegionsPanel } from '@/lib/annuaire/footer'
 import { getFormationPanel } from '@/lib/wp/footer'
 import { chemin, exploreStatic, footerCols, legalNav, type ExplorePanel } from '@/lib/navigation'
+import { GererCookies } from './gerer-cookies'
 import { FooterExplore } from './footer-explore'
 
 const dateLongue = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' })
@@ -96,6 +97,8 @@ export async function Footer() {
               </Link>
             </span>
           ))}
+          <span aria-hidden className="text-fg-2">·</span>
+          <GererCookies className="cursor-pointer hover:underline" />
         </div>
 
         <div className="flex items-center gap-6 font-semibold">
