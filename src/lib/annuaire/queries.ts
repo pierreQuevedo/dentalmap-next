@@ -22,7 +22,7 @@ import {
 } from './emprise'
 import { EXERCICES, ORIENTATIONS, SPECIALITES, type Filtres } from './filtres'
 import type { BaseUrl, Praticien, PraticienResume, Profession } from './types'
-import { BASE_URL, PROFESSION_PAR_BASE, cheminPraticien, nomAffiche } from './types'
+import { BASE_URL, PROFESSIONS, PROFESSION_PAR_BASE, cheminPraticien, nomAffiche } from './types'
 import type { FicheCompletee } from '@/lib/espace-pro/fiche-completee'
 import { COLONNES_FICHE, ficheDepuisLigne, type LigneFiche } from '@/lib/espace-pro/fiche-lecture'
 import { marquerRecruteurs } from './recrutement'
@@ -709,22 +709,45 @@ export async function compterFichesIndexables(profession: Profession): Promise<n
   return rows[0]?.n ?? 0
 }
 
-/** Communes ayant au moins un praticien indexable, toutes professions confondues. */
+/**
+ * Segment d'URL de la profession, en SQL : `dentistes`, `prothesistes`,
+ * `maxillo-faciaux`… Tiré de `BASE_URL` pour qu'aucune profession ne tombe
+ * sous l'adresse d'une autre.
+ */
+const segmentProfession = sql.raw(
+  `CASE p.profession ${PROFESSIONS.map((x) => `WHEN '${x}' THEN '${BASE_URL[x]}'`).join(' ')} END`,
+)
+
+/**
+ * Communes ayant au moins un praticien indexable, toutes professions
+ * confondues. Paris, Marseille et Lyon ont aussi leur page de ville, qui
+ * agrège ses arrondissements : un cabinet d'arrondissement y fait figurer la
+ * ville mère en plus de son arrondissement.
+ */
 export async function getCommunesIndexables(): Promise<EntreeSitemap[]> {
   'use cache'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
-    SELECT DISTINCT
-      '/' || CASE p.profession WHEN 'dentiste' THEN 'dentistes' ELSE 'prothesistes' END
-        || '/' || d.slug || '/' || c.slug || '/' AS chemin,
-      to_char(max(p.updated_at) OVER (PARTITION BY p.profession, c.code_insee) AT TIME ZONE 'UTC',
-              'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
-    FROM praticiens p
-    JOIN lieux_exercice l ON l.praticien_id = p.id
-    JOIN communes c ON c.code_insee = l.code_insee
+    WITH presences AS (
+      SELECT p.profession, l.code_insee, p.updated_at
+      FROM praticiens p
+      JOIN lieux_exercice l ON l.praticien_id = p.id
+      WHERE p.deleted_at IS NULL AND p.indexable AND l.code_insee IS NOT NULL
+    ),
+    cibles AS (
+      SELECT profession, code_insee, updated_at FROM presences
+      UNION ALL
+      SELECT x.profession, a.commune_parente_code, x.updated_at
+      FROM presences x JOIN communes a ON a.code_insee = x.code_insee
+      WHERE a.commune_parente_code IS NOT NULL
+    )
+    SELECT '/' || ${segmentProfession} || '/' || d.slug || '/' || c.slug || '/' AS chemin,
+      to_char(max(p.updated_at) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
+    FROM cibles p
+    JOIN communes c ON c.code_insee = p.code_insee
     JOIN departements d ON d.code = c.departement_code
-    WHERE p.deleted_at IS NULL AND p.indexable
+    GROUP BY 1
   `)
   return rows.map((r) => ({ chemin: r.chemin, majLe: r.maj }))
 }
@@ -736,7 +759,7 @@ export async function getDepartementsIndexables(): Promise<EntreeSitemap[]> {
   cacheTag('annuaire')
   const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
     SELECT
-      '/' || CASE p.profession WHEN 'dentiste' THEN 'dentistes' ELSE 'prothesistes' END
+      '/' || ${segmentProfession}
         || '/' || d.slug || '/' AS chemin,
       to_char(max(p.updated_at) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
     FROM praticiens p
@@ -762,7 +785,7 @@ export async function getRegionsIndexables(): Promise<EntreeSitemap[]> {
   cacheTag('annuaire')
   const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
     SELECT
-      '/' || CASE p.profession WHEN 'dentiste' THEN 'dentistes' ELSE 'prothesistes' END
+      '/' || ${segmentProfession}
         || '/' || r.slug || '/' AS chemin,
       to_char(max(p.updated_at) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS maj
     FROM praticiens p
