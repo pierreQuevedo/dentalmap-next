@@ -29,7 +29,9 @@ export default async function Page(props: { params: Promise<{ offre: string }>; 
   const sp = await props.searchParams
   const { espace, coque, q, points } = await chargerTableau('emploi', sp.fiche, id)
   const { fiche } = espace
-  const [offres, toutesRecues] = await Promise.all([getOffresRecruteur(fiche.id), getCandidaturesRecues(fiche.id)])
+  // Les candidats (nom, coordonnées) : seulement au titulaire validé de la fiche (audit du 2026-10-26).
+  const valide = espace.ctx.identiteVerifiee && fiche.demande?.statut === 'acceptee'
+  const [offres, toutesRecues] = await Promise.all([getOffresRecruteur(fiche.id), valide ? getCandidaturesRecues(fiche.id) : Promise.resolve([])])
   const o = offres.find((x) => x.id === id)
   if (!o) notFound()
   const recues = toutesRecues.filter((k) => k.offreId === o.id)

@@ -48,7 +48,9 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const sp = await props.searchParams
   const { espace, coque, q } = await chargerTableau('emploi', sp.fiche, 'candidatures')
   const { fiche } = espace
-  const toutes = await getCandidaturesRecues(fiche.id)
+  // Nom, téléphone et email des candidats : seulement au titulaire validé de la fiche, comme le CV (audit du 2026-10-26).
+  const valide = espace.ctx.identiteVerifiee && fiche.demande?.statut === 'acceptee'
+  const toutes = valide ? await getCandidaturesRecues(fiche.id) : []
   const deLOffre = sp.offre ? toutes.filter((k) => k.offreId === sp.offre) : toutes
   const filtre = lireFiltre(sp.filtre)
   const liste = deLOffre.filter((k) => dansFiltre(k.statut, filtre))
