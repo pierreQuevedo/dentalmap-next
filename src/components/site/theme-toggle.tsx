@@ -30,6 +30,9 @@ export function ThemeToggle({
   // part du bouton et le flou masque la bascule des couleurs. Le défaut du
   // composant installé, `circle`, découpe net et laisse voir la rupture.
   variant = 'circle-blur',
+  // Le thème suit le système par défaut : son icône est celle de l'écran, et
+  // le bouton fait le tour système, clair, sombre.
+  modes = ['system', 'light', 'dark'],
   ...props
 }: ThemeTogglerButtonProps & { tailleReservee: string }) {
   // `useSyncExternalStore` distingue serveur et client sans passer par un
@@ -41,5 +44,5 @@ export function ThemeToggle({
   )
 
   if (!monte) return <span aria-hidden className={`inline-block shrink-0 ${tailleReservee}`} />
-  return <ThemeTogglerButton variant={variant} className={className} {...props} />
+  return <ThemeTogglerButton variant={variant} modes={modes} className={className} {...props} />
 }

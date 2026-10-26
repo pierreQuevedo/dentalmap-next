@@ -61,6 +61,9 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
   const base: BaseUrl = sp.profession && estBaseUrl(sp.profession) ? sp.profession : 'dentistes'
   const profession = PROFESSION_PAR_BASE[base]
 
+  // Rien à chercher : la page de la profession, à son adresse habituelle (/dentistes/), plutôt qu'une recherche vide.
+  if (!sp.lieu && !sp.q?.trim() && !sp.bbox) redirect(chemin(`/${base}/`))
+
   /*
    * Changement de cible depuis la barre : la carte reste exactement où elle
    * était. Le lieu tapé n'est alors qu'affiché dans la barre, il n'est ni
@@ -88,6 +91,9 @@ export default async function Recherche(props: { searchParams: Promise<Params> }
     if (versTerritoire) redirect(chemin(`/${base}/${territoire.slug}/`))
     commune = trouvee
   }
+
+  // Une commune trouvée a sa page, même mise en page : on y va, à son adresse habituelle.
+  if (!empriseGardee && commune) redirect(chemin(`/${base}/${commune.departementSlug}/${commune.slug}/`))
 
   // La carte est toujours là, même avant la première recherche : elle montre la
   // couverture nationale au lieu d'un demi-écran vide, et la mise en page ne
