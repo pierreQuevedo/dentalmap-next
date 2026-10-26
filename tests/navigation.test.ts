@@ -10,6 +10,7 @@ import {
   mainNavIcons,
   type NavLink,
 } from '../src/lib/navigation'
+import { DENTALBRIDGE_VISIBLE, RESSOURCES_VISIBLE } from '../src/lib/visibilite'
 
 /** Tous les liens de la navigation, quelle que soit leur provenance. */
 function tousLesLiens(): NavLink[] {
@@ -49,31 +50,41 @@ describe('navigation', () => {
     }
   })
 
-  it("ne mentionne DentalBridge que dans la colonne Professionnels du pied de page", () => {
+  it("ne mentionne DentalBridge que dans la colonne Professionnels du pied de page, et nulle part quand il est masqué", () => {
     const ailleurs = tousLesLiens().filter(
       (l) => /dentalbridge/i.test(l.href) || /dentalbridge/i.test(l.label),
     )
-    expect(ailleurs).toHaveLength(1)
+    expect(ailleurs).toHaveLength(DENTALBRIDGE_VISIBLE ? 1 : 0)
     const pro = footerCols.find((c) => c.title === 'Professionnels')
-    expect(pro?.links.some((l) => /dentalbridge/i.test(l.href))).toBe(true)
+    expect(pro?.links.some((l) => /dentalbridge/i.test(l.href))).toBe(DENTALBRIDGE_VISIBLE)
+  })
+
+  it('ne mène plus aux Ressources quand elles sont masquées', () => {
+    if (RESSOURCES_VISIBLE) return
+    for (const l of tousLesLiens()) expect(l.href).not.toMatch(/^\/conseils/)
+    expect(mainNav.some((e) => e.label === 'Ressources')).toBe(false)
   })
 
   it('ne renvoie plus vers la page de méthode de vérification, retirée du site', () => {
     for (const l of tousLesLiens()) expect(l.href).not.toContain('/methode-de-verification')
   })
 
-  it('termine par l’encart DentalBridge, sans lien de colonne', () => {
+  it('termine par l’encart DentalBridge, sans lien de colonne, sauf quand il est masqué', () => {
     const annuaire = mainNav.find((e) => e.label === 'Annuaire')
     const encart = annuaire?.columns?.find((c) => c.promo)
+    expect(annuaire?.columns?.some((c) => c.title === 'Accès rapide')).toBe(false)
+    if (!DENTALBRIDGE_VISIBLE) {
+      expect(encart).toBeUndefined()
+      return
+    }
     expect(encart?.title).toBe('DentalBridge')
     expect(encart?.links).toHaveLength(0)
     expect(encart?.promo?.href).toBe('https://dentalbridge.fr')
-    expect(annuaire?.columns?.some((c) => c.title === 'Accès rapide')).toBe(false)
   })
 
   it('couvre chaque catégorie et chaque type dans les menus', () => {
     const conseils = mainNav.find((e) => e.label === 'Ressources')?.links ?? []
-    for (const c of CONSEIL_CATEGORIES) expect(conseils.some((l) => l.href === `/conseils/${c}`)).toBe(true)
+    if (RESSOURCES_VISIBLE) for (const c of CONSEIL_CATEGORIES) expect(conseils.some((l) => l.href === `/conseils/${c}`)).toBe(true)
 
     const annonces = mainNav.find((e) => e.label === 'Annonces')?.links ?? []
     for (const t of ANNONCE_TYPES) expect(annonces.some((l) => l.href === `/annonces/${t}`)).toBe(true)

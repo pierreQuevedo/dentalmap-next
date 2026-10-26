@@ -13,13 +13,14 @@ import type { Profession } from '@/lib/annuaire/types'
 import { chemin } from '@/lib/navigation'
 import { FichesProches } from './fiches-proches'
 import { Fond, RepereVide } from './fond'
+import { RESSOURCES_VISIBLE } from '@/lib/visibilite'
 
 const RACCOURCIS = [
   { icone: Stethoscope, titre: 'Trouver un dentiste', href: '/dentistes/', image: '/images/demo/pexels-6627320.jpg' },
   { icone: FlaskConical, titre: 'Trouver un laboratoire', href: '/prothesistes/', image: '/images/demo/pexels-8413334.jpg' },
   { icone: GraduationCap, titre: 'Formation', href: '/formation/', image: '/images/demo/pexels-19879741.jpg' },
   { icone: BookOpen, titre: 'Ressources', href: '/conseils/', image: '/images/demo/pexels-3881296.jpg' },
-]
+].filter((r) => RESSOURCES_VISIBLE || r.href !== '/conseils/')
 
 export function Page404() {
   return (

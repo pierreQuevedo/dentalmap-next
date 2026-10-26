@@ -21,6 +21,7 @@ import { BASE_URL, PROFESSIONS, type Profession } from '@/lib/annuaire/types'
 import { LIBELLE } from '@/lib/annuaire/libelles'
 import { getDepartementsAvecPraticiens } from '@/lib/annuaire/queries'
 import { getAccesRapide } from '@/lib/annuaire/acces-rapide'
+import { RESSOURCES_VISIBLE } from '@/lib/visibilite'
 
 /**
  * `aVenir` : la page est conçue mais sa route n'existe pas encore. Le lien
@@ -56,17 +57,22 @@ const RUBRIQUES: Rubrique[] = [
       // Formations privées : retirées tant que la rubrique n’est pas conçue (13 octobre 2026).
     ],
   },
-  {
-    titre: 'Ressources',
-    icone: BookOpen,
-    liens: [
-      { libelle: 'Toutes les ressources', href: '/conseils/' },
-      { libelle: 'Pour les patients', href: '/conseils/patients/' },
-      { libelle: 'Pour les praticiens', href: '/conseils/praticiens/' },
-      { libelle: 'Pour les prothésistes', href: '/conseils/prothesistes/' },
-      { libelle: 'Les métiers du dentaire', href: '/conseils/metiers/' },
-    ],
-  },
+  // Ressources masquées pour le moment (`RESSOURCES_VISIBLE`).
+  ...(RESSOURCES_VISIBLE
+    ? [
+        {
+          titre: 'Ressources',
+          icone: BookOpen,
+          liens: [
+            { libelle: 'Toutes les ressources', href: '/conseils/' },
+            { libelle: 'Pour les patients', href: '/conseils/patients/' },
+            { libelle: 'Pour les praticiens', href: '/conseils/praticiens/' },
+            { libelle: 'Pour les prothésistes', href: '/conseils/prothesistes/' },
+            { libelle: 'Les métiers du dentaire', href: '/conseils/metiers/' },
+          ],
+        },
+      ]
+    : []),
   {
     titre: 'Emploi',
     icone: Briefcase,

@@ -24,6 +24,7 @@ import { CODES_CONTRAT, LIBELLE_CONTRAT, METIERS, type CodeMetier, type Metier }
 import { OBJET_SALAIRES, SALAIRES, SANS_GRILLE, SECTEURS, montantTexte, sourcesDe, type CaseSalaire, type LigneSalaires, type Source } from '@/lib/emploi/salaires'
 import type { OffreResume } from '@/lib/emploi/types'
 import { illustration } from '@/lib/annuaire/illustration'
+import { RESSOURCES_VISIBLE } from '@/lib/visibilite'
 
 export function Etiquette({ children, ton = 'neutre' }: { children: React.ReactNode; ton?: 'neutre' | 'teal' | 'sombre' }) {
   const c = {
@@ -441,6 +442,7 @@ export function BoutonSecondaire({ href, children, sombre }: { href: string; chi
 
 /** Lien vers la fiche métier des Ressources (`/conseils/metiers/assistant-dentaire/`). */
 export function LienFicheMetier({ metier }: { metier: Metier }) {
+  if (!RESSOURCES_VISIBLE) return null
   return (
     <Link href={chemin(cheminFicheMetier(metier.slug))} className="inline-flex items-center gap-2 text-sm text-fg-2 hover:text-fg">
       <BookOpen className="size-4" aria-hidden /> Le métier {metier.de} <ArrowRight className="size-3.5" aria-hidden />

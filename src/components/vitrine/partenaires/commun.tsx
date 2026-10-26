@@ -17,7 +17,7 @@ import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { chemin } from '@/lib/navigation'
-import { DENTALBRIDGE_VISIBLE } from '@/lib/dentalbridge'
+import { DENTALBRIDGE_VISIBLE } from '@/lib/visibilite'
 
 export const ANCRE_FORMULAIRE = '#formulaire'
 export const ROUTE_ETABLISSEMENT = '/espace-pro/organisme/'

@@ -1,5 +1,5 @@
 import type { Route } from 'next'
-import { DENTALBRIDGE_VISIBLE } from './dentalbridge'
+import { DENTALBRIDGE_VISIBLE, RESSOURCES_VISIBLE } from './visibilite'
 
 /**
  * Source unique de la navigation.
@@ -117,17 +117,20 @@ export const mainNav: NavEntry[] = [
       }] : []),
     ],
   },
-  {
-    label: 'Ressources',
-    href: '/conseils',
-    links: [
-      { label: 'Toutes les ressources', href: '/conseils' },
-      { label: 'Pour les patients', href: '/conseils/patients' },
-      { label: 'Pour les praticiens', href: '/conseils/praticiens' },
-      { label: 'Pour les prothésistes', href: '/conseils/prothesistes' },
-      { label: 'Les métiers du dentaire', href: '/conseils/metiers' },
-    ],
-  },
+  // Masquées pour le moment (`RESSOURCES_VISIBLE`).
+  ...(RESSOURCES_VISIBLE
+    ? [{
+        label: 'Ressources',
+        href: '/conseils',
+        links: [
+          { label: 'Toutes les ressources', href: '/conseils' },
+          { label: 'Pour les patients', href: '/conseils/patients' },
+          { label: 'Pour les praticiens', href: '/conseils/praticiens' },
+          { label: 'Pour les prothésistes', href: '/conseils/prothesistes' },
+          { label: 'Les métiers du dentaire', href: '/conseils/metiers' },
+        ],
+      }]
+    : []),
   {
     label: 'Emploi',
     href: '/emploi',
@@ -206,7 +209,7 @@ export const footerCols: NavColumn[] = [
       { label: 'Le projet', href: '/a-propos' },
       { label: 'Notre méthode de vérification', href: '/a-propos#methode' },
       { label: 'Devenir partenaire', href: '/partenaires' },
-      { label: 'Ressources', href: '/conseils' },
+      ...(RESSOURCES_VISIBLE ? [{ label: 'Ressources', href: '/conseils' }] : []),
       { label: 'Emploi', href: '/emploi' },
       { label: 'Cessions de cabinet', href: '/annonces/cession' },
       { label: 'Formation', href: '/formation' },
@@ -224,14 +227,19 @@ export const legalNav: NavLink[] = [
 export type ExploreLink = { title: string; sub: string; href: string }
 export type ExplorePanel = { id: string; label: string; links: ExploreLink[] }
 
+// Sans les Ressources (`RESSOURCES_VISIBLE`), l'onglet garde les autres liens sous un autre nom.
 export const exploreStatic: ExplorePanel = {
   id: 'conseils',
-  label: 'Ressources',
+  label: RESSOURCES_VISIBLE ? 'Ressources' : 'Infos pratiques',
   links: [
-    { title: 'Pour les patients', sub: 'Choisir, comprendre, préparer', href: '/conseils/patients' },
-    { title: 'Pour les praticiens', sub: 'Installation, réglementation', href: '/conseils/praticiens' },
-    { title: 'Pour les prothésistes', sub: 'Laboratoire, normes, matériaux', href: '/conseils/prothesistes' },
-    { title: 'Les métiers du dentaire', sub: 'Missions, formation, salaire', href: '/conseils/metiers' },
+    ...(RESSOURCES_VISIBLE
+      ? [
+          { title: 'Pour les patients', sub: 'Choisir, comprendre, préparer', href: '/conseils/patients' },
+          { title: 'Pour les praticiens', sub: 'Installation, réglementation', href: '/conseils/praticiens' },
+          { title: 'Pour les prothésistes', sub: 'Laboratoire, normes, matériaux', href: '/conseils/prothesistes' },
+          { title: 'Les métiers du dentaire', sub: 'Missions, formation, salaire', href: '/conseils/metiers' },
+        ]
+      : []),
     { title: 'Questions fréquentes', sub: 'Vérification, données, fiches', href: '/faq' },
     { title: 'Emploi', sub: 'Offres, alternance, remplacements', href: '/emploi' },
     { title: 'Cessions de cabinet', sub: 'Reprendre ou céder un cabinet', href: '/annonces/cession' },

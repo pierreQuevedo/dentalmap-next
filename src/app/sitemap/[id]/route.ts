@@ -21,6 +21,7 @@ import {
 } from '@/lib/emploi/chemins'
 import { METIERS, PARCOURS } from '@/lib/emploi/metiers'
 import { getOffresPourSitemap } from '@/lib/emploi/queries'
+import { RESSOURCES_VISIBLE } from '@/lib/visibilite'
 
 /**
  * Tranches de sitemap.
@@ -42,9 +43,8 @@ const PAGES_FIXES = [
   '/mentions-legales/',
   '/cgu/',
   '/confidentialite/',
-  // Ressources et leurs rubriques, dont Métiers.
-  '/conseils/',
-  ...CONSEIL_CATEGORIES.map((c) => `/conseils/${c}/`),
+  // Ressources et leurs rubriques, dont Métiers ; hors sitemap tant qu'elles sont masquées.
+  ...(RESSOURCES_VISIBLE ? ['/conseils/', ...CONSEIL_CATEGORIES.map((c) => `/conseils/${c}/`)] : []),
   // Formation : l'accueil et les deux rubriques ouvertes.
   '/formation/',
   '/formation/ecoles-de-prothese/',
