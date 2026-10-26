@@ -51,6 +51,33 @@ const nextConfig: NextConfig = {
       { source: '/annonces/collaboration/:reste*', destination: '/emploi/remplacements/', permanent: true },
       { source: '/annonces/remplacement/:reste*', destination: '/emploi/remplacements/', permanent: true },
       { source: '/annonces/emploi/:reste*', destination: '/emploi/', permanent: true },
+      /*
+       * Fiches de l'ancien site WordPress (prototype en Gironde), recopiées de
+       * la table `redirections` que remplit `scripts/sync/redirections-ancien-site.ts`.
+       * La page de fiche sait aussi rediriger, mais en cours de rendu : le
+       * statut parti est 200 et la bascule se fait côté navigateur. Ici, la
+       * réponse est une vraie 308, que les moteurs suivent.
+       */
+      { source: '/dentistes/gironde/begles/dr-chloe-maradeix/', destination: '/dentistes/gironde/begles/dr-chloe-maradeix-8507/', permanent: true },
+      { source: '/dentistes/gironde/bordeaux/dr-clementine-balloy/', destination: '/dentistes/gironde/langon/dr-clementine-balloy-8581/', permanent: true },
+      { source: '/dentistes/gironde/bordeaux/dr-jerome-leclair/', destination: '/dentistes/gironde/bordeaux/', permanent: true },
+      { source: '/dentistes/gironde/bordeaux/dr-leilanie-firuu/', destination: '/dentistes/gironde/bordeaux/dr-leilanie-firuu-4240/', permanent: true },
+      { source: '/dentistes/gironde/bordeaux/dr-marie-helene-biray/', destination: '/dentistes/gironde/bordeaux/', permanent: true },
+      { source: '/dentistes/gironde/bruges/dr-eva-ilharreguy/', destination: '/dentistes/gironde/salles/dr-eva-ilharreguy-1904/', permanent: true },
+      { source: '/dentistes/gironde/bruges/dr-josephine-natiez/', destination: '/dentistes/gironde/bruges/dr-josephine-natiez-7837/', permanent: true },
+      { source: '/dentistes/gironde/fargues-saint-hilaire/dr-mohamed-ilyas-bekaddour/', destination: '/dentistes/gironde/fargues-saint-hilaire/dr-mohamed-ilyas-bekaddour-5125/', permanent: true },
+      { source: '/dentistes/gironde/saint-loubes/dr-valentine-charpentier/', destination: '/dentistes/gironde/saint-loubes/dr-valentine-charpentier-0722/', permanent: true },
+      { source: '/dentistes/gironde/saint-medard-en-jalles/dr-adrien-hottiaux/', destination: '/dentistes/gironde/saint-medard-en-jalles/dr-adrien-hottiaux-3110/', permanent: true },
+      { source: '/prothesistes/gironde/bordeaux/andre-thierry/', destination: '/prothesistes/gironde/bordeaux/', permanent: true },
+      { source: '/prothesistes/gironde/bordeaux/art-dental/', destination: '/prothesistes/gironde/bordeaux/', permanent: true },
+      { source: '/prothesistes/gironde/bordeaux/artdent/', destination: '/prothesistes/gironde/bordeaux/artdent-7552/', permanent: true },
+      { source: '/prothesistes/gironde/bordeaux/biesse/', destination: '/prothesistes/gironde/bordeaux/', permanent: true },
+      { source: '/prothesistes/gironde/bordeaux/bodinaud/', destination: '/prothesistes/gironde/bordeaux/bodinaud-dentaire-2928/', permanent: true },
+      { source: '/prothesistes/gironde/bordeaux/bouyssou/', destination: '/prothesistes/gironde/bordeaux/', permanent: true },
+      { source: '/prothesistes/gironde/bouliac/corus-lso-bertin/', destination: '/prothesistes/gironde/bouliac/', permanent: true },
+      { source: '/prothesistes/gironde/bouliac/corus-ortho-ios/', destination: '/prothesistes/gironde/bouliac/', permanent: true },
+      { source: '/prothesistes/gironde/eysines/aquitaine-adjointe-wojeik-frederic/', destination: '/prothesistes/gironde/eysines/aquitaine-adjointe-wojeik-frederic-a3ca/', permanent: true },
+      { source: '/prothesistes/gironde/pessac/bourdy-marc/', destination: '/prothesistes/gironde/pessac/', permanent: true },
     ]
   },
 }
