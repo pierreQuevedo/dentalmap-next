@@ -63,6 +63,12 @@ L’administration vit dans WordPress, un plugin par espace, les données Neon p
 - **Identité** : Pro Santé Connect en production ; habilitation FranceConnect+ ; clés d’accès à tester sur dentalmap.fr (liées au domaine).
 - **Données de test** : retirées le 2026-10-25 des deux bases. Base principale : les 8 comptes de test (dont `test-psc@example.com`, qui avait revendiqué la fiche réelle de Dr Jade Molis avec une fiche complétée de test) et ce qui en dépendait. Préproduction : les 21 comptes, les 10 fiches factices (RPPS 10999990…, laboratoires SIREN 99999999…), la demande d’ajout du RPPS 10999990053 et les deux fiches établissement de Bordeaux remplies de contenu de démonstration. La préproduction n’a plus aucun compte : les identifiants `ESSAI_*` de `.env.development.local` ne mènent plus nulle part. Photos `public/uploads/etablissements/demo-*` supprimées (elles étaient ignorées par git). Les 7 fichiers de test du stockage Blob `dentalmap-justificatifs` (5 justificatifs des fiches factices, 2 photos) sont supprimés : le stockage est vide.
 
+## 4 bis. Sécurité (audit du 2026-10-26)
+
+- Base : RLS désactivées, sans risque tant que la Data API de Neon reste fermée (seul le serveur s'y connecte, en propriétaire). À activer avec des règles avant toute Data API.
+- Corrigé : H1, H2, M1, M2 (en-têtes), M3 (HTML WordPress nettoyé), M5, M6, L2, L4 à L11 ; CMS : XML-RPC fermé, en-têtes. Voir les commits « Sécurité ».
+- Reste : M4, limitation de débit (codes de connexion, contact, partenariat, alertes), qui demande un stockage partagé (Upstash Redis) ; L1, numéros de téléphone sans limite par compte ; L3, second facteur pour les modérateurs ; L12, énumération par le parrainage ; L13, requête interne du proxy fondée sur l'en-tête Host (sans effet sur Vercel) ; CSP des scripts avec nonces ; EXIF retirées côté serveur ; identifiant WordPress `pierre` visible (GraphQL, `?author=1`) ; vérifier `pnpm audit`.
+
 ## 5. Décisions à prendre
 
 - Barème faculté : les 10 points de l’alternance vont aux centres de soins (à reporter dans `03-gamification.md`).
