@@ -7,6 +7,7 @@ import { HomeStats } from '@/components/home/HomeStats'
 import { HomeExplore } from '@/components/home/HomeExplore'
 import { HomeProcess } from '@/components/home/HomeProcess'
 import { HomeDentalBridge } from '@/components/home/HomeDentalBridge'
+import { DENTALBRIDGE_VISIBLE } from '@/lib/dentalbridge'
 import { HomeConseils } from '@/components/home/HomeConseils'
 import { HomeFormation } from '@/components/home/HomeFormation'
 import { HomePro } from '@/components/home/HomePro'
@@ -55,7 +56,7 @@ export default function Accueil() {
         <HomeExplore />
       </Suspense>
       <HomeProcess />
-      <HomeDentalBridge />
+      {DENTALBRIDGE_VISIBLE && <HomeDentalBridge />}
       <Suspense fallback={<Attente />}>
         <HomeConseils />
       </Suspense>

@@ -1,4 +1,5 @@
 import type { Route } from 'next'
+import { DENTALBRIDGE_VISIBLE } from './dentalbridge'
 
 /**
  * Source unique de la navigation.
@@ -100,9 +101,10 @@ export const mainNav: NavEntry[] = [
           { label: 'ORL', href: '/orl' },
         ],
       },
-      {
-        // Encart DentalBridge, le logiciel de gestion de cabinet de la maison,
-        // vendu séparément de l'annuaire : voir aussi `HomeDentalBridge`.
+      // Encart DentalBridge, le logiciel de gestion de cabinet de la maison,
+      // vendu séparément de l'annuaire : voir aussi `HomeDentalBridge`.
+      // Masqué tant que sa landing n'est pas prête (`DENTALBRIDGE_VISIBLE`).
+      ...(DENTALBRIDGE_VISIBLE ? [{
         title: 'DentalBridge',
         links: [],
         promo: {
@@ -112,7 +114,7 @@ export const mainNav: NavEntry[] = [
           cta: 'Découvrir DentalBridge',
           href: 'https://dentalbridge.fr',
         },
-      },
+      }] : []),
     ],
   },
   {
@@ -193,12 +195,9 @@ export const footerCols: NavColumn[] = [
       { label: 'Créer un compte', href: '/connexion?mode=inscription' },
       { label: 'Publier une offre d’emploi', href: '/emploi/recruter' },
       { label: 'Déposer une annonce de cession', href: '/annonces/cession/deposer' },
-      {
-        label: 'DentalBridge, logiciel de gestion de cabinet',
-        href: 'https://dentalbridge.fr',
-        external: true,
-        description: 'site externe',
-      },
+      ...(DENTALBRIDGE_VISIBLE
+        ? [{ label: 'DentalBridge, logiciel de gestion de cabinet', href: 'https://dentalbridge.fr', external: true, description: 'site externe' }]
+        : []),
     ],
   },
   {

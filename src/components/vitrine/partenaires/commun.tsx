@@ -17,6 +17,7 @@ import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { chemin } from '@/lib/navigation'
+import { DENTALBRIDGE_VISIBLE } from '@/lib/dentalbridge'
 
 export const ANCRE_FORMULAIRE = '#formulaire'
 export const ROUTE_ETABLISSEMENT = '/espace-pro/organisme/'
@@ -47,7 +48,7 @@ export const OFFRES: Offre[] = [
       'La revendication en un clic depuis votre logiciel, vérification ProConnect comprise',
       'Horaires et lien de rendez-vous synchronisés par API, avec l’accord du praticien',
       'Les offres d’emploi du cabinet publiées depuis votre logiciel',
-      'Votre page dans la rubrique « Outils du cabinet », comme DentalBridge',
+      DENTALBRIDGE_VISIBLE ? 'Votre page dans la rubrique « Outils du cabinet », comme DentalBridge' : 'Votre page dans la rubrique « Outils du cabinet »',
     ],
   },
   {
