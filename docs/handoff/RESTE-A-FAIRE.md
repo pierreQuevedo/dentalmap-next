@@ -46,10 +46,10 @@ Vocabulaire (2026-10-25) : l’espace des étudiants et salariés ne dit jamais 
 
 L’administration vit dans WordPress, un plugin par espace, les données Neon passant par l’API Next (`x-dentalmap-admin`).
 
-- **SAV** : écrans V2 à V10 et socle S1, S2, S4 ; brancher le formulaire de contact Next sur les tickets ; poser `DM_API_KEY` ; recherche d’un professionnel (V7, V8).
+- **SAV** (plugin `dentalmap-sav` 1.3.5, dépôt `~/Projects/dentalmap-cms`) : repassé avec Pierre le 2026-10-26, écran par écran (boîte de réception, ticket, nouveau ticket, demandes à valider, modèles de réponse, réglages). Formulaire de contact branché ; courriels reçus sur contact@ et dpo@ relevés en IMAP toutes les 5 minutes (ticket, ou réponse ajoutée au fil) ; réponses envoyées par le serveur d’envoi de contact@ (plus d’indésirables) ; échéance RGPD de 30 jours visible ; téléphone et canal pour une saisie à la main ; tickets liés et lien vers la fiche sur une demande à valider. Reste : socle S1, S2, S4 ; recherche d’un professionnel (V7, V8). Le lien « Voir la fiche publique » arrive avec le prochain déploiement du site (commit e458c01).
 - **Revendications** : brancher les actions de `lib/tunnel/actions.ts` sur `deciderRevendication`.
 - **Modération restée dans Next** : `/espace-pro/moderation/` (revendications, établissements, formations privées et, depuis le 2026-10-22, avis signalés) est à reprendre dans un plugin, avec des routes `/api/admin/` pour les avis (liste des signalements, décision).
-- **Messages de contact, 1 an** : annoncé dans la politique de confidentialité, mais ni les tickets SAV ni la boîte de l’équipe ne sont purgés. À ajouter au plugin SAV (son code n’est pas dans ce dépôt).
+- **Messages de contact, 1 an** : appliqué chaque nuit par le plugin SAV (tickets sans activité depuis un an, courriels de plus d’un an de la boîte contact@).
 - `dm_api_url` pointe sur la prévisualisation `feat-vitrine` : à remettre sur la production.
 
 ## 4. Avant la mise en ligne : configuration et données
