@@ -27,6 +27,7 @@ import {
   type CodeAccesPmr,
 } from './fiche-completee'
 import type { CleFraicheur } from './force'
+import { marquesValides } from './marques'
 import { DELAI_MAX, DELAI_MIN, JOURS_RAMASSAGE, MATERIAUX, PIECES, PERSO_MAX, PREFIXE_PERSO, RAYON_MAX, RAYON_MIN, REALISATIONS_MAX, TECHNIQUES, codeValide, lireChoix, nomLibre } from './labo'
 
 /**
@@ -290,14 +291,15 @@ export async function enregistrerZone(donnees: FormData): Promise<never> {
 }
 
 /** Réalisations : une à huit photos déjà téléversées, avec légende et crédit. */
-export async function enregistrerRealisations(donnees: FormData): Promise<never> {
-  let lues: { url: string; legende: string; piece?: unknown; materiau?: unknown }[] = []
+/** Les photos envoyées par la saisie : celles du stockage seulement, huit au plus, légendes coupées ; null si illisibles. */
+function photosSaisies(donnees: FormData): { url: string; legende: string; piece?: string; materiau?: string }[] | null {
+  let photos: { url: string; legende: string; piece?: unknown; materiau?: unknown }[] = []
   try {
-    lues = JSON.parse(String(donnees.get('realisations') ?? '[]'))
+    photos = JSON.parse(String(donnees.get('realisations') ?? '[]'))
   } catch {
-    return erreur(donnees, 'Photos illisibles.')
+    return null
   }
-  const photos: { url: string; legende: string; piece?: string; materiau?: string }[] = lues
+  return photos
     .filter((p) => typeof p?.url === 'string' && /^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/|\/photos\/[0-9a-f-]{36}\.jpg$)/.test(p.url))
     .slice(0, REALISATIONS_MAX)
     .map((p) => ({
@@ -307,9 +309,28 @@ export async function enregistrerRealisations(donnees: FormData): Promise<never>
       ...(typeof p.piece === 'string' && codeValide(p.piece, PIECES) ? { piece: codeValide(p.piece, PIECES)! } : {}),
       ...(typeof p.materiau === 'string' && codeValide(p.materiau, MATERIAUX) ? { materiau: codeValide(p.materiau, MATERIAUX)! } : {}),
     }))
+}
+
+export async function enregistrerRealisations(donnees: FormData): Promise<never> {
+  const photos = photosSaisies(donnees)
+  if (!photos) return erreur(donnees, 'Photos illisibles.')
   if (photos.length && donnees.get('droits') !== 'on') return erreur(donnees, 'Confirmez que le laboratoire détient les droits de ces photos.')
   const credit = String(donnees.get('credit') ?? '').trim().slice(0, 120) || null
   return ecrire(donnees, () => ({ realisations: photos, creditPhotos: credit, realisationsConfirmeesLe: photos.length ? new Date() : null }), '/espace-pro/realisations/')
+}
+
+/** Mission « Galerie du cabinet » : les mêmes colonnes que les réalisations d'un laboratoire, une à huit photos du cabinet. */
+export async function enregistrerGalerie(donnees: FormData): Promise<never> {
+  const photos = photosSaisies(donnees)
+  if (!photos) return erreur(donnees, 'Photos illisibles.')
+  if (photos.length && donnees.get('droits') !== 'on') return erreur(donnees, 'Confirmez que le cabinet détient les droits de ces photos et qu’aucun patient n’y est reconnaissable.')
+  const credit = String(donnees.get('credit') ?? '').trim().slice(0, 120) || null
+  return ecrire(donnees, () => ({ realisations: photos, creditPhotos: credit, realisationsConfirmeesLe: photos.length ? new Date() : null }), '/espace-pro/progression/')
+}
+
+/** Mission « Marques utilisées » : des codes de la liste fermée, rien d'autre. */
+export async function enregistrerMarques(donnees: FormData): Promise<never> {
+  return ecrire(donnees, () => ({ marques: marquesValides(donnees.getAll('marque').map(String)) }), '/espace-pro/progression/')
 }
 
 /** Déclaration ANSM : numéro et date. Vide : retirer. */

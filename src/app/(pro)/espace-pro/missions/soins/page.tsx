@@ -16,11 +16,11 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { espace, coque, q } = await chargerTableau('missions', sp.fiche, 'soins')
   const choisis = new Set(espace.completee?.orientations ?? [])
   return (
-    <CoqueEspace c={coque} actif="progression" titre="Domaines de soins" sousTitre="+8 pts · 1 min" parent={{ libelle: 'Progression', href: `/espace-pro/progression/${q}` }}>
+    <CoqueEspace c={coque} actif="progression" titre="Domaines de soins" sousTitre="+4 pts · 1 min" parent={{ libelle: 'Progression', href: `/espace-pro/progression/${q}` }}>
       <PanneauMission
         cle="soins"
         titre="Domaines de soins"
-        meta="Mission · +8 pts · 1 min"
+        meta="Mission · +4 pts · 1 min"
         intro="Ce que vous pratiquez le plus, au-delà de votre spécialité. Au moins deux pour compter ; chacun ouvre un filtre de la recherche."
         action={enregistrerSoins}
         fiche={espace.fiche.slug}

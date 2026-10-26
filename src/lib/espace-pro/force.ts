@@ -1,4 +1,5 @@
 import { JOURS, PRESENTATION_MAX, PRESENTATION_MIN, termesRefuses, type FicheCompletee } from './fiche-completee'
+import { GALERIE_MIN } from './marques'
 
 /**
  * La force d'une fiche de soignant, et tout ce qui en découle.
@@ -21,7 +22,7 @@ export type Contexte = {
   lieuxGeres: number
 }
 
-export type CleItem = 'identite' | 'horaires' | 'photo' | 'presentation' | 'soins' | 'conventionnement' | 'langues' | 'pmr'
+export type CleItem = 'identite' | 'horaires' | 'photo' | 'presentation' | 'soins' | 'conventionnement' | 'langues' | 'pmr' | 'galerie' | 'marques'
 
 export type ItemForce = { cle: CleItem | string; libelle: string; points: number; max: number; aReconfirmer?: boolean }
 
@@ -55,9 +56,11 @@ export function calculerForce(f: FicheCompletee | null, ctx: Contexte, maintenan
   const items: ItemForce[] = [
     { cle: 'identite', libelle: 'Identité vérifiée', points: ctx.identiteVerifiee ? 30 : 0, max: 30 },
     { cle: 'horaires', libelle: 'Horaires', points: h.points, max: 20, aReconfirmer: h.aReconfirmer },
-    { cle: 'photo', libelle: 'Photo de profil', points: f?.photoUrl ? 12 : 0, max: 12 },
-    { cle: 'presentation', libelle: 'Présentation', points: presentationValide(f?.presentation ?? null) ? 10 : 0, max: 10 },
-    { cle: 'soins', libelle: 'Domaines de soins', points: (f?.orientations.length ?? 0) >= 2 ? 8 : 0, max: 8 },
+    { cle: 'photo', libelle: 'Photo de profil', points: f?.photoUrl ? 8 : 0, max: 8 },
+    { cle: 'presentation', libelle: 'Présentation', points: presentationValide(f?.presentation ?? null) ? 8 : 0, max: 8 },
+    { cle: 'soins', libelle: 'Domaines de soins', points: (f?.orientations.length ?? 0) >= 2 ? 4 : 0, max: 4 },
+    { cle: 'galerie', libelle: 'Galerie du cabinet', points: (f?.realisations.length ?? 0) >= GALERIE_MIN ? 6 : 0, max: 6 },
+    { cle: 'marques', libelle: 'Marques utilisées', points: (f?.marques.length ?? 0) > 0 ? 4 : 0, max: 4 },
     { cle: 'conventionnement', libelle: 'Secteur et tiers payant', points: (f?.secteur ? 5 : 0) + (f?.tiersPayant ? 5 : 0), max: 10 },
     { cle: 'langues', libelle: 'Langues', points: (f?.langues.length ?? 0) > 0 ? 5 : 0, max: 5 },
     { cle: 'pmr', libelle: 'Accessibilité PMR', points: f?.accesPmr ? 5 : 0, max: 5 },
@@ -85,7 +88,7 @@ export const LIBELLE_PALIER: Record<Palier, string> = {
 /* Missions                                                             */
 /* ------------------------------------------------------------------ */
 
-export type CleMission = 'horaires' | 'conventionnement' | 'accueil' | 'photo' | 'presentation' | 'soins' | 'liens'
+export type CleMission = 'horaires' | 'conventionnement' | 'accueil' | 'photo' | 'presentation' | 'soins' | 'galerie' | 'marques' | 'liens'
 
 export type Mission = {
   cle: CleMission | string
@@ -124,17 +127,19 @@ export function missionsDe(f: FicheCompletee | null): Mission[] {
       faite: (f?.langues.length ?? 0) > 0 && !!f?.accesPmr,
       href: '/espace-pro/onboarding/accueil/',
     },
-    { cle: 'photo', titre: 'Photo de profil', detail: 'Image sur la fiche et dans Google', gain: 12, minutes: 2, faite: !!f?.photoUrl, href: '/espace-pro/missions/photo/' },
+    { cle: 'photo', titre: 'Photo de profil', detail: 'Image sur la fiche et dans Google', gain: 8, minutes: 2, faite: !!f?.photoUrl, href: '/espace-pro/missions/photo/' },
     {
       cle: 'presentation',
       titre: 'Présentation',
       detail: `Le texte de la fiche, ${PRESENTATION_MIN} à ${PRESENTATION_MAX} caractères`,
-      gain: 10,
+      gain: 8,
       minutes: 5,
       faite: presentationValide(f?.presentation ?? null),
       href: '/espace-pro/missions/presentation/',
     },
-    { cle: 'soins', titre: 'Domaines de soins', detail: 'Ouvre le filtre par domaine', gain: 8, minutes: 1, faite: (f?.orientations.length ?? 0) >= 2, href: '/espace-pro/missions/soins/' },
+    { cle: 'soins', titre: 'Domaines de soins', detail: 'Ouvre le filtre par domaine', gain: 4, minutes: 1, faite: (f?.orientations.length ?? 0) >= 2, href: '/espace-pro/missions/soins/' },
+    { cle: 'galerie', titre: 'Galerie du cabinet', detail: `Les photos du cabinet sur la fiche, ${GALERIE_MIN} au moins`, gain: 6, minutes: 3, faite: (f?.realisations.length ?? 0) >= GALERIE_MIN, href: '/espace-pro/missions/galerie/' },
+    { cle: 'marques', titre: 'Marques utilisées', detail: 'Implants, aligneurs, numérique, matériaux', gain: 4, minutes: 1, faite: (f?.marques.length ?? 0) > 0, href: '/espace-pro/missions/marques/' },
     {
       cle: 'liens',
       titre: 'Liens du cabinet',

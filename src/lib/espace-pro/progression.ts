@@ -24,18 +24,41 @@ export const BAREME: { cle: CleGain; libelle: string; detail: string; points: st
 
 export const POINTS_MAX = BAREME.reduce((t, b) => t + b.max, 0)
 
-export type Palier = { niveau: number; nom: string; seuil: number; gains: string[]; /** Points ajoutés au taux de remplissage pour le classement, tant que le palier est tenu. */ bonus: number }
+export type Palier = {
+  niveau: number
+  nom: string
+  seuil: number
+  gains: string[]
+  /** Points ajoutés au taux de remplissage pour le classement, tant que le palier est tenu. */
+  bonus: number
+  /** Force de fiche demandée en plus des points : à partir de « Fiche exemplaire », la fiche elle-même doit être presque complète. */
+  forceMin: number
+}
+
+/** La force demandée à partir du palier 3 : les points des partages ne remplacent pas une fiche remplie. */
+export const FORCE_EXEMPLAIRE = 90
 
 /** Les paliers et ce que chacun débloque. */
 export const PALIERS: Palier[] = [
-  { niveau: 1, nom: 'Fiche publiée', seuil: 30, gains: ['Visible dans l’annuaire et sur Google', 'Pastille « Gérée par le praticien »'], bonus: 0 },
-  { niveau: 2, nom: 'Fiche complète', seuil: 70, gains: ['Tous les filtres patients ouverts', 'Visuels pour les réseaux'], bonus: 0 },
-  { niveau: 3, nom: 'Fiche exemplaire', seuil: 100, gains: ['Distinction « Fiche exemplaire »', 'Visuels aux couleurs Exemplaire'], bonus: 0 },
-  { niveau: 4, nom: 'Ambassadeur', seuil: 160, gains: ['+5 points de mise en avant tant que le palier est tenu', 'Publier des offres d’emploi'], bonus: 5 },
-  { niveau: 5, nom: 'Référence locale', seuil: 220, gains: ['+10 points de mise en avant tant que le palier est tenu', 'Mise en avant dans les contenus DentalMap de votre ville'], bonus: 10 },
+  { niveau: 1, nom: 'Fiche publiée', seuil: 30, gains: ['Visible dans l’annuaire et sur Google', 'Pastille « Gérée par le praticien »'], bonus: 0, forceMin: 0 },
+  { niveau: 2, nom: 'Fiche complète', seuil: 70, gains: ['Tous les filtres patients ouverts', 'Visuels pour les réseaux'], bonus: 0, forceMin: 0 },
+  { niveau: 3, nom: 'Fiche exemplaire', seuil: 100, gains: ['Distinction « Fiche exemplaire »', 'Visuels aux couleurs Exemplaire'], bonus: 0, forceMin: FORCE_EXEMPLAIRE },
+  // Atteignable sans parrainage : fiche complète et les quatre gestes de diffusion font 155.
+  { niveau: 4, nom: 'Ambassadeur', seuil: 150, gains: ['+5 points de mise en avant tant que le palier est tenu', 'Publier des offres d’emploi'], bonus: 5, forceMin: FORCE_EXEMPLAIRE },
+  { niveau: 5, nom: 'Référence locale', seuil: 200, gains: ['+10 points de mise en avant tant que le palier est tenu', 'Mise en avant dans les contenus DentalMap de votre ville'], bonus: 10, forceMin: FORCE_EXEMPLAIRE },
 ]
 
-export type Progression = { points: number; actuel: Palier | null; suivant: Palier | null; reste: number; part: number; /** Identité vérifiée : sans elle, aucun palier n'est tenu, la fiche n'étant pas publiée. */ verifiee: boolean }
+export type Progression = {
+  points: number
+  actuel: Palier | null
+  suivant: Palier | null
+  reste: number
+  part: number
+  /** Identité vérifiée : sans elle, aucun palier n'est tenu, la fiche n'étant pas publiée. */
+  verifiee: boolean
+  /** La force qui manque pour le palier suivant, quand ce sont elle et non les points qui bloquent ; 0 sinon. */
+  forceManquante: number
+}
 
 /**
  * Où en est une fiche : le palier tenu, le suivant, et la part du chemin
@@ -43,19 +66,31 @@ export type Progression = { points: number; actuel: Palier | null; suivant: Pali
  * n'est pas publiée : aucun palier n'est tenu, le premier attend la
  * vérification.
  */
-export function progressionDe(points: number, verifiee = true): Progression {
-  if (!verifiee) return { points, actuel: null, suivant: PALIERS[0], reste: Math.max(0, PALIERS[0].seuil - points), part: Math.min(1, points / PALIERS[0].seuil), verifiee }
-  const actuel = [...PALIERS].reverse().find((p) => points >= p.seuil) ?? null
-  const suivant = PALIERS.find((p) => points < p.seuil) ?? null
+export function progressionDe(points: number, verifiee = true, force = 100): Progression {
+  if (!verifiee) return { points, actuel: null, suivant: PALIERS[0], reste: Math.max(0, PALIERS[0].seuil - points), part: Math.min(1, points / PALIERS[0].seuil), verifiee, forceManquante: 0 }
+  const tenu = (p: Palier) => points >= p.seuil && force >= p.forceMin
+  // Les paliers se tiennent dans l'ordre : le premier qui manque arrête la montée.
+  const i = PALIERS.findIndex((p) => !tenu(p))
+  const actuel = i === -1 ? PALIERS[PALIERS.length - 1] : i === 0 ? null : PALIERS[i - 1]
+  const suivant = i === -1 ? null : PALIERS[i]
   const depart = actuel?.seuil ?? 0
   return {
     points,
     actuel,
     suivant,
-    reste: suivant ? suivant.seuil - points : 0,
-    part: suivant ? (points - depart) / (suivant.seuil - depart) : 1,
+    reste: suivant ? Math.max(0, suivant.seuil - points) : 0,
+    part: suivant ? Math.min(1, (points - depart) / (suivant.seuil - depart)) : 1,
     verifiee,
+    forceManquante: suivant ? Math.max(0, suivant.forceMin - force) : 0,
   }
+}
+
+/** Ce qu'il reste à faire avant le palier suivant, en clair : des points, de la force de fiche, ou les deux. */
+export function resteAFaire(p: Progression): string {
+  if (!p.suivant) return ''
+  const pts = p.reste ? `${p.reste} point${p.reste > 1 ? 's' : ''}` : ''
+  const fiche = p.forceManquante ? `une fiche remplie à ${p.suivant.forceMin} %` : ''
+  return [pts, fiche].filter(Boolean).join(' et ')
 }
 
 /** Ce qui compte pour les points d'une fiche, lu ailleurs (force, lien Google, visites, parrainages, fraîcheur). */
@@ -92,8 +127,8 @@ export function pointsDe(a: Activite): Points {
 export const PALIER_EMPLOI = 4
 
 /** Le bonus de classement d'un total de points : celui du palier tenu. */
-export function bonusPalier(points: number): number {
-  return progressionDe(points).actuel?.bonus ?? 0
+export function bonusPalier(points: number, force = 100): number {
+  return progressionDe(points, true, force).actuel?.bonus ?? 0
 }
 
 /** Où gagner chaque type de points dans l'espace pro. */

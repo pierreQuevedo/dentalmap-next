@@ -293,7 +293,9 @@ export type FicheCompletee = {
   presentationConfirmeeLe: string | null
   photoConfirmeeLe: string | null
   publieeLe: string | null
-  /* Laboratoire */
+  /** Marques utilisées au cabinet (soignant). */
+  marques: string[]
+  /* Laboratoire ; `realisations` et `creditPhotos` servent aussi à la galerie du cabinet d'un soignant. */
   techniques: string[]
   materiaux: string[]
   usinage: boolean
@@ -349,6 +351,7 @@ export const FICHE_VIDE: FicheCompletee = {
   presentationConfirmeeLe: null,
   photoConfirmeeLe: null,
   publieeLe: null,
+  marques: [],
   techniques: [],
   materiaux: [],
   usinage: false,

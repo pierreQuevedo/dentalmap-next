@@ -19,9 +19,11 @@ export function calculerForce(profil: Profil, fiche: FicheAgregee, maintenant = 
 |---|---|---|
 | Identité vérifiée | 30 | Revendication validée (PSC, email registre ou justificatif vérifié automatiquement) |
 | Horaires | 20 | 7 jours renseignés, fermetures comprises. 10 pts si à reconfirmer, 0 si non confirmés depuis 180 j |
-| Photo du cabinet | 12 | Une photo valide |
-| Présentation | 10 | 200 à 800 caractères **et** aucun terme refusé |
-| Domaines de soins | 8, à arbitrer | Au moins 2. Collectés dès l’onboarding (B0S) depuis le 11 octobre 2026 : poids à revoir, voir 06 point 4 |
+| Photo de profil | 8 | Une photo valide |
+| Présentation | 8 | 200 à 800 caractères **et** aucun terme refusé |
+| Domaines de soins | 4 | Au moins 2 (arbitré le 23 octobre 2026) |
+| Galerie du cabinet | 6 | 3 photos au moins, 8 au plus |
+| Marques utilisées | 4 | Au moins une, liste fermée par famille |
 | Secteur et tiers payant | 10 | 5 + 5 |
 | Langues | 5 | Au moins une réponse (y compris « français seul ») |
 | Accessibilité PMR | 5 | Oui, non ou partiel : la réponse compte, pas le oui |

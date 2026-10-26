@@ -13,7 +13,7 @@ export const COLONNES_FICHE = sql`
   f.publiee_le, f.etape, f.termine_le, f.updated_at,
   f.techniques, f.materiaux, f.usinage, f.empreintes_stl, f.impression_3d, f.delais, f.rayon_km, f.ramassage, f.jours_ramassage, f.transporteur, f.zone_etendue,
   f.realisations, f.credit_photos, f.ansm_numero, f.ansm_declare_le, f.savoir_faire_confirme_le, f.delais_confirmes_le, f.zone_confirmee_le,
-  f.realisations_confirmees_le, f.praticien_lie_id`
+  f.realisations_confirmees_le, f.praticien_lie_id, f.marques`
 
 export type LigneFiche = {
   horaires: FicheCompletee['horaires']
@@ -57,6 +57,7 @@ export type LigneFiche = {
   zone_etendue: 'france' | 'international' | null
   transporteur: boolean | null
   realisations: { url: string; legende: string; piece?: string; materiau?: string }[] | null
+  marques: string[] | null
   credit_photos: string | null
   ansm_numero: string | null
   ansm_declare_le: string | null
@@ -107,6 +108,7 @@ export function ficheDepuisLigne(r: LigneFiche): FicheCompletee {
     transporteur: r.transporteur,
     zoneEtendue: r.zone_etendue ?? null,
     realisations: r.realisations ?? [],
+    marques: r.marques ?? [],
     creditPhotos: r.credit_photos,
     ansmNumero: r.ansm_numero,
     ansmDeclareLe: r.ansm_declare_le,

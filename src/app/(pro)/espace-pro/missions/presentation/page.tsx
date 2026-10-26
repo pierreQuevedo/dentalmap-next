@@ -15,7 +15,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const sp = await props.searchParams
   const { espace, coque, q } = await chargerTableau('missions', sp.fiche, 'presentation')
   const gardee = await lireSaisie('/espace-pro/missions/presentation/', sp.erreur)
-  const gain = espace.labo ? 5 : 10
+  const gain = espace.labo ? 5 : 8
   return (
     <CoqueEspace c={coque} actif={espace.labo ? 'fiche' : 'progression'} titre="Présentation" sousTitre={`+${gain} pts · ${espace.labo ? 4 : 5} min`} parent={espace.labo ? { libelle: 'Ma fiche', href: `/espace-pro/fiche/${q}` } : { libelle: 'Progression', href: `/espace-pro/progression/${q}` }}>
       <PanneauMission

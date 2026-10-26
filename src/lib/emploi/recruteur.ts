@@ -19,7 +19,7 @@ export async function recruteur(slug: string, publier = false) {
   if (!espace || !espace.ctx.identiteVerifiee || espace.fiche.demande?.statut !== 'acceptee') return null
   if (publier) {
     const points = await pointsDeLEspace(espace)
-    if ((progressionDe(points.total, points.verifiee).actuel?.niveau ?? 0) < PALIER_EMPLOI) return null
+    if ((progressionDe(points.total, points.verifiee, points.detail.fiche).actuel?.niveau ?? 0) < PALIER_EMPLOI) return null
   }
   return { compte, espace }
 }

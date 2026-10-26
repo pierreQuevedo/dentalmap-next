@@ -40,7 +40,7 @@ export default async function Page(props: { params: Promise<{ etape: string }>; 
   const { espace, coque, q, points } = await chargerTableau('emploi', sp.fiche, `creer/${etape}`)
   const { fiche } = espace
   const verifiee = espace.ctx.identiteVerifiee
-  const p = progressionDe(points.total, points.verifiee)
+  const p = progressionDe(points.total, points.verifiee, points.detail.fiche)
   const peutPublier = verifiee && (p.actuel?.niveau ?? 0) >= PALIER_EMPLOI
   const [offres, cabinet] = await Promise.all([getOffresRecruteur(fiche.id), getCabinetRecrutement(fiche.id)])
   const o = sp.offre ? offres.find((x) => x.id === sp.offre) : undefined

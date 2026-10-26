@@ -17,11 +17,11 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const gardee = await lireSaisie('/espace-pro/missions/photo/', sp.erreur)
   const photoGardee = gardee.texte('photo')
   return (
-    <CoqueEspace c={coque} actif="progression" titre="Photo de profil" sousTitre="+12 pts · 2 min" parent={{ libelle: 'Progression', href: `/espace-pro/progression/${q}` }}>
+    <CoqueEspace c={coque} actif="progression" titre="Photo de profil" sousTitre="+8 pts · 2 min" parent={{ libelle: 'Progression', href: `/espace-pro/progression/${q}` }}>
       <PanneauMission
         cle="photo"
         titre="Photo de profil"
-        meta="Mission recommandée · +12 pts · 2 min"
+        meta="Mission recommandée · +8 pts · 2 min"
         intro="Une photo de vous, de face, au format portrait. Elle s’affiche sur la fiche, dans les résultats et dans Google."
         action={enregistrerPhoto}
         fiche={espace.fiche.slug}

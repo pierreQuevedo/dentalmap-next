@@ -34,7 +34,7 @@ export default async function Page(props: { params: Promise<{ offre: string }>; 
   if (!o) notFound()
   const recues = toutesRecues.filter((k) => k.offreId === o.id)
   const e = etatOffre(o)
-  const p = progressionDe(points.total, points.verifiee)
+  const p = progressionDe(points.total, points.verifiee, points.detail.fiche)
   const ouvert = espace.ctx.identiteVerifiee && (p.actuel?.niveau ?? 0) >= PALIER_EMPLOI
   const ici = `/espace-pro/emploi/${o.id}/`
   const r = remuneration({ mode: o.mode, min: o.min, max: o.max })

@@ -358,6 +358,8 @@ export const fichesCompletees = pgTable('fiches_completees', {
   presentation: text('presentation'),
   /** Photo du cabinet : URL publique du stockage, paysage 16:9. */
   photoUrl: text('photo_url'),
+  /** Marques utilisées au cabinet, codes de `src/lib/espace-pro/marques.ts`. */
+  marques: text('marques').array().notNull().default(sql`'{}'::text[]`),
   /** Liens du cabinet, sans intermédiaire : site, prise de rendez-vous en ligne. */
   siteWeb: text('site_web'),
   rdvEnLigne: text('rdv_en_ligne'),
@@ -389,7 +391,7 @@ export const fichesCompletees = pgTable('fiches_completees', {
   transporteur: boolean('transporteur'),
   /** Au-delà du rayon : toute la France, ou la France et l'étranger (envoi des pièces). Sans valeur, le rayon seul. */
   zoneEtendue: text('zone_etendue', { enum: ['france', 'international'] }),
-  /** Réalisations : photos publiques, une à huit, avec légende ; crédit commun. */
+  /** Photos publiques, une à huit, avec légende ; crédit commun : les réalisations d'un laboratoire, la galerie du cabinet d'un soignant. */
   realisations: jsonb('realisations').$type<{ url: string; legende: string; piece?: string; materiau?: string }[]>(),
   creditPhotos: text('credit_photos'),
   /** Déclaration de fabricant de dispositifs sur mesure auprès de l'ANSM. */

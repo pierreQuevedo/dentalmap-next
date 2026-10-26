@@ -5,6 +5,7 @@ import { CoqueEspace, Statut, TitreTuile, Tuile } from '@/components/espace/coqu
 import { chemin } from '@/lib/navigation'
 import { progressionDe } from '@/lib/espace-pro/progression'
 import { libelleAge } from '@/lib/espace-pro/fiche-completee'
+import { GALERIE_MIN, nomMarque } from '@/lib/espace-pro/marques'
 import { resumeAccueil, resumeConventionnement, resumeSemaine, resumeSoins, resumesLabo } from '@/lib/espace-pro/resumes'
 import { chargerTableau } from '../_commun'
 
@@ -45,6 +46,14 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
     { n: 'Photo de profil', d: c?.photoUrl ? 'Portrait, au format de la carte' : 'Image sur la fiche et dans Google', s: c?.photoUrl ? rempli : 'vide', src: 'Déclaré', href: mis('photo') },
     { n: 'Présentation', d: c?.presentation ? `${c.presentation.trim().length} caractères` : '200 à 800 caractères', s: c?.presentation ? rempli : 'vide', src: 'Déclaré', href: mis('presentation') },
     { n: 'Domaines de soins', d: resumeSoins(c, fiche.profession) ?? 'Au moins deux domaines', s: (c?.orientations.length ?? 0) >= 2 ? rempli : c?.orientations.length ? 'incomplete' : 'vide', src: 'Déclaré', href: mis('soins') },
+    {
+      n: 'Galerie du cabinet',
+      d: c?.realisations.length ? `${c.realisations.length} photo${c.realisations.length > 1 ? 's' : ''} sur 8` : `${GALERIE_MIN} photos au moins : accueil, salle de soins, équipement`,
+      s: (c?.realisations.length ?? 0) >= GALERIE_MIN ? rempli : c?.realisations.length ? 'incomplete' : 'vide',
+      src: 'Déclaré',
+      href: mis('galerie'),
+    },
+    { n: 'Marques utilisées', d: c?.marques.length ? c.marques.map(nomMarque).filter(Boolean).join(', ') : 'Implants, aligneurs, numérique, matériaux', s: c?.marques.length ? rempli : 'vide', src: 'Déclaré', href: mis('marques') },
     { n: 'Liens du cabinet', d: [c?.siteWeb && 'Site', c?.rdvEnLigne && 'Rendez-vous en ligne'].filter(Boolean).join(', ') || 'Site web, prise de rendez-vous en ligne', s: c?.siteWeb || c?.rdvEnLigne ? rempli : 'vide', src: 'Déclaré', href: mis('liens') },
     { n: 'Lieux d’exercice', d: [...new Set(fiche.lieux.map((l) => l.communeNom).filter(Boolean))].join(', ') || 'Adresse du registre', s: 'auto', src: fiche.rpps ? 'Annuaire Santé' : 'Sirene', href: `/espace-pro/registre/${q}` },
     { n: 'Ce que dit le registre', d: 'RPPS, profession, mode d’exercice', s: 'auto', src: fiche.rpps ? 'Annuaire Santé' : 'Sirene', href: `/espace-pro/registre/${q}` },

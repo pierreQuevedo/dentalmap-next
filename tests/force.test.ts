@@ -25,14 +25,22 @@ describe('calculerForce', () => {
     expect(calculerForce(ONBOARDEE, verifie, MAINTENANT).total).toBe(70)
   })
 
-  it('atteint 100 avec les trois missions', () => {
+  it('atteint 100 avec les cinq missions', () => {
     const complete = {
       ...ONBOARDEE,
       photoUrl: 'https://exemple.fr/p.jpg',
       presentation: 'Cabinet de deux fauteuils au cœur de la ville, à deux pas du tram. '.repeat(4),
       orientations: ['implantologie', 'parodontologie'],
+      realisations: [1, 2, 3].map((i) => ({ url: `/photos/${i}.jpg`, legende: '' })),
+      marques: ['straumann'],
     }
     expect(calculerForce(complete, verifie, MAINTENANT).total).toBe(100)
+  })
+
+  it('compte la galerie à partir de trois photos', () => {
+    const deux = { ...ONBOARDEE, realisations: [1, 2].map((i) => ({ url: `/photos/${i}.jpg`, legende: '' })) }
+    expect(calculerForce(deux, verifie, MAINTENANT).total).toBe(70)
+    expect(calculerForce({ ...deux, realisations: [...deux.realisations, { url: '/photos/3.jpg', legende: '' }] }, verifie, MAINTENANT).total).toBe(76)
   })
 
   it('réduit les horaires à 90 jours et les annule à 180', () => {
@@ -55,7 +63,7 @@ describe('paliers et missions', () => {
 
   it('recommande la mission au plus fort gain', () => {
     const missions = missionsDe(ONBOARDEE)
-    expect(missions.filter((m) => !m.faite).map((m) => m.cle)).toEqual(['photo', 'presentation', 'soins', 'liens'])
+    expect(missions.filter((m) => !m.faite).map((m) => m.cle)).toEqual(['photo', 'presentation', 'soins', 'galerie', 'marques', 'liens'])
     expect(prochaineMission(missions)?.cle).toBe('photo')
   })
 

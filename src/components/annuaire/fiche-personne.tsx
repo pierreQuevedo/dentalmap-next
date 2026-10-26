@@ -8,7 +8,8 @@
  * vérifie, l'autre porte la mention « renseigné par le praticien ».
  */
 import Link from 'next/link'
-import { Accessibility, CalendarCheck, CreditCard, ExternalLink, Globe, Languages, Navigation, Stethoscope } from 'lucide-react'
+import { Accessibility, CalendarCheck, CreditCard, ExternalLink, Globe, Languages, Navigation, Stethoscope, Wrench } from 'lucide-react'
+import { Galerie } from '@/components/formation/galerie-etablissement'
 import { Carte } from '@/components/map/carte'
 import { empriseAutour } from '@/lib/annuaire/emprise'
 import { illustration } from '@/lib/annuaire/illustration'
@@ -27,6 +28,7 @@ import {
   libelleAge,
   type FicheCompletee,
 } from '@/lib/espace-pro/fiche-completee'
+import { marquesParFamille } from '@/lib/espace-pro/marques'
 import { Adresse, chemin } from './primitives'
 import { BadgeRecruteFiche } from './recrutement'
 import { BoutonAppeler, TelephoneProtege } from './telephone-protege'
@@ -175,6 +177,7 @@ export function FichePersonne({ c }: { c: ContexteFiche }) {
       )}
 
       <SectionCabinet c={c} />
+      <SectionGalerie c={c} />
       <SectionHoraires c={c} horaires={horaires} aJour={aJour} />
       <SectionRegistre c={c} />
     </>
@@ -249,6 +252,18 @@ function SectionCabinet({ c }: { c: ContexteFiche }) {
   )
 }
 
+/** Les photos du cabinet, en mosaïque, avec le crédit ; rien tant qu'il n'y en a pas. */
+function SectionGalerie({ c }: { c: ContexteFiche }) {
+  const photos = c.fiche?.realisations ?? []
+  if (!photos.length) return null
+  return (
+    <section id="galerie" className="container scroll-mt-24 pb-20 md:pb-24">
+      <h2 className="mb-8 text-3xl font-semibold tracking-tight text-fg md:text-4xl">Le cabinet en images</h2>
+      <Galerie photos={photos.map((p) => ({ ...p, local: p.url.startsWith('/') }))} credit={c.fiche?.creditPhotos ?? null} source="Photos publiées par le cabinet" />
+    </section>
+  )
+}
+
 type Etape = { icone: typeof Stethoscope; titre: string; valeurs: string[]; notes: string[] }
 
 function etapesCabinet(f: FicheCompletee): Etape[] {
@@ -259,6 +274,15 @@ function etapesCabinet(f: FicheCompletee): Etape[] {
       titre: 'Soins pratiqués',
       valeurs: f.orientations.map((o) => libelle(ORIENTATIONS, o)),
       notes: ['Déclarés par le praticien, ce ne sont pas des spécialités de l’Ordre.'],
+    })
+  }
+  const marques = marquesParFamille(f.marques)
+  if (marques.length) {
+    etapes.push({
+      icone: Wrench,
+      titre: 'Équipement et marques',
+      valeurs: marques.flatMap((m) => m.marques),
+      notes: [`${marques.map((m) => m.libelle).join(', ')}. Marques utilisées au cabinet, déclarées par le praticien.`],
     })
   }
   if (f.langues.length) etapes.push({ icone: Languages, titre: 'Langues parlées', valeurs: f.langues.map((l) => libelle(LANGUES, l)), notes: [] })

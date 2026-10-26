@@ -7,7 +7,7 @@ import { CarteFixe } from '@/components/espace/carte-fixe'
 import { ICONE_GAIN } from '@/components/espace/icones-gain'
 import { BarreProgression, CheminPaliers, Medaille } from '@/components/espace/progression'
 import { chemin } from '@/lib/navigation'
-import { PALIERS, progressionDe } from '@/lib/espace-pro/progression'
+import { PALIERS, progressionDe, resteAFaire } from '@/lib/espace-pro/progression'
 import { actionsAFaire, historiqueDe } from '@/lib/espace-pro/a-faire'
 import { chargerTableau, quand } from '../_commun'
 
@@ -26,7 +26,7 @@ export const instant = false
 export default async function Page(props: { searchParams: Promise<{ fiche?: string }> }) {
   const { espace, coque, points, q } = await chargerTableau('progression', (await props.searchParams).fiche)
   const { fiche, completee } = espace
-  const p = progressionDe(points.total, points.verifiee)
+  const p = progressionDe(points.total, points.verifiee, points.detail.fiche)
   const historique = (await historiqueDe(espace)).map((h) => ({ ...h, i: h.source === 'identite' ? ShieldCheck : h.source === 'publication' ? Trophy : ICONE_GAIN[h.source] }))
 
   const distinctions = [
@@ -63,7 +63,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 <BarreProgression part={p.verifiee ? p.part : Math.min(1, points.total / PALIERS[0].seuil)} epaisse claire />
               </div>
               <p className="mt-2 text-sm text-white/85">
-                {!p.verifiee ? 'Votre fiche sera publiée, et le premier palier atteint, dès que la vérification de votre identité aboutit. Préparez-la en attendant : vos points sont déjà comptés.' : p.suivant ? `Plus que ${p.reste} points. À la clé : ${p.suivant.gains[0].charAt(0).toLowerCase()}${p.suivant.gains[0].slice(1)}.` : 'Vous avez tout débloqué : tenez vos paliers à jour pour garder leurs gains.'}
+                {!p.verifiee ? 'Votre fiche sera publiée, et le premier palier atteint, dès que la vérification de votre identité aboutit. Préparez-la en attendant : vos points sont déjà comptés.' : p.suivant ? `Plus que ${resteAFaire(p)}. À la clé : ${p.suivant.gains[0].charAt(0).toLowerCase()}${p.suivant.gains[0].slice(1)}.` : 'Vous avez tout débloqué : tenez vos paliers à jour pour garder leurs gains.'}
               </p>
             </div>
           </div>
@@ -130,7 +130,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 <CarteFixe praticien={fiche.resume} profession={fiche.profession} photo={completee?.photoUrl} palier={p.suivant.niveau} />
               </ul>
               <span className="squircle-full absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 bg-[#0B1F1D]/85 px-3 py-1.5 text-xs font-semibold text-[#BFE3D6] shadow-pop backdrop-blur">
-                <Lock className="size-3.5" aria-hidden /> {p.verifiee ? <>Plus que {p.reste} pts</> : 'Après vérification'}
+                <Lock className="size-3.5" aria-hidden /> {p.verifiee ? <>Plus que {resteAFaire(p)}</> : 'Après vérification'}
               </span>
               <figcaption className="text-center text-xs text-fg-2">Au palier {p.suivant.niveau} · {p.suivant.nom}</figcaption>
             </figure>
@@ -150,7 +150,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       <Tuile className="mt-4">
         <TitreTuile i={Trophy}>Le chemin</TitreTuile>
         <div className="mt-5">
-          <CheminPaliers points={points.total} verifiee={points.verifiee} />
+          <CheminPaliers points={points.total} verifiee={points.verifiee} force={points.detail.fiche} />
         </div>
         <p className="mt-4 text-xs text-fg-2">Vos points ordonnent les résultats de recherche ; Ambassadeur et Référence locale y ajoutent un bonus tant qu’ils sont tenus. Les points se recalculent en continu.</p>
       </Tuile>

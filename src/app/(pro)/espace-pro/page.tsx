@@ -11,7 +11,7 @@ import { chemin } from '@/lib/navigation'
 import { actionsAFaire, historiqueDe } from '@/lib/espace-pro/a-faire'
 import { BONUS_PARRAINAGE, DUREE_BONUS_JOURS, PLAFOND_BONUS } from '@/lib/espace-pro/parrainage'
 import { getParrainage } from '@/lib/espace-pro/parrainage-donnees'
-import { progressionDe } from '@/lib/espace-pro/progression'
+import { progressionDe, resteAFaire } from '@/lib/espace-pro/progression'
 import { getStatistiques } from '@/lib/espace-pro/statistiques'
 import { aujourdhui, chargerTableau, quand } from './_commun'
 
@@ -31,7 +31,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const { espace, coque, compte, q, points } = await chargerTableau('vue', sp.fiche)
   const { fiche, completee, filtres, fraicheur } = espace
   const [chiffres, parrainage, stats, historique] = await Promise.all([getChiffresCles(), getParrainage(compte.id, fiche.id), getStatistiques(fiche.id, 30), historiqueDe(espace, 6)])
-  const p = progressionDe(points.total, points.verifiee)
+  const p = progressionDe(points.total, points.verifiee, points.detail.fiche)
   const { aFaire } = actionsAFaire(espace, points, q)
   const prochaine = aFaire[0]
   const enAttente = fiche.demande?.statut === 'en_attente'
@@ -46,7 +46,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
       ? 'Elle sera publiée dès que l’équipe aura validé votre Kbis, sous 48 heures ouvrées. Vous pouvez la compléter en attendant.'
       : 'Elle sera publiée dès que votre identité sera vérifiée. Vous pouvez la compléter en attendant.'
     : p.suivant
-      ? `Plus que ${p.reste} points avant ${p.suivant.nom}. À la clé : ${p.suivant.gains[0].charAt(0).toLowerCase()}${p.suivant.gains[0].slice(1)}.`
+      ? `Plus que ${resteAFaire(p)} avant ${p.suivant.nom}. À la clé : ${p.suivant.gains[0].charAt(0).toLowerCase()}${p.suivant.gains[0].slice(1)}.`
       : 'Tous les paliers sont atteints. Tenez votre fiche à jour et continuez à la partager pour les garder.'
   const evolution = stats.precedent ? Math.round(((stats.total - stats.precedent) / stats.precedent) * 100) : null
   const chiffresCles: { valeur: string; libelle: string; detail?: string }[] = [

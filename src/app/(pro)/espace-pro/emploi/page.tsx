@@ -29,7 +29,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const offres = await getOffresRecruteur(fiche.id)
   const maintenant = new Date()
   const verifiee = espace.ctx.identiteVerifiee
-  const p = progressionDe(points.total, points.verifiee)
+  const p = progressionDe(points.total, points.verifiee, points.detail.fiche)
   const ouvert = verifiee && (p.actuel?.niveau ?? 0) >= PALIER_EMPLOI
   const reste = Math.max(0, PALIERS[PALIER_EMPLOI - 1].seuil - points.total)
   const vue: Vue = sp.vue === 'en_ligne' || sp.vue === 'archives' ? sp.vue : 'toutes'

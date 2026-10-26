@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Check, Lock, Share2, Sparkles, Trophy, X } from 'lucide-react'
 import { ICONE_GAIN } from './icones-gain'
 import { chemin } from '@/lib/navigation'
-import { BAREME, OU_GAGNER, PALIERS, progressionDe, type CleGain, type Palier, type Points } from '@/lib/espace-pro/progression'
+import { BAREME, OU_GAGNER, PALIERS, progressionDe, resteAFaire, type CleGain, type Palier, type Points } from '@/lib/espace-pro/progression'
 import { FondCarte } from './fond-carte'
 import { CarteFixe } from './carte-fixe'
 import type { PraticienProche } from '@/lib/annuaire/queries'
@@ -69,7 +69,7 @@ export function lienDeGain(cle: CleGain, q: string): string {
  * menant droit à l'endroit où on les gagne.
  */
 export function CarteProgression({ points, distinctions, q }: { points: Points; distinctions: string; q: string }) {
-  const p = progressionDe(points.total, points.verifiee)
+  const p = progressionDe(points.total, points.verifiee, points.detail.fiche)
   const sources = BAREME.filter((b) => b.cle !== 'fiche' && b.cle !== 'a_jour')
   return (
     <div className="squircle-xl overflow-hidden bg-gradient-to-br from-[#134E4A] to-[#0B1F1D] text-white shadow-pop ring-1 ring-white/10">
@@ -93,7 +93,7 @@ export function CarteProgression({ points, distinctions, q }: { points: Points; 
               'publiée et au palier 1 dès la vérification'
             ) : p.suivant ? (
               <>
-                plus que <b className="text-white">{p.reste} pts</b> avant {p.suivant.nom}
+                plus que <b className="text-white">{resteAFaire(p)}</b> avant {p.suivant.nom}
               </>
             ) : (
               'tous les paliers atteints'
@@ -126,7 +126,7 @@ export function CarteProgression({ points, distinctions, q }: { points: Points; 
 }
 
 /** Le retour d'un gain : la coche, les points qui montent, la barre qui avance. Se ferme seul après cinq secondes. */
-export function ToastGain({ de, a, titre, fermer, statique = false, verifiee = true }: { de: number; a: number; titre: string; fermer?: () => void; statique?: boolean; verifiee?: boolean }) {
+export function ToastGain({ de, a, titre, fermer, statique = false, verifiee = true, force = 100 }: { de: number; a: number; titre: string; fermer?: () => void; statique?: boolean; verifiee?: boolean; /** Force de fiche actuelle : à partir du palier 3, elle compte autant que les points. */ force?: number }) {
   const [affiche, setAffiche] = useState(statique ? a : de)
   // La fermeture passe par une référence : une fonction neuve à chaque rendu relancerait l'animation.
   const fermeture = useRef(fermer)
@@ -149,8 +149,8 @@ export function ToastGain({ de, a, titre, fermer, statique = false, verifiee = t
       clearTimeout(fin)
     }
   }, [de, a, statique])
-  const p = progressionDe(affiche, verifiee)
-  const passe = (progressionDe(de, verifiee).actuel?.niveau ?? 0) !== (progressionDe(a, verifiee).actuel?.niveau ?? 0)
+  const p = progressionDe(affiche, verifiee, force)
+  const passe = (progressionDe(de, verifiee, force).actuel?.niveau ?? 0) !== (progressionDe(a, verifiee, force).actuel?.niveau ?? 0)
   return (
     <div
       role="status"
@@ -177,7 +177,7 @@ export function ToastGain({ de, a, titre, fermer, statique = false, verifiee = t
       <div className="bg-bg-soft px-4 py-3">
         <div className="flex items-center justify-between gap-3 text-[11px] text-fg-2">
           <span>{p.verifiee ? `Palier ${p.actuel?.niveau ?? 0} · ${p.actuel?.nom ?? 'En route'}` : 'Fiche en préparation'}</span>
-          <span>{!p.verifiee ? 'Publiée dès la vérification' : p.suivant ? `${p.reste} pts avant ${p.suivant.nom}` : 'Sommet atteint'}</span>
+          <span>{!p.verifiee ? 'Publiée dès la vérification' : p.suivant ? `${resteAFaire(p)} avant ${p.suivant.nom}` : 'Sommet atteint'}</span>
         </div>
         <div className="mt-2">
           <BarreProgression part={p.part} epaisse />
@@ -349,7 +349,7 @@ type Memoire = { total: number; detail: Record<CleGain, number>; niveau: number 
 export function SuiviProgression({ slug, points, lon, lat, partager, distinctions, carte }: { slug: string; points: Points; lon: number | null; lat: number | null; partager: string; distinctions: string; carte?: CarteAMontrer }) {
   const [gain, setGain] = useState<{ de: number; a: number; titre: string } | null>(null)
   const [palier, setPalier] = useState<Palier | null>(null)
-  const niveau = progressionDe(points.total, points.verifiee).actuel?.niveau ?? 0
+  const niveau = progressionDe(points.total, points.verifiee, points.detail.fiche).actuel?.niveau ?? 0
 
   // Ce qui reste à montrer, gardé pour l'onglet : un rendu recréé (rechargement, page en flux) ne perd pas la célébration.
   const cleAMontrer = `dm-progression-a-montrer:${slug}`
@@ -387,27 +387,28 @@ export function SuiviProgression({ slug, points, lon, lat, partager, distinction
   return (
     <>
       {(gain || palier) && <StylesProgression />}
-      {gain && <ToastGain de={gain.de} a={gain.a} titre={gain.titre} fermer={() => oublier('gain')} verifiee={points.verifiee} />}
+      {gain && <ToastGain de={gain.de} a={gain.a} titre={gain.titre} fermer={() => oublier('gain')} verifiee={points.verifiee} force={points.detail.fiche} />}
       {palier && <PassagePalier palier={palier} fermer={() => oublier('palier')} lon={lon} lat={lat} partager={partager} distinctions={distinctions} carte={carte} />}
     </>
   )
 }
 
 /** Le chemin des paliers : atteints, le prochain, les verrouillés, et ce que chacun débloque. */
-export function CheminPaliers({ points, verifiee = true }: { points: number; verifiee?: boolean }) {
-  const prochain = progressionDe(points, verifiee).suivant?.niveau
+export function CheminPaliers({ points, verifiee = true, force = 100 }: { points: number; verifiee?: boolean; force?: number }) {
+  const progression = progressionDe(points, verifiee, force)
+  const prochain = progression.suivant?.niveau
   return (
     <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {PALIERS.map((p) => {
-        const etat = verifiee && points >= p.seuil ? 'atteint' : prochain === p.niveau ? 'encours' : 'verrouille'
+        const etat = verifiee && p.niveau <= (progression.actuel?.niveau ?? 0) ? 'atteint' : prochain === p.niveau ? 'encours' : 'verrouille'
         return (
           <li key={p.niveau} className={`squircle-2xl relative flex flex-col border p-4 ${etat === 'atteint' ? 'border-[#0B8484]/40 bg-bg' : etat === 'encours' ? 'border-teal bg-bg shadow-pop' : 'border-dashed border-line bg-bg-soft'}`}>
-            {etat === 'encours' && <span className="squircle-full absolute -top-2.5 left-4 bg-teal px-2 py-0.5 text-[10px] font-semibold text-white">Prochain · {p.seuil - points} pts</span>}
+            {etat === 'encours' && <span className="squircle-full absolute -top-2.5 left-4 bg-teal px-2 py-0.5 text-[10px] font-semibold text-white">Prochain · {resteAFaire(progression)}</span>}
             <div className="flex items-center gap-3">
               <Medaille niveau={p.niveau} etat={etat} taille={44} />
               <div>
                 <p className="font-semibold leading-tight text-fg">{p.nom}</p>
-                <p className="font-mono text-[11px] text-fg-2">{p.seuil} pts</p>
+                <p className="font-mono text-[11px] text-fg-2">{p.seuil} pts{p.forceMin ? ` · fiche à ${p.forceMin} %` : ''}</p>
               </div>
             </div>
             <ul className="mt-4 flex-1 space-y-2 text-xs">
