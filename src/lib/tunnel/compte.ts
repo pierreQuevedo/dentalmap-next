@@ -6,7 +6,7 @@ import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { auth } from '@/lib/auth'
 import { chemin } from '@/lib/navigation'
-import { estRole, etapeAutorisee, prochaineEtape, PROFESSIONS_DU_ROLE, type EtapeTunnel, type EtatCompte, type Role } from './etapes'
+import { estRole, etapeAutorisee, prochaineEtape, PROFESSIONS_DU_ROLE, sansFiche, type EtapeTunnel, type EtatCompte, type Role } from './etapes'
 
 /**
  * Le compte connecté tel que le tunnel le voit : session, rôle, et l'état de
@@ -66,7 +66,7 @@ export async function getCompte(): Promise<Compte | null> {
 export async function enregistrerProfil(role: Role, nom: string): Promise<void> {
   await auth.api.updateUser({
     headers: await headers(),
-    body: { name: nom, role, etapeTunnel: role === 'patient' || role === 'organisme' ? 'tableau-de-bord' : 'fiche' },
+    body: { name: nom, role, etapeTunnel: sansFiche(role) || role === 'organisme' ? 'tableau-de-bord' : 'fiche' },
   })
 }
 

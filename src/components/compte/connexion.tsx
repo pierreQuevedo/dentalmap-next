@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from
 import { ArrowRight, BriefcaseBusiness, Building2, Circle, CircleCheck, CreditCard, Eye, EyeOff, Hourglass, KeyRound, Lock, Mail, RefreshCw, UserRound } from 'lucide-react'
 import { emailOtp, signIn, signUp } from '@/lib/auth-client'
 import { chemin } from '@/lib/navigation'
-import type { Role } from '@/lib/tunnel/etapes'
+import { sansFiche, type Role } from '@/lib/tunnel/etapes'
 import { CRITERES_MOT_DE_PASSE, LONGUEUR_MOT_DE_PASSE, MESSAGE_MOT_DE_PASSE, motDePasseValide } from '@/lib/tunnel/mot-de-passe'
 import { EVENEMENT_PROFIL } from './chiffres-profil'
 import { suggererAdresse } from './suggestion'
@@ -35,16 +35,17 @@ import { CarteOption, Encart, Marque, Pictogramme, lien, pastille, pastilleInval
  * présélectionne le profil : les boutons « Créer un compte » du site.
  */
 const PROFILS: { role: Role; titre: string; detail: string }[] = [
-  { role: 'patient', titre: 'Patient', detail: 'Je cherche un professionnel.' },
   { role: 'dentiste', titre: 'Dentiste', detail: 'Chirurgien-dentiste, je gère ma fiche.' },
   { role: 'prothesiste', titre: 'Laboratoire', detail: 'Laboratoire de prothèse dentaire.' },
   { role: 'medecin', titre: 'Médecin', detail: 'Chirurgien maxillo-facial, stomatologue ou ORL.' },
   { role: 'organisme', titre: 'École', detail: 'École ou faculté : je gère la page de l’établissement.' },
+  { role: 'candidat', titre: 'Étudiant', detail: 'Étudiant ou salarié : je postule aux offres et je donne mon avis sur mon école ou ma faculté.' },
 ]
 
 /** Le bouton d'inscription dit pour quel profil le compte est créé. */
 const BOUTON_INSCRIPTION: Record<Role, string> = {
-  patient: 'Créer mon compte patient',
+  candidat: 'Créer mon compte',
+  patient: 'Créer mon compte',
   dentiste: 'Créer mon compte dentiste',
   prothesiste: 'Créer mon compte laboratoire',
   medecin: 'Créer mon compte médecin',
@@ -55,7 +56,7 @@ const BOUTON_INSCRIPTION: Record<Role, string> = {
 const ESSAIS_PAR_CODE = 5
 
 type TypeCode = 'email-verification' | 'forget-password'
-type Voie = 'sante' | 'structure' | 'patient'
+type Voie = 'sante' | 'structure' | 'candidat'
 
 /** Le code est mort : expiré, ou trop d'essais. Il faut en demander un autre. */
 const codeMort = (code?: string) => code === 'OTP_EXPIRED' || code === 'TOO_MANY_ATTEMPTS'
@@ -80,7 +81,7 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
         ? 'organisme'
         : retour.startsWith('/espace-pro')
           ? 'dentiste'
-          : 'patient',
+          : 'candidat',
   )
   const [nom, setNom] = useState('')
   // Le volet de gauche suit le profil choisi pendant toute l'inscription, code compris (`ChiffresProfil`).
@@ -175,7 +176,7 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
         password: motDePasse,
         name: nom.trim(),
         role,
-        etapeTunnel: role === 'patient' || role === 'organisme' ? 'tableau-de-bord' : 'fiche',
+        etapeTunnel: sansFiche(role) || role === 'organisme' ? 'tableau-de-bord' : 'fiche',
       })
       if (error) {
         setErreur(
@@ -238,7 +239,7 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
   const choisirVoie = (e: React.FormEvent) => {
     e.preventDefault()
     if (voie === 'structure') return window.location.assign(chemin('/contact/'))
-    setRole('patient')
+    setRole('candidat')
     setEmail('')
     aller('inscription')
   }
@@ -635,12 +636,12 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
                 />
                 <CarteOption
                   name="voie"
-                  value="patient"
-                  titre="Patient"
+                  value="candidat"
+                  titre="Étudiant ou salarié"
                   detail="Créez un compte avec votre nouvelle adresse."
                   icone={UserRound}
-                  checked={voie === 'patient'}
-                  onChange={() => setVoie('patient')}
+                  checked={voie === 'candidat'}
+                  onChange={() => setVoie('candidat')}
                 />
               </div>
             </fieldset>

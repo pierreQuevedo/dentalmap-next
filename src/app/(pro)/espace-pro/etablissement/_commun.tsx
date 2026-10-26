@@ -26,6 +26,7 @@ import {
   type SourceEtablissement,
 } from '@/lib/espace-pro/etablissement-donnees'
 import { estModerateur, getCompte, type Compte } from '@/lib/tunnel/compte'
+import { ESPACE_CANDIDAT } from '@/lib/tunnel/etapes'
 
 /**
  * Le chargement commun du tableau de bord d'un établissement.
@@ -59,6 +60,7 @@ export async function chargerEtablissement(page: CleNav, slug?: string): Promise
   if (!compte) redirect(chemin(`/connexion/?retour=${encodeURIComponent(ici)}`))
   if (!compte.role) redirect(chemin(`/inscription/profil/?role=organisme&retour=${encodeURIComponent(ici)}`))
   if (compte.role === 'patient') redirect(chemin('/favoris/'))
+  if (compte.role === 'candidat') redirect(chemin(ESPACE_CANDIDAT))
 
   const gestions = (await getGestions(compte.id)).filter((g) => g.statut !== 'refusee')
   if (!gestions.length) redirect(chemin(compte.role === 'organisme' ? `${ORGANISME}/` : '/espace-pro/'))

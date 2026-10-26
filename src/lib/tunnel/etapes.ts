@@ -8,19 +8,28 @@ import type { Profession } from '@/lib/annuaire/types'
  * est ici, pure, testée ; les pages ne font que l'appeler. Deux publics, deux
  * parcours :
  *
- * - patient : rôle, puis retour là où il était ;
+ * - étudiant ou salarié (`candidat`) : rôle, puis son espace Emploi (profil,
+ *   candidatures, avis sur son école) ; les comptes `patient` d'avant le
+ *   2026-10-26, quand le profil n'est plus proposé, reviennent là où ils étaient ;
  * - professionnel : rôle, fiche à trouver, preuve de qualité, parcours
  *   d'accueil, tableau de bord.
  *
  * Une revendication en attente ne bloque pas : le parcours d'accueil est
  * ouvert tout de suite, la publication attend l'acceptation.
  */
-export type Role = 'patient' | 'dentiste' | 'prothesiste' | 'medecin' | 'organisme'
+export type Role = 'candidat' | 'patient' | 'dentiste' | 'prothesiste' | 'medecin' | 'organisme'
 
-export const ROLES: readonly Role[] = ['patient', 'dentiste', 'prothesiste', 'medecin', 'organisme'] as const
+export const ROLES: readonly Role[] = ['candidat', 'patient', 'dentiste', 'prothesiste', 'medecin', 'organisme'] as const
+
+/** L'espace d'un étudiant ou d'un salarié : son profil Emploi, ou le parcours de bienvenue. */
+export const ESPACE_CANDIDAT = '/espace-candidat/'
+
+/** Ni soignant ni établissement : pas de fiche à revendiquer. */
+export const sansFiche = (role: Role | null) => role === 'candidat' || role === 'patient'
 
 /** Les professions de l'annuaire qu'un rôle peut revendiquer. */
 export const PROFESSIONS_DU_ROLE: Record<Role, readonly Profession[]> = {
+  candidat: [],
   patient: [],
   dentiste: ['dentiste'],
   prothesiste: ['prothesiste'],
@@ -65,7 +74,7 @@ export function retourSur(valeur: string | null | undefined, defaut = '/'): stri
 /** Où en est ce compte, et donc où l'envoyer. */
 export function etapeDe(etat: EtatCompte): EtapeTunnel {
   if (!etat.role) return 'profil'
-  if (etat.role === 'patient' || etat.role === 'organisme') return 'tableau-de-bord'
+  if (sansFiche(etat.role) || etat.role === 'organisme') return 'tableau-de-bord'
   const vivantes = etat.revendications.filter((r) => r.statut !== 'refusee')
   if (vivantes.length === 0) return etat.demandeCreationEnAttente ? 'tableau-de-bord' : 'fiche'
   if (vivantes.some((r) => !r.onboardingTermine)) return 'onboarding'
@@ -88,7 +97,11 @@ export function cheminEtape(etape: EtapeTunnel, role: Role | null): string {
 
 export function prochaineEtape(etat: EtatCompte, retour?: string | null): string {
   const etape = etapeDe(etat)
-  if (etape === 'tableau-de-bord') return retourSur(retour, etat.role === 'patient' ? '/' : CHEMIN_ETAPE['tableau-de-bord'])
+  if (etape === 'tableau-de-bord') {
+    // Un étudiant ou un salarié revient sur l'offre qu'il regardait ; sinon, son espace Emploi plutôt que l'accueil.
+    if (etat.role === 'candidat') return retour && retour !== '/' ? retourSur(retour, ESPACE_CANDIDAT) : ESPACE_CANDIDAT
+    return retourSur(retour, etat.role === 'patient' ? '/' : CHEMIN_ETAPE['tableau-de-bord'])
+  }
   // Un retour qui pointe déjà dans l'étape est gardé : arrivé par « Revendiquer
   // cette fiche », on revient sur la revendication de cette fiche, pas sur une
   // revendication vierge.
@@ -111,12 +124,12 @@ export function prochaineEtape(etat: EtatCompte, retour?: string | null): string
 export function etapeAutorisee(etat: EtatCompte, etape: EtapeTunnel): boolean {
   if (etape === 'profil') return true
   if (!etat.role) return false
-  if (etat.role === 'patient') return etape === 'tableau-de-bord'
+  if (sansFiche(etat.role)) return etape === 'tableau-de-bord'
   if (etape === 'onboarding') return etat.revendications.some((r) => r.statut !== 'refusee')
   return true
 }
 
 /** Un patient et un professionnel n'ont pas le même tableau de bord : le libellé le dit. */
 export function libelleRole(role: Role | null): string {
-  return role === 'dentiste' ? 'Chirurgien-dentiste' : role === 'prothesiste' ? 'Prothésiste dentaire' : role === 'medecin' ? 'Médecin : chirurgien maxillo-facial, stomatologue ou ORL' : role === 'patient' ? 'Patient' : role === 'organisme' ? 'École ou organisme' : 'Non renseigné'
+  return role === 'dentiste' ? 'Chirurgien-dentiste' : role === 'prothesiste' ? 'Prothésiste dentaire' : role === 'medecin' ? 'Médecin : chirurgien maxillo-facial, stomatologue ou ORL' : role === 'candidat' ? 'Étudiant ou salarié' : role === 'patient' ? 'Patient' : role === 'organisme' ? 'École ou organisme' : 'Non renseigné'
 }

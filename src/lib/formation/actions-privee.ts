@@ -27,7 +27,7 @@ export type EtatProposition = { erreur: string } | null
 /** A : la proposition, envoyée en JSON par le formulaire ; l'erreur revient au formulaire, qui garde la saisie. */
 export async function proposerFormation(_e: EtatProposition, donnees: FormData): Promise<EtatProposition> {
   const compte = await exigerConnexion(`${PROPOSER}/`)
-  if (compte.role === 'patient') return { erreur: 'La proposition de formation est réservée aux professionnels.' }
+  if (compte.role === 'patient' || compte.role === 'candidat') return { erreur: 'La proposition de formation est réservée aux professionnels.' }
   let brut: unknown
   try {
     brut = JSON.parse(String(donnees.get('proposition') ?? '{}'))

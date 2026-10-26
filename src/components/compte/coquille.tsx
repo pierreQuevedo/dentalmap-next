@@ -71,6 +71,10 @@ export async function Coquille({
       titre: [`Plus de ${millierInferieur(chiffres?.medecins ?? 0)} spécialistes`, 'du visage et de la bouche.'],
       texte: 'Chirurgiens maxillo-faciaux, stomatologues et ORL, lus au registre RPPS chaque semaine.',
     },
+    candidat: {
+      titre: ['Postulez aux offres', 'des cabinets et des laboratoires.'],
+      texte: 'Un profil pour toutes vos candidatures, des alertes sur les nouveaux postes, et votre avis sur votre école ou votre faculté.',
+    },
     organisme: {
       titre: [`${ecoles} écoles de prothèse`, `et ${facultes} facultés d’odontologie.`],
       texte: 'Leurs diplômes, leurs voies d’accès et leurs portes ouvertes, au même endroit.',

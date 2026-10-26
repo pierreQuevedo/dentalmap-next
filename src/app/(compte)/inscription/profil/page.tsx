@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { ArrowRight, FlaskConical, GraduationCap, Stethoscope, UserRound } from 'lucide-react'
+import { ArrowRight, BriefcaseBusiness, FlaskConical, GraduationCap, Stethoscope } from 'lucide-react'
 import { Coquille } from '@/components/compte/coquille'
-import { CarteOption, Encart, Marque, lien, principal, titre } from '@/components/compte/ui'
+import { CarteOption, Encart, Marque, principal, titre } from '@/components/compte/ui'
 import { chemin } from '@/lib/navigation'
 import { choisirProfil } from '@/lib/tunnel/actions'
 import { enregistrerProfil, getCompte } from '@/lib/tunnel/compte'
-import { estRole, prochaineEtape, retourSur, type Role } from '@/lib/tunnel/etapes'
+import { ESPACE_CANDIDAT, estRole, prochaineEtape, retourSur, type Role } from '@/lib/tunnel/etapes'
 
 export const metadata: Metadata = { title: 'Qui êtes-vous ?', robots: { index: false, follow: false } }
 export const instant = false
@@ -16,12 +16,13 @@ export const instant = false
  *
  * Quatre cartes, choix unique. « Chirurgien-dentiste ou spécialiste » réunit
  * dentistes et médecins du visage sous le rôle `dentiste` : la profession
- * exacte est demandée plus loin, avec le RPPS. « Je préfère ne pas répondre »
- * envoie le formulaire sans rôle, ce qui vaut parcours patient.
+ * exacte est demandée plus loin, avec le RPPS. « Étudiant ou salarié » mène à
+ * l'espace Emploi (profil, candidatures, avis sur son école). Plus de profil
+ * patient depuis le 2026-10-26.
 
  */
-const PROFILS: { role: Role; titre: string; detail: string; icone: typeof UserRound }[] = [
-  { role: 'patient', titre: 'Patient ou proche', detail: 'Je cherche un professionnel.', icone: UserRound },
+const PROFILS: { role: Role; titre: string; detail: string; icone: typeof Stethoscope }[] = [
+  { role: 'candidat', titre: 'Étudiant ou salarié', detail: 'Je postule aux offres, je donne mon avis sur mon école ou ma faculté.', icone: BriefcaseBusiness },
   { role: 'dentiste', titre: 'Chirurgien-dentiste ou spécialiste', detail: 'Dentiste, stomatologue, maxillo-facial ou ORL.', icone: Stethoscope },
   { role: 'prothesiste', titre: 'Prothésiste, laboratoire', detail: 'Je représente un laboratoire de prothèse dentaire.', icone: FlaskConical },
   { role: 'organisme', titre: 'École ou organisme', detail: 'Faculté, école, formation, ordre ou syndicat.', icone: GraduationCap },
@@ -38,10 +39,11 @@ export default async function Page(props: { searchParams: Promise<{ role?: strin
    * a été créé avec le compte. On enregistre et on passe à la suite, sans
    * redemander.
    */
-  if (!compte.role && estRole(role) && compte.nom.trim().length >= 2) {
+  // Plus de profil patient à l'inscription : un ancien lien `?role=patient` repose la question.
+  if (!compte.role && estRole(role) && role !== 'patient' && compte.nom.trim().length >= 2) {
     await enregistrerProfil(role, compte.nom.trim())
     const maj = await getCompte()
-    redirect(chemin(prochaineEtape(maj!.etat, retourSur(retour, role === 'patient' ? '/' : '/espace-pro/'))))
+    redirect(chemin(prochaineEtape(maj!.etat, retourSur(retour, role === 'candidat' ? ESPACE_CANDIDAT : '/espace-pro/'))))
   }
   const choisi = estRole(role) ? role : compte.role
   const preselection = choisi === 'medecin' ? 'dentiste' : choisi
@@ -80,12 +82,6 @@ export default async function Page(props: { searchParams: Promise<{ role?: strin
           <button type="submit" className={`${principal} mt-6`}>
             Continuer
             <ArrowRight className="size-4" aria-hidden />
-          </button>
-        </form>
-        <form action={choisirProfil} className="mt-4 text-center text-sm">
-          {retourCache}
-          <button type="submit" className={lien}>
-            Je préfère ne pas répondre
           </button>
         </form>
       </div>

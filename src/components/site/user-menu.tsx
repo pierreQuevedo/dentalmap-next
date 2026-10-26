@@ -28,9 +28,10 @@ export function UserMenu() {
   const item = 'block rounded-xl px-4 py-3 text-[15px] text-fg hover:bg-bg-soft'
   // Espace pro et favoris : de vrais liens. Ces pages redirigent côté serveur (connexion, revendication) ;
   // atteintes par le routeur client depuis le site, la redirection laissait l'écran figé.
-  // Le menu suit le profil : un patient a ses favoris, un soignant son espace pro.
+  // Le menu suit le profil : un étudiant ou un salarié a son espace Emploi, un ancien compte patient ses favoris, un soignant son espace pro.
   const role = (session?.user as { role?: string | null } | undefined)?.role ?? null
   const patient = role === 'patient'
+  const candidat = role === 'candidat'
   const soignant = role === 'dentiste' || role === 'medecin' || role === 'prothesiste'
 
   return (
@@ -64,8 +65,10 @@ export function UserMenu() {
         >
           {session ? (
             <>
-              {!patient && (
-                <a role="menuitem" href="/espace-pro/" className={`${item} font-semibold`}>Espace pro</a>
+              {candidat ? (
+                <a role="menuitem" href="/espace-candidat/" className={`${item} font-semibold`}>Mon profil</a>
+              ) : (
+                !patient && <a role="menuitem" href="/espace-pro/" className={`${item} font-semibold`}>Espace pro</a>
               )}
               <a role="menuitem" href="/favoris/" className={`${item} ${patient ? 'font-semibold' : ''}`}>Mes favoris</a>
               {soignant ? (

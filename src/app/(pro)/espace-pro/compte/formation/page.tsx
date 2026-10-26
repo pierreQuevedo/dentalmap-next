@@ -32,7 +32,7 @@ const STATUT: Record<StatutProposition, { s: 'attente' | 'publiee' | 'incomplete
 async function coque(): Promise<{ coque: InfosCoque | null; organisme?: string }> {
   const compte = await exigerConnexion(`${PROPOSER}/`)
   if (!compte.role) redirect(chemin(`/inscription/profil/?retour=${encodeURIComponent(`${PROPOSER}/`)}`))
-  if (compte.role === 'patient') redirect(chemin('/'))
+  if (compte.role === 'patient' || compte.role === 'candidat') redirect(chemin('/'))
   if (compte.role === 'organisme') {
     const gestion = (await getGestions(compte.id)).find((g) => g.statut !== 'refusee')
     const fiche = gestion ? await getFicheEtablissement(gestion.slug) : null

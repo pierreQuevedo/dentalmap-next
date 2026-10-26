@@ -7,7 +7,7 @@ import { getEspace, type Espace } from '@/lib/espace-pro/espace'
 import { pointsDeLEspace } from '@/lib/espace-pro/progression-donnees'
 import { progressionDe, type Points } from '@/lib/espace-pro/progression'
 import { estModerateur, getCompte, type Compte } from '@/lib/tunnel/compte'
-import { CHEMIN_ETAPE, etapeDe } from '@/lib/tunnel/etapes'
+import { CHEMIN_ETAPE, ESPACE_CANDIDAT, etapeDe } from '@/lib/tunnel/etapes'
 import { nomDe, pageFiche } from '../../(compte)/espace-pro/revendiquer/_commun'
 
 /**
@@ -26,6 +26,8 @@ export async function chargerTableau(page: CleNav, slug?: string, sousPage?: str
   const etape = etapeDe(compte.etat)
   if (etape === 'profil') redirect(chemin(CHEMIN_ETAPE.profil))
   if (compte.role === 'patient') redirect(chemin('/favoris/'))
+  // Un étudiant ou un salarié a son espace Emploi.
+  if (compte.role === 'candidat') redirect(chemin(ESPACE_CANDIDAT))
   // Une école ou une faculté a son propre tableau de bord.
   if (compte.role === 'organisme') redirect(chemin(`/espace-pro/etablissement/${page === 'vue' ? '' : page === 'compte' ? 'compte/' : ''}${slug ? `?fiche=${encodeURIComponent(slug)}` : ''}`))
   const espace = await getEspace(compte, slug)

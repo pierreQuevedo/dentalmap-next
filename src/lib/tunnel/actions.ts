@@ -17,7 +17,7 @@ import {
 } from '@/lib/email'
 import { appliquerRetrait } from '@/lib/espace-pro/revendication'
 import { enregistrerProfil, estModerateur, getCompte } from './compte'
-import { estRole, prochaineEtape, retourSur, type Role } from './etapes'
+import { ESPACE_CANDIDAT, estRole, prochaineEtape, retourSur, type Role } from './etapes'
 
 /**
  * Actions du tunnel. Chaque action relit la session : l'interface cache ce
@@ -50,11 +50,12 @@ export async function etatCompte(email: string): Promise<{ existe: boolean; role
 
 /*
  * Le nom est facultatif : le compte l'a reçu à l'inscription, « Qui êtes-vous ? »
- * ne demande que le profil. « Je préfère ne pas répondre » arrive sans rôle et
- * mène au parcours patient : la question n'est posée qu'une fois.
+ * ne demande que le profil, posé une seule fois. Plus de profil patient depuis
+ * le 2026-10-26 : les comptes servent aux professionnels, aux établissements et
+ * aux étudiants et salariés (`candidat`).
  */
 const schemaProfil = z.object({
-  role: z.enum(['patient', 'dentiste', 'prothesiste', 'medecin', 'organisme']).default('patient'),
+  role: z.enum(['candidat', 'dentiste', 'prothesiste', 'medecin', 'organisme'], { message: 'Choisissez votre profil.' }),
   nom: z.string().trim().min(2, 'Indiquez votre nom').max(120).optional(),
   retour: z.string().optional(),
 })
@@ -72,7 +73,7 @@ export async function choisirProfil(donnees: FormData): Promise<never> {
 
   await enregistrerProfil(r.data.role, r.data.nom ?? session.user.name)
   const compte = await getCompte()
-  redirect(chemin(prochaineEtape(compte!.etat, retourSur(r.data.retour, r.data.role === 'patient' ? '/' : '/espace-pro/'))))
+  redirect(chemin(prochaineEtape(compte!.etat, retourSur(r.data.retour, r.data.role === 'candidat' ? ESPACE_CANDIDAT : '/espace-pro/'))))
 }
 
 /* ------------------------------------------------------------------ */

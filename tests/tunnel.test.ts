@@ -3,6 +3,7 @@ import { etapeAutorisee, etapeDe, prochaineEtape, retourSur, type EtatCompte } f
 
 const vide: EtatCompte = { role: null, revendications: [], demandeCreationEnAttente: false }
 const patient: EtatCompte = { ...vide, role: 'patient' }
+const candidat: EtatCompte = { ...vide, role: 'candidat' }
 const dentiste: EtatCompte = { ...vide, role: 'dentiste' }
 
 describe('etapeDe', () => {
@@ -47,6 +48,14 @@ describe('prochaineEtape', () => {
 })
 
 describe('etapeAutorisee', () => {
+  it('mène un étudiant ou un salarié à son espace Emploi, ou à l’offre qu’il regardait', () => {
+    expect(etapeDe(candidat)).toBe('tableau-de-bord')
+    expect(prochaineEtape(candidat)).toBe('/espace-candidat/')
+    expect(prochaineEtape(candidat, '/')).toBe('/espace-candidat/')
+    expect(prochaineEtape(candidat, '/emploi/offres/assistant-bordeaux/')).toBe('/emploi/offres/assistant-bordeaux/')
+    expect(etapeAutorisee(candidat, 'fiche')).toBe(false)
+  })
+
   it('ferme le volet professionnel aux patients', () => {
     expect(etapeAutorisee(patient, 'fiche')).toBe(false)
     expect(etapeAutorisee(patient, 'tableau-de-bord')).toBe(true)
