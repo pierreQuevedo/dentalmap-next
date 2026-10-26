@@ -253,6 +253,13 @@
       "when": 1792961226365,
       "tag": "0035_salty_mongu",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793028699444,
+      "tag": "0036_busy_firestar",
+      "breakpoints": true
     }
   ]
 }

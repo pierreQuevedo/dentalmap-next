@@ -1,0 +1,1 @@
+CREATE INDEX "lieux_praticien" ON "lieux_exercice" USING btree ("praticien_id","principal" DESC NULLS LAST,"id");
