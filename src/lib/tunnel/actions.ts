@@ -15,7 +15,7 @@ import {
   envoyerRevendicationAcceptee,
   envoyerRevendicationRefusee,
 } from '@/lib/email'
-import { appliquerRetrait } from '@/lib/espace-pro/revendication'
+import { appliquerRetrait, reprendreFicheCompletee } from '@/lib/espace-pro/revendication'
 import { enregistrerProfil, estModerateur, getCompte } from './compte'
 import { ESPACE_CANDIDAT, estRole, prochaineEtape, retourSur, type Role } from './etapes'
 
@@ -201,6 +201,7 @@ export async function accepterRevendication(donnees: FormData): Promise<never> {
       UPDATE revendications SET statut = 'refusee', motif_refus = 'Fiche transférée', traite_le = now()
       WHERE praticien_id = ${d.praticien_id} AND id <> ${d.id} AND statut = 'acceptee' AND objet = 'revendication'
     `)
+    await reprendreFicheCompletee(d.praticien_id, d.user_id)
     revalidateTag('annuaire', 'max')
     revalidateTag('praticien', 'max')
     await envoyerRevendicationAcceptee(d.email, nomAffiche({ profession: d.profession, nom: d.nom, prenom: d.prenom, raisonSociale: d.raison_sociale }), cheminDe(d))

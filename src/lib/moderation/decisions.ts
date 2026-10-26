@@ -3,7 +3,7 @@ import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { BASE_URL, cheminPraticien, nomAffiche, type Profession } from '@/lib/annuaire/types'
 import { envoyerAttestationDecidee, envoyerEtablissementAjoute, envoyerRevendicationAcceptee, envoyerRevendicationRefusee } from '@/lib/email'
-import { appliquerRetrait } from '@/lib/espace-pro/revendication'
+import { appliquerRetrait, reprendreFicheCompletee } from '@/lib/espace-pro/revendication'
 import { getSourceEtablissement, reprendreFiche } from '@/lib/espace-pro/etablissement-donnees'
 
 /**
@@ -75,6 +75,7 @@ export async function deciderRevendication(id: string, decision: Decision, refus
       UPDATE revendications SET statut = 'refusee', motif_refus = 'Fiche transférée', traite_le = now()
       WHERE praticien_id = ${d.praticien_id} AND id <> ${d.id} AND statut = 'acceptee' AND objet = 'revendication'
     `)
+    await reprendreFicheCompletee(d.praticien_id, d.user_id)
     const cheminFiche = d.commune_slug && d.departement_slug ? cheminPraticien(BASE_URL[d.profession], d.departement_slug, d.commune_slug, d.slug) : '/'
     await envoyerRevendicationAcceptee(d.email, fiche, cheminFiche)
   }

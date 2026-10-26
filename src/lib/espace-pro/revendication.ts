@@ -120,6 +120,26 @@ export async function accorderParPsc(args: {
           rpps_verifie = EXCLUDED.rpps_verifie,
           traite_le = now()
   `)
+  await reprendreFicheCompletee(args.praticienId, args.userId)
+}
+
+/**
+ * Une revendication vient d'être acceptée : ce qu'un compte non validé a
+ * écrit sur la fiche (horaires, liens, photo, présentation) est effacé, et la
+ * fiche repart des registres. Sinon un usurpateur en attente pouvait poser un
+ * faux lien de rendez-vous, mis en ligne dès l'acceptation du vrai praticien
+ * (audit du 2026-10-26). Ce qu'a écrit le compte accepté, ou un autre
+ * titulaire encore validé, est gardé.
+ */
+export async function reprendreFicheCompletee(praticienId: string, userId: string): Promise<void> {
+  await db.execute(sql`
+    DELETE FROM fiches_completees f
+    WHERE f.praticien_id = ${praticienId} AND f.user_id <> ${userId}::uuid
+      AND NOT EXISTS (
+        SELECT 1 FROM revendications r
+        WHERE r.praticien_id = f.praticien_id AND r.user_id = f.user_id AND r.statut = 'acceptee' AND r.objet = 'revendication'
+      )
+  `)
 }
 
 export type FicheDuCompte = {
