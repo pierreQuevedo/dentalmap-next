@@ -69,3 +69,15 @@ describe('etapeAutorisee', () => {
     expect(etapeAutorisee(vide, 'fiche')).toBe(false)
   })
 })
+
+describe('Retour après connexion : jamais vers un autre site', () => {
+  it('garde les chemins internes, avec leur requête', () => {
+    expect(retourSur('/espace-pro/onboarding/horaires/?fiche=dr-x')).toBe('/espace-pro/onboarding/horaires/?fiche=dr-x')
+    expect(retourSur('/recherche/?q=saint%20malo')).toBe('/recherche/?q=saint%20malo')
+  })
+  it('refuse les tremplins que les navigateurs lisent comme //site', () => {
+    for (const v of ['//exemple.com', '/\\exemple.com', '/%5Cexemple.com', '/%5cexemple.com', '/%09/exemple.com', '/%2F/exemple.com', '/\t/exemple.com', 'https://exemple.com', '/%E0%A4%A']) {
+      expect(retourSur(v, '/')).toBe('/')
+    }
+  })
+})

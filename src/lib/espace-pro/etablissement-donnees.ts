@@ -174,6 +174,25 @@ export async function initialiserFiche(s: SourceEtablissement, userId: string): 
   `)
 }
 
+/**
+ * Un gestionnaire vient d'être validé : ce qu'un autre compte a pu préparer
+ * avant lui, sur une page jamais publiée, est effacé, et la page repart du
+ * contenu de WordPress. Sinon une demande d'usurpateur, refusée plus tard,
+ * laisserait ses textes en ligne à la première publication. Un document écrit
+ * par la personne validée, ou par un autre gestionnaire validé, est gardé.
+ */
+export async function reprendreFiche(s: SourceEtablissement, userId: string): Promise<void> {
+  const donnees: Donnees = { ...DONNEES_VIDES, ...s.donneesInitiales }
+  await db.execute(sql`
+    UPDATE fiches_etablissement f SET donnees = ${JSON.stringify(donnees)}::jsonb, mis_a_jour_le = now(), mis_a_jour_par = ${userId}::uuid
+    WHERE f.slug = ${s.slug} AND f.publiee_le IS NULL AND f.mis_a_jour_par IS DISTINCT FROM ${userId}::uuid
+      AND NOT EXISTS (
+        SELECT 1 FROM revendications_etablissement r
+        WHERE r.slug = f.slug AND r.statut = 'acceptee' AND r.user_id = f.mis_a_jour_par
+      )
+  `)
+}
+
 /* ------------------------------------------------------------------ */
 /* Page publique                                                        */
 /* ------------------------------------------------------------------ */

@@ -32,7 +32,8 @@ describe('domaine de l’établissement', () => {
   const fac = domainesDe({ emails: ['scolarite.odontologie@u-bordeaux.fr'], siteWeb: 'https://sante.u-bordeaux.fr/college-sante/' })
   it('reconnaît une adresse du domaine ou d’un sous-domaine', () => {
     expect(adresseReconnue('marie.dupont@u-bordeaux.fr', fac)).toBe(true)
-    expect(adresseReconnue('m.dupont@etu.u-bordeaux.fr', fac)).toBe(true)
+    // Un sous-domaine (étudiants) ne suffit plus : attestation relue par l'équipe.
+    expect(adresseReconnue('m.dupont@etu.u-bordeaux.fr', fac)).toBe(false)
     expect(adresseReconnue('marie.dupont@gmail.com', fac)).toBe(false)
     expect(adresseReconnue('x@bordeaux.fr', fac)).toBe(false)
     expect(domaineAttendu(fac)).toBe('u-bordeaux.fr')

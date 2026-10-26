@@ -65,10 +65,29 @@ export type EtatCompte = {
   demandeCreationEnAttente: boolean
 }
 
-/** Seuls les chemins internes sont acceptés comme retour : pas de tremplin vers un autre site. */
+/**
+ * Un chemin interne au site, et rien d'autre : pas de tremplin vers un autre
+ * site. Les navigateurs lisent `/\exemple.com`, `/%5Cexemple.com` ou
+ * `/%09/exemple.com` (tabulation ignorée) comme `//exemple.com` : la forme
+ * brute ne doit contenir ni espace, ni caractère de contrôle, ni barre oblique
+ * inverse ; décodée, débarrassée de ses blancs, elle ne doit pas commencer
+ * par `//` ou `/\` ni contenir de barre oblique inverse.
+ */
+export function cheminInterne(valeur: unknown): valeur is string {
+  if (typeof valeur !== 'string' || !/^\/(?![/\\])[^\s\\\u0000-\u001f\u007f]*$/.test(valeur)) return false
+  let decode: string
+  try {
+    decode = decodeURIComponent(valeur)
+  } catch {
+    return false
+  }
+  const nu = decode.replace(/[\s\u0000-\u001f\u007f]/g, '')
+  return /^\/(?![/\\])/.test(nu) && !nu.includes('\\')
+}
+
+/** Seuls les chemins internes sont acceptés comme retour (`cheminInterne`). */
 export function retourSur(valeur: string | null | undefined, defaut = '/'): string {
-  if (!valeur || !valeur.startsWith('/') || valeur.startsWith('//')) return defaut
-  return valeur
+  return cheminInterne(valeur) ? valeur : defaut
 }
 
 /** Où en est ce compte, et donc où l'envoyer. */

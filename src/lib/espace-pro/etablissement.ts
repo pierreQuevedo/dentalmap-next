@@ -105,13 +105,19 @@ export function domainesDe(source: { emails: string[]; siteWeb: string | null })
   return { domaines: [...domaines], adresses: [...adresses] }
 }
 
-/** L'adresse du compte est-elle sur le domaine de l'établissement ? */
+/**
+ * L'adresse du compte est-elle celle de l'établissement ? Une adresse publiée
+ * par lui, ou une adresse exactement sur son domaine (`@u-bordeaux.fr`). Les
+ * sous-domaines ne valent pas : `@etu.u-bordeaux.fr` est celui des étudiants,
+ * qui deviendraient gestionnaires vérifiés sans examen (audit du 2026-10-26).
+ * Ces adresses passent par l'attestation, relue par l'équipe.
+ */
 export function adresseReconnue(email: string, d: Domaines): boolean {
   const adresse = email.trim().toLowerCase()
   if (d.adresses.includes(adresse)) return true
   const hote = adresse.split('@')[1]
   if (!hote || MESSAGERIES.has(hote) || PARTAGE.test(hote)) return false
-  return d.domaines.some((dom) => hote === dom || hote.endsWith(`.${dom}`))
+  return d.domaines.includes(hote)
 }
 
 /** Le domaine à montrer à la personne (OAT) : celui qui marcherait. */

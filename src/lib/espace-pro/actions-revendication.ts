@@ -12,6 +12,7 @@ import { chemin } from '@/lib/navigation'
 import { envoyerAModerer, envoyerMandatAuGerant, envoyerRevendicationRecue } from '@/lib/email'
 import { nomAffiche } from '@/lib/annuaire/types'
 import { exigerConnexion } from '@/lib/tunnel/compte'
+import { cheminInterne } from '@/lib/tunnel/etapes'
 import { COOKIE_IDENTITE, descellerIdentite } from '@/lib/psc/etat'
 import { accorderParPsc } from './revendication'
 import { getFicheRevendication } from './parcours'
@@ -227,7 +228,7 @@ const schemaAlerte = z.discriminatedUnion('motif', [
 export async function poserAlerte(donnees: FormData): Promise<never> {
   const brut = Object.fromEntries(donnees.entries())
   const r = schemaAlerte.safeParse(brut)
-  const retour = typeof brut.retour === 'string' && brut.retour.startsWith('/') && !brut.retour.startsWith('//') ? brut.retour : `${REVENDIQUER}/`
+  const retour = cheminInterne(brut.retour) ? brut.retour : `${REVENDIQUER}/`
   const compte = await exigerConnexion(retour)
   if (!r.success) redirect(chemin(retour))
 

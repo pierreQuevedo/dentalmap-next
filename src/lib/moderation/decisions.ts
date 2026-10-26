@@ -4,7 +4,7 @@ import { db } from '@/db'
 import { BASE_URL, cheminPraticien, nomAffiche, type Profession } from '@/lib/annuaire/types'
 import { envoyerAttestationDecidee, envoyerEtablissementAjoute, envoyerRevendicationAcceptee, envoyerRevendicationRefusee } from '@/lib/email'
 import { appliquerRetrait } from '@/lib/espace-pro/revendication'
-import { getSourceEtablissement } from '@/lib/espace-pro/etablissement-donnees'
+import { getSourceEtablissement, reprendreFiche } from '@/lib/espace-pro/etablissement-donnees'
 
 /**
  * Les décisions de modération, sans contrôle d'accès : l'appelant s'en charge
@@ -100,15 +100,17 @@ export async function deciderDemandeCreation(id: string, decision: Decision, slu
 /** Demande de gestion d'une page d'établissement par attestation de fonction (OAT). */
 export async function deciderAttestation(id: string, decision: Decision, motif?: string | null): Promise<boolean> {
   const m = motif?.trim().slice(0, 500) || null
-  const { rows } = await db.execute<{ slug: string; titre: string; email: string }>(sql`
+  const { rows } = await db.execute<{ slug: string; titre: string; email: string; user_id: string }>(sql`
     UPDATE revendications_etablissement r SET statut = ${decision}, traite_le = now(), motif_refus = ${decision === 'refusee' ? m : null}
     FROM "user" u WHERE r.id = ${id} AND r.statut = 'en_attente' AND u.id = r.user_id
-    RETURNING r.slug, r.titre, u.email
+    RETURNING r.slug, r.titre, u.email, r.user_id
   `)
   const r = rows[0]
   if (!r) return false
-  revalidateTag(`etablissement:${r.slug}`, 'max')
   const source = await getSourceEtablissement(r.slug)
+  // Validé : ce qu'un autre compte aurait préparé sur une page jamais publiée repart de zéro.
+  if (decision === 'acceptee' && source) await reprendreFiche(source, r.user_id)
+  revalidateTag(`etablissement:${r.slug}`, 'max')
   try {
     await envoyerAttestationDecidee(r.email, r.titre, decision === 'acceptee' ? { acceptee: true, lien: source?.lien ?? '/formation/' } : { acceptee: false, motif: m })
   } catch (e) {

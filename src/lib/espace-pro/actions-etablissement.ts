@@ -19,7 +19,7 @@ import { enregistrerProfil, estModerateur, exigerConnexion, type Compte } from '
 import { synchroniserFormation } from '@/lib/wp/ecriture'
 import { deciderAjoutEtablissement, deciderAttestation as deciderAttestationModeration } from '@/lib/moderation/decisions'
 import { COOKIE_PARTENARIAT, SPECIALITES, TYPES_PARTENARIAT, adresseReconnue, controlerUai, CentreSoins, Cycle, Donnees, FormationDeclaree, Photo, VoieAcces, type Bloc } from './etablissement'
-import { ESPACE_ETAB, ORGANISME, getFicheEtablissement, getGestions, getSourceEtablissement, initialiserFiche, type Gestion } from './etablissement-donnees'
+import { ESPACE_ETAB, ORGANISME, getFicheEtablissement, getGestions, getSourceEtablissement, initialiserFiche, reprendreFiche, type Gestion } from './etablissement-donnees'
 import { controlerJustificatif, rangerJustificatif, typeDepuisNom } from './justificatif'
 
 /**
@@ -73,6 +73,7 @@ export async function choisirEtablissement(donnees: FormData): Promise<never> {
       ON CONFLICT (user_id, slug) DO UPDATE SET methode = 'domaine', statut = 'acceptee', traite_le = now(), motif_refus = NULL
     `)
     await initialiserFiche(source, compte.id)
+    await reprendreFiche(source, compte.id)
     redirect(chemin(`${ORGANISME}/formations/?fiche=${encodeURIComponent(slug)}`))
   }
   redirect(chemin(`${ORGANISME}/etablissement/attestation/?fiche=${encodeURIComponent(slug)}`))
@@ -217,11 +218,26 @@ export async function proposerPartenariat(donnees: FormData): Promise<never> {
 /* O3a et tableau de bord : ce que l'établissement déclare              */
 /* ------------------------------------------------------------------ */
 
-/** Un gestionnaire de cet établissement (accepté ou en attente), ou la recherche. */
-async function exigerGestion(slug: string, ici: string): Promise<{ compte: Compte; gestion: Gestion }> {
+/**
+ * Un gestionnaire de cet établissement (accepté ou en attente), ou la recherche.
+ *
+ * Pour écrire, une demande en attente ne suffit plus dès que la page est
+ * publiée ou qu'un autre gestionnaire est validé : la page publique lit ce
+ * même document, et une attestation quelconque permettait de la réécrire
+ * (audit du 2026-10-26). En attente, on prépare seulement une page que
+ * personne ne gère encore.
+ */
+async function exigerGestion(slug: string, ici: string, ecriture = false): Promise<{ compte: Compte; gestion: Gestion }> {
   const compte = await exigerConnexion(ici)
   const gestion = (await getGestions(compte.id)).find((g) => g.slug === slug && g.statut !== 'refusee')
   if (!gestion) redirect(chemin(`${ORGANISME}/etablissement/`))
+  if (ecriture && gestion.statut !== 'acceptee') {
+    const { rows } = await db.execute<{ bloque: boolean }>(sql`
+      SELECT EXISTS (SELECT 1 FROM fiches_etablissement WHERE slug = ${slug} AND publiee_le IS NOT NULL)
+          OR EXISTS (SELECT 1 FROM revendications_etablissement WHERE slug = ${slug} AND statut = 'acceptee' AND user_id <> ${compte.id}::uuid) AS bloque
+    `)
+    if (rows[0]?.bloque) redirect(avec(ici, 'erreur', 'Cette page est déjà gérée par l’établissement : vous pourrez la modifier une fois votre fonction vérifiée par notre équipe.'))
+  }
   return { compte, gestion }
 }
 
@@ -251,7 +267,7 @@ function lireJson<T>(schema: z.ZodType<T>, brut: FormDataEntryValue | null): T |
 export async function enregistrerFormationsOnboarding(donnees: FormData): Promise<never> {
   const slug = String(donnees.get('fiche') ?? '')
   const ici = `${ORGANISME}/formations/?fiche=${encodeURIComponent(slug)}`
-  const { compte, gestion } = await exigerGestion(slug, ici)
+  const { compte, gestion } = await exigerGestion(slug, ici, true)
   const formations = lireJson(z.array(FormationDeclaree).max(20), donnees.get('formations'))
   if (!formations) redirect(avec(ici, 'erreur', 'Une formation est incomplète : vérifiez son intitulé.'))
   const publier = donnees.get('suite') === 'publier'
@@ -309,7 +325,7 @@ export async function enregistrerBloc(donnees: FormData): Promise<never> {
   const bloc = String(donnees.get('bloc') ?? '') as Bloc
   const retour = String(donnees.get('retour') ?? `${ESPACE_ETAB}/`)
   const ici = `${retour.startsWith(ESPACE_ETAB) ? retour : `${ESPACE_ETAB}/`}`
-  const { compte } = await exigerGestion(slug, ici)
+  const { compte } = await exigerGestion(slug, ici, true)
   const schema = BLOCS[bloc]
   if (!schema) redirect(avec(ici, 'erreur', 'Bloc inconnu.'))
   const valeur = (schema as z.ZodType<Partial<Donnees>>).safeParse(valeurDepuisFormulaire(bloc, donnees)).data ?? null
@@ -327,7 +343,7 @@ export async function confirmerBloc(donnees: FormData): Promise<never> {
   const slug = String(donnees.get('fiche') ?? '')
   const bloc = String(donnees.get('bloc') ?? '') as Bloc
   const ici = `${ESPACE_ETAB}/?fiche=${encodeURIComponent(slug)}`
-  const { compte } = await exigerGestion(slug, ici)
+  const { compte } = await exigerGestion(slug, ici, true)
   if (!(bloc in BLOCS)) redirect(chemin(ici))
   await ecrireDonnees(slug, compte.id, (x) => x, bloc)
   redirect(avec(ici, 'enregistre', bloc))
