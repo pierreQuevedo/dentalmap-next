@@ -46,6 +46,28 @@ const nextConfig: NextConfig = {
    * `trailingSlash`, Next ajoute le slash final avant d'appliquer la règle :
    * la destination l'écrit pour éviter une seconde redirection.
    */
+  /*
+   * En-têtes de sécurité, sur toutes les réponses. Aucune page n'est faite
+   * pour être affichée dans le cadre d'un autre site : `frame-ancestors` et
+   * `X-Frame-Options` l'interdisent (clickjacking). La CSP s'en tient aux
+   * directives sans risque pour GTM, Axeptio, Clarity et la carte ; une
+   * politique des scripts demanderait des nonces, à mener à part.
+   * La géolocalisation reste permise au site (« Autour de moi »).
+   */
+  async headers() {
+    return [
+      {
+        source: '/:chemin*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests" },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), payment=(), usb=(), geolocation=(self), interest-cohort=()' },
+        ],
+      },
+    ]
+  },
   async redirects() {
     return [
       { source: '/annonces/collaboration/:reste*', destination: '/emploi/remplacements/', permanent: true },
