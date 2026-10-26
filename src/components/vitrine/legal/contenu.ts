@@ -31,7 +31,7 @@ export type PageLegale = {
 }
 
 const VERSION = 'Version 0.1'
-const MAJ = '25 octobre 2026'
+const MAJ = '26 octobre 2026'
 
 export const PAGES: PageLegale[] = [
   {
@@ -285,7 +285,7 @@ export const PAGES: PageLegale[] = [
             liste: [
               'Exécution du service demandé : compte, favoris, espace pro, candidatures.',
               'Intérêt légitime : annuaire construit depuis les registres, sécurité du site, réponse aux signalements.',
-              'Consentement : alertes emploi par email, et visibilité de votre profil emploi.',
+              'Consentement : alertes emploi par email, visibilité de votre profil emploi, et cookies de mesure d’audience et de publicité.',
               'Obligation légale : conservation de certaines données à la demande des autorités.',
             ],
           },
@@ -325,6 +325,8 @@ export const PAGES: PageLegale[] = [
               'OVH : hébergement des contenus éditoriaux (WordPress), en France ; il ne contient pas de données de compte.',
               'Agence du Numérique en Santé, pour Pro Santé Connect, si vous choisissez cette méthode : DentalMap reçoit votre numéro RPPS et votre profession.',
               'OpenFreeMap : votre navigateur télécharge le fond de plan de la carte depuis ses serveurs, qui reçoivent donc votre adresse IP, sans autre donnée.',
+              'Axeptio : recueil et preuve de votre choix sur les cookies.',
+              'Google, Meta et LinkedIn, seulement si vous les acceptez dans le bandeau cookies : voir « Cookies et stockage local ».',
             ],
           },
           'Un recruteur ne reçoit vos coordonnées que si vous postulez à son offre.',
@@ -335,21 +337,35 @@ export const PAGES: PageLegale[] = [
         titre: 'Cookies et stockage local',
         blocs: [
           'Les cookies nécessaires au fonctionnement du site, ou qui mémorisent un choix de votre part, ne demandent pas de consentement. Les cookies de mesure d’audience et de publicité ne sont déposés qu’avec votre accord, recueilli par le bandeau Axeptio affiché à votre première visite. Refuser est aussi simple qu’accepter, et ne limite pas l’accès au site.',
-          'Votre choix est conservé [À confirmer : durée réglée dans la console Axeptio, six mois recommandés par la CNIL], puis vous est redemandé. Vous pouvez le modifier à tout moment par le lien « Gérer les cookies » en pied de page.',
+          'Votre choix est conservé 6 mois, puis vous est redemandé. Il vous est aussi redemandé si un nouvel outil s’ajoute à la liste. Vous pouvez le modifier à tout moment par le lien « Gérer les cookies » en pied de page.',
+          'Chaque outil est soumis à votre accord, outil par outil : refuser Meta n’empêche pas d’accepter Google Analytics, et inversement. Les outils sont chargés par Google Tag Manager, qui ne dépose lui-même aucun cookie.',
           {
             tableau: {
-              entetes: ['Finalité', 'Outils', 'Durée'],
+              entetes: ['Finalité', 'Outil et éditeur', 'Cookies', 'Durée'],
               lignes: [
-                ['Mesure d’audience', '[À confirmer : Google Analytics 4, via Google Tag Manager]', '[À confirmer : 13 mois au plus]'],
                 [
-                  'Publicité et réseaux sociaux',
-                  '[À confirmer : Meta Pixel, LinkedIn Insight Tag, Google Ads, selon les balises publiées dans Google Tag Manager]',
-                  '[À confirmer : 13 mois au plus]',
+                  'Mesure d’audience : visites, pages consultées, parcours',
+                  'Google Analytics 4 (Google Ireland Limited)',
+                  '_ga, _ga_C5ZCXFPQB8',
+                  '13 mois',
+                ],
+                [
+                  'Mesure de nos campagnes et publicité sur Facebook et Instagram',
+                  'Meta Pixel (Meta Platforms Ireland Limited)',
+                  '_fbp',
+                  '90 jours',
+                ],
+                [
+                  'Mesure de nos campagnes et publicité sur LinkedIn',
+                  'LinkedIn Insight Tag (LinkedIn Ireland Unlimited Company)',
+                  'Cookies déposés par LinkedIn sur son propre domaine',
+                  'Fixée par LinkedIn, jusqu’à 1 an',
                 ],
               ],
             },
           },
-          'Ces outils peuvent transférer des données hors de l’Union européenne, vers des sociétés établies aux États-Unis, dans le cadre du Data Privacy Framework. [À valider : par un juriste]',
+          'Google, Meta et LinkedIn peuvent transférer ces données vers leurs sociétés mères établies aux États-Unis. Ces transferts sont encadrés par le Data Privacy Framework, auquel les trois sociétés adhèrent.',
+          'Aucune donnée d’identification (nom, email, téléphone) n’est transmise à ces outils : la collecte automatique de données fournies par les utilisateurs est désactivée.',
           {
             tableau: {
               entetes: ['Nom', 'Rôle', 'Durée'],
@@ -359,7 +375,7 @@ export const PAGES: PageLegale[] = [
                 ['dm_psc_identite', 'Retenir l’identité renvoyée par Pro Santé Connect le temps de la confirmer', '10 minutes'],
                 ['dm_saisie', 'Conserver une saisie de l’espace pro entre deux écrans', '1 minute'],
                 ['dm_partenariat', 'Afficher la confirmation d’une demande de partenariat', '10 minutes'],
-                ['axeptio_cookies, axeptio_authorized_vendors, axeptio_all_vendors (Axeptio)', 'Retenir votre choix sur les cookies', '[À confirmer : durée réglée dans la console Axeptio]'],
+                ['axeptio_cookies, axeptio_authorized_vendors, axeptio_all_vendors (Axeptio)', 'Retenir votre choix sur les cookies', '6 mois'],
                 ['theme (stockage local)', 'Retenir le thème clair ou sombre choisi', 'Jusqu’à effacement par le navigateur'],
               ],
             },
