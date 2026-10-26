@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { DiplomeEcole } from '@/lib/formation/faculte'
 import { LIBELLE_PALIER, palierDe, type Force } from './force'
+import { photoAcceptee } from './photo-acceptee'
 
 /**
  * Le couloir « École ou organisme » : ce qui se calcule sans base ni réseau.
@@ -187,12 +188,12 @@ export const CentreSoins = z.object({
 })
 export type CentreSoins = z.infer<typeof CentreSoins>
 
-/** Une photo déjà téléversée : stockage public, ou dossier local en développement. */
+/** Une photo déjà téléversée sur nos stockages (`photoAcceptee`). */
 export const Photo = z.object({
   url: z
     .string()
     .max(500)
-    .regex(/^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/|\/photos\/[0-9a-f-]{36}\.jpg$)/),
+    .refine(photoAcceptee, 'Photo non reconnue.'),
   legende: texte(120).default(''),
 })
 

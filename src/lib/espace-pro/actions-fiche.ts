@@ -29,6 +29,7 @@ import {
 import type { CleFraicheur } from './force'
 import { marquesValides } from './marques'
 import { DELAI_MAX, DELAI_MIN, JOURS_RAMASSAGE, MATERIAUX, PIECES, PERSO_MAX, PREFIXE_PERSO, RAYON_MAX, RAYON_MIN, REALISATIONS_MAX, TECHNIQUES, codeValide, lireChoix, nomLibre } from './labo'
+import { photoAcceptee } from './photo-acceptee'
 
 /**
  * Les écritures de la fiche d'un soignant : onboarding, missions,
@@ -178,7 +179,7 @@ export async function enregistrerPhoto(donnees: FormData): Promise<never> {
   const url = String(donnees.get('photo') ?? '').trim()
   const droits = donnees.get('droits') === 'on'
   if (url && !droits) return erreur(donnees, 'Confirmez que vous détenez les droits de cette photo.')
-  if (url && !/^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/|\/photos\/[0-9a-f-]{36}\.jpg$)/.test(url)) return erreur(donnees, 'Photo non reconnue.')
+  if (url && !photoAcceptee(url)) return erreur(donnees, 'Photo non reconnue.')
   return ecrire(donnees, () => ({ photoUrl: url || null, photoConfirmeeLe: url ? new Date() : null }), '/espace-pro/progression/')
 }
 
@@ -300,7 +301,7 @@ function photosSaisies(donnees: FormData): { url: string; legende: string; piece
     return null
   }
   return photos
-    .filter((p) => typeof p?.url === 'string' && /^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/|\/photos\/[0-9a-f-]{36}\.jpg$)/.test(p.url))
+    .filter((p) => typeof p?.url === 'string' && photoAcceptee(p.url))
     .slice(0, REALISATIONS_MAX)
     .map((p) => ({
       url: p.url,

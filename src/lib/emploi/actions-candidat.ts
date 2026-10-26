@@ -24,6 +24,7 @@ import {
   type Formation,
   type Situation,
 } from './profil-candidat'
+import { photoAcceptee } from '@/lib/espace-pro/photo-acceptee'
 
 /**
  * Le profil candidat : parcours de bienvenue (SE1 à SE5), page « Mon
@@ -173,7 +174,7 @@ export async function enregistrerProfil(_: EtatProfil, donnees: FormData): Promi
   // La photo : celle de la fiche du compte (rien d'enregistré au profil), ou une photo propre, téléversée par le navigateur.
   const photo = String(donnees.get('photo') ?? '').trim()
   const photoPerso = donnees.get('photoSource') === 'perso' && photo ? photo : null
-  if (photoPerso && !/^(https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/|\/uploads\/|\/photos\/[0-9a-f-]{36}\.jpg$)/.test(photoPerso)) return { erreur: 'Photo non reconnue.', champ: 'photo' }
+  if (photoPerso && !photoAcceptee(photoPerso)) return { erreur: 'Photo non reconnue.', champ: 'photo' }
 
   const cv = donnees.get('cv')
   const avecCv = cv instanceof File && cv.size > 0
