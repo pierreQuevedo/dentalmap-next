@@ -17,7 +17,7 @@ export default function robots(): MetadataRoute.Robots {
         // La recherche produit une infinité de combinaisons de paramètres,
         // sans valeur pour un index. Les pages canoniques sont les pages
         // hiérarchiques.
-        disallow: ['/recherche/', '/espace-pro/', '/api/', '/setup-check/'],
+        disallow: ['/recherche/', '/espace-pro/', '/espace-candidat/', '/api/', '/setup-check/'],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

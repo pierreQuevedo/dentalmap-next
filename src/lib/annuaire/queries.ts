@@ -698,13 +698,24 @@ export async function getFichesIndexables(
   return rows.map((r) => ({ chemin: r.chemin, majLe: r.maj }))
 }
 
+/**
+ * Nombre de fiches que `getFichesIndexables` listera : mêmes conditions, dont
+ * un lieu rattaché à une commune connue. Compter toutes les fiches
+ * indexables annonçait des tranches vides dans l'index des sitemaps.
+ */
 export async function compterFichesIndexables(profession: Profession): Promise<number> {
   'use cache'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ n: number }>(sql`
-    SELECT count(*)::int AS n FROM praticiens
-    WHERE profession = ${profession} AND deleted_at IS NULL AND indexable
+    SELECT count(*)::int AS n FROM praticiens p
+    WHERE p.profession = ${profession} AND p.deleted_at IS NULL AND p.indexable
+      AND EXISTS (
+        SELECT 1 FROM lieux_exercice l
+        JOIN communes c ON c.code_insee = l.code_insee
+        JOIN departements d ON d.code = c.departement_code
+        WHERE l.praticien_id = p.id
+      )
   `)
   return rows[0]?.n ?? 0
 }

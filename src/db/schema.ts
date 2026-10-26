@@ -168,6 +168,10 @@ export const lieuxExercice = pgTable('lieux_exercice', {
 }, (t) => [
   index('lieux_position_gist').using('gist', t.position),
   index('lieux_commune').on(t.codeInsee),
+  // Le lieu principal d'une fiche se cherche par praticien partout (fiche,
+  // recherche, emploi, parrainage) : sans cet index, chaque recherche relit
+  // toute la table.
+  index('lieux_praticien').on(t.praticienId, t.principal.desc(), t.id),
 ])
 
 /**
