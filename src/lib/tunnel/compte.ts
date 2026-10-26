@@ -1,6 +1,6 @@
 import { headers } from 'next/headers'
 import { connection } from 'next/server'
-import type { Civilite, Profession } from '@/lib/annuaire/types'
+import { BASE_URL, cheminPraticien, type Civilite, type Profession } from '@/lib/annuaire/types'
 import { redirect } from 'next/navigation'
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
@@ -278,7 +278,8 @@ export type RevendicationAModerer = {
   demandeLe: string
   compteEmail: string
   compteNom: string
-  fiche: { slug: string; profession: Profession; nom: string; prenom: string | null; raisonSociale: string | null; communeNom: string | null; rpps: string | null; siret: string | null }
+  /** `chemin` : la page publique de la fiche, nulle sans lieu d'exercice connu. */
+  fiche: { slug: string; profession: Profession; nom: string; prenom: string | null; raisonSociale: string | null; communeNom: string | null; rpps: string | null; siret: string | null; chemin: string | null }
 }
 
 /** Les demandes en attente, les plus anciennes d'abord : c'est une file. */
@@ -306,6 +307,8 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     prenom: string | null
     raison_sociale: string | null
     commune_nom: string | null
+    commune_slug: string | null
+    departement_slug: string | null
     rpps: string | null
     siret: string | null
   }>(sql`
@@ -313,12 +316,14 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
            r.titulaire_averti_le, r.titulaire_reponse,
            (r.titulaire_reponse IS NULL AND r.titulaire_averti_le < now() - interval '7 days') AS titulaire_sans_reponse,
            EXISTS (SELECT 1 FROM revendications a WHERE a.praticien_id = r.praticien_id AND a.id <> r.id AND a.statut = 'acceptee' AND a.objet = 'revendication') AS contestation,
-           p.slug, p.profession, p.nom, p.prenom, p.raison_sociale, p.rpps, p.siret, c.nom AS commune_nom
+           p.slug, p.profession, p.nom, p.prenom, p.raison_sociale, p.rpps, p.siret, c.nom AS commune_nom,
+           c.slug AS commune_slug, d.slug AS departement_slug
     FROM revendications r
     JOIN "user" u ON u.id = r.user_id
     JOIN praticiens p ON p.id = r.praticien_id
     LEFT JOIN LATERAL (SELECT x.code_postal, x.code_insee FROM lieux_exercice x WHERE x.praticien_id = p.id ORDER BY x.principal DESC, x.id LIMIT 1) l ON true
     LEFT JOIN communes c ON c.code_insee = l.code_insee
+    LEFT JOIN departements d ON d.code = c.departement_code
     WHERE r.statut = 'en_attente'
     ORDER BY r.demande_le ASC
     LIMIT 100
@@ -340,7 +345,17 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     demandeLe: r.demande_le,
     compteEmail: r.email,
     compteNom: r.name,
-    fiche: { slug: r.slug, profession: r.profession, nom: r.nom, prenom: r.prenom, raisonSociale: r.raison_sociale, communeNom: r.commune_nom, rpps: r.rpps, siret: r.siret },
+    fiche: {
+      slug: r.slug,
+      profession: r.profession,
+      nom: r.nom,
+      prenom: r.prenom,
+      raisonSociale: r.raison_sociale,
+      communeNom: r.commune_nom,
+      rpps: r.rpps,
+      siret: r.siret,
+      chemin: r.commune_slug && r.departement_slug ? cheminPraticien(BASE_URL[r.profession], r.departement_slug, r.commune_slug, r.slug) : null,
+    },
   }))
 }
 
