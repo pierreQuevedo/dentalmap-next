@@ -20,7 +20,7 @@ import { synchroniserFormation } from '@/lib/wp/ecriture'
 import { deciderAjoutEtablissement, deciderAttestation as deciderAttestationModeration } from '@/lib/moderation/decisions'
 import { COOKIE_PARTENARIAT, SPECIALITES, TYPES_PARTENARIAT, adresseReconnue, controlerUai, CentreSoins, Cycle, Donnees, FormationDeclaree, Photo, VoieAcces, type Bloc } from './etablissement'
 import { ESPACE_ETAB, ORGANISME, getFicheEtablissement, getGestions, getSourceEtablissement, initialiserFiche, reprendreFiche, type Gestion } from './etablissement-donnees'
-import { controlerJustificatif, rangerJustificatif, typeDepuisNom } from './justificatif'
+import { cheminTeleverseValide, controlerJustificatif, rangerJustificatif, typeDepuisNom } from './justificatif'
 import { contenuConforme } from '@/lib/fichier-reel'
 
 /**
@@ -97,7 +97,7 @@ export async function deposerAttestation(donnees: FormData): Promise<never> {
   const taille = Number(donnees.get('taille_document') ?? 0)
   let rangement: string
   if (televerse) {
-    if (!televerse.startsWith(`justificatifs/${dossier}/`)) redirect(avec(ici, 'erreur', 'Le document n’a pas pu être rattaché à cet établissement.'))
+    if (!cheminTeleverseValide(televerse, dossier)) redirect(avec(ici, 'erreur', 'Le document n’a pas pu être rattaché à cet établissement.'))
     if (typeDepuisNom(televerse) !== 'application/pdf') redirect(avec(ici, 'erreur', 'L’attestation doit être un PDF signé.'))
     rangement = `blob:${televerse}`
   } else {

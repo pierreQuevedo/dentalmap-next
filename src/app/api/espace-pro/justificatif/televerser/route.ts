@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       onBeforeGenerateToken: async (chemin) => {
         const compte = await getCompte()
         if (!compte) throw new Error('Connexion requise.')
-        if (!/^justificatifs\/[\w-]+\/[\w.-]+$/.test(chemin)) throw new Error('Chemin refusé.')
+        if (!/^justificatifs\/[\w-]+\/[\w-]+(\.[a-z0-9]+)?$/i.test(chemin)) throw new Error('Chemin refusé.')
         return {
           allowedContentTypes: [...TYPES_JUSTIFICATIF],
           maximumSizeInBytes: TAILLE_MAX_JUSTIFICATIF,

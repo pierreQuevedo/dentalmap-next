@@ -208,7 +208,9 @@ export function DepotJustificatif({
         const f = fichiers[e.nom]
         if (!f) continue
         if (direct) {
-          const nom = f.name.replace(/[^\w.-]+/g, '-').slice(-80) || 'justificatif'
+          // Un seul point, devant l'extension : le stockage n'accepte que `justificatifs/<dossier>/<nom>.<ext>`.
+          const extension = (/\.([a-z0-9]+)$/i.exec(f.name)?.[1] ?? 'pdf').toLowerCase()
+          const nom = `${f.name.replace(/\.[^.]*$/, '').replace(/[^\w-]+/g, '-').slice(-70) || 'justificatif'}.${extension}`
           const blob = await upload(`${dossier}/${nom}`, f, { access: 'private', handleUploadUrl: '/api/espace-pro/justificatif/televerser/', contentType: f.type })
           donnees.set(`chemin_${e.nom}`, blob.pathname)
         } else {

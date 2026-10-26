@@ -15,6 +15,15 @@ import { put } from '@vercel/blob'
 export const TYPES_JUSTIFICATIF = ['application/pdf', 'image/jpeg', 'image/png'] as const
 export const TAILLE_MAX_JUSTIFICATIF = 10 * 1024 * 1024
 
+/**
+ * Le chemin d'un document téléversé directement dans le stockage : sous le
+ * dossier attendu, un seul nom de fichier, ni `..` ni sous-dossier (audit du
+ * 2026-10-26). Le jeton n'est délivré que pour `justificatifs/<dossier>/<nom>`.
+ */
+export function cheminTeleverseValide(chemin: string, dossier: string): boolean {
+  return chemin.startsWith(`justificatifs/${dossier}/`) && /^justificatifs\/[\w-]+\/[\w-]+(\.[a-z0-9]+)?$/i.test(chemin)
+}
+
 export type ControleJustificatif = { ok: true } | { ok: false; erreur: string }
 
 export function controlerJustificatif(fichier: { type: string; size: number; name: string }, options: { pdfSeul?: boolean } = {}): ControleJustificatif {

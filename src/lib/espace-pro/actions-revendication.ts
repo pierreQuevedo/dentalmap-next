@@ -16,7 +16,7 @@ import { cheminInterne } from '@/lib/tunnel/etapes'
 import { COOKIE_IDENTITE, descellerIdentite } from '@/lib/psc/etat'
 import { accorderParPsc } from './revendication'
 import { getFicheRevendication } from './parcours'
-import { controlerJustificatif, rangerJustificatif, typeDepuisNom } from './justificatif'
+import { cheminTeleverseValide, controlerJustificatif, rangerJustificatif, typeDepuisNom } from './justificatif'
 import { nettoyerRpps, rppsValide } from './rpps'
 import { nettoyerNumero, siretValide } from './labo'
 import { consulterSiret } from './sirene'
@@ -87,7 +87,7 @@ export async function deposerJustificatif(donnees: FormData): Promise<never> {
     const nomFichier = String(donnees.get(`nom_${nom}`) ?? nom)
     const tailleFichier = Number(donnees.get(`taille_${nom}`) ?? 0)
     if (televerse) {
-      if (!televerse.startsWith(`justificatifs/${fiche.id}/`)) redirect(avecErreur('Le document n’a pas pu être rattaché à cette fiche.'))
+      if (!cheminTeleverseValide(televerse, fiche.id)) redirect(avecErreur('Le document n’a pas pu être rattaché à cette fiche.'))
       // Kbis et mandat en PDF seulement, comme le justificatif d'un soignant.
       const controle = controlerJustificatif({ type: typeDepuisNom(televerse), size: tailleFichier || 1, name: nomFichier }, { pdfSeul: true })
       if (!controle.ok) redirect(avecErreur(controle.erreur))
@@ -177,7 +177,7 @@ export async function demanderEquipe(donnees: FormData): Promise<never> {
   let rangement: string
   let tailleFichier = Number(donnees.get('taille_document') ?? 0)
   if (televerse) {
-    if (!televerse.startsWith(`justificatifs/${fiche.id}/`)) redirect(avecErreur('Le document n’a pas pu être rattaché à cette fiche.'))
+    if (!cheminTeleverseValide(televerse, fiche.id)) redirect(avecErreur('Le document n’a pas pu être rattaché à cette fiche.'))
     const controle = controlerJustificatif({ type: typeDepuisNom(televerse), size: tailleFichier || 1, name: nomFichier }, { pdfSeul: true })
     if (!controle.ok) redirect(avecErreur(controle.erreur))
     rangement = `blob:${televerse}`
@@ -325,7 +325,7 @@ export async function demanderAjoutLabo(donnees: FormData): Promise<never> {
   let rangement: string
   let nomFichier = String(donnees.get('nom_document') ?? 'kbis')
   if (televerse) {
-    if (!televerse.startsWith(`justificatifs/${dossier}/`)) redirect(avecErreur('Le Kbis n’a pas pu être rattaché à la demande.'))
+    if (!cheminTeleverseValide(televerse, dossier)) redirect(avecErreur('Le Kbis n’a pas pu être rattaché à la demande.'))
     const controle = controlerJustificatif({ type: typeDepuisNom(televerse), size: Number(donnees.get('taille_document') ?? 0) || 1, name: nomFichier }, { pdfSeul: true })
     if (!controle.ok) redirect(avecErreur(controle.erreur))
     rangement = `blob:${televerse}`
