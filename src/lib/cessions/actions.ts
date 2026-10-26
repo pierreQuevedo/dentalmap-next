@@ -13,6 +13,7 @@ import { validerMessage } from './format'
 import { alerteDesinscription, condensat, nouveauJeton } from './jeton'
 import { ROUTE_MESSAGERIE_CESSION } from './routes'
 import { TYPES_CESSION } from './types'
+import { MESSAGE_LIMITE, permis } from '@/lib/limite'
 
 /**
  * Les actions publiques des annonces de cession : écrire au cédant (avec un
@@ -105,6 +106,7 @@ export async function inscrireAlerteCession(_e: EtatAlerteCession, donnees: Form
     types: donnees.getAll('types').map(String).filter(Boolean),
   })
   if (!r.success) return { ok: false, message: r.error.issues[0]?.message ?? 'Formulaire incomplet.' }
+  if (!(await permis('alerte', r.data.email))) return { ok: false, message: MESSAGE_LIMITE }
   const jeton = nouveauJeton()
   // Une alerte déjà confirmée n'est pas touchée : sinon n'importe qui coupait l'alerte d'un autre en réinscrivant son adresse (audit du 2026-10-26).
   const { rows: inscrite } = await db.execute<{ id: string }>(sql`

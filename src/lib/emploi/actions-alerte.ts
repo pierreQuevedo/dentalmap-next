@@ -8,6 +8,7 @@ import { envoyerConfirmationAlerteEmploi } from '@/lib/email'
 import { alerteDesinscription, condensat, nouveauJeton } from '@/lib/formation/jeton'
 import { chemin } from '@/lib/navigation'
 import { InscriptionAlerte, lireCriteres } from './alerte'
+import { MESSAGE_LIMITE, permis } from '@/lib/limite'
 
 /**
  * L'alerte emploi sans compte, sur le modèle exact de l'alerte formations :
@@ -22,6 +23,7 @@ export type EtatAlerteEmploi = { ok: boolean; message: string } | null
 export async function inscrireAlerteEmploi(_e: EtatAlerteEmploi, donnees: FormData): Promise<EtatAlerteEmploi> {
   const r = InscriptionAlerte.safeParse({ email: String(donnees.get('email') ?? ''), criteres: lireCriteres(donnees) })
   if (!r.success) return { ok: false, message: r.error.issues[0]?.message ?? 'Formulaire incomplet.' }
+  if (!(await permis('alerte', r.data.email))) return { ok: false, message: MESSAGE_LIMITE }
   const { email, criteres } = r.data
   const jeton = nouveauJeton()
   const json = JSON.stringify(criteres)

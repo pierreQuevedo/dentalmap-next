@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
+import { LIMITES, consommer } from '@/lib/limite'
 
 /**
  * Numéro de téléphone d'un lieu d'exercice, réservé aux comptes connectés.
@@ -16,6 +17,10 @@ export async function GET(request: Request) {
   if (!session) {
     return Response.json({ erreur: 'connexion requise' }, { status: 401, headers: { 'Cache-Control': 'no-store' } })
   }
+
+  // Soixante numéros par compte et par jour : de quoi chercher un cabinet, pas de moissonner l'annuaire (audit du 2026-10-26).
+  const quota = await consommer(`telephone:${session.user.id}`, LIMITES.telephone)
+  if (!quota.allowed) return Response.json({ erreur: 'trop de demandes' }, { status: 429, headers: { 'Cache-Control': 'no-store', 'Retry-After': String(quota.retryAfter ?? 3600) } })
 
   const lieu = new URL(request.url).searchParams.get('lieu')
   if (!lieu) return Response.json({ erreur: 'lieu manquant' }, { status: 400 })

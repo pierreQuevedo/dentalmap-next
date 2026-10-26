@@ -16,6 +16,7 @@ import { THEMES_FORMATION } from './themes'
 import { PRISES_EN_CHARGE, PUBLICS_FORMATION, Proposition, REGIONS_FORMATION, SOURCES_VERIFICATION, type Verifications } from './privee'
 import { PROPOSER } from './privee-donnees'
 import { alerteDesinscription, condensat, envoyerAlertesFormation, nouveauJeton } from './alertes'
+import { MESSAGE_LIMITE, permis } from '@/lib/limite'
 
 /**
  * Les actions des formations privées : proposer (A), décider (B), s'inscrire
@@ -177,6 +178,7 @@ export async function inscrireAlerteFormation(_e: EtatAlerte, donnees: FormData)
     publics: donnees.getAll('publics').map(String),
   })
   if (!r.success) return { ok: false, message: r.error.issues[0]?.message ?? 'Formulaire incomplet.' }
+  if (!(await permis('alerte', r.data.email))) return { ok: false, message: MESSAGE_LIMITE }
   const jeton = nouveauJeton()
   // Une adresse, une alerte : une nouvelle inscription remplace les critères et redemande la confirmation.
   // Une alerte déjà confirmée n'est pas touchée : sinon n'importe qui coupait l'alerte d'un autre en réinscrivant son adresse (audit du 2026-10-26).

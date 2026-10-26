@@ -5,6 +5,7 @@ import { envoyerMessageContact as envoyerCourriel } from '@/lib/email'
 import { CLES_OBJETS, libelleObjet } from '@/lib/contact/objets'
 import { FORMULAIRES, libelleDetail } from '@/lib/contact/formulaires'
 import { deposerTicketSav } from '@/lib/wp/sav'
+import { MESSAGE_LIMITE, permis } from '@/lib/limite'
 
 export type EtatContact = { ok: boolean; message: string } | null
 
@@ -32,6 +33,7 @@ export async function envoyerMessageContact(_etat: EtatContact, donnees: FormDat
   const brut = Object.fromEntries(donnees.entries())
   const r = Message.safeParse(brut)
   if (!r.success) return { ok: false, message: r.error.issues[0]?.message ?? 'Formulaire incomplet.' }
+  if (!(await permis('contact'))) return { ok: false, message: MESSAGE_LIMITE }
   if (r.data.objet === 'partenariat') return { ok: false, message: 'Les partenariats passent par la page Devenir partenaire.' }
 
   // Les champs propres à l'entrée : seuls ceux de son formulaire, bornés, et

@@ -18,6 +18,7 @@ import {
 import { appliquerRetrait, reprendreFicheCompletee } from '@/lib/espace-pro/revendication'
 import { enregistrerProfil, estModerateur, getCompte } from './compte'
 import { ESPACE_CANDIDAT, estRole, prochaineEtape, retourSur, type Role } from './etapes'
+import { permis } from '@/lib/limite'
 
 /**
  * Actions du tunnel. Chaque action relit la session : l'interface cache ce
@@ -39,6 +40,8 @@ export type Resultat = { ok: true } | { ok: false; erreur: string }
 export async function etatCompte(email: string): Promise<{ existe: boolean; role: Role | null }> {
   const adresse = email.trim().toLowerCase()
   if (!z.string().email().safeParse(adresse).success) return { existe: false, role: null }
+  // Limité par visiteur : sans quoi on testait des listes d'adresses (audit du 2026-10-26).
+  if (!(await permis('etatCompte'))) return { existe: false, role: null }
   const { rows } = await db.execute<{ role: string | null }>(sql`SELECT role FROM "user" WHERE lower(email) = ${adresse} LIMIT 1`)
   const u = rows[0]
   return { existe: !!u, role: u && estRole(u.role) ? u.role : null }

@@ -10,6 +10,7 @@ import { envoyerBienvenue, envoyerCode } from '@/lib/email'
 import { SITE_URL } from '@/lib/seo/site'
 import { LONGUEUR_MOT_DE_PASSE, MESSAGE_MOT_DE_PASSE, motDePasseValide } from '@/lib/tunnel/mot-de-passe'
 import { ETAPES_TUNNEL, ROLES } from '@/lib/tunnel/etapes'
+import { consommer, limitePartagee } from '@/lib/limite'
 
 /**
  * Origines acceptées.
@@ -130,6 +131,28 @@ export const auth = betterAuth({
     nextCookies(),
   ],
   session: { expiresIn: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },
+  /*
+   * Limitation des essais (audit du 2026-10-26, M4), comptée dans Upstash
+   * Redis pour être partagée entre les instances de Vercel ; sans Upstash, le
+   * compteur en mémoire de Better Auth. Connexion par mot de passe et envoi de
+   * codes : quelques essais par minute ; vérification d'un code : dix par
+   * quart d'heure, ce qui rend vain l'essai de tous les codes à six chiffres.
+   */
+  rateLimit: {
+    enabled: process.env.NODE_ENV === 'production',
+    window: 60,
+    max: 100,
+    customRules: {
+      '/sign-in/email': { window: 60, max: 5 },
+      '/sign-up/email': { window: 3600, max: 5 },
+      '/email-otp/send-verification-otp': { window: 600, max: 5 },
+      '/email-otp/verify-email': { window: 900, max: 10 },
+      '/sign-in/email-otp': { window: 900, max: 10 },
+      '/email-otp/reset-password': { window: 900, max: 10 },
+      '/forget-password/email-otp': { window: 600, max: 5 },
+    },
+    ...(limitePartagee ? { customStorage: { consume: (cle: string, regle: { window: number; max: number }) => consommer(`auth:${cle}`, regle) } } : {}),
+  },
   advanced: { database: { generateId: 'uuid' } },
 })
 

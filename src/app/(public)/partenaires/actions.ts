@@ -2,6 +2,7 @@
 
 import { z } from 'zod'
 import { envoyerAccusePartenariat, envoyerDemandePartenariat as envoyerCourriel } from '@/lib/email'
+import { MESSAGE_LIMITE, permis } from '@/lib/limite'
 
 const ORGANISMES = { ordre: 'Ordre professionnel', ecole: 'École ou faculté', syndicat: 'Syndicat', editeur: 'Éditeur', formation: 'Organisme de formation', collectivite: 'Collectivité ou ARS', autre: 'Autre' } as const
 const FONCTIONS = { dentiste: 'Chirurgien-dentiste', prothesiste: 'Prothésiste', direction: 'Direction', enseignement: 'Enseignement', autre: 'Autre' } as const
@@ -28,6 +29,8 @@ const Demande = z.object({
 export async function envoyerDemandePartenariat(_etat: EtatDemande, donnees: FormData): Promise<EtatDemande> {
   const r = Demande.safeParse(Object.fromEntries(donnees.entries()))
   if (!r.success) return { ok: false, message: r.error.issues[0]?.message ?? 'Formulaire incomplet.' }
+  // Un accusé part à l'adresse saisie : limité par visiteur et par adresse.
+  if (!(await permis('partenariat', r.data.email))) return { ok: false, message: MESSAGE_LIMITE }
 
   try {
     await envoyerCourriel({ ...r.data, organisme: ORGANISMES[r.data.organisme], fonction: FONCTIONS[r.data.fonction], origine: donnees.get('origine') === 'partenaires' ? 'partenaires' : donnees.get('origine') === 'contact' ? 'contact' : 'accueil' })
