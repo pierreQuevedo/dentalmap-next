@@ -1,7 +1,7 @@
 import type { SuggestionLieu } from './use-suggestions'
 
 /**
- * Les quatre cibles d'une recherche, et la destination d'un lieu choisi.
+ * Les cibles d'une recherche, et la destination d'un lieu choisi.
  *
  * Partagé par le champ unique de l'accueil et par la recherche de l'en-tête :
  * les deux posent la même question, l'un sur le hero, l'autre dans un panneau
@@ -10,7 +10,13 @@ import type { SuggestionLieu } from './use-suggestions'
  */
 export type Cible = 'dentistes' | 'prothesistes' | 'maxillo-faciaux' | 'stomatologues' | 'orl' | 'ecoles' | 'formations'
 
-/** Cibles qui mènent à l'annuaire des praticiens, avec carte et filtres. */
+/**
+ * Cibles qui mènent à l'annuaire des praticiens, avec carte et filtres.
+ *
+ * `formations` n'est plus proposée dans les listes (retour de Pierre,
+ * 2026-10-26) : la formation se cherche depuis sa page. La cible reste
+ * comprise par `/recherche/` et `destination` pour les anciens liens.
+ */
 export const CIBLES_ANNUAIRE: readonly Cible[] = ['dentistes', 'prothesistes', 'maxillo-faciaux', 'stomatologues', 'orl'] as const
 
 export const CIBLES: { cle: Cible; label: string; aide: string }[] = [
@@ -43,11 +49,6 @@ export const CIBLES: { cle: Cible; label: string; aide: string }[] = [
     cle: 'ecoles',
     label: 'École',
     aide: 'Écoles de prothèse dentaire et facultés d’odontologie',
-  },
-  {
-    cle: 'formations',
-    label: 'Formation',
-    aide: 'Formations continues et diplômes universitaires',
   },
 ]
 

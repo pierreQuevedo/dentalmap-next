@@ -34,8 +34,10 @@ export function RechercheUniverselle() {
   const [indexActif, setIndexActif] = useState(-1)
   const idChamp = useId()
 
-  const suggestions = useSuggestionsLieu(texte, '')
-  const visibles = ferme ? [] : suggestions
+  // Les écoles ne se cherchent pas sur une carte : le lieu est grisé, la recherche mène à leur liste.
+  const sansLieu = cible === 'ecoles'
+  const suggestions = useSuggestionsLieu(sansLieu ? '' : texte, '')
+  const visibles = ferme || sansLieu ? [] : suggestions
 
   const choisir = (s: SuggestionLieu) => {
     setTexte(s.nom)
@@ -44,7 +46,19 @@ export function RechercheUniverselle() {
   }
 
   return (
-    <form method="get" action="/recherche/" role="search" className="theme-site relative w-full max-w-3xl text-left" onSubmit={() => setFerme(true)}>
+    <form
+      method="get"
+      action="/recherche/"
+      role="search"
+      className="theme-site relative w-full max-w-3xl text-left"
+      onSubmit={(e) => {
+        setFerme(true)
+        if (sansLieu) {
+          e.preventDefault()
+          router.push(chemin('/formation/ecoles-de-prothese/'))
+        }
+      }}
+    >
       <div className="flex flex-col divide-y divide-line rounded-3xl border border-line bg-bg p-1.5 shadow-pill md:flex-row md:items-stretch md:divide-x md:divide-y-0 md:rounded-full">
         <Champ icone={LoupeIcon} label="Que cherchez-vous ?" className="md:flex-1">
           <select
@@ -63,11 +77,12 @@ export function RechercheUniverselle() {
             ))}
           </select>
         </Champ>
-        <Champ icone={PinIcon} label="Où ?" htmlFor={idChamp} className="md:flex-[1.3]">
+        <Champ icone={PinIcon} label="Où ?" htmlFor={idChamp} className={`md:flex-[1.3] ${sansLieu ? 'cursor-not-allowed opacity-45' : ''}`}>
           <input
             id={idChamp}
             name="q"
-            value={texte}
+            disabled={sansLieu}
+            value={sansLieu ? '' : texte}
             onChange={(e) => {
               setTexte(e.target.value)
               setFerme(false)
@@ -90,7 +105,7 @@ export function RechercheUniverselle() {
                 setFerme(true)
               }
             }}
-            placeholder="Ville ou code postal"
+            placeholder={sansLieu ? 'Toute la France' : 'Ville ou code postal'}
             autoComplete="off"
             role="combobox"
             aria-expanded={visibles.length > 0}
