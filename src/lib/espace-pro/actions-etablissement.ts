@@ -21,6 +21,7 @@ import { deciderAjoutEtablissement, deciderAttestation as deciderAttestationMode
 import { COOKIE_PARTENARIAT, SPECIALITES, TYPES_PARTENARIAT, adresseReconnue, controlerUai, CentreSoins, Cycle, Donnees, FormationDeclaree, Photo, VoieAcces, type Bloc } from './etablissement'
 import { ESPACE_ETAB, ORGANISME, getFicheEtablissement, getGestions, getSourceEtablissement, initialiserFiche, reprendreFiche, type Gestion } from './etablissement-donnees'
 import { controlerJustificatif, rangerJustificatif, typeDepuisNom } from './justificatif'
+import { contenuConforme } from '@/lib/fichier-reel'
 
 /**
  * Les actions du couloir « École ou organisme ».
@@ -104,7 +105,7 @@ export async function deposerAttestation(donnees: FormData): Promise<never> {
     if (!(fichier instanceof File) || !fichier.size) redirect(avec(ici, 'erreur', 'Choisissez un fichier.'))
     const controle = controlerJustificatif(fichier)
     if (!controle.ok) redirect(avec(ici, 'erreur', controle.erreur))
-    if (fichier.type !== 'application/pdf') redirect(avec(ici, 'erreur', 'L’attestation doit être un PDF signé.'))
+    if (fichier.type !== 'application/pdf' || !(await contenuConforme(fichier, ['pdf']))) redirect(avec(ici, 'erreur', 'L’attestation doit être un PDF signé.'))
     rangement = await rangerJustificatif(fichier, dossier)
   }
 

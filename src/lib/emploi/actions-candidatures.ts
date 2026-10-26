@@ -14,6 +14,7 @@ import { cheminOffre } from './chemins'
 import { rangerCv } from './cv'
 import { recruteur } from './recruteur'
 import { offreEnLigne } from './en-ligne'
+import { contenuConforme } from '@/lib/fichier-reel'
 
 /**
  * Les candidatures : postuler (un compte connecté suffit, sans palier, le
@@ -49,7 +50,7 @@ export async function postuler(_: EtatCandidature, donnees: FormData): Promise<E
   if (message.length > MESSAGE_MAX) return { erreur: `Votre message dépasse ${MESSAGE_MAX.toLocaleString('fr-FR')} caractères.`, champ: 'message' }
   const cv = donnees.get('cv')
   const avecCv = cv instanceof File && cv.size > 0
-  if (avecCv && (cv.type !== 'application/pdf' || cv.size > CV_MAX_OCTETS)) return { erreur: 'Le CV doit être un PDF de 5 Mo au plus.', champ: 'cv' }
+  if (avecCv && (cv.type !== 'application/pdf' || cv.size > CV_MAX_OCTETS || !(await contenuConforme(cv, ['pdf'])))) return { erreur: 'Le CV doit être un PDF de 5 Mo au plus.', champ: 'cv' }
 
   // Sans nouveau fichier, le CV du profil, si la personne le joint.
   const duProfil =

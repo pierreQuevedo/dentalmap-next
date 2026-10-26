@@ -25,6 +25,7 @@ import {
   type Situation,
 } from './profil-candidat'
 import { photoAcceptee } from '@/lib/espace-pro/photo-acceptee'
+import { contenuConforme } from '@/lib/fichier-reel'
 
 /**
  * Le profil candidat : parcours de bienvenue (SE1 à SE5), page « Mon
@@ -178,7 +179,7 @@ export async function enregistrerProfil(_: EtatProfil, donnees: FormData): Promi
 
   const cv = donnees.get('cv')
   const avecCv = cv instanceof File && cv.size > 0
-  if (avecCv && (cv.type !== 'application/pdf' || cv.size > CV_MAX_OCTETS)) return { erreur: 'Le CV doit être un PDF de 5 Mo au plus.', champ: 'cv' }
+  if (avecCv && (cv.type !== 'application/pdf' || cv.size > CV_MAX_OCTETS || !(await contenuConforme(cv, ['pdf'])))) return { erreur: 'Le CV doit être un PDF de 5 Mo au plus.', champ: 'cv' }
   const cvSql = avecCv
     ? sql`, cv_chemin = ${await rangerCv(cv, compte.id)}, cv_nom = ${cv.name.slice(0, 120)}, cv_taille = ${cv.size}`
     : donnees.get('cvRetirer') === 'oui'

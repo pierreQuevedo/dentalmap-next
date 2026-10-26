@@ -21,6 +21,7 @@ import { nettoyerRpps, rppsValide } from './rpps'
 import { nettoyerNumero, siretValide } from './labo'
 import { consulterSiret } from './sirene'
 import { DELAI_ANNULATION_RETRAIT_JOURS, REVENDIQUER, apresAccord } from './chemins'
+import { contenuConforme } from '@/lib/fichier-reel'
 
 /**
  * Les actions du parcours de revendication d'un soignant.
@@ -99,6 +100,7 @@ export async function deposerJustificatif(donnees: FormData): Promise<never> {
     }
     const controle = controlerJustificatif(fichier, { pdfSeul: true })
     if (!controle.ok) redirect(avecErreur(controle.erreur))
+    if (!(await contenuConforme(fichier, ['pdf']))) redirect(avecErreur('Le document doit être un vrai PDF.'))
     return { rangement: await rangerJustificatif(fichier, fiche.id), nom: fichier.name, taille: fichier.size }
   }
   const document = (await lireDocument('document', true))!
@@ -184,6 +186,7 @@ export async function demanderEquipe(donnees: FormData): Promise<never> {
     if (!(fichier instanceof File) || !fichier.size) redirect(avecErreur('Joignez votre justificatif en PDF.'))
     const controle = controlerJustificatif(fichier, { pdfSeul: true })
     if (!controle.ok) redirect(avecErreur(controle.erreur))
+    if (!(await contenuConforme(fichier, ['pdf']))) redirect(avecErreur('Le document doit être un vrai PDF.'))
     rangement = await rangerJustificatif(fichier, fiche.id)
     tailleFichier = fichier.size
   }
@@ -331,6 +334,7 @@ export async function demanderAjoutLabo(donnees: FormData): Promise<never> {
     if (!(f instanceof File) || !f.size) redirect(avecErreur('Joignez un extrait Kbis de moins de trois mois.'))
     const controle = controlerJustificatif(f, { pdfSeul: true })
     if (!controle.ok) redirect(avecErreur(controle.erreur))
+    if (!(await contenuConforme(f, ['pdf']))) redirect(avecErreur('Le document doit être un vrai PDF.'))
     rangement = await rangerJustificatif(f, dossier)
     nomFichier = f.name
   }

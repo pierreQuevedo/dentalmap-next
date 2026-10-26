@@ -5,6 +5,7 @@ import { put } from '@vercel/blob'
 import { NextResponse, type NextRequest } from 'next/server'
 import { stockageBlob } from '@/lib/espace-pro/justificatif'
 import { getCompte } from '@/lib/tunnel/compte'
+import { contenuConforme } from '@/lib/fichier-reel'
 
 /**
  * Envoi d'une photo (profil, réalisations) par le serveur, quand le navigateur
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV === 'production' && !blob) return new NextResponse('Indisponible.', { status: 404 })
   if (!(await getCompte())) return new NextResponse('Connexion requise.', { status: 401 })
   const fichier = (await request.formData()).get('photo')
-  if (!(fichier instanceof File) || fichier.type !== 'image/jpeg' || fichier.size > 5 * 1024 * 1024) return new NextResponse('Photo refusée.', { status: 400 })
+  if (!(fichier instanceof File) || fichier.type !== 'image/jpeg' || fichier.size > 5 * 1024 * 1024 || !(await contenuConforme(fichier, ['jpeg']))) return new NextResponse('Photo refusée.', { status: 400 })
   const nom = `${randomUUID()}.jpg`
   if (blob) {
     try {
