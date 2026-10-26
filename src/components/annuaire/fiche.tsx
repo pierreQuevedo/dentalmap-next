@@ -17,6 +17,7 @@ import { Balisage, fichePraticien, filAriane } from '@/lib/seo/jsonld'
 import { FichePersonne } from './fiche-personne'
 import { FicheLabo } from './fiche-labo'
 import type { ContexteFiche } from './fiche-blocs'
+import { FAVORIS_VISIBLE } from '@/lib/visibilite'
 
 type Params = { departement: string; commune: string; slug: string }
 
@@ -90,7 +91,7 @@ export async function PageFiche({ profession, params }: { profession: Profession
     // Offres d'emploi en ligne : pastille « Recrute » et section en fin de fiche.
     getOffresEnLigne(p.id, slug),
   ])
-  const favori = compte ? await estFavori(compte.id, slug) : false
+  const favori = FAVORIS_VISIBLE && compte ? await estFavori(compte.id, slug) : false
   const proches = voisins.filter((v) => v.slug !== slug).slice(0, 3)
   // L'état « ouvert » et le jour courant se lisent à la requête, jamais au prérendu.
   await connection()

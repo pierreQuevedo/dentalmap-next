@@ -235,7 +235,7 @@ export const PAGES: PageLegale[] = [
     version: VERSION,
     majLe: MAJ,
     enBref: [
-      'Un compte patient ne demande que votre email. Aucune donnée de santé n’est demandée.',
+      'Chercher un professionnel ne demande aucun compte. Aucune donnée de santé n’est demandée.',
       'Avec Pro Santé Connect, l’identité d’un praticien est confirmée sans document : nous ne recevons que son nom et son numéro RPPS. Sans carte CPS, un justificatif PDF est demandé, puis supprimé 30 jours après la décision.',
       'Les cookies de mesure d’audience et de publicité ne sont déposés qu’avec votre accord, modifiable à tout moment par le lien « Gérer les cookies » en pied de page.',
       'Vous pouvez accéder à vos données, les corriger ou les faire supprimer.',

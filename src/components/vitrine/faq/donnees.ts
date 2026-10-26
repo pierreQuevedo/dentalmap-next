@@ -54,12 +54,7 @@ export const CATEGORIES: Categorie[] = [
         ordre: 4,
         question: 'Que me demande-t-on pour chercher ?',
         reponse:
-          'Une ville, un code postal ou une adresse : la recherche fonctionne sans géolocalisation. Un compte patient ne demande que votre email, et aucune donnée de santé ne vous est demandée.',
-      },
-      {
-        ordre: 5,
-        question: 'À quoi servent les favoris ?',
-        reponse: 'À mettre des fiches de côté pour les retrouver sur tous vos appareils. Ils sont liés à votre compte.',
+          'Une ville, un code postal ou une adresse : la recherche fonctionne sans géolocalisation, et sans compte. Aucune donnée de santé ne vous est demandée.',
       },
     ],
   },
@@ -180,7 +175,7 @@ export const CATEGORIES: Categorie[] = [
       {
         ordre: 1,
         question: 'Quelles données me demandez-vous ?',
-        reponse: 'Un compte patient ne demande que votre adresse email. Aucune donnée de santé n’est demandée, nulle part sur le site.',
+        reponse: 'Chercher un professionnel ne demande aucun compte. Un compte, pour un étudiant, un salarié ou un professionnel, demande votre nom et votre adresse email. Aucune donnée de santé n’est demandée, nulle part sur le site.',
       },
       {
         ordre: 2,

@@ -57,6 +57,7 @@ import {
   lienItineraire,
   type ContexteFiche,
 } from './fiche-blocs'
+import { FAVORIS_VISIBLE } from '@/lib/visibilite'
 
 /** Rayon de la carte d'en-tête : de quoi situer la rue, pas le quartier. */
 const RAYON_CARTE = 900
@@ -119,7 +120,7 @@ export function FichePersonne({ c }: { c: ContexteFiche }) {
                 </a>
               )}
               {principal && <BoutonItineraire lieu={principal} />}
-              <BoutonFavori slug={p.slug} retour={c.cheminFiche} favori={c.favori} />
+              {FAVORIS_VISIBLE && <BoutonFavori slug={p.slug} retour={c.cheminFiche} favori={c.favori} />}
             </div>
           </div>
 

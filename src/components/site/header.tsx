@@ -11,6 +11,7 @@ import { MobileNav } from './mobile-nav'
 import { RechercheHeader } from './recherche-header'
 import { BookmarkIcon } from './nav-icon'
 import { UserMenu } from './user-menu'
+import { FAVORIS_VISIBLE } from '@/lib/visibilite'
 
 /**
  * En-tête du site.
@@ -42,9 +43,11 @@ export async function Header() {
 
         <div className="flex items-center justify-end gap-2">
           {/* Les fiches mises de côté. La page demande la connexion : le lien reste le même pour tous. Sous `xl`, il passe dans le menu (`mobile-nav.tsx`). */}
-          <a href="/favoris/" aria-label="Mes favoris" className="hidden size-9 place-items-center rounded-full xl:grid text-fg hover:bg-bg-soft">
-            <BookmarkIcon className="size-[18px]" />
-          </a>
+          {FAVORIS_VISIBLE && (
+            <a href="/favoris/" aria-label="Mes favoris" className="hidden size-9 place-items-center rounded-full xl:grid text-fg hover:bg-bg-soft">
+              <BookmarkIcon className="size-[18px]" />
+            </a>
+          )}
           <RechercheHeader accesRapide={accesRapide} />
           {/* `size="icon"` fait 36 px, exactement la place réservée pendant
               l'hydratation : sans cela le bouton arrive 4 px plus petit et

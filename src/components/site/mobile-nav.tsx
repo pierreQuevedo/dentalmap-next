@@ -8,6 +8,7 @@ import { chemin, mainNav, mainNavIcons, type NavLink } from '@/lib/navigation'
 import { NavIconSvg } from './nav-icon'
 import { RechercheUniverselle } from '@/components/accueil/recherche-universelle'
 import { verrouillerDefilement } from '@/lib/verrou-defilement'
+import { FAVORIS_VISIBLE } from '@/lib/visibilite'
 
 /**
  * Tiroir plein écran, en dessous de `xl`.
@@ -144,9 +145,11 @@ export function MobileNav() {
           </div>
 
           <div className="grid gap-3 border-t border-line px-5 py-4 md:px-10">
-            <a href="/favoris/" className="block rounded-full border border-line px-5 py-3 text-center text-[15px] font-medium text-fg">
-              Mes favoris
-            </a>
+            {FAVORIS_VISIBLE && (
+              <a href="/favoris/" className="block rounded-full border border-line px-5 py-3 text-center text-[15px] font-medium text-fg">
+                Mes favoris
+              </a>
+            )}
             <a
               href="/espace-pro/"
               className="block rounded-full bg-action px-5 py-3 text-center text-[15px] font-semibold text-action-foreground"

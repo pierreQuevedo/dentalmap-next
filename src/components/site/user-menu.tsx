@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Deroulant } from './deroulant'
 import { useEffect, useState } from 'react'
 import { signOut, useSession } from '@/lib/auth-client'
+import { FAVORIS_VISIBLE } from '@/lib/visibilite'
 
 /**
  * Menu compte.
@@ -70,7 +71,9 @@ export function UserMenu() {
               ) : (
                 !patient && <a role="menuitem" href="/espace-pro/" className={`${item} font-semibold`}>Espace pro</a>
               )}
-              <a role="menuitem" href="/favoris/" className={`${item} ${patient ? 'font-semibold' : ''}`}>Mes favoris</a>
+              {(FAVORIS_VISIBLE || patient) && (
+                <a role="menuitem" href="/favoris/" className={`${item} ${patient ? 'font-semibold' : ''}`}>Mes favoris</a>
+              )}
               {soignant ? (
                 <a role="menuitem" href="/espace-pro/revendiquer/" className={item}>Revendiquer une fiche</a>
               ) : (

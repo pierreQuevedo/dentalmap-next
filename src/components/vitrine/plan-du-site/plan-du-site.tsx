@@ -21,7 +21,7 @@ import { BASE_URL, PROFESSIONS, type Profession } from '@/lib/annuaire/types'
 import { LIBELLE } from '@/lib/annuaire/libelles'
 import { getDepartementsAvecPraticiens } from '@/lib/annuaire/queries'
 import { getAccesRapide } from '@/lib/annuaire/acces-rapide'
-import { RESSOURCES_VISIBLE } from '@/lib/visibilite'
+import { FAVORIS_VISIBLE, RESSOURCES_VISIBLE } from '@/lib/visibilite'
 
 /**
  * `aVenir` : la page est conçue mais sa route n'existe pas encore. Le lien
@@ -113,7 +113,7 @@ const RUBRIQUES: Rubrique[] = [
       { libelle: 'Questions fréquentes', href: '/faq/' },
       { libelle: 'Contact', href: '/contact/' },
       { libelle: 'Signaler une erreur sur une fiche', href: '/contact/?objet=erreur-fiche' },
-      { libelle: 'Mes favoris', href: '/favoris/' },
+      ...(FAVORIS_VISIBLE ? [{ libelle: 'Mes favoris', href: '/favoris/' }] : []),
     ],
   },
   {
