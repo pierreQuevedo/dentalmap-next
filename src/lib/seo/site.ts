@@ -20,3 +20,13 @@ export const SITE_DESCRIPTION =
   'vérifié auprès des registres officiels.'
 
 export const url = (chemin: string) => `${SITE_URL}${chemin}`
+
+/**
+ * Socle Open Graph commun. Next ne fusionne pas `openGraph` entre segments :
+ * une page qui définit le sien doit repartir de cet objet, et reprendre
+ * `IMAGE_PARTAGE` (servie par `src/app/opengraph-image.tsx`) si elle n'a pas
+ * d'image à elle.
+ */
+export const OPEN_GRAPH = { siteName: SITE_NOM, locale: 'fr_FR', type: 'website' } as const
+export const IMAGE_PARTAGE_ALT = 'DentalMap, annuaire dentaire vérifié auprès des registres officiels'
+export const IMAGE_PARTAGE = { url: '/opengraph-image/', width: 1200, height: 630, alt: IMAGE_PARTAGE_ALT }

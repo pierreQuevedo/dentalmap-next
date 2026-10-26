@@ -93,9 +93,14 @@ export function Recruter() {
         <FilAriane segments={[{ libelle: 'Emploi', href: EMPLOI }, { libelle: 'Recruter' }]} />
         <div className="mt-8 grid gap-12 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-end lg:gap-16">
           <div>
-            <TitreDeuxTons as="h1" grand sous="près de votre cabinet.">
-              Recrutez
-            </TitreDeuxTons>
+            <h1 className="inline-flex items-center gap-2 text-sm font-medium text-fg-2">
+              <span className="size-1.5 rounded-full bg-teal" /> Publier une offre d’emploi dentaire
+            </h1>
+            <div className="mt-5">
+              <TitreDeuxTons as="p" grand sous="près de votre cabinet.">
+                Recrutez
+              </TitreDeuxTons>
+            </div>
             <p className="mt-6 max-w-xl text-lg text-fg-2">
               Assistant(e)s dentaires, secrétaires, prothésistes, remplaçant(e)s et collaborateurs : publiez votre offre depuis l’espace pro de votre fiche vérifiée.
             </p>

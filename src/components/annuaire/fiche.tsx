@@ -40,12 +40,23 @@ export async function metadonneesFiche(profession: Profession, params: Params): 
   const nom = nomAffiche(p)
   const lieu = principal?.communeNom ?? ''
   const qualite = p.specialite ?? LIBELLE[profession].singulier
-  const titre = `${nom}, ${qualite.toLowerCase()} à ${lieu}`
+  // « Laboratoire de prothèse dentaire » allonge le titre au point que Google le
+  // tronque ; la forme courte suffit, la description garde la forme complète.
+  const qualiteTitre = profession === 'prothesiste' && !p.specialite ? 'laboratoire de prothèse' : qualite.toLowerCase()
+  const titre = `${nom}, ${qualiteTitre} à ${lieu}`
+  // La description n'annonce que ce que la fiche montre : le téléphone s'il
+  // existe (révélé au clic), et l'identifiant réellement porté, RPPS pour une
+  // personne, SIREN pour un laboratoire.
+  const contenu = [
+    'Adresse',
+    ...(principal?.aTelephone ? ['téléphone'] : []),
+    ...(p.rpps ? ['numéro RPPS'] : p.siren ? ['numéro SIREN'] : []),
+  ]
   return {
     title: titre,
     description:
       `${nom}, ${qualite.toLowerCase()} à ${lieu}. ` +
-      `Adresse, téléphone, numéro RPPS et informations vérifiées auprès des registres officiels.`,
+      `${contenu.join(', ')} et informations vérifiées auprès des registres officiels.`,
     alternates: { canonical: `/${BASE_URL[profession]}/${departement}/${commune}/${slug}/` },
     // Une fiche non indexable reste consultable et trouvable par recherche
     // nominative, mais sort des moteurs : sans position, elle n'apporte rien.

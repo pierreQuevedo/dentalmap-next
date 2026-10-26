@@ -21,6 +21,8 @@ import { CONTRATS_TYPES_ORDRE, SALAIRES, SOURCES_SALAIRES, montantTexte } from '
 import { AucuneOffre } from './accueil'
 import { AlerteEmail } from './alerte-email'
 import { CarteOffre, ListeLiens, TitreDeuxTons, nombreOffres } from './blocs'
+import { enDepartement } from '@/lib/annuaire/libelles'
+import { Balisage, filAriane } from '@/lib/seo/jsonld'
 
 const CONDITIONS = [
   {
@@ -65,12 +67,20 @@ export async function PageRemplacements({ collaboration, departement: d, page = 
     ? [{ libelle: 'Emploi', href: EMPLOI }, { libelle: 'Remplacements et collaborations', href: REMPLACEMENTS }, { libelle: d.nom }]
     : [{ libelle: 'Emploi', href: EMPLOI }, { libelle: 'Remplacements et collaborations' }]
 
+  const balisage = filAriane([
+    { nom: 'Accueil', chemin: '/' },
+    { nom: 'Emploi', chemin: EMPLOI },
+    { nom: 'Remplacements et collaborations', chemin: REMPLACEMENTS },
+    ...(d ? [{ nom: d.nom, chemin: cheminRemplacementsDepartement(d.slug) }] : []),
+  ])
+
   return (
     <main>
+      <Balisage donnees={balisage} />
       <section className="container pb-12 pt-8">
         <FilAriane segments={ariane} />
         <div className="mt-8">
-          <TitreDeuxTons as="h1" sous={d ? `en ${d.nom}.` : 'pour les chirurgiens-dentistes.'}>
+          <TitreDeuxTons as="h1" sous={d ? `${enDepartement(d.nom)}.` : 'pour les chirurgiens-dentistes.'}>
             Remplacements et collaborations
           </TitreDeuxTons>
         </div>
@@ -130,7 +140,7 @@ export async function PageRemplacements({ collaboration, departement: d, page = 
       <section className="container py-16">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
           <h2 className="text-2xl font-semibold tracking-tight text-fg">
-            {d ? `${nombreOffres(total)} en ${d.nom}` : collaboration ? 'Collaborations récentes' : 'Remplacements récents'}
+            {d ? `${nombreOffres(total)} ${enDepartement(d.nom)}` : collaboration ? 'Collaborations récentes' : 'Remplacements récents'}
           </h2>
         </div>
         <div className="mt-5">
@@ -142,7 +152,7 @@ export async function PageRemplacements({ collaboration, departement: d, page = 
             </ul>
           ) : (
             <AucuneOffre
-              texte={`Aucun${collaboration ? 'e collaboration' : ' remplacement'} n’est en ligne${d ? ` en ${d.nom}` : ''} pour le moment. Recevez les prochaines offres par email dès leur publication.`}
+              texte={`Aucun${collaboration ? 'e collaboration' : ' remplacement'} n’est en ligne${d ? ` ${enDepartement(d.nom)}` : ''} pour le moment. Recevez les prochaines offres par email dès leur publication.`}
               criteres={{ metiers: ['chirurgien_dentiste'], contrats: [contrat], ...(d ? { departement: d.code } : {}) }}
             />
           )}
@@ -210,7 +220,7 @@ export async function PageRemplacements({ collaboration, departement: d, page = 
           <AlerteEmail
             criteres={{ metiers: ['chirurgien_dentiste'], contrats: ['collaboration', 'remplacement'], ...(d ? { departement: d.code } : {}) }}
             titre="Les nouveaux remplacements par email"
-            detail={`Remplacements et collaborations${d ? ` en ${d.nom}` : ', partout en France'}. Un email par semaine au plus, et un lien de désinscription dans chaque envoi.`}
+            detail={`Remplacements et collaborations${d ? ` ${enDepartement(d.nom)}` : ', partout en France'}. Un email par semaine au plus, et un lien de désinscription dans chaque envoi.`}
           />
         </div>
       </section>

@@ -4,6 +4,7 @@ import { ListeAnnonces } from '@/components/cessions/liste'
 import { EMPRISE_FRANCE } from '@/lib/annuaire/emprise'
 import { chemin } from '@/lib/navigation'
 import { Balisage, filAriane } from '@/lib/seo/jsonld'
+import { IMAGE_PARTAGE, OPEN_GRAPH } from '@/lib/seo/site'
 import { chaineFiltres, filtrerAnnonces, lireFiltres, lireVue, premier, type ParametresListe } from '@/lib/cessions/format'
 import { getAnnoncesFrance, getDepartementsCession } from '@/lib/cessions/queries'
 import { LISTE_CESSIONS, cheminDepartementCession } from '@/lib/cessions/routes'
@@ -15,10 +16,10 @@ export const instant = false
 
 export const metadata: Metadata = {
   title: 'Cessions de cabinet dentaire',
-  description: 'Cabinets dentaires, parts de société, patientèles et locaux à reprendre, partout en France. Annonces publiées par des praticiens vérifiés et relues par l’équipe.',
+  description: 'Cabinets dentaires, parts de société, patientèles et locaux à reprendre partout en France. Annonces de praticiens vérifiés, relues par l’équipe.',
   // Filtres et vue carte reprennent la même liste : une seule adresse canonique.
   alternates: { canonical: LISTE_CESSIONS },
-  openGraph: { title: 'Cessions de cabinet dentaire', url: LISTE_CESSIONS, type: 'website' },
+  openGraph: { ...OPEN_GRAPH, title: 'Cessions de cabinet dentaire', url: LISTE_CESSIONS, images: [IMAGE_PARTAGE] },
 }
 
 export default async function Page(props: { searchParams: Recherche }) {

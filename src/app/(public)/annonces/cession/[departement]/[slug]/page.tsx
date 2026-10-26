@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { HeaderTransparent } from '@/components/home/HeaderTransparent'
 import { PageAnnonce } from '@/components/cessions/annonce'
 import { Balisage, filAriane } from '@/lib/seo/jsonld'
+import { IMAGE_PARTAGE, OPEN_GRAPH } from '@/lib/seo/site'
 import { chiffreAffaires, paragraphes, prixLong } from '@/lib/cessions/format'
 import { getAnnonceCession, getAnnoncesProches } from '@/lib/cessions/queries'
 import { LISTE_CESSIONS, cheminAnnonceCession, cheminDepartementCession } from '@/lib/cessions/routes'
@@ -24,7 +25,7 @@ export async function generateMetadata(props: { params: Params }): Promise<Metad
     title: titre,
     description: description.length > 160 ? `${description.slice(0, 157).trimEnd()}…` : description,
     alternates: { canonical: url },
-    openGraph: { title: titre, url, type: 'article', ...(a.photo ? { images: [{ url: a.photo }] } : {}) },
+    openGraph: { ...OPEN_GRAPH, title: titre, url, type: 'article', images: [a.photo ? { url: a.photo } : IMAGE_PARTAGE] },
   }
 }
 

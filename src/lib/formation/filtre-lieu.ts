@@ -1,6 +1,6 @@
 import { getCodesDepartementsDeRegion, getCommuneParCode, getDepartement, getRegion } from '@/lib/annuaire/queries'
 import type { FormationResume } from '@/lib/wp/queries'
-import { enRegion } from '@/lib/annuaire/libelles'
+import { enRegion, enDepartement } from '@/lib/annuaire/libelles'
 import { memeVille } from './types'
 
 /**
@@ -28,7 +28,7 @@ export async function resoudreLieu(params: { lieu?: string; departement?: string
   }
   if (params.departement) {
     const d = await getDepartement(params.departement)
-    return d ? { libelle: d.nom, dans: `en ${d.nom}`, departements: [d.code], ville: null } : null
+    return d ? { libelle: d.nom, dans: `${enDepartement(d.nom)}`, departements: [d.code], ville: null } : null
   }
   const lieu = params.lieu?.trim()
   if (!lieu) return null

@@ -5,6 +5,7 @@ import { getDepartement } from '@/lib/annuaire/queries'
 import { cheminRemplacementsDepartement } from '@/lib/emploi/chemins'
 import { robotsListe } from '@/lib/emploi/metiers'
 import { PAR_PAGE_EMPLOI, getOffresDepartement } from '@/lib/emploi/queries'
+import { enDepartement } from '@/lib/annuaire/libelles'
 
 type Params = { departement: string }
 type Recherche = { contrat?: string; page?: string }
@@ -25,8 +26,8 @@ export async function generateMetadata(props: { params: Promise<Params>; searchP
   const { collaboration, page } = lire(await props.searchParams)
   const { total } = await getOffresDepartement(d.code, filtre(collaboration), page)
   return {
-    title: `${collaboration ? 'Collaborations' : 'Remplacements'} de chirurgien-dentiste en ${d.nom}`,
-    description: `Remplacements et collaborations libérales en ${d.nom}, publiés par des cabinets vérifiés, avec le taux de rétrocession ou de redevance affiché.`,
+    title: `${collaboration ? 'Collaborations' : 'Remplacements'} de chirurgien-dentiste ${enDepartement(d.nom)}`,
+    description: `Remplacements et collaborations libérales ${enDepartement(d.nom)}, publiés par des cabinets vérifiés, avec le taux de rétrocession ou de redevance affiché.`,
     alternates: { canonical: cheminRemplacementsDepartement(d.slug) },
     robots: robotsListe(total, collaboration || page > 1),
   }

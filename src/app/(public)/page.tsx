@@ -15,7 +15,8 @@ import { HomeFaq } from '@/components/home/HomeFaq'
 import { HomePartenaire } from '@/components/home/HomePartenaire'
 
 export const metadata: Metadata = {
-  title: 'DentalMap, annuaire dentaire vérifié',
+  // Absolu : le modèle « %s | DentalMap » répéterait la marque.
+  title: { absolute: 'DentalMap, annuaire dentaire vérifié' },
   description: SITE_DESCRIPTION,
   alternates: { canonical: '/' },
 }

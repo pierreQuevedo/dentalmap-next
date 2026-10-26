@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react'
 import { Bell, CircleCheck } from 'lucide-react'
 import { inscrireAlerteCession, type EtatAlerteCession } from '@/lib/cessions/actions'
 import type { TypeCession } from '@/lib/cessions/types'
+import { enDepartement } from '@/lib/annuaire/libelles'
 
 /**
  * L'alerte cessions, sans compte : une adresse, confirmée par un lien envoyé
@@ -13,7 +14,7 @@ import type { TypeCession } from '@/lib/cessions/types'
 export function AlerteCessions({ departementCode, departementNom, types, id = 'alerte' }: { departementCode?: string; departementNom?: string; types: TypeCession[]; id?: string }) {
   const [etat, envoyer, enCours] = useActionState<EtatAlerteCession, FormData>(inscrireAlerteCession, null)
   const [ouvert, setOuvert] = useState(false)
-  const lieu = departementNom ? ` en ${departementNom}` : ''
+  const lieu = departementNom ? ` ${enDepartement(departementNom)}` : ''
 
   return (
     <div id={id} className="alerte squircle-2xl mt-6 scroll-mt-24 bg-bg-soft p-5">

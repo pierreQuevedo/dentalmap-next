@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Figtree } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
 import { SCRIPT_AXEPTIO, SCRIPT_CONSENTEMENT } from '@/lib/consentement'
-import { SITE_DESCRIPTION, SITE_NOM, SITE_URL } from '@/lib/seo/site'
+import { OPEN_GRAPH, SITE_DESCRIPTION, SITE_NOM, SITE_URL } from '@/lib/seo/site'
 import './globals.css'
 
 const figtree = Figtree({
@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: SITE_NOM, template: `%s | ${SITE_NOM}` },
   description: SITE_DESCRIPTION,
+  // Sans titre ni description ici : Next reprend ceux de chaque page pour
+  // og:title et og:description, et en déduit la carte Twitter. L'image vient
+  // de `opengraph-image.tsx`.
+  openGraph: OPEN_GRAPH,
 }
 
 const GTM_ID = 'GTM-WLZHVRCH'

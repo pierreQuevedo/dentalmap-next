@@ -482,7 +482,7 @@ export function Photo({ src, className = '', alt = '', sizes = '(min-width: 1024
 }
 
 /** En-tête de page éditorial, titre en deux tons (celui d'« Explorer l'annuaire »). */
-export function TitreDeuxTons({ children, sous, as: Tag = 'h2', grand }: { children: React.ReactNode; sous?: string; as?: 'h1' | 'h2'; grand?: boolean }) {
+export function TitreDeuxTons({ children, sous, as: Tag = 'h2', grand }: { children: React.ReactNode; sous?: string; as?: 'h1' | 'h2' | 'p'; grand?: boolean }) {
   return (
     <Tag className={`font-semibold tracking-tight text-fg ${grand ? 'text-5xl leading-[1.02] md:text-7xl lg:text-8xl' : 'text-3xl md:text-5xl'}`}>
       {children}

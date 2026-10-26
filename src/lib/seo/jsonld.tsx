@@ -35,6 +35,7 @@ export function organisation() {
     '@type': 'Organization',
     name: SITE_NOM,
     url: SITE_URL,
+    logo: url('/images/marque/pictogramme-dentalmap.png'),
     description:
       'Annuaire des chirurgiens-dentistes et des laboratoires de prothèse dentaire en France, ' +
       'construit à partir des registres publics.',
@@ -110,6 +111,9 @@ export function siteWeb() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: SITE_NOM,
+    // Les autres graphies sous lesquelles on cherche le site : Google s'en sert
+    // pour relier « dental map » au nom affiché dans ses résultats.
+    alternateName: ['Dental Map', 'dentalmap.fr'],
     url: SITE_URL,
     potentialAction: {
       '@type': 'SearchAction',
@@ -165,5 +169,21 @@ export function etablissementFormation(e: {
     ...(e.adresse || e.ville
       ? { address: { '@type': 'PostalAddress', ...(e.adresse ? { streetAddress: e.adresse } : {}), ...(e.ville ? { addressLocality: e.ville } : {}), addressCountry: 'FR' } }
       : {}),
+  }
+}
+
+/**
+ * Nature d'une page vitrine : `AboutPage` pour le projet, `ContactPage` pour
+ * les pages dont l'objet est de nous écrire. Rien de plus que ce que la page
+ * dit d'elle-même dans son titre et sa description.
+ */
+export function pageWeb(type: 'AboutPage' | 'ContactPage', p: { nom: string; chemin: string; description: string }) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': type,
+    name: p.nom,
+    url: url(p.chemin),
+    description: p.description,
+    isPartOf: { '@type': 'WebSite', name: SITE_NOM, url: SITE_URL },
   }
 }

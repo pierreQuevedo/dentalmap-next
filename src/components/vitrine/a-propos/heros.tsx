@@ -38,11 +38,11 @@ export function HeroMosaique() {
     <section className="dark relative -mt-20 overflow-hidden bg-background pt-20 text-fg">
       <div className="container grid items-center gap-12 py-14 lg:min-h-[calc(100svh-5rem)] lg:grid-cols-[minmax(0,6fr)_minmax(0,6fr)] lg:gap-16 lg:py-16">
         <div>
-          <Surtitre sombre>Le projet DentalMap</Surtitre>
-          <h1 className="mt-5 text-5xl font-semibold leading-[1.02] tracking-tight text-white md:text-7xl xl:text-8xl">
+          <Surtitre sombre as="h1">Le projet DentalMap, annuaire dentaire vérifié</Surtitre>
+          <p className="mt-5 text-5xl font-semibold leading-[1.02] tracking-tight text-white md:text-7xl xl:text-8xl">
             Pas de fiche
             <span className="block text-white/50">sans registre officiel.</span>
-          </h1>
+          </p>
           <p className="mt-6 max-w-md text-lg text-white/70">L’annuaire dentaire vérifié par les registres officiels.</p>
           <div className="mt-8">
             <BoutonsHero />
