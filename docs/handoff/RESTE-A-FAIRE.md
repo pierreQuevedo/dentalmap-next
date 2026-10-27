@@ -50,7 +50,7 @@ L’administration vit dans WordPress, un plugin par espace, les données Neon p
 - **Revendications** : brancher les actions de `lib/tunnel/actions.ts` sur `deciderRevendication`.
 - **Modération restée dans Next** : `/espace-pro/moderation/` (revendications, établissements, formations privées et, depuis le 2026-10-22, avis signalés) est à reprendre dans un plugin, avec des routes `/api/admin/` pour les avis (liste des signalements, décision).
 - **Messages de contact, 1 an** : appliqué chaque nuit par le plugin SAV (tickets sans activité depuis un an, courriels de plus d’un an de la boîte contact@).
-- `dm_api_url` pointe sur la prévisualisation `feat-vitrine` : à remettre sur la production.
+- `dm_api_url` pointe sur la production (`https://dentalmap.fr`) depuis le 2026-10-27 : la prévisualisation `feat-vitrine` n'existe plus.
 
 ## 4. Avant la mise en ligne : configuration et données
 
