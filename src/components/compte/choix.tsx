@@ -4,8 +4,9 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { upload } from '@vercel/blob/client'
-import { ArrowRight, Check, CreditCard, ExternalLink, FileText, IdCard, MapPin, MessageCircle, Search, Send, Upload, UserRound, X, type LucideIcon } from 'lucide-react'
-import { CarteOption, discret, principal } from './ui'
+import { ArrowRight, Check, CreditCard, ExternalLink, FileText, IdCard, MapPin, MessageCircle, Phone, Search, Send, Upload, UserRound, X, type LucideIcon } from 'lucide-react'
+import { enregistrerTelephone } from '@/lib/tunnel/telephone'
+import { CarteOption, discret, pastille, principal, saisie } from './ui'
 
 /**
  * Les choix interactifs du parcours de revendication.
@@ -163,6 +164,7 @@ export function DepotJustificatif({
   libelle = 'Envoyer le justificatif',
   pdfSeul = false,
   defilant = false,
+  telephone,
 }: {
   action: (d: FormData) => Promise<void>
   champsCaches: Record<string, string>
@@ -181,6 +183,8 @@ export function DepotJustificatif({
   pdfSeul?: boolean
   /** Hauteur bornée : le contenu défile, le bouton d'envoi reste visible sous lui. */
   defilant?: boolean
+  /** Le numéro déjà donné par le compte : le champ, obligatoire, part prérempli. */
+  telephone: string | null
 }) {
   const [fichiers, setFichiers] = useState<Record<string, File | null>>({})
   const [erreur, setErreur] = useState<string | null>(erreurInitiale ?? null)
@@ -204,6 +208,13 @@ export function DepotJustificatif({
     setEnvoi(true)
     setErreur(null)
     try {
+      // Le numéro passe avant les fichiers : refusé, rien n'est envoyé.
+      const tel = await enregistrerTelephone(String(donnees.get('telephone') ?? ''), { obligatoire: true })
+      if (tel.erreur) {
+        setErreur(tel.erreur)
+        setEnvoi(false)
+        return
+      }
       for (const e of emplacements) {
         const f = fichiers[e.nom]
         if (!f) continue
@@ -240,6 +251,7 @@ export function DepotJustificatif({
             <Zone key={e.nom} e={e} pdfSeul={pdfSeul} fichier={fichiers[e.nom] ?? null} onFichier={(f) => prendre(e.nom, f)} onRetirer={() => setFichiers((x) => ({ ...x, [e.nom]: null }))} />
           ))}
         </div>
+        <ChampTelephone defaut={telephone} />
         {apres}
       </div>
       {/* Hors de la zone qui défile : l'erreur reste visible au-dessus du bouton. */}
@@ -250,6 +262,37 @@ export function DepotJustificatif({
       )}
       <Envoyer libelle={envoi ? 'Envoi…' : libelle} desactive={!complet || envoi} />
     </form>
+  )
+}
+
+/**
+ * Le numéro de contact qui accompagne un justificatif : l'équipe appelle si
+ * le document demande une vérification complémentaire. Jamais publié.
+ */
+function ChampTelephone({ defaut }: { defaut: string | null }) {
+  return (
+    <div className="mt-4">
+      <label htmlFor="justificatif-telephone" className="mb-1.5 block text-sm font-medium text-fg">
+        Téléphone
+      </label>
+      <div className={pastille}>
+        <Phone className="size-4 shrink-0 text-fg-2" aria-hidden />
+        <input
+          id="justificatif-telephone"
+          type="tel"
+          name="telephone"
+          required
+          autoComplete="tel"
+          defaultValue={defaut ?? ''}
+          placeholder="06 12 34 56 78"
+          aria-describedby="justificatif-telephone-aide"
+          className={saisie}
+        />
+      </div>
+      <p id="justificatif-telephone-aide" className="mt-1.5 text-xs text-fg-2">
+        Pour vous joindre si le document demande une vérification complémentaire. Ce numéro reste confidentiel : il n’est jamais publié sur le site.
+      </p>
+    </div>
   )
 }
 

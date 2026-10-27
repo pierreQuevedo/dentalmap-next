@@ -33,6 +33,12 @@ export const user = pgTable("user", {
    * après un email d'avertissement (`src/lib/conservation.ts`).
    */
   derniereActiviteLe: timestamp("derniere_activite_le").defaultNow().notNull(),
+  /**
+   * Numéro de contact, jamais publié : l'équipe s'en sert pour une
+   * vérification complémentaire. Demandé avec un justificatif, facultatif
+   * ailleurs, modifiable dans « Compte et sécurité ».
+   */
+  telephone: text("telephone"),
   inactiviteAvertiLe: timestamp("inactivite_averti_le"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")

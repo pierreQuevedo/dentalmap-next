@@ -16,7 +16,7 @@ import { CarteOption, Encart, Marque, Pictogramme, lien, pastille, pastilleInval
  *
  * Un écran de connexion, adresse et mot de passe, avec le lien vers
  * l'inscription et le mot de passe oublié. Un écran d'inscription : profil,
- * nom, adresse, mot de passe ; un code à six chiffres reçu par courriel
+ * nom, adresse, mot de passe saisi deux fois ; un code à six chiffres reçu par courriel
  * confirme ensuite l'adresse et ouvre la session. Le mot de passe oublié passe
  * par le même code. Pro Santé Connect est annoncé en encart, il arrive.
  *
@@ -67,6 +67,8 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
   const [etat, setEtat] = useState<Etat>(inscription ? 'inscription' : 'connexion')
   const [email, setEmail] = useState('')
   const [motDePasse, setMotDePasse] = useState('')
+  /** La seconde saisie de l'inscription : le compte ne part qu'avec deux saisies identiques. */
+  const [confirmation, setConfirmation] = useState('')
   const [codeSaisi, setCodeSaisi] = useState('')
   /** Le code est mort de trop d'essais, pas de son âge : l'écran d'expiration le dit. */
   const [tropDEssais, setTropDEssais] = useState(false)
@@ -114,6 +116,7 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
     setCodeSaisi('')
     setCodeEnvoye(false)
     setMotDePasse('')
+    setConfirmation('')
     setEtat(e)
   }
 
@@ -449,10 +452,19 @@ export function Connexion({ retour, inscription = false, profil }: { retour: str
                 valeur={motDePasse}
                 onChange={setMotDePasse}
               />
+              <ChampMotDePasse
+                id="inscription-mdp-confirmation"
+                libelle="Confirmez le mot de passe"
+                placeholder="La même saisie"
+                autoComplete="new-password"
+                valeur={confirmation}
+                onChange={setConfirmation}
+                aide={confirmation && confirmation !== motDePasse ? 'Les deux mots de passe ne correspondent pas.' : undefined}
+              />
             </div>
             <Criteres motDePasse={motDePasse} />
             {erreur && <Erreur>{erreur}</Erreur>}
-            <button type="submit" disabled={enCours || !motDePasseValide(motDePasse)} className={`${principal} mt-6`}>
+            <button type="submit" disabled={enCours || !motDePasseValide(motDePasse) || confirmation !== motDePasse} className={`${principal} mt-6`}>
               {enCours ? <Point /> : BOUTON_INSCRIPTION[role]}
               {!enCours && <ArrowRight className="size-4" aria-hidden />}
             </button>
@@ -670,6 +682,7 @@ function ChampMotDePasse({
   valeur,
   onChange,
   minLength,
+  aide,
 }: {
   id: string
   libelle: string
@@ -678,10 +691,12 @@ function ChampMotDePasse({
   valeur: string
   onChange: (v: string) => void
   minLength?: number
+  /** Un message d'erreur sous le champ, contour rouge. */
+  aide?: string
 }) {
   const [visible, setVisible] = useState(false)
   return (
-    <Champ id={id} icone={Lock} libelle={libelle}>
+    <Champ id={id} icone={Lock} libelle={libelle} invalide={!!aide} aide={aide}>
       <input
         id={id}
         type={visible ? 'text' : 'password'}

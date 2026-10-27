@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { KeyRound, Lock, Smartphone } from 'lucide-react'
+import { KeyRound, Lock, Phone, Smartphone } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 import { chemin } from '@/lib/navigation'
 import { pastille, saisie } from '@/components/compte/ui'
 import { Criteres } from '@/components/compte/connexion'
 import { MESSAGE_MOT_DE_PASSE, motDePasseValide } from '@/lib/tunnel/mot-de-passe'
+import { enregistrerTelephone } from '@/lib/tunnel/telephone'
 
 /**
  * Compte et sécurité : changer le mot de passe, voir les appareils connectés,
@@ -60,6 +61,40 @@ export function MotDePasse() {
       )}
       <button type="submit" disabled={enCours || !motDePasseValide(nouveau)} className="inline-flex h-10 cursor-pointer items-center rounded-full border border-line px-4 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-60">
         {enCours ? 'Enregistrement…' : 'Changer le mot de passe'}
+      </button>
+    </form>
+  )
+}
+
+/** Le numéro de contact, facultatif ici : vide, il est effacé. Jamais publié. */
+export function Telephone({ initial }: { initial: string | null }) {
+  const [valeur, setValeur] = useState(initial ?? '')
+  const [message, setMessage] = useState<{ ok: boolean; texte: string } | null>(null)
+  const [enCours, demarrer] = useTransition()
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        setMessage(null)
+        demarrer(async () => {
+          const { erreur } = await enregistrerTelephone(valeur)
+          setMessage(erreur ? { ok: false, texte: erreur } : { ok: true, texte: valeur.trim() ? 'Numéro enregistré.' : 'Numéro effacé.' })
+        })
+      }}
+      className="mt-4 space-y-3"
+    >
+      <div className={pastille}>
+        <Phone className="size-4 shrink-0 text-fg-2" aria-hidden />
+        <input type="tel" autoComplete="tel" value={valeur} onChange={(e) => setValeur(e.target.value)} placeholder="06 12 34 56 78" aria-label="Téléphone" className={saisie} />
+      </div>
+      <p className="text-xs text-fg-2">Facultatif. Ce numéro reste confidentiel : il n’est jamais publié sur le site. L’équipe ne s’en sert que pour vous joindre lors d’une vérification.</p>
+      {message && (
+        <p role="status" className={`text-sm ${message.ok ? 'text-teal' : 'text-destructive'}`}>
+          {message.texte}
+        </p>
+      )}
+      <button type="submit" disabled={enCours || valeur.trim() === (initial ?? '')} className="inline-flex h-10 cursor-pointer items-center rounded-full border border-line px-4 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-60">
+        {enCours ? 'Enregistrement…' : 'Enregistrer'}
       </button>
     </form>
   )

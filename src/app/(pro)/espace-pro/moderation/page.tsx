@@ -35,7 +35,7 @@ export default async function Page() {
               {[r.fiche.prenom, r.fiche.nom].filter(Boolean).join(' ') || r.fiche.raisonSociale} · {r.fiche.communeNom ?? 'commune inconnue'}
             </p>
             <p className="text-sm text-fg-2">
-              {r.fiche.profession}, RPPS {r.fiche.rpps ?? '—'}, SIRET {r.fiche.siret ?? '—'} · demandé par {r.compteNom} ({r.compteEmail}) le{' '}
+              {r.fiche.profession}, RPPS {r.fiche.rpps ?? '—'}, SIRET {r.fiche.siret ?? '—'} · demandé par {r.compteNom} ({r.compteEmail}{r.compteTelephone ? `, ${r.compteTelephone}` : ''}) le{' '}
               {new Date(r.demandeLe).toLocaleDateString('fr-FR')}
             </p>
             <p className="mt-1 text-sm text-fg">
@@ -101,7 +101,7 @@ export default async function Page() {
               {[d.prenom, d.nom].filter(Boolean).join(' ')} {d.raisonSociale && `· ${d.raisonSociale}`}
             </p>
             <p className="text-sm text-fg-2">
-              {d.profession}, RPPS {d.rpps ?? '—'}, SIRET {d.siret ?? '—'} · {d.adresse}, {d.codePostal} {d.ville} · {d.telephone ?? ''} {d.email ?? ''} · compte {d.compteEmail}
+              {d.profession}, RPPS {d.rpps ?? '—'}, SIRET {d.siret ?? '—'} · {d.adresse}, {d.codePostal} {d.ville} · {d.telephone ?? ''} {d.email ?? ''} · compte {d.compteEmail}{d.compteTelephone ? `, ${d.compteTelephone}` : ''}
             </p>
             {d.message && <p className="mt-2 whitespace-pre-line text-sm text-fg">{d.message}</p>}
             {d.justificatifNom && (
@@ -125,7 +125,7 @@ export default async function Page() {
           <li key={a.id} className="rounded-xl border border-line p-4">
             <p className="font-medium text-fg">{a.titre}</p>
             <p className="text-sm text-fg-2">
-              Demandé par {a.compteNom} ({a.compteEmail}) le {new Date(a.demandeLe).toLocaleDateString('fr-FR')} · domaine attendu : {a.domaine ?? 'inconnu'}
+              Demandé par {a.compteNom} ({a.compteEmail}{a.compteTelephone ? `, ${a.compteTelephone}` : ''}) le {new Date(a.demandeLe).toLocaleDateString('fr-FR')} · domaine attendu : {a.domaine ?? 'inconnu'}
             </p>
             {a.justificatifNom && (
               <a href={`/api/espace-pro/justificatif/${a.id}/?doc=attestation`} target="_blank" rel="noreferrer" className="mt-1 inline-block text-sm text-fg underline">

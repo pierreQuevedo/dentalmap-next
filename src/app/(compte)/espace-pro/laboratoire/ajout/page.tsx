@@ -41,6 +41,7 @@ export default async function Page(props: { searchParams: Promise<{ siret?: stri
           <p className="mt-2 text-sm text-fg-2">Décrivez-le : nous vérifions l’activité dans Sirene avant d’ajouter la fiche.</p>
           <div className="mt-6">
             <DepotJustificatif
+              telephone={compte.telephone}
               pdfSeul
               action={demanderAjoutLabo}
               champsCaches={{}}

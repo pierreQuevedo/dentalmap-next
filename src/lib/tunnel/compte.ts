@@ -19,6 +19,8 @@ export type Compte = {
   nom: string
   role: Role | null
   etapeTunnel: string | null
+  /** Numéro de contact, jamais publié : `null` tant qu'il n'a pas été donné. */
+  telephone: string | null
   etat: EtatCompte
 }
 
@@ -29,7 +31,7 @@ export async function getCompte(): Promise<Compte | null> {
   await connection()
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) return null
-  const u = session.user as typeof session.user & { role?: string | null; etapeTunnel?: string | null }
+  const u = session.user as typeof session.user & { role?: string | null; etapeTunnel?: string | null; telephone?: string | null }
   const role = estRole(u.role) ? u.role : null
 
   const [{ rows: revendications }, { rows: creations }] = await Promise.all([
@@ -50,6 +52,7 @@ export async function getCompte(): Promise<Compte | null> {
     nom: u.name,
     role,
     etapeTunnel: u.etapeTunnel ?? null,
+    telephone: u.telephone ?? null,
     etat: {
       role,
       revendications: revendications.map((r) => ({ statut: r.statut, onboardingTermine: r.termine_le !== null })),
@@ -278,6 +281,8 @@ export type RevendicationAModerer = {
   demandeLe: string
   compteEmail: string
   compteNom: string
+  /** Le numéro de contact du compte, jamais publié : pour une vérification complémentaire. */
+  compteTelephone: string | null
   /** `chemin` : la page publique de la fiche, nulle sans lieu d'exercice connu. */
   fiche: { slug: string; profession: Profession; nom: string; prenom: string | null; raisonSociale: string | null; communeNom: string | null; rpps: string | null; siret: string | null; chemin: string | null }
 }
@@ -301,6 +306,7 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     demande_le: string
     email: string
     name: string
+    telephone: string | null
     slug: string
     profession: Profession
     nom: string
@@ -312,7 +318,7 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     rpps: string | null
     siret: string | null
   }>(sql`
-    SELECT r.id, r.statut, r.methode, r.objet, r.message, r.justificatif_nom, r.mandat_nom, r.role_labo, r.gerant_email, r.demande_le, u.email, u.name,
+    SELECT r.id, r.statut, r.methode, r.objet, r.message, r.justificatif_nom, r.mandat_nom, r.role_labo, r.gerant_email, r.demande_le, u.email, u.name, u.telephone,
            r.titulaire_averti_le, r.titulaire_reponse,
            (r.titulaire_reponse IS NULL AND r.titulaire_averti_le < now() - interval '7 days') AS titulaire_sans_reponse,
            EXISTS (SELECT 1 FROM revendications a WHERE a.praticien_id = r.praticien_id AND a.id <> r.id AND a.statut = 'acceptee' AND a.objet = 'revendication') AS contestation,
@@ -345,6 +351,7 @@ export async function getRevendicationsEnAttente(): Promise<RevendicationAModere
     demandeLe: r.demande_le,
     compteEmail: r.email,
     compteNom: r.name,
+    compteTelephone: r.telephone,
     fiche: {
       slug: r.slug,
       profession: r.profession,
@@ -376,17 +383,19 @@ export type DemandeCreation = {
   statut: 'en_attente' | 'acceptee' | 'refusee'
   demandeLe: string
   compteEmail: string
+  /** Le numéro du compte, donné avec le justificatif ; `telephone` est celui de la fiche. */
+  compteTelephone: string | null
   justificatifNom: string | null
 }
 
 export async function getDemandesCreationEnAttente(): Promise<DemandeCreation[]> {
-  const { rows } = await db.execute<Omit<DemandeCreation, 'raisonSociale' | 'codePostal' | 'demandeLe' | 'compteEmail' | 'justificatifNom'> & { raison_sociale: string | null; code_postal: string; demande_le: string; compte_email: string; justificatif_nom: string | null }>(sql`
+  const { rows } = await db.execute<Omit<DemandeCreation, 'raisonSociale' | 'codePostal' | 'demandeLe' | 'compteEmail' | 'compteTelephone' | 'justificatifNom'> & { raison_sociale: string | null; code_postal: string; demande_le: string; compte_email: string; compte_telephone: string | null; justificatif_nom: string | null }>(sql`
     SELECT d.id, d.profession, d.nom, d.prenom, d.raison_sociale, d.rpps, d.siret, d.adresse, d.code_postal, d.ville,
-           d.telephone, d.email, d.message, d.statut, d.demande_le, u.email AS compte_email, d.justificatif_nom
+           d.telephone, d.email, d.message, d.statut, d.demande_le, u.email AS compte_email, u.telephone AS compte_telephone, d.justificatif_nom
     FROM demandes_creation_fiche d JOIN "user" u ON u.id = d.user_id
     WHERE d.statut = 'en_attente'
     ORDER BY d.demande_le ASC
     LIMIT 100
   `)
-  return rows.map((r) => ({ ...r, raisonSociale: r.raison_sociale, codePostal: r.code_postal, demandeLe: r.demande_le, compteEmail: r.compte_email, justificatifNom: r.justificatif_nom }))
+  return rows.map((r) => ({ ...r, raisonSociale: r.raison_sociale, codePostal: r.code_postal, demandeLe: r.demande_le, compteEmail: r.compte_email, compteTelephone: r.compte_telephone, justificatifNom: r.justificatif_nom }))
 }

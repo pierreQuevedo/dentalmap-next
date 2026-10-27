@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import Link from 'next/link'
-import { CreditCard, Fingerprint, GraduationCap, KeyRound, Mail, Smartphone } from 'lucide-react'
+import { CreditCard, Fingerprint, GraduationCap, KeyRound, Mail, Phone, Smartphone } from 'lucide-react'
 import { chemin } from '@/lib/navigation'
 import { CoqueEspace, TitreTuile, Tuile } from '@/components/espace/coque'
-import { Appareils, ClesAcces, MotDePasse } from '@/components/espace/compte-securite'
+import { Appareils, ClesAcces, MotDePasse, Telephone } from '@/components/espace/compte-securite'
 import { auth } from '@/lib/auth'
 import { chargerTableau } from '../_commun'
 
@@ -29,6 +29,10 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           <TitreTuile i={Mail}>Adresse électronique</TitreTuile>
           <p className="mt-4 text-sm text-fg">{compte.email}</p>
           <p className="mt-1 text-xs text-fg-2">Pour en changer, écrivez-nous depuis cette adresse : le changement passe par une vérification.</p>
+        </Tuile>
+        <Tuile>
+          <TitreTuile i={Phone}>Téléphone</TitreTuile>
+          <Telephone initial={compte.telephone} />
         </Tuile>
         <Tuile>
           <TitreTuile i={CreditCard}>Preuve d’identité</TitreTuile>

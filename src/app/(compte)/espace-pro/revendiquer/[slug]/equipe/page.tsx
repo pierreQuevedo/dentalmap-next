@@ -51,6 +51,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
       </p>
       <div className="mt-5">
         <DepotJustificatif
+          telephone={compte.telephone}
           action={demanderEquipe}
           champsCaches={{ fiche: fiche.slug, objet: retrait ? 'retrait' : 'revendication' }}
           dossier={`justificatifs/${fiche.id}`}

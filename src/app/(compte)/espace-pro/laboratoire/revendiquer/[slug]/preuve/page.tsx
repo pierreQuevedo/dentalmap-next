@@ -37,6 +37,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
       </div>
       <div className="mt-4">
         <DepotJustificatif
+          telephone={compte.telephone}
           pdfSeul
           action={deposerJustificatif}
           champsCaches={{ fiche: fiche.slug, objet: 'revendication', role: 'gerant', lieux: lieuxDe(sp.lieux).join(',') }}

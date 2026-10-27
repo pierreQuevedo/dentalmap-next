@@ -76,6 +76,8 @@ export const auth = betterAuth({
     additionalFields: {
       role: { type: 'string', required: false, input: true },
       etapeTunnel: { type: 'string', required: false, input: true },
+      // Écrit par `enregistrerTelephone` seulement, après vérification du format.
+      telephone: { type: 'string', required: false, input: false },
     },
   },
   /*

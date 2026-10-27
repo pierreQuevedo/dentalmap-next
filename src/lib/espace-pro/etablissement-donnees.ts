@@ -222,13 +222,13 @@ export async function getDeclarationPublique(slug: string): Promise<DeclarationP
 /* Modération                                                           */
 /* ------------------------------------------------------------------ */
 
-export type AttestationAModerer = { id: string; slug: string; titre: string; justificatifNom: string | null; demandeLe: string; compteEmail: string; compteNom: string; domaine: string | null }
+export type AttestationAModerer = { id: string; slug: string; titre: string; justificatifNom: string | null; demandeLe: string; compteEmail: string; compteNom: string; compteTelephone: string | null; domaine: string | null }
 export type AjoutAModerer = { id: string; nom: string; uai: string; ville: string; demandeLe: string; compteEmail: string }
 
 export async function getModerationEtablissements(): Promise<{ attestations: AttestationAModerer[]; ajouts: AjoutAModerer[]; listeAttente: number }> {
   const [a, b, c] = await Promise.all([
-    db.execute<{ id: string; slug: string; titre: string; justificatif_nom: string | null; demande_le: string; email: string; name: string }>(sql`
-      SELECT r.id, r.slug, r.titre, r.justificatif_nom, r.demande_le, u.email, u.name
+    db.execute<{ id: string; slug: string; titre: string; justificatif_nom: string | null; demande_le: string; email: string; name: string; telephone: string | null }>(sql`
+      SELECT r.id, r.slug, r.titre, r.justificatif_nom, r.demande_le, u.email, u.name, u.telephone
       FROM revendications_etablissement r JOIN "user" u ON u.id = r.user_id
       WHERE r.statut = 'en_attente' ORDER BY r.demande_le ASC LIMIT 100
     `),
@@ -242,7 +242,7 @@ export async function getModerationEtablissements(): Promise<{ attestations: Att
   const attestations = await Promise.all(
     a.rows.map(async (r) => {
       const s = await getSourceEtablissement(r.slug)
-      return { id: r.id, slug: r.slug, titre: r.titre, justificatifNom: r.justificatif_nom, demandeLe: r.demande_le, compteEmail: r.email, compteNom: r.name, domaine: s?.domaines.domaines[0] ?? null }
+      return { id: r.id, slug: r.slug, titre: r.titre, justificatifNom: r.justificatif_nom, demandeLe: r.demande_le, compteEmail: r.email, compteNom: r.name, compteTelephone: r.telephone, domaine: s?.domaines.domaines[0] ?? null }
     }),
   )
   return {

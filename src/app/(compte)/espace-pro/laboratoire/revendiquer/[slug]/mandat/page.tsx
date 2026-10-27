@@ -31,6 +31,7 @@ export default async function Page(props: { params: Promise<{ slug: string }>; s
       <p className="mt-2 text-sm text-fg-2">Joignez l’extrait Kbis et un mandat signé. Le gérant est prévenu par email.</p>
       <div className="mt-6">
         <DepotJustificatif
+          telephone={compte.telephone}
           pdfSeul
           action={deposerJustificatif}
           champsCaches={{ fiche: fiche.slug, objet: 'revendication', role: 'mandate', lieux: lieuxDe(sp.lieux).join(',') }}

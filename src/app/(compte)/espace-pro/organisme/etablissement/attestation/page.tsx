@@ -54,6 +54,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
       </p>
       <div className="mt-6">
         <DepotJustificatif
+          telephone={compte.telephone}
           action={deposerAttestation}
           champsCaches={{ fiche: source.slug }}
           dossier={`justificatifs/${`etablissement-${source.slug}`.slice(0, 120)}`}
