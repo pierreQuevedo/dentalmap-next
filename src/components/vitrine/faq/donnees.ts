@@ -109,7 +109,7 @@ export const CATEGORIES: Categorie[] = [
       {
         ordre: 2,
         question: 'Dois-je envoyer un document ?',
-        reponse: 'Pas avec Pro Santé Connect : votre identité est confirmée à la source. Sans carte CPS, un justificatif PDF (attestation de l’Ordre ou carte CPS). Un laboratoire joint un extrait Kbis.',
+        reponse: 'Pas avec Pro Santé Connect : votre identité est confirmée à la source. Sans carte CPS, un justificatif PDF (attestation de l’Ordre ou carte CPS). Un laboratoire joint un extrait Kbis. Un numéro de téléphone est demandé avec le document, pour vous joindre si besoin : il reste confidentiel et n’est jamais publié.',
       },
       {
         ordre: 3,

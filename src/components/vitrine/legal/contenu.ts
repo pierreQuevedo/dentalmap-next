@@ -31,7 +31,7 @@ export type PageLegale = {
 }
 
 const VERSION = 'Version 0.1'
-const MAJ = '26 octobre 2026'
+const MAJ = '27 octobre 2026'
 
 export const PAGES: PageLegale[] = [
   {
@@ -236,7 +236,7 @@ export const PAGES: PageLegale[] = [
     majLe: MAJ,
     enBref: [
       'Chercher un professionnel ne demande aucun compte. Aucune donnée de santé n’est demandée.',
-      'Avec Pro Santé Connect, l’identité d’un praticien est confirmée sans document : nous ne recevons que son nom et son numéro RPPS. Sans carte CPS, un justificatif PDF est demandé, puis supprimé 30 jours après la décision.',
+      'Avec Pro Santé Connect, l’identité d’un praticien est confirmée sans document : nous ne recevons que son nom et son numéro RPPS. Sans carte CPS, un justificatif PDF est demandé, puis supprimé 30 jours après la décision, avec un numéro de téléphone pour vous joindre en cas de vérification complémentaire. Ce numéro n’est jamais publié.',
       'Les cookies de mesure d’audience et de publicité ne sont déposés qu’avec votre accord, modifiable à tout moment par le lien « Gérer les cookies » en pied de page.',
       'Vous pouvez accéder à vos données, les corriger ou les faire supprimer.',
     ],
@@ -260,6 +260,7 @@ export const PAGES: PageLegale[] = [
                 ['Patient avec compte', 'Email, mot de passe (conservé sous forme d’empreinte), favoris', 'Compte et favoris'],
                 ['Professionnel', 'Compte, demande de revendication, informations déclarées (horaires, langues, accessibilité, photo, présentation…)', 'Gérer et compléter sa fiche'],
                 ['Laboratoire, extrait Kbis', 'Stockage privé, lu par l’équipe de vérification seule', 'Vérifier le gérant'],
+                ['Professionnel ou établissement qui envoie un justificatif', 'Numéro de téléphone, obligatoire avec le justificatif, facultatif ensuite dans « Compte et sécurité ». Jamais publié, lu par l’équipe seule', 'Vous joindre pour une vérification complémentaire'],
                 ['Étudiant ou salarié (Emploi)', 'Profil, candidatures, alertes, choix de visibilité (anonymisé ou discret)', 'Postuler, recevoir des alertes'],
                 ['Recruteur', 'Offres publiées, candidatures reçues', 'Publier et recruter'],
                 ['Toute personne', 'Messages envoyés par le formulaire de contact et signalements', 'Répondre, corriger les fiches'],
@@ -304,6 +305,7 @@ export const PAGES: PageLegale[] = [
                 ['Code de connexion envoyé par email', '10 minutes'],
                 ['Candidatures et CV', '6 mois après la clôture de l’offre'],
                 ['Offres d’emploi', 'Publiées 30 jours, conservées 6 mois après leur retrait ou leur expiration'],
+                ['Numéro de téléphone du compte', 'Tant que le compte existe ; vous pouvez l’effacer à tout moment dans « Compte et sécurité »'],
                 ['Compte inactif', '2 ans sans connexion, après un email d’avertissement'],
                 ['Messages de contact', '1 an'],
                 ['Fiche retirée', 'Ajouts du professionnel supprimés aussitôt ; seul un marqueur de retrait est conservé, pour que la synchronisation ne recrée pas la fiche'],
