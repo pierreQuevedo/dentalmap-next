@@ -563,6 +563,22 @@ html:not(.dark) .theme-site {
   }
 
   /*
+   * Les listes déroulantes natives. Sous Windows, la liste des options garde
+   * le fond clair du système quand le texte prend la couleur sombre du thème :
+   * blanc sur blanc. `color-scheme` donne au navigateur le bon thème des
+   * contrôles, et les options reprennent explicitement les jetons du thème.
+   */
+  .dark {
+    color-scheme: dark;
+  }
+
+  option,
+  optgroup {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
+  }
+
+  /*
    * Le style vega prévoit trois familles, Manrope, Lato et Space Mono. Le site
    * n'en charge qu'une, Figtree, posée par `next/font` dans le layout racine :
    * les trois rôles pointent donc dessus. Charger deux familles de plus se
