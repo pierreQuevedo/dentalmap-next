@@ -57,7 +57,7 @@ type LignePro = {
 }
 
 async function chercherProfessionnels(q: string): Promise<ResultatUniversel[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const motif = `%${q}%`

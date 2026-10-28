@@ -205,7 +205,7 @@ export type DeclarationPublique = { donnees: Donnees; misAJourLe: string; verifi
  * chaque écriture par l'étiquette `etablissement:<slug>`.
  */
 export async function getDeclarationPublique(slug: string): Promise<DeclarationPublique | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('editorial')
   cacheTag('wp:formation', `etablissement:${slug}`)
   const { rows } = await db.execute<{ donnees: unknown; mis_a_jour_le: string; verifie: boolean }>(sql`

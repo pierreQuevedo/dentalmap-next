@@ -44,9 +44,9 @@ const CIRCONFERENCE = 40075016.6855785
 const MARGE = 0.0625
 
 const CACHE = {
-  // Les positions ne bougent qu'au rythme des imports. Une heure de fraîcheur
-  // côté CDN, et une journée de service en arrière-plan pendant le renouvellement.
-  'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400',
+  // Les positions ne bougent qu'au rythme des imports. Une journée de fraîcheur
+  // côté CDN, et une semaine de service en arrière-plan pendant le renouvellement.
+  'Cache-Control': 'public, max-age=0, s-maxage=86400, stale-while-revalidate=604800',
 }
 
 export async function GET(

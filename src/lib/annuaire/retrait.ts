@@ -25,7 +25,7 @@ export async function getRetrait(
   communeSlug: string,
   slug: string,
 ): Promise<string | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('praticien')
   cacheTag('annuaire', `praticien:${slug}`)
   const { rows } = await db.execute<{ retire_le: string }>(sql`

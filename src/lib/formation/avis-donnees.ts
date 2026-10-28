@@ -48,7 +48,7 @@ const versPublic = (r: Ligne): AvisPublic => ({
 
 /** Les avis publiés d'une page, du plus récent au plus ancien, et leur résumé. */
 export async function getAvisPublics(slug: string): Promise<{ avis: AvisPublic[]; resume: ResumeAvis }> {
-  'use cache'
+  'use cache: remote'
   cacheLife('editorial')
   cacheTag('avis', `avis:${slug}`)
   const { rows } = await db.execute<Ligne>(sql`
@@ -65,7 +65,7 @@ export async function getAvisPublics(slug: string): Promise<{ avis: AvisPublic[]
  * taux de remplissage des pages publiées par un gestionnaire vérifié.
  */
 export async function getChiffresClassement(): Promise<Map<string, ChiffresEtablissement>> {
-  'use cache'
+  'use cache: remote'
   cacheLife('editorial')
   cacheTag('avis', 'wp:formation')
   const [avis, fiches] = await Promise.all([

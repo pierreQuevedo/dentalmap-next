@@ -108,7 +108,7 @@ function resume(r: Ligne, maintenant: Date): AnnonceResume {
 
 /** Toutes les annonces visibles en France, les plus récentes d'abord, puis par titre. */
 export async function getAnnoncesFrance(): Promise<AnnonceResume[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('cessions')
   const { rows } = await db.execute<Ligne>(sql`
@@ -126,7 +126,7 @@ export async function getAnnoncesFrance(): Promise<AnnonceResume[]> {
  * par titre.
  */
 export async function getAnnoncesDepartement(codeDepartement: string): Promise<{ origine: string | null; annonces: AnnonceResume[] }> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('cessions')
   const [{ rows: origines }, { rows }] = await Promise.all([
@@ -154,7 +154,7 @@ export async function getAnnoncesDepartement(codeDepartement: string): Promise<{
 
 /** Une annonce visible, par son slug ; `null` si elle n'existe pas, a expiré ou a été retirée. */
 export async function getAnnonceCession(slug: string): Promise<AnnonceDetail | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('cessions', `cession:${slug}`)
   const { rows } = await db.execute<
@@ -180,7 +180,7 @@ export async function getAnnonceCession(slug: string): Promise<AnnonceDetail | n
 
 /** Annonces proches : même département, par distance au centre du secteur, puis par titre. */
 export async function getAnnoncesProches(id: string, codeDepartement: string, lon: number, lat: number, limite = 3): Promise<AnnonceResume[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('cessions')
   const { rows } = await db.execute<Ligne>(sql`
@@ -197,7 +197,7 @@ export async function getAnnoncesProches(id: string, codeDepartement: string, lo
 
 /** Tous les départements, avec le nombre d'annonces visibles, pour le filtre et l'alerte. */
 export async function getDepartementsCession(): Promise<DepartementCession[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('cessions', 'annuaire')
   const { rows } = await db.execute<{ code: string; nom: string; slug: string; total: number }>(sql`

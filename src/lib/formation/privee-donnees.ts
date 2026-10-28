@@ -51,7 +51,7 @@ export type FormationPubliee = { d: Proposition; verifications: Verifications; p
 
 /** Le détail déclaré d'une formation privée publiée, pour sa page. Invalidé à chaque décision. */
 export async function getFormationPrivee(wpSlug: string): Promise<FormationPubliee | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('editorial')
   cacheTag('wp:formation', `formation-privee:${wpSlug}`)
   const { rows } = await db.execute<{ donnees: unknown; verifications: Verifications; publiee_le: string }>(sql`
@@ -67,7 +67,7 @@ export async function getFormationPrivee(wpSlug: string): Promise<FormationPubli
  * WordPress, pour la liste et les « autres formations » d'une fiche.
  */
 export async function getFormationsPriveesPubliees(): Promise<(FormationPubliee & { wpSlug: string })[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('editorial')
   cacheTag('wp:formation', 'formations-privees')
   const { rows } = await db.execute<{ wp_slug: string; donnees: unknown; verifications: Verifications; publiee_le: string }>(sql`
@@ -85,7 +85,7 @@ export async function getFormationsPriveesPubliees(): Promise<(FormationPubliee 
  * (filtré par `aUnType`) dont le détail est publié dans Neon.
  */
 export async function getVuesFormationsPrivees(): Promise<FormationPriveeVue[]> {
-  'use cache'
+  'use cache: remote'
   // Mise en cache une heure : les sessions passées sortent dans l'heure qui suit minuit.
   cacheLife('editorial')
   cacheTag('wp:formation', 'formations-privees')

@@ -33,7 +33,7 @@ const BASE_URL: Record<Profession, string> = {
  * de commune agrège de même ses arrondissements.
  */
 export async function getAccesRapide(limite: number, profession: Profession = 'dentiste'): Promise<LienCommune[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{

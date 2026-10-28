@@ -92,7 +92,7 @@ export async function getPraticien(
   communeSlug: string,
   slug: string,
 ): Promise<Praticien | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('praticien')
   cacheTag('annuaire', `praticien:${slug}`)
 
@@ -197,7 +197,7 @@ export type Commune = {
 }
 
 export async function getCommune(departementSlug: string, communeSlug: string): Promise<Commune | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{
@@ -233,23 +233,14 @@ export async function getCommune(departementSlug: string, communeSlug: string): 
 }
 
 /**
- * Praticiens d'une commune, classés par taux de remplissage, puis distance au centre de la commune.
- *
- * L'ordre suit la règle des résultats : taux de remplissage de la fiche
- * (`getRemplissages`), puis distance au centre de la commune, puis ordre
- * alphabétique à égalité.
+ * Détail des praticiens à afficher, lu pour les seuls lieux d'une page de
+ * résultats. Les listes trient d'abord sur des colonnes légères, puis ne
+ * lisent le reste que pour la vingtaine ou la cinquantaine de lignes montrées.
  */
-export async function getPraticiensDeCommune(
-  profession: Profession,
-  codeInsee: string,
-  page = 1,
-  parPage = PAR_PAGE,
-): Promise<{ liste: PraticienProche[]; total: number }> {
-  'use cache'
-  cacheLife('listing')
-  cacheTag('annuaire', `commune:${codeInsee}`)
+async function detailsDesLieux(lieuIds: string[]) {
+  if (!lieuIds.length) return new Map<string, never>()
   const { rows } = await db.execute<{
-    id: string
+    lieu_id: string
     slug: string
     civilite: PraticienResume['civilite']
     nom: string
@@ -257,30 +248,89 @@ export async function getPraticiensDeCommune(
     raison_sociale: string | null
     statut_verification: PraticienResume['statutVerification']
     adresse_ligne: string | null
-  precision_position: PraticienResume['precisionPosition']
+    precision_position: PraticienResume['precisionPosition']
     code_postal: string | null
     a_telephone: boolean
     revendiquee: boolean
-    lieu_id: string
     commune_nom: string | null
     commune_slug: string | null
     departement_slug: string | null
     lon: number | null
     lat: number | null
+  }>(sql`
+    SELECT l.id AS lieu_id, p.slug, p.civilite, p.nom, p.prenom, p.raison_sociale, p.statut_verification,
+           l.adresse_ligne, l.code_postal, (l.telephone_officiel IS NOT NULL) AS a_telephone,
+           EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = p.id AND v.statut = 'acceptee') AS revendiquee, l.precision_position,
+           c.nom AS commune_nom, c.slug AS commune_slug, d.slug AS departement_slug,
+           ST_X(l.position) AS lon, ST_Y(l.position) AS lat
+    FROM lieux_exercice l
+    JOIN praticiens p ON p.id = l.praticien_id
+    JOIN communes c ON c.code_insee = l.code_insee
+    JOIN departements d ON d.code = c.departement_code
+    WHERE l.id IN (${sql.join(
+      lieuIds.map((id) => sql`${id}`),
+      sql`, `,
+    )})
+  `)
+  return new Map(
+    rows.map((r) => [
+      r.lieu_id,
+      {
+        slug: r.slug,
+        civilite: r.civilite,
+        nom: r.nom,
+        prenom: r.prenom,
+        raisonSociale: r.raison_sociale,
+        statutVerification: r.statut_verification,
+        adresseLigne: r.adresse_ligne,
+        precisionPosition: r.precision_position,
+        codePostal: r.code_postal,
+        lieuId: r.lieu_id,
+        aTelephone: r.a_telephone,
+        revendiquee: r.revendiquee,
+        communeNom: r.commune_nom,
+        communeSlug: r.commune_slug,
+        departementSlug: r.departement_slug,
+        lon: r.lon,
+        lat: r.lat,
+      },
+    ]),
+  )
+}
+
+/**
+ * Ordre des praticiens d'une commune, sans le détail des fiches.
+ *
+ * L'ordre suit la règle des résultats : taux de remplissage de la fiche
+ * (`getRemplissages`), puis distance au centre de la commune, puis ordre
+ * alphabétique à égalité. Il faut toute la commune pour le calculer, mais pas
+ * toutes les colonnes : la requête ne lit que de quoi trier, quelques dizaines
+ * d'octets par praticien, et le résultat sert à toutes les pages de la liste.
+ */
+async function classementCommune(
+  profession: Profession,
+  codeInsee: string,
+): Promise<{ id: string; lieuId: string; metres: number; palier: number | null; photo: string | null }[]> {
+  'use cache: remote'
+  cacheLife('listing')
+  cacheTag('annuaire', `commune:${codeInsee}`)
+  const { rows } = await db.execute<{
+    id: string
+    nom: string
+    prenom: string | null
+    raison_sociale: string | null
+    revendiquee: boolean
+    lieu_id: string
     metres: number
   }>(sql`
     WITH origine AS (SELECT centre FROM communes WHERE code_insee = ${codeInsee})
     SELECT DISTINCT ON (p.id)
-           p.id, p.slug, p.civilite, p.nom, p.prenom, p.raison_sociale, p.statut_verification,
-           l.id AS lieu_id, l.adresse_ligne, l.code_postal, (l.telephone_officiel IS NOT NULL) AS a_telephone,
-           EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = p.id AND v.statut = 'acceptee') AS revendiquee, l.precision_position,
-           c.nom AS commune_nom, c.slug AS commune_slug, d.slug AS departement_slug,
-           ST_X(l.position) AS lon, ST_Y(l.position) AS lat,
+           p.id, p.nom, p.prenom, p.raison_sociale, l.id AS lieu_id,
+           EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = p.id AND v.statut = 'acceptee') AS revendiquee,
            coalesce(ST_Distance(l.position::geography, (SELECT centre FROM origine)::geography), 0)::int AS metres
     FROM praticiens p
     JOIN lieux_exercice l ON l.praticien_id = p.id
     JOIN communes c ON c.code_insee = l.code_insee
-    JOIN departements d ON d.code = c.departement_code
     -- La commune elle-même, ou l'un de ses arrondissements : la page de Paris
     -- liste les praticiens que l'Annuaire Santé rattache aux vingt
     -- arrondissements, sans quoi elle serait vide.
@@ -290,10 +340,9 @@ export async function getPraticiensDeCommune(
   `)
   // Le tri se fait en mémoire : `DISTINCT ON` impose d'ordonner par l'identifiant
   // en premier, et l'effectif d'une commune reste modeste, quelques milliers
-  // pour Paris avec ses arrondissements. Taux de remplissage d'abord, puis
-  // distance au centre de la commune, puis ordre alphabétique.
+  // pour Paris avec ses arrondissements.
   const remplissages = await getRemplissages(profession, rows)
-  const tous = [...rows]
+  return [...rows]
     .sort(
       (a, b) =>
         (remplissages.scores.get(b.id) ?? 0) - (remplissages.scores.get(a.id) ?? 0) ||
@@ -301,30 +350,37 @@ export async function getPraticiensDeCommune(
         cleDeTri(profession, { ...a, raisonSociale: a.raison_sociale }).localeCompare(cleDeTri(profession, { ...b, raisonSociale: b.raison_sociale }), 'fr'),
     )
     .map((r) => ({
-      slug: r.slug,
-      civilite: r.civilite,
-      nom: r.nom,
-      prenom: r.prenom,
-      raisonSociale: r.raison_sociale,
-      statutVerification: r.statut_verification,
-      adresseLigne: r.adresse_ligne,
-      precisionPosition: r.precision_position,
-      codePostal: r.code_postal,
+      id: r.id,
       lieuId: r.lieu_id,
-      aTelephone: r.a_telephone,
-      revendiquee: r.revendiquee,
-      communeNom: r.commune_nom,
-      communeSlug: r.commune_slug,
-      departementSlug: r.departement_slug,
-      lon: r.lon,
-      lat: r.lat,
+      metres: r.metres,
       palier: remplissages.paliers.get(r.id) ?? null,
       photo: remplissages.photos.get(r.id) ?? null,
-      metres: r.metres,
     }))
+}
 
+/**
+ * Praticiens d'une commune, une page à la fois, dans l'ordre de `classementCommune`.
+ *
+ * Seules les fiches de la page demandée sont lues en entier.
+ */
+export async function getPraticiensDeCommune(
+  profession: Profession,
+  codeInsee: string,
+  page = 1,
+  parPage = PAR_PAGE,
+): Promise<{ liste: PraticienProche[]; total: number }> {
+  'use cache: remote'
+  cacheLife('listing')
+  cacheTag('annuaire', `commune:${codeInsee}`)
+  const classement = await classementCommune(profession, codeInsee)
   const debut = (page - 1) * parPage
-  return { liste: tous.slice(debut, debut + parPage), total: tous.length }
+  const tranche = classement.slice(debut, debut + parPage)
+  const details = await detailsDesLieux(tranche.map((t) => t.lieuId))
+  const liste = tranche.flatMap((t) => {
+    const r = details.get(t.lieuId)
+    return r ? [{ ...r, palier: t.palier, photo: t.photo, metres: t.metres }] : []
+  })
+  return { liste, total: classement.length }
 }
 
 /**
@@ -343,7 +399,7 @@ export async function getCommunesVoisinesAvecPraticiens(
   codeInsee: string,
   limite = 5,
 ): Promise<{ nom: string; slug: string; departementSlug: string; km: number; total: number }[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{
@@ -399,7 +455,7 @@ export type CommuneComptee = {
 }
 
 export async function getDepartement(slug: string): Promise<Departement | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ code: string; nom: string; slug: string; region_nom: string }>(sql`
@@ -415,7 +471,7 @@ export type DepartementSitue = Departement & { regionCode: string; regionSlug: s
 
 /** Un département par son code, avec sa région : sert aux fiches qui ne connaissent que le code. */
 export async function getDepartementParCode(code: string): Promise<DepartementSitue | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ code: string; nom: string; slug: string; region_nom: string; region_code: string; region_slug: string }>(sql`
@@ -432,7 +488,7 @@ export async function getCommunesDuDepartement(
   profession: Profession,
   codeDepartement: string,
 ): Promise<CommuneComptee[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{
@@ -466,7 +522,7 @@ export async function getCommunesDuDepartement(
 
 /** Arrondissements d'une commune mère ayant au moins un praticien, dans l'ordre des codes. */
 export async function getArrondissements(profession: Profession, codeParent: string): Promise<CommuneComptee[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{
@@ -489,7 +545,7 @@ export async function getArrondissements(profession: Profession, codeParent: str
 
 /** Codes des départements d'une région, pour filtrer ce qui n'est pas dans la base des praticiens. */
 export async function getCodesDepartementsDeRegion(codeRegion: string): Promise<string[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ code: string }>(sql`SELECT code FROM departements WHERE region_code = ${codeRegion}`)
@@ -499,7 +555,7 @@ export async function getCodesDepartementsDeRegion(codeRegion: string): Promise<
 export type Region = { code: string; nom: string; slug: string }
 
 export async function getRegion(slug: string): Promise<Region | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<Region>(sql`SELECT code, nom, slug FROM regions WHERE slug = ${slug} LIMIT 1`)
@@ -508,7 +564,7 @@ export async function getRegion(slug: string): Promise<Region | null> {
 
 /** Départements d'une région ayant au moins un praticien, par ordre alphabétique. */
 export async function getDepartementsDeRegion(profession: Profession, codeRegion: string): Promise<DepartementCompte[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{
@@ -547,7 +603,7 @@ function empriseDepuisEtendue(e: Etendue | undefined, marge: number): Emprise | 
  * du centre de la commune.
  */
 export async function getEmpriseCommune(codeInsee: string): Promise<Emprise> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<Etendue & { lon: number | null; lat: number | null }>(sql`
@@ -573,7 +629,7 @@ export async function getEmpriseCommune(codeInsee: string): Promise<Emprise> {
 
 /** Cadrage d'un département : le rectangle des centres de ses communes. */
 export async function getEmpriseDepartement(codeDepartement: string): Promise<Emprise> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<Etendue>(sql`
@@ -585,7 +641,7 @@ export async function getEmpriseDepartement(codeDepartement: string): Promise<Em
 
 /** Cadrage d'une région : le rectangle des centres des communes de ses départements. */
 export async function getEmpriseRegion(codeRegion: string): Promise<Emprise> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<Etendue>(sql`
@@ -610,7 +666,7 @@ export type DepartementCompte = {
 
 /** Tous les départements ayant au moins un praticien, pour la page d'index. */
 export async function getDepartementsAvecPraticiens(profession: Profession): Promise<DepartementCompte[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{
@@ -642,7 +698,7 @@ export async function getDepartementsAvecPraticiens(profession: Profession): Pro
 
 /** Compte global d'une profession, pour l'accueil et les pages d'index. */
 export async function getTotalProfession(profession: Profession): Promise<{ total: number; communes: number }> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ total: number; communes: number }>(sql`
@@ -674,7 +730,7 @@ export async function getFichesIndexables(
   tranche: number,
   taille = 10_000,
 ): Promise<EntreeSitemap[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
@@ -704,7 +760,7 @@ export async function getFichesIndexables(
  * indexables annonçait des tranches vides dans l'index des sitemaps.
  */
 export async function compterFichesIndexables(profession: Profession): Promise<number> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ n: number }>(sql`
@@ -736,7 +792,7 @@ const segmentProfession = sql.raw(
  * ville mère en plus de son arrondissement.
  */
 export async function getCommunesIndexables(): Promise<EntreeSitemap[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
@@ -765,7 +821,7 @@ export async function getCommunesIndexables(): Promise<EntreeSitemap[]> {
 
 /** Départements ayant au moins un praticien indexable. */
 export async function getDepartementsIndexables(): Promise<EntreeSitemap[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
@@ -791,7 +847,7 @@ export async function getDepartementsIndexables(): Promise<EntreeSitemap[]> {
  * dans le sitemap des départements, et sont donc écartées ici.
  */
 export async function getRegionsIndexables(): Promise<EntreeSitemap[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ chemin: string; maj: string }>(sql`
@@ -820,7 +876,7 @@ export async function getRegionsIndexables(): Promise<EntreeSitemap[]> {
  * compris sur les 45 000 fiches qui existent.
  */
 export async function getRedirection(chemin: string): Promise<string | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire', 'redirections')
   const { rows } = await db.execute<{ nouveau_chemin: string }>(sql`
@@ -852,7 +908,7 @@ export async function getPraticiensProches(
   rayonMetres = 20_000,
   limite = 50,
 ): Promise<PraticienProche[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{
@@ -922,7 +978,7 @@ export async function getPraticiensProches(
 
 /** Commune par son code INSEE, pour résoudre le point de départ d'une recherche. */
 export async function getCommuneParCode(codeInsee: string): Promise<Commune | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{
@@ -958,7 +1014,7 @@ export async function getCommuneParCode(codeInsee: string): Promise<Commune | nu
 
 /** Première commune correspondant à une saisie libre, pour le formulaire sans JavaScript. */
 export async function chercherCommune(texte: string): Promise<Commune | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const cherche = texte
@@ -1006,7 +1062,7 @@ function normaliserTexte(valeur: string): string {
  * volée, comme dans l'autocomplétion : les tables sont petites.
  */
 export async function chercherTerritoire(texte: string): Promise<Territoire | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const cherche = normaliserTexte(texte)
@@ -1126,40 +1182,25 @@ export async function getPraticiensDansEmprise(
 
   const clause = clauseFiltres(filtres)
 
+  // Seules les colonnes du tri sont lues pour toute la zone, jusqu'à plusieurs
+  // centaines de lignes à chaque déplacement ; le détail ne l'est que pour la page.
   const { rows } = await db.execute<{
     id: string
-    slug: string
-    civilite: PraticienResume['civilite']
     nom: string
     prenom: string | null
-    raison_sociale: string | null
-    statut_verification: PraticienResume['statutVerification']
-    adresse_ligne: string | null
-  precision_position: PraticienResume['precisionPosition']
-    code_postal: string | null
-    a_telephone: boolean
     revendiquee: boolean
     lieu_id: string
-    commune_nom: string | null
-    commune_slug: string | null
-    departement_slug: string | null
-    lon: number
-    lat: number
     metres: number
   }>(sql`
     WITH centre AS (SELECT ST_SetSRID(ST_MakePoint(${centreLon}, ${centreLat}), 4326) AS point),
     retenus AS (
       SELECT DISTINCT ON (p.id)
-             p.id, p.slug, p.civilite, p.nom, p.prenom, p.raison_sociale, p.statut_verification,
-             l.id AS lieu_id, l.adresse_ligne, l.code_postal, (l.telephone_officiel IS NOT NULL) AS a_telephone,
-           EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = p.id AND v.statut = 'acceptee') AS revendiquee, l.precision_position,
-             c.nom AS commune_nom, c.slug AS commune_slug, d.slug AS departement_slug,
-             ST_X(l.position) AS lon, ST_Y(l.position) AS lat,
+             p.id, p.nom, p.prenom, l.id AS lieu_id,
+             EXISTS (SELECT 1 FROM revendications v WHERE v.praticien_id = p.id AND v.statut = 'acceptee') AS revendiquee,
              ST_Distance(l.position::geography, (SELECT point FROM centre)::geography)::int AS metres
       FROM lieux_exercice l
       JOIN praticiens p ON p.id = l.praticien_id
       JOIN communes c ON c.code_insee = l.code_insee
-      JOIN departements d ON d.code = c.departement_code
       WHERE p.profession = ${profession}
         AND p.deleted_at IS NULL
         AND NOT l.position_approximative
@@ -1194,6 +1235,7 @@ export async function getPraticiensDansEmprise(
   const total = classes.length
   const debut = (Math.max(1, page) - 1) * parPage
   const pageCourante = classes.slice(debut, debut + parPage)
+  const details = await detailsDesLieux(pageCourante.map((r) => r.lieu_id))
   // La pastille « Recrute » est posée après le tri et la pagination : elle ne
   // change ni l'ordre ni le contenu de la page.
   return {
@@ -1201,28 +1243,13 @@ export async function getPraticiensDansEmprise(
     page: Math.max(1, page),
     pages: Math.max(1, Math.ceil(total / parPage)),
     plafonne: total >= PLAFOND,
-    resultats: await marquerRecruteurs(pageCourante.map((r) => ({
-      slug: r.slug,
-      civilite: r.civilite,
-      nom: r.nom,
-      prenom: r.prenom,
-      raisonSociale: r.raison_sociale,
-      statutVerification: r.statut_verification,
-      adresseLigne: r.adresse_ligne,
-      precisionPosition: r.precision_position,
-      codePostal: r.code_postal,
-      lieuId: r.lieu_id,
-      aTelephone: r.a_telephone,
-      revendiquee: r.revendiquee,
-      communeNom: r.commune_nom,
-      communeSlug: r.commune_slug,
-      departementSlug: r.departement_slug,
-      lon: r.lon,
-      lat: r.lat,
-      palier: remplissages.paliers.get(r.id) ?? null,
-      photo: remplissages.photos.get(r.id) ?? null,
-      metres: r.metres,
-    }))),
+    resultats: await marquerRecruteurs(
+      pageCourante.flatMap((r) => {
+        const d = details.get(r.lieu_id)
+        if (!d || d.lon == null || d.lat == null) return []
+        return [{ ...d, lon: d.lon, lat: d.lat, palier: remplissages.paliers.get(r.id) ?? null, photo: remplissages.photos.get(r.id) ?? null, metres: r.metres }]
+      }),
+    ),
   }
 }
 
@@ -1234,7 +1261,7 @@ export async function getPraticiensDansEmprise(
  * saisie sans attendre la fin de la semaine.
  */
 export async function getFicheCompletee(slug: string): Promise<FicheCompletee | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('praticien')
   cacheTag('annuaire', `praticien:${slug}`)
 
@@ -1261,7 +1288,7 @@ export type FicheLiee = { nom: string; chemin: string }
  * invalide toutes les deux.
  */
 export async function getFicheLiee(slug: string, profession: Profession): Promise<FicheLiee | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('praticien')
   cacheTag('annuaire', `praticien:${slug}`)
 
@@ -1320,7 +1347,7 @@ export type ChiffresCles = {
  * qui a réellement écrit.
  */
 export async function getChiffresCles(): Promise<ChiffresCles> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
 
@@ -1358,7 +1385,7 @@ export async function getChiffresCles(): Promise<ChiffresCles> {
 
 /** Nom de chaque département par code, pour libeller ce qui n'arrive qu'en code. */
 export async function getNomsDepartements(): Promise<Record<string, string>> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ code: string; nom: string }>(sql`SELECT code, nom FROM departements`)
@@ -1380,7 +1407,7 @@ export type DepartementPrincipal = {
  * lit mieux par département que par ville : ils sont peu nombreux par commune.
  */
 export async function getDepartementsPrincipaux(profession: Profession, limite: number): Promise<DepartementPrincipal[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ nom: string; slug: string; total: number; ville_slug: string | null }>(sql`

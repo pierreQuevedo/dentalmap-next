@@ -67,7 +67,7 @@ async function sansTableOffres<T>(requete: () => Promise<T>, repli: T): Promise<
  * qu'au tag : la Server Action qui publie une offre invalide la fiche.
  */
 export async function getOffresEnLigne(praticienId: string, slug: string): Promise<OffreFiche[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('praticien')
   cacheTag('emploi', `praticien:${slug}`)
   return sansTableOffres(async () => {
@@ -117,7 +117,7 @@ export async function getOffresEnLigne(praticienId: string, slug: string): Promi
  * pages identiques partagent la même entrée de cache.
  */
 export async function getPraticiensQuiRecrutent(slugs: string[]): Promise<string[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi')
   if (slugs.length === 0) return []

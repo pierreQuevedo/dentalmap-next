@@ -104,5 +104,5 @@ export async function GET(request: Request) {
   const tetes = [...regions.rows, ...departements.rows]
   const suggestions = [...tetes, ...communes.rows].slice(0, 8)
 
-  return Response.json({ suggestions }, { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=3600' } })
+  return Response.json({ suggestions }, { headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=86400' } })
 }

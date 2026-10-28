@@ -13,7 +13,7 @@ export type LienRegion = { label: string; href: string; sub: string }
 
 /** Régions avec leur nombre de départements, pour le panneau « Par région ». */
 export async function getRegionsPanel(): Promise<LienRegion[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ nom: string; slug: string; total: number }>(sql`
@@ -41,7 +41,7 @@ export function getLabosPanel(limite = 12): Promise<LienCommune[]> {
  * le badge s'affiche sans date plutôt que de mentir sur la fraîcheur.
  */
 export async function getDerniereSync(): Promise<string | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('annuaire')
   const { rows } = await db.execute<{ termine_le: string }>(sql`

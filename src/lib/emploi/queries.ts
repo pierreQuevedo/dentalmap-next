@@ -70,7 +70,7 @@ const centreCommune = (code: string) => sql`(SELECT centre FROM communes WHERE c
  * `visible` est faux. `null` si le slug n'a jamais existé.
  */
 export async function getOffre(slug: string): Promise<OffreDetail | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi', `emploi:offre:${slug}`)
   const { rows } = await db.execute<
@@ -156,7 +156,7 @@ export async function getOffre(slug: string): Promise<OffreDetail | null> {
  * postes salariés.
  */
 export async function getOffresProches(slug: string, limite = 3): Promise<OffreResume[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi', `emploi:offre:${slug}`)
   const { rows } = await db.execute<LigneOffre>(sql`
@@ -180,7 +180,7 @@ export async function getOffresProches(slug: string, limite = 3): Promise<OffreR
 
 /** Les dernières offres publiées, partout en France. */
 export async function getOffresRecentes(options: { metier?: CodeMetier; contrats?: CodeContrat[]; limite?: number } = {}): Promise<OffreResume[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi')
   const { rows } = await db.execute<LigneOffre>(sql`
@@ -209,7 +209,7 @@ export type ComptesEmploi = {
  * n'affichent pas de bloc de chiffres.
  */
 export async function getComptes(territoire: { departementCode?: string; communeCode?: string } = {}): Promise<ComptesEmploi> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi')
   const filtre = territoire.communeCode
@@ -242,7 +242,7 @@ export async function getDepartementsQuiRecrutent(
   filtre: { metier?: CodeMetier; contrats?: CodeContrat[] },
   limite = 8,
 ): Promise<{ nom: string; slug: string; total: number }[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi')
   const { rows } = await db.execute<{ nom: string; slug: string; total: number }>(sql`
@@ -266,7 +266,7 @@ export async function getDepartementsQuiRecrutent(
  * plupart des cas.
  */
 export async function getOrigineDepartement(codeDepartement: string): Promise<{ nom: string; codeInsee: string } | null> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi')
   const { rows } = await db.execute<{ nom: string; code_insee: string }>(sql`
@@ -287,7 +287,7 @@ export async function getOffresDepartement(
   filtre: { metier?: CodeMetier; contrats?: CodeContrat[] },
   page = 1,
 ): Promise<{ offres: OffreResume[]; total: number }> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi')
   const origine = sql`(SELECT centre FROM communes WHERE departement_code = ${codeDepartement} AND type = 'commune' AND centre IS NOT NULL
@@ -305,7 +305,7 @@ export async function getOffresDepartement(
 
 /** Les communes d'un département avec des offres d'un métier, les plus fournies d'abord. */
 export async function getCommunesAvecOffres(metier: CodeMetier, codeDepartement: string): Promise<{ nom: string; slug: string; total: number }[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi')
   // Un arrondissement compte pour sa commune mère : la page commune les agrège.
@@ -333,7 +333,7 @@ export async function getCommunesAvecOffres(metier: CodeMetier, codeDepartement:
  * s'appliquent sur cette liste.
  */
 export async function getOffresCommune(metier: CodeMetier, codeInsee: string): Promise<OffreResume[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi', `emploi:commune:${codeInsee}`)
   const { rows } = await db.execute<LigneOffre>(sql`
@@ -357,7 +357,7 @@ export async function getOffresAutour(
   rayonMetres: number,
   limite = 10,
 ): Promise<{ offres: OffreResume[]; total: number }> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi', `emploi:commune:${codeInsee}`)
   const { rows } = await db.execute<LigneOffre & { total: number }>(sql`
@@ -378,7 +378,7 @@ export async function getCommunesVoisinesAvecOffres(
   codeInsee: string,
   limite = 6,
 ): Promise<{ nom: string; slug: string; departementSlug: string; km: number; total: number }[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi', `emploi:commune:${codeInsee}`)
   const { rows } = await db.execute<{ nom: string; slug: string; departement_slug: string; km: number; total: number }>(sql`
@@ -415,7 +415,7 @@ export async function getOffresRayon(options: {
   contrats?: CodeContrat[]
   exclure?: string[]
 }): Promise<OffreResume[]> {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi')
   const origine = sql`ST_SetSRID(ST_MakePoint(${options.lon}, ${options.lat}), 4326)`
@@ -444,7 +444,7 @@ export async function getOffresRayon(options: {
 export async function getOffresPourSitemap(): Promise<
   { slug: string; metier: CodeMetier; contrat: CodeContrat; departement: string; commune: string; maj: string }[]
 > {
-  'use cache'
+  'use cache: remote'
   cacheLife('listing')
   cacheTag('emploi')
   const { rows } = await db.execute<{
