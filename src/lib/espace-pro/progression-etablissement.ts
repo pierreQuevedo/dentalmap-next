@@ -5,7 +5,8 @@ import type { MissionEtab } from './etablissement'
  * La progression d'une page d'établissement (école, faculté) : le taux de
  * page complète (`calculerForceEtablissement`, 100 points) et trois paliers.
  * Comme pour les soignants, rien n'est stocké : tout se recalcule à chaque
- * lecture. Sans vérification de l'identité, aucun palier n'est tenu.
+ * lecture. Les paliers se comptent avant la vérification de l'identité
+ * (décision du 2026-10-28) ; seule la publication de la page l'attend.
  */
 
 export type PalierEtab = { niveau: number; nom: string; seuil: number; gains: string[] }
@@ -20,7 +21,6 @@ export type ProgressionEtab = { total: number; actuel: PalierEtab | null; suivan
 
 /** Le palier tenu, le suivant, et la part du chemin parcourue entre les deux. */
 export function progressionEtab(total: number, verifiee: boolean): ProgressionEtab {
-  if (!verifiee) return { total, actuel: null, suivant: PALIERS_ETAB[0], reste: Math.max(0, PALIERS_ETAB[0].seuil - total), part: Math.min(1, total / PALIERS_ETAB[0].seuil), verifiee }
   const actuel = [...PALIERS_ETAB].reverse().find((p) => total >= p.seuil) ?? null
   const suivant = PALIERS_ETAB.find((p) => total < p.seuil) ?? null
   const depart = actuel?.seuil ?? 0

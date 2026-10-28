@@ -77,7 +77,8 @@ export function EnTeteEtab({
         <span className="text-xs text-white/80">
           <b className="text-white">Page complète à {progression.total} %</b>
           {' · '}
-          {!p.verifiee ? 'palier 1 dès la vérification' : p.suivant ? `${p.reste} % avant ${p.suivant.nom}` : 'tous les paliers atteints'}
+          {p.suivant ? `${p.reste} % avant ${p.suivant.nom}` : 'tous les paliers atteints'}
+          {p.verifiee ? '' : ' · publiée dès la vérification'}
         </span>
         <span className="min-w-32 flex-1">
           <BarreProgression part={p.part} claire />

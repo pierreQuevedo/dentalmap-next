@@ -30,7 +30,7 @@ export function CarteProgressionEtab({ p: infos, q, pagePublique }: { p: InfosPr
         <div className="flex items-center gap-3">
           <span className={`grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold ${p.actuel ? 'bg-[#BFE3D6] text-[#0B1F1D]' : 'text-[#BFE3D6] ring-2 ring-[#BFE3D6]'}`}>{p.actuel?.niveau ?? 0}</span>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#BFE3D6]/80">{p.verifiee ? `Palier ${p.actuel?.niveau ?? 0}` : 'En vérification'}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#BFE3D6]/80">{`Palier ${p.actuel?.niveau ?? 0}`}{p.verifiee ? '' : ' · en vérification'}</p>
             <p className="line-clamp-2 text-sm font-semibold leading-tight">{p.actuel?.nom ?? 'Page en préparation'}</p>
           </div>
           <p className="text-right">
@@ -41,9 +41,7 @@ export function CarteProgressionEtab({ p: infos, q, pagePublique }: { p: InfosPr
         <div className="mt-3">
           <BarreProgression part={p.part} claire />
           <p className="mt-1.5 text-[11px] text-white/70">
-            {!p.verifiee ? (
-              'Publiée et au palier 1 dès la vérification'
-            ) : p.suivant ? (
+            {p.suivant ? (
               <>
                 Plus que <b className="text-white">{p.reste} %</b> avant {p.suivant.nom}
               </>
@@ -125,8 +123,8 @@ export function ToastGainEtab({ de, a, titre, fermer, verifiee }: { de: number; 
       </div>
       <div className="bg-bg-soft px-4 py-3">
         <div className="flex items-center justify-between gap-3 text-[11px] text-fg-2">
-          <span>{p.verifiee ? `Palier ${p.actuel?.niveau ?? 0} · ${p.actuel?.nom ?? 'En route'}` : 'Page en préparation'}</span>
-          <span>{!p.verifiee ? 'Publiée dès la vérification' : p.suivant ? `${p.reste} % avant ${p.suivant.nom}` : 'Sommet atteint'}</span>
+          <span>{`Palier ${p.actuel?.niveau ?? 0} · ${p.actuel?.nom ?? 'En route'}`}</span>
+          <span>{p.suivant ? `${p.reste} % avant ${p.suivant.nom}` : 'Sommet atteint'}</span>
         </div>
         <div className="mt-2">
           <BarreProgression part={p.part} epaisse />

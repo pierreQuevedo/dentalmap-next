@@ -47,9 +47,8 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
                 <BarreProgression part={p.part} epaisse claire />
               </div>
               <p className="mt-2 text-sm text-white/85">
-                {!p.verifiee
-                  ? 'Votre page sera publiée, et le premier palier atteint, dès que la vérification de votre identité aboutit. Préparez-la en attendant : tout ce que vous remplissez compte déjà.'
-                  : p.suivant
+                {!p.verifiee && 'Vos paliers sont comptés ; la page sera publiée dès que la vérification de votre identité aboutit. '}
+                {p.suivant
                     ? `Plus que ${p.reste} %. À la clé : ${p.suivant.gains[0].charAt(0).toLowerCase()}${p.suivant.gains[0].slice(1)}.`
                     : 'Votre page est exemplaire : gardez portes ouvertes et photos à jour pour le rester.'}
               </p>
@@ -116,7 +115,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
         <TitreTuile i={Trophy}>Le chemin</TitreTuile>
         <ol className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
           {PALIERS_ETAB.map((x) => {
-            const etat = p.verifiee && force.total >= x.seuil ? 'atteint' : p.suivant?.niveau === x.niveau ? 'encours' : 'verrouille'
+            const etat = force.total >= x.seuil ? 'atteint' : p.suivant?.niveau === x.niveau ? 'encours' : 'verrouille'
             return (
               <li key={x.niveau} className={`squircle-2xl relative flex flex-col border p-4 ${etat === 'atteint' ? 'border-[#0B8484]/40 bg-bg' : etat === 'encours' ? 'border-teal bg-bg shadow-pop' : 'border-dashed border-line bg-bg-soft'}`}>
                 {etat === 'encours' && <span className="squircle-full absolute -top-2.5 left-4 bg-teal px-2 py-0.5 text-[10px] font-semibold text-white">Prochain · {Math.max(0, x.seuil - force.total)} %</span>}

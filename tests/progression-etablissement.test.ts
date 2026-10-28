@@ -16,10 +16,11 @@ const force: Force = {
 }
 
 describe('progressionEtab', () => {
-  it('sans vérification, aucun palier', () => {
+  it('sans vérification, les paliers se comptent quand même', () => {
     const p = progressionEtab(35, false)
-    expect(p.actuel).toBeNull()
-    expect(p.suivant?.niveau).toBe(1)
+    expect(p.actuel?.niveau).toBe(1)
+    expect(p.suivant?.niveau).toBe(2)
+    expect(p.verifiee).toBe(false)
   })
   it('vérifiée à 65 % : palier 1, 5 % avant Page complète', () => {
     const p = progressionEtab(65, true)
