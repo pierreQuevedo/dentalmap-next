@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { PageAlternance } from '@/components/emploi/alternance'
-import { ALTERNANCE } from '@/lib/emploi/chemins'
+import { ALTERNANCE, EMPLOI } from '@/lib/emploi/chemins'
+import { Balisage, filAriane } from '@/lib/seo/jsonld'
 
 type Recherche = { contrat?: string }
 
@@ -10,9 +11,9 @@ export const instant = false
 export async function generateMetadata(props: { searchParams: Promise<Recherche> }): Promise<Metadata> {
   const stages = (await props.searchParams).contrat === 'stage'
   return {
-    title: stages ? 'Stages dans les cabinets dentaires et les laboratoires' : 'Alternance et stages en cabinet dentaire et en laboratoire',
+    title: stages ? 'Stages en cabinet dentaire et en laboratoire' : 'Alternance et stages en cabinet dentaire',
     description:
-      'Contrats d’alternance et stages publiés par des cabinets, centres de santé et laboratoires vérifiés, avec la rémunération affichée. Rythme école et entreprise, écoles, rémunération minimale d’un alternant.',
+      'Contrats d’alternance et stages en cabinet dentaire et en laboratoire vérifiés, rémunération affichée. Rythme école et entreprise, écoles, salaire minimum.',
     alternates: { canonical: ALTERNANCE },
     ...(stages ? { robots: { index: false, follow: true } } : {}),
   }
@@ -20,5 +21,10 @@ export async function generateMetadata(props: { searchParams: Promise<Recherche>
 
 export default async function Page(props: { searchParams: Promise<Recherche> }) {
   const stages = (await props.searchParams).contrat === 'stage'
-  return <PageAlternance stages={stages} />
+  return (
+    <>
+      <Balisage donnees={filAriane([{ nom: 'Accueil', chemin: '/' }, { nom: 'Emploi', chemin: EMPLOI }, { nom: 'Alternance et stages', chemin: ALTERNANCE }])} />
+      <PageAlternance stages={stages} />
+    </>
+  )
 }

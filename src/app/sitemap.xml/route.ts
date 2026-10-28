@@ -23,7 +23,7 @@ export async function GET() {
     prothesistes,
   ])
 
-  const noms = ['pages', 'emploi', 'regions', 'departements', 'communes']
+  const noms = ['pages', 'emploi', 'cessions', 'regions', 'departements', 'communes']
   PROFESSIONS.forEach((p, k) => {
     for (let i = 0; i * TAILLE_TRANCHE < comptes[k]!; i++) noms.push(`${BASE_URL[p]}-${i}`)
   })

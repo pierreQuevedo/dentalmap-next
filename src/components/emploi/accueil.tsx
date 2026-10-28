@@ -27,11 +27,12 @@ function Compteur({ n, className }: { n: number; className: string }) {
 function Hero({ total }: { total: number }) {
   return (
     <section className="container pb-16 pt-12 md:pb-20 md:pt-20">
-      <p className="inline-flex items-center gap-2 text-sm font-medium text-fg-2">
+      {/* Le H1 porte le sujet de la page ; le slogan dessous garde sa taille. */}
+      <h1 className="inline-flex items-center gap-2 text-sm font-medium text-fg-2">
         <span className="size-1.5 rounded-full bg-teal" /> Emploi dentaire{total > 0 ? `, ${euros(total)} ${total > 1 ? 'offres' : 'offre'} en France` : ', partout en France'}
-      </p>
+      </h1>
       <div className="mt-5">
-        <TitreDeuxTons as="h1" grand sous="près de chez vous.">
+        <TitreDeuxTons as="p" grand sous="près de chez vous.">
           Le bon poste,
         </TitreDeuxTons>
       </div>

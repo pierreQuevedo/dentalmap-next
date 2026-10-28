@@ -30,6 +30,7 @@ import { AlerteEmail } from './alerte-email'
 import { CarteOffres } from './carte-offres'
 import { CarteOffre, Etiquette, FicheVerifiee, Photo, Remuneration, SourceSalaires, Visuel } from './blocs'
 import { Partage } from './partage'
+import { enDepartement } from '@/lib/annuaire/libelles'
 
 type Bloc = { titre: string; items: string[]; note?: string }
 
@@ -101,7 +102,7 @@ function vue(o: OffreDetail) {
     chips: [m.nom, contratTexte(o), o.tempsPlein ? 'Temps plein' : 'Temps partiel'],
     repere: repereSalaire(o.metier, o.contrat, o.type),
     lienProches: liberal
-      ? { libelle: `Remplacements en ${o.departementNom}`, href: cheminRemplacementsDepartement(o.departementSlug) }
+      ? { libelle: `Remplacements ${enDepartement(o.departementNom)}`, href: cheminRemplacementsDepartement(o.departementSlug) }
       : { libelle: `${m.nom} à ${o.commune}`, href: cheminCommune(m.slug, o.departementSlug, o.communeSlug) },
     message: `Votre candidature part depuis votre compte, avec votre profil${liberal ? ', votre situation d’exercice' : ''} et un message à ${o.recruteur}.`,
   }

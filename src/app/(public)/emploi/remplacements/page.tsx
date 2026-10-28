@@ -10,9 +10,9 @@ export const instant = false
 export async function generateMetadata(props: { searchParams: Promise<Recherche> }): Promise<Metadata> {
   const collaboration = (await props.searchParams).contrat === 'collaboration'
   return {
-    title: collaboration ? 'Collaborations libérales de chirurgien-dentiste' : 'Remplacements et collaborations de chirurgien-dentiste',
+    title: collaboration ? 'Collaborations libérales de chirurgien-dentiste' : 'Remplacements et collaborations dentaires',
     description:
-      'Remplacements et collaborations libérales publiés par des cabinets vérifiés, avec le taux de rétrocession ou de redevance affiché, et les conditions d’exercice à connaître.',
+      'Remplacements et collaborations libérales publiés par des cabinets vérifiés, avec le taux de rétrocession ou de redevance affiché.',
     alternates: { canonical: REMPLACEMENTS },
     ...(collaboration ? { robots: { index: false, follow: true } } : {}),
   }

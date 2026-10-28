@@ -24,6 +24,7 @@ import { CarteAnnonce } from './blocs'
 import { FiltresCessions } from './filtres'
 import { AlerteCessions } from './alerte'
 import { BarreCessions, ID_VUES_EN_TETE } from './barre'
+import { enDepartement } from '@/lib/annuaire/libelles'
 
 type Props = {
   mode: 'liste' | 'carte'
@@ -103,7 +104,7 @@ function EnTete({ titre, ariane, mode, base, filtres }: Pick<Props, 'titre' | 'a
 function Vide({ departement, filtres, base }: { departement: Props['departement']; filtres: FiltresCession; base: string }) {
   return (
     <div className="squircle-2xl mt-5 border border-dashed border-line-strong p-8 text-center">
-      <p className="font-semibold text-fg">{filtresActifs(filtres) ? 'Aucune annonce ne répond à ces filtres.' : `Aucune annonce de cession${departement ? ` en ${departement.nom}` : ''} pour le moment.`}</p>
+      <p className="font-semibold text-fg">{filtresActifs(filtres) ? 'Aucune annonce ne répond à ces filtres.' : `Aucune annonce de cession${departement ? ` ${enDepartement(departement.nom)}` : ''} pour le moment.`}</p>
       <p className="mt-2 text-sm text-fg-2">Créez une alerte pour être prévenu(e) de la prochaine, ou élargissez la recherche.</p>
       <div className="mt-4 flex flex-wrap justify-center gap-3 text-sm font-medium">
         {filtresActifs(filtres) && (

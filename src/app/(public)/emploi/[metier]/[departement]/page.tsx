@@ -5,6 +5,7 @@ import { getDepartement } from '@/lib/annuaire/queries'
 import { cheminDepartement } from '@/lib/emploi/chemins'
 import { metierDepuisSlug, robotsListe } from '@/lib/emploi/metiers'
 import { PAR_PAGE_EMPLOI, getOffresDepartement } from '@/lib/emploi/queries'
+import { enDepartement } from '@/lib/annuaire/libelles'
 
 type Params = { metier: string; departement: string }
 type Recherche = { page?: string }
@@ -26,10 +27,10 @@ export async function generateMetadata(props: { params: Promise<Params>; searchP
   const { total } = await getOffresDepartement(d.code, { metier: m.code }, page)
   const base = cheminDepartement(m.slug, d.slug)
   return {
-    title: total ? `Offres ${m.de} en ${d.nom}${page > 1 ? `, page ${page}` : ''}` : `Emploi ${m.de} en ${d.nom}`,
+    title: total ? `Offres ${m.de} ${enDepartement(d.nom)}${page > 1 ? `, page ${page}` : ''}` : `Emploi ${m.de} ${enDepartement(d.nom)}`,
     description: total
-      ? `${total} offre${total > 1 ? 's' : ''} ${m.de} en ${d.nom}, publiée${total > 1 ? 's' : ''} par des recruteurs vérifiés, avec la rémunération affichée.`
-      : `Aucune offre ${m.de} en ${d.nom} pour le moment. Créez une alerte pour être prévenu(e) des prochaines.`,
+      ? `${total} offre${total > 1 ? 's' : ''} ${m.de} ${enDepartement(d.nom)}, publiée${total > 1 ? 's' : ''} par des recruteurs vérifiés, avec la rémunération affichée.`
+      : `Aucune offre ${m.de} ${enDepartement(d.nom)} pour le moment. Créez une alerte pour être prévenu(e) des prochaines.`,
     alternates: { canonical: page > 1 ? `${base}?page=${page}` : base },
     robots: robotsListe(total),
   }

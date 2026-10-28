@@ -7,7 +7,10 @@ import { CtaCompte } from '@/components/contact/cta-compte'
 import { EntreesContact } from '@/components/contact/entrees-contact'
 import { estObjet } from '@/lib/contact/objets'
 import { FORMULAIRES } from '@/lib/contact/formulaires'
-import { Balisage, filAriane } from '@/lib/seo/jsonld'
+import { Balisage, filAriane, pageWeb } from '@/lib/seo/jsonld'
+
+const DESCRIPTION =
+  'Signaler une erreur sur une fiche ou une annonce, poser une question, proposer un partenariat ou exercer vos droits sur vos données.'
 
 /**
  * Page contact, dans le style des pages de la vitrine : titre en deux tons,
@@ -23,7 +26,7 @@ import { Balisage, filAriane } from '@/lib/seo/jsonld'
  */
 export const metadata: Metadata = {
   title: 'Contact',
-  description: 'Signaler une erreur sur une fiche ou une annonce, poser une question, proposer un partenariat ou exercer vos droits sur vos données.',
+  description: DESCRIPTION,
   alternates: { canonical: '/contact/' },
 }
 
@@ -54,15 +57,20 @@ const REPERES = [
 export default function Page(props: { searchParams: Params }) {
   return (
     <main>
+      <Balisage donnees={pageWeb('ContactPage', { nom: 'Contacter l’équipe DentalMap', chemin: '/contact/', description: DESCRIPTION })} />
       <Balisage donnees={filAriane([{ nom: 'Accueil', chemin: '/' }, { nom: 'Contact', chemin: '/contact/' }])} />
 
       <section className="container pb-12 pt-8 md:pb-16">
         <FilAriane segments={[{ libelle: 'Accueil', href: '/' }, { libelle: 'Contact' }]} />
-        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-          <h1 className="text-5xl font-semibold leading-[1.02] tracking-tight text-fg md:text-7xl">
+        {/* Le H1 porte le sujet de la page ; le slogan dessous garde sa taille. */}
+        <h1 className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-fg-2">
+          <span className="size-1.5 rounded-full bg-teal" /> Contacter l’équipe DentalMap
+        </h1>
+        <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <p className="text-5xl font-semibold leading-[1.02] tracking-tight text-fg md:text-7xl">
             Nous écrire
             <span className="block text-fg-2">une personne vous répond.</span>
-          </h1>
+          </p>
           <ul className="flex flex-wrap gap-2 lg:max-w-sm lg:justify-end">
             {REPERES.map((r) => (
               <li key={r.texte} className="inline-flex items-center gap-2 rounded-full border border-line px-3.5 py-1.5 text-sm text-fg">

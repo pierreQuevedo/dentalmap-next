@@ -13,6 +13,7 @@ import { BASE_URL, type Profession } from '@/lib/annuaire/types'
 import { MiseEnPageRecherche } from '@/components/recherche/mise-en-page'
 import { numeroPage } from './commune'
 import { chemin, FilAriane } from './primitives'
+import { Balisage, filAriane } from '@/lib/seo/jsonld'
 
 type Recherche = { page?: string }
 
@@ -29,7 +30,7 @@ export async function metadonneesIndex(profession: Profession, recherche: Recher
   }
   return {
     title: `${majuscule(l.pluriel)} en France${page > 1 ? ` — page ${page}` : ''}`,
-    description: `${compte(profession, total)} recensés dans ${communes.toLocaleString('fr-FR')} communes, à partir ${l.registre}. Carte de France, recherche par région, département et commune.`,
+    description: `${compte(profession, total)} recensés dans ${communes.toLocaleString('fr-FR')} communes, à partir ${l.registre}. Carte, régions et départements.`,
     alternates: { canonical: `/${BASE_URL[profession]}/` },
     robots: page === 1 ? undefined : { index: false, follow: true },
   }
@@ -95,39 +96,48 @@ export async function PageIndexProfession({
 
   const pluriel = majuscule(l.pluriel)
 
+  const ariane = [
+    { nom: 'Accueil', chemin: '/' },
+    { nom: pluriel, chemin: `/${base}/` },
+    ...(autourDeMoi ? [{ nom: 'Près de chez vous', chemin: `/${base}/pres-de-chez-vous/` }] : []),
+  ]
+
   return (
-    <MiseEnPageRecherche
-      cle={`${base}:france:${page}`}
-      base={base}
-      emprise={EMPRISE_FRANCE}
-      initial={initial}
-      mode="territoire"
-      territoire={{ libelle: 'dans la zone affichée' }}
-      valeurLieu=""
-      enTete={
-        <>
-          <FilAriane
-            segments={[
-              { libelle: 'Accueil', href: '/' },
-              autourDeMoi ? { libelle: pluriel, href: `/${base}/` } : { libelle: pluriel },
-              ...(autourDeMoi ? [{ libelle: 'Près de chez vous' }] : []),
-            ]}
-          />
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg md:text-3xl">
-            {autourDeMoi ? `${pluriel} près de chez vous` : `${pluriel} en France`}
-          </h1>
-          <p className="mt-2 text-fg-2">
-            {compte(profession, total)} recensés dans {communes.toLocaleString('fr-FR')} communes, à partir {l.registre}. Les
-            informations ne sont pas déclaratives : elles proviennent de registres publics et sont rapprochées chaque
-            semaine.{' '}
-            {autourDeMoi
-              ? 'Autorisez la localisation pour cadrer la carte autour de vous.'
-              : 'Resserrez la carte, ou choisissez une région ou un département.'}
-          </p>
-          {autourDeMoi && <AutourDeMoi base={base} />}
-        </>
-      }
-      apres={<ListeDepartementsParRegion base={base} departements={departements} />}
-    />
+    <>
+      <Balisage donnees={filAriane(ariane)} />
+      <MiseEnPageRecherche
+        cle={`${base}:france:${page}`}
+        base={base}
+        emprise={EMPRISE_FRANCE}
+        initial={initial}
+        mode="territoire"
+        territoire={{ libelle: 'dans la zone affichée' }}
+        valeurLieu=""
+        enTete={
+          <>
+            <FilAriane
+              segments={[
+                { libelle: 'Accueil', href: '/' },
+                autourDeMoi ? { libelle: pluriel, href: `/${base}/` } : { libelle: pluriel },
+                ...(autourDeMoi ? [{ libelle: 'Près de chez vous' }] : []),
+              ]}
+            />
+            <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg md:text-3xl">
+              {autourDeMoi ? `${pluriel} près de chez vous` : `${pluriel} en France`}
+            </h1>
+            <p className="mt-2 text-fg-2">
+              {compte(profession, total)} recensés dans {communes.toLocaleString('fr-FR')} communes, à partir {l.registre}. Les
+              informations ne sont pas déclaratives : elles proviennent de registres publics et sont rapprochées chaque
+              semaine.{' '}
+              {autourDeMoi
+                ? 'Autorisez la localisation pour cadrer la carte autour de vous.'
+                : 'Resserrez la carte, ou choisissez une région ou un département.'}
+            </p>
+            {autourDeMoi && <AutourDeMoi base={base} />}
+          </>
+        }
+        apres={<ListeDepartementsParRegion base={base} departements={departements} />}
+      />
+    </>
   )
 }

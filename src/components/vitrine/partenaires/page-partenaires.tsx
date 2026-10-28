@@ -14,11 +14,11 @@ function Hero() {
     <section className="relative overflow-hidden border-b border-line bg-bg-soft">
       <div className="container grid grid-cols-1 items-center gap-12 py-14 md:py-20 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-20">
         <div className="min-w-0">
-          <Surtitre>Devenir partenaire</Surtitre>
-          <h1 className="mt-5 text-5xl font-semibold leading-[1.02] tracking-tight text-fg md:text-7xl">
+          <Surtitre as="h1">Devenir partenaire de DentalMap</Surtitre>
+          <p className="mt-5 text-5xl font-semibold leading-[1.02] tracking-tight text-fg md:text-7xl">
             {'Un projet ?'}
             <span className="block text-fg-2">Parlons-en.</span>
-          </h1>
+          </p>
           <p className="mt-6 max-w-md text-lg text-fg-2">Six champs, sans compte, et une réponse sous sept jours.</p>
           <div className="mt-8 flex flex-wrap gap-2">
             <Bouton href={ANCRE_FORMULAIRE}>

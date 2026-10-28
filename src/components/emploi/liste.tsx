@@ -40,6 +40,7 @@ import { AlerteEmail } from './alerte-email'
 import { CarteOffres, type PointOffre } from './carte-offres'
 import { SurvolOffre } from './survol-offre'
 import { CarteOffre, LienFicheMetier, ListeLiens, SalairesSecteurs, nombreOffres } from './blocs'
+import { enDepartement } from '@/lib/annuaire/libelles'
 
 type Ariane = { libelle: string; href?: string }[]
 
@@ -534,7 +535,7 @@ export async function PageDepartementEmploi({ m, d, page }: { m: Metier; d: Depa
     <Gabarit
       g={{
         ariane: [{ libelle: 'Emploi', href: EMPLOI }, { libelle: m.nom, href: cheminMetier(m.slug) }, { libelle: d.nom }],
-        titre: total > 0 ? `Offres ${m.de} en ${d.nom}` : `Aucune offre ${m.de} en ${d.nom} pour le moment`,
+        titre: total > 0 ? `Offres ${m.de} ${enDepartement(d.nom)}` : `Aucune offre ${m.de} ${enDepartement(d.nom)} pour le moment`,
         intro:
           total > 0
             ? `${nombreOffres(total)} ${m.de} dans ${communes.length > 1 ? `${communes.length} communes` : 'une commune'} du département, publiée${total > 1 ? 's' : ''} par des recruteurs vérifiés auprès des registres officiels.`
@@ -575,7 +576,7 @@ export async function PageDepartementEmploi({ m, d, page }: { m: Metier; d: Depa
                 Afficher les offres suivantes <ArrowRight className="size-4" aria-hidden />
               </Link>
             )}
-            <AlerteLigne texte={`Soyez prévenu(e) des prochaines offres ${m.de} en ${d.nom}, par email et sans compte.`} />
+            <AlerteLigne texte={`Soyez prévenu(e) des prochaines offres ${m.de} ${enDepartement(d.nom)}, par email et sans compte.`} />
           </>
         ),
         apres: (
@@ -590,11 +591,11 @@ export async function PageDepartementEmploi({ m, d, page }: { m: Metier; d: Depa
             <SalaireEtAlerte
               m={m}
               criteres={{ metiers: [m.code], contrats: [], departement: d.code }}
-              detail={`${m.nom} en ${d.nom}. Un email par semaine au plus, et un lien de désinscription dans chaque envoi.`}
+              detail={`${m.nom} ${enDepartement(d.nom)}. Un email par semaine au plus, et un lien de désinscription dans chaque envoi.`}
             />
             <section className="border-t border-line bg-bg-soft">
               <div className="container grid gap-12 py-16 lg:grid-cols-2 lg:gap-16">
-                <ListeLiens titre={`Autres offres en ${d.nom}`} liens={autresMetiers(m, comptes.parMetier, (s) => cheminDepartement(s, d.slug))} />
+                <ListeLiens titre={`Autres offres ${enDepartement(d.nom)}`} liens={autresMetiers(m, comptes.parMetier, (s) => cheminDepartement(s, d.slug))} />
               </div>
               <div className="container border-t border-line py-6">
                 <LienFicheMetier metier={m} />

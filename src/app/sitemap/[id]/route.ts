@@ -22,6 +22,8 @@ import {
 import { METIERS, PARCOURS } from '@/lib/emploi/metiers'
 import { getOffresPourSitemap } from '@/lib/emploi/queries'
 import { RESSOURCES_VISIBLE } from '@/lib/visibilite'
+import { getAnnoncesFrance } from '@/lib/cessions/queries'
+import { DEPOSER_CESSION, LISTE_CESSIONS, cheminAnnonceCession, cheminDepartementCession } from '@/lib/cessions/routes'
 
 /**
  * Tranches de sitemap.
@@ -90,9 +92,31 @@ async function entreesEmploi(): Promise<EntreeSitemap[]> {
   ]
 }
 
+/**
+ * Les cessions : la liste nationale, le dépôt, chaque annonce visible et les
+ * départements qui en ont au moins une (un département vide est en `noindex`).
+ * Une liste prend la date de sa dernière annonce publiée.
+ */
+async function entreesCessions(): Promise<EntreeSitemap[]> {
+  const annonces = await getAnnoncesFrance()
+  const departements = new Map<string, string>()
+  for (const a of annonces) {
+    const chemin = cheminDepartementCession(a.departementSlug)
+    const avant = departements.get(chemin)
+    if (!avant || a.publieeLe > avant) departements.set(chemin, a.publieeLe)
+  }
+  return [
+    { chemin: LISTE_CESSIONS, majLe: annonces[0]?.publieeLe },
+    { chemin: DEPOSER_CESSION },
+    ...[...departements].map(([chemin, majLe]) => ({ chemin, majLe })),
+    ...annonces.map((a) => ({ chemin: cheminAnnonceCession(a.departementSlug, a.slug), majLe: a.publieeLe })),
+  ]
+}
+
 async function contenu(id: string): Promise<string | null> {
   if (id === 'pages') return xml(PAGES_FIXES.map((chemin) => ({ chemin })))
   if (id === 'emploi') return xml(await entreesEmploi())
+  if (id === 'cessions') return xml(await entreesCessions())
   if (id === 'regions') return xml(await getRegionsIndexables())
   if (id === 'departements') return xml(await getDepartementsIndexables())
   if (id === 'communes') return xml(await getCommunesIndexables())

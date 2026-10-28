@@ -7,11 +7,11 @@ import { chemin } from '@/lib/navigation'
 import { FAQ } from './contenu'
 
 /** Surtitre à pastille, celui du héros Emploi. */
-export function Surtitre({ children, sombre }: { children: React.ReactNode; sombre?: boolean }) {
+export function Surtitre({ children, sombre, as: Tag = 'p' }: { children: React.ReactNode; sombre?: boolean; as?: 'p' | 'h1' }) {
   return (
-    <p className={`inline-flex items-center gap-2 text-sm font-medium ${sombre ? 'text-white/70' : 'text-fg-2'}`}>
+    <Tag className={`inline-flex items-center gap-2 text-sm font-medium ${sombre ? 'text-white/70' : 'text-fg-2'}`}>
       <span className="size-1.5 rounded-full bg-teal" /> {children}
-    </p>
+    </Tag>
   )
 }
 

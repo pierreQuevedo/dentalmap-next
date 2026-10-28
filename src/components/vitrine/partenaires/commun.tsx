@@ -149,11 +149,11 @@ export function Bouton({ href, children, ton = 'action' }: { href: string; child
   )
 }
 
-export function Surtitre({ children }: { children: React.ReactNode }) {
+export function Surtitre({ children, as: Tag = 'p' }: { children: React.ReactNode; as?: 'p' | 'h1' }) {
   return (
-    <p className="inline-flex items-center gap-2 text-sm font-medium text-fg-2">
+    <Tag className="inline-flex items-center gap-2 text-sm font-medium text-fg-2">
       <span className="size-1.5 rounded-full bg-teal" /> {children}
-    </p>
+    </Tag>
   )
 }
 

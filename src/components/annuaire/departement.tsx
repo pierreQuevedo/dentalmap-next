@@ -7,7 +7,7 @@ import {
   getPraticiensDansEmprise,
   getRegion,
 } from '@/lib/annuaire/queries'
-import { LIBELLE, compte, majuscule } from '@/lib/annuaire/libelles'
+import { LIBELLE, compte, majuscule, enDepartement } from '@/lib/annuaire/libelles'
 import { BASE_URL, type Profession } from '@/lib/annuaire/types'
 import { MiseEnPageRecherche } from '@/components/recherche/mise-en-page'
 import { Balisage, filAriane } from '@/lib/seo/jsonld'
@@ -57,6 +57,21 @@ export async function PageTerritoire({
   notFound()
 }
 
+/**
+ * Ce que contient un département, pour le dire : « 66 communes », ou
+ * « 20 arrondissements » quand la seule commune est découpée en arrondissements
+ * (Paris). Ailleurs, Marseille ou Lyon comptent pour une commune : leurs
+ * arrondissements ne sont pas des communes de plus.
+ */
+function decompte(communes: { type: 'commune' | 'arrondissement' }[]): { texte: string; arrondissements: boolean } {
+  const nbCommunes = communes.filter((c) => c.type === 'commune').length
+  const nbArrondissements = communes.length - nbCommunes
+  if (nbCommunes === 1 && nbArrondissements > 0) {
+    return { texte: `${nbArrondissements} ${nbArrondissements > 1 ? 'arrondissements' : 'arrondissement'}`, arrondissements: true }
+  }
+  return { texte: `${nbCommunes.toLocaleString('fr-FR')} ${nbCommunes > 1 ? 'communes' : 'commune'}`, arrondissements: false }
+}
+
 export async function metadonneesDepartement(
   profession: Profession,
   params: Params,
@@ -70,8 +85,8 @@ export async function metadonneesDepartement(
   const page = numeroPage(recherche.page)
   const cheminBase = `/${BASE_URL[profession]}/${params.departement}/`
   return {
-    title: `${majuscule(l.pluriel)} en ${d.nom}${page > 1 ? ` — page ${page}` : ''}`,
-    description: `${compte(profession, total)} recensés en ${d.nom}, dans ${communes.length} communes, sur la carte et en liste. Informations vérifiées auprès des registres officiels.`,
+    title: `${majuscule(l.pluriel)} ${enDepartement(d.nom)}${page > 1 ? ` — page ${page}` : ''}`,
+    description: `${compte(profession, total)} recensés ${enDepartement(d.nom)}, dans ${decompte(communes).texte}, sur la carte et en liste. Informations vérifiées auprès des registres officiels.`,
     alternates: { canonical: cheminBase },
     // La pagination d'un département suit la distance au centre de la carte :
     // utile au visiteur, sans valeur propre pour un index. Seule la première
@@ -99,6 +114,7 @@ export async function PageDepartement({ profession, slug, page }: { profession: 
   // une liste de 890 communes triée uniquement par effectif serait illisible.
   const principales = communes.slice(0, 12)
   const autres = [...communes.slice(12)].sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
+  const lieux = decompte(communes)
   const lien = (c: { nom: string; slug: string; total: number }) => ({ libelle: c.nom, href: `/${base}/${d.slug}/${c.slug}/`, total: c.total })
 
   const pluriel = majuscule(l.pluriel)
@@ -124,19 +140,18 @@ export async function PageDepartement({ profession, slug, page }: { profession: 
           <>
             <FilAriane segments={segments.map((s, i) => (i < segments.length - 1 ? { libelle: s.nom, href: s.chemin } : { libelle: s.nom }))} />
             <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg md:text-3xl">
-              {pluriel} en {d.nom}
+              {pluriel} {enDepartement(d.nom)}
             </h1>
             <p className="mt-2 text-fg-2">
-              {compte(profession, total)} dans {communes.length.toLocaleString('fr-FR')}{' '}
-              {communes.length > 1 ? 'communes' : 'commune'}, région {d.regionNom}, recensés à partir {l.registre}. La carte
+              {compte(profession, total)} dans {lieux.texte}, région {d.regionNom}, recensés à partir {l.registre}. La carte
               montre le département entier ; la liste suit ce qu&apos;elle affiche.
             </p>
           </>
         }
         apres={
           <>
-            <ListeTerritoires titre="Communes principales" liens={principales.map(lien)} />
-            <ListeTerritoires titre="Toutes les autres communes" liens={autres.map(lien)} compact />
+            <ListeTerritoires titre={lieux.arrondissements ? 'Arrondissements principaux' : 'Communes principales'} liens={principales.map(lien)} />
+            <ListeTerritoires titre={lieux.arrondissements ? 'Tous les autres arrondissements' : 'Toutes les autres communes'} liens={autres.map(lien)} compact />
             {communes.length === 0 && (
               <p className="mt-8 text-fg-2">Aucun {l.singulier} n&apos;est recensé dans ce département.</p>
             )}
