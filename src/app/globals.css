@@ -416,6 +416,18 @@ html:not(.dark) .theme-site {
   --ease-lift: var(--ease-lift);
 }
 
+/*
+ * Un volet qui défile sans barre : sous Windows, la barre classique reste
+ * affichée en permanence et coupe la colonne. La molette, le pavé et le
+ * clavier font toujours défiler.
+ */
+@utility sans-barre {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Levée au survol, partagée par les surfaces cliquables de matos-ui. */
 @utility hover-lift {
   --lift: 2px;

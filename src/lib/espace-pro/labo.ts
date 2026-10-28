@@ -62,7 +62,6 @@ export const PIECES_DEMANDEES = ['couronne_unitaire', 'bridge_3', 'couronne_impl
  */
 export const PREFIXE_PERSO = 'perso:'
 export const PERSO_MAX = 5
-export const DELAI_PERSO_DEFAUT = 5
 
 /** Un nom libre, nettoyé : lettres, chiffres et ponctuation simple, 2 à 40 caractères ; `null` sinon. */
 export function nomLibre(saisie: string): string | null {

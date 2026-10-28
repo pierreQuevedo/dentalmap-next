@@ -26,12 +26,12 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   // Les paliers de la progression, comme partout dans l'espace : pas l'ancien « Débutant, Intermédiaire ».
   const { total: points } = await pointsDeLEspace(espace)
   const p = progressionDe(points, verifiee)
-  const legende = !verifiee ? 'en vérification' : p.actuel ? `palier ${p.actuel.niveau}` : 'en route'
-  const etat = !verifiee
-    ? `Fiche à ${force.total} % · ${points} pts : publiée et au palier 1 dès la vérification de votre identité.`
-    : p.actuel
+  const legende = p.actuel ? `palier ${p.actuel.niveau}` : 'en route'
+  // Les paliers se comptent avant la vérification ; seule la publication l'attend.
+  const etat =
+    (p.actuel
       ? `Palier ${p.actuel.niveau} · ${p.actuel.nom}.${p.suivant ? ` Plus que ${p.reste} points avant ${p.suivant.nom}.` : ''}`
-      : `Fiche à ${force.total} % · ${points} pts.${p.suivant ? ` Plus que ${p.reste} points avant ${p.suivant.nom}.` : ''}`
+      : `Fiche à ${force.total} % · ${points} pts.${p.suivant ? ` Plus que ${p.reste} points avant ${p.suivant.nom}.` : ''}`) + (verifiee ? '' : ' Votre fiche sera publiée dès la vérification de votre identité.')
   const reponses = [
     { titre: 'Domaines de soins', valeur: resumeSoins(completee, fiche.profession), etape: 'specialite' as const },
     { titre: 'Horaires', valeur: resumeSemaine(completee), etape: 'horaires' as const },

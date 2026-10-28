@@ -54,7 +54,11 @@ export type Progression = {
   suivant: Palier | null
   reste: number
   part: number
-  /** Identité vérifiée : sans elle, aucun palier n'est tenu, la fiche n'étant pas publiée. */
+  /**
+   * Identité vérifiée. Les paliers se franchissent sans elle (décision du
+   * 2026-10-28) ; elle reste exigée pour publier la fiche et pour l'emploi
+   * (`recruteur`), même au palier 4 ou 5.
+   */
   verifiee: boolean
   /** La force qui manque pour le palier suivant, quand ce sont elle et non les points qui bloquent ; 0 sinon. */
   forceManquante: number
@@ -62,12 +66,11 @@ export type Progression = {
 
 /**
  * Où en est une fiche : le palier tenu, le suivant, et la part du chemin
- * parcourue entre les deux. Tant que l'identité n'est pas vérifiée, la fiche
- * n'est pas publiée : aucun palier n'est tenu, le premier attend la
- * vérification.
+ * parcourue entre les deux. Les paliers se comptent dès les points acquis,
+ * identité vérifiée ou non : seule la publication de la fiche, et l'emploi,
+ * attendent la vérification.
  */
 export function progressionDe(points: number, verifiee = true, force = 100): Progression {
-  if (!verifiee) return { points, actuel: null, suivant: PALIERS[0], reste: Math.max(0, PALIERS[0].seuil - points), part: Math.min(1, points / PALIERS[0].seuil), verifiee, forceManquante: 0 }
   const tenu = (p: Palier) => points >= p.seuil && force >= p.forceMin
   // Les paliers se tiennent dans l'ordre : le premier qui manque arrête la montée.
   const i = PALIERS.findIndex((p) => !tenu(p))

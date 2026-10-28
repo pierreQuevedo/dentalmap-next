@@ -77,8 +77,8 @@ export function CarteProgression({ points, distinctions, q }: { points: Points; 
         <div className="flex items-center gap-3">
           <span className={`grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold ${p.actuel ? 'bg-[#BFE3D6] text-[#0B1F1D]' : 'text-[#BFE3D6] ring-2 ring-[#BFE3D6]'}`}>{p.actuel?.niveau ?? 0}</span>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#BFE3D6]/80">{p.verifiee ? `Palier ${p.actuel?.niveau ?? 0}` : 'En vérification'}</p>
-            <p className="line-clamp-2 text-sm font-semibold leading-tight">{p.actuel?.nom ?? (p.verifiee ? 'En route' : 'Fiche en préparation')}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#BFE3D6]/80">{`Palier ${p.actuel?.niveau ?? 0}`}{p.verifiee ? '' : ' · en vérification'}</p>
+            <p className="line-clamp-2 text-sm font-semibold leading-tight">{p.actuel?.nom ?? 'En route'}</p>
           </div>
           <p className="text-right">
             <span className="block text-base font-bold leading-none">{points.total}</span>
@@ -89,9 +89,7 @@ export function CarteProgression({ points, distinctions, q }: { points: Points; 
           <BarreProgression part={p.part} claire />
           <p className="mt-1.5 text-[11px] text-white/70">
             <b className="text-white">Fiche à {points.detail.fiche} %</b> ·{' '}
-            {!p.verifiee ? (
-              'publiée et au palier 1 dès la vérification'
-            ) : p.suivant ? (
+            {p.suivant ? (
               <>
                 plus que <b className="text-white">{resteAFaire(p)}</b> avant {p.suivant.nom}
               </>
@@ -176,8 +174,8 @@ export function ToastGain({ de, a, titre, fermer, statique = false, verifiee = t
       </div>
       <div className="bg-bg-soft px-4 py-3">
         <div className="flex items-center justify-between gap-3 text-[11px] text-fg-2">
-          <span>{p.verifiee ? `Palier ${p.actuel?.niveau ?? 0} · ${p.actuel?.nom ?? 'En route'}` : 'Fiche en préparation'}</span>
-          <span>{!p.verifiee ? 'Publiée dès la vérification' : p.suivant ? `${resteAFaire(p)} avant ${p.suivant.nom}` : 'Sommet atteint'}</span>
+          <span>{`Palier ${p.actuel?.niveau ?? 0} · ${p.actuel?.nom ?? 'En route'}`}</span>
+          <span>{p.suivant ? `${resteAFaire(p)} avant ${p.suivant.nom}` : 'Sommet atteint'}</span>
         </div>
         <div className="mt-2">
           <BarreProgression part={p.part} epaisse />
@@ -400,7 +398,7 @@ export function CheminPaliers({ points, verifiee = true, force = 100 }: { points
   return (
     <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {PALIERS.map((p) => {
-        const etat = verifiee && p.niveau <= (progression.actuel?.niveau ?? 0) ? 'atteint' : prochain === p.niveau ? 'encours' : 'verrouille'
+        const etat = p.niveau <= (progression.actuel?.niveau ?? 0) ? 'atteint' : prochain === p.niveau ? 'encours' : 'verrouille'
         return (
           <li key={p.niveau} className={`squircle-2xl relative flex flex-col border p-4 ${etat === 'atteint' ? 'border-[#0B8484]/40 bg-bg' : etat === 'encours' ? 'border-teal bg-bg shadow-pop' : 'border-dashed border-line bg-bg-soft'}`}>
             {etat === 'encours' && <span className="squircle-full absolute -top-2.5 left-4 bg-teal px-2 py-0.5 text-[10px] font-semibold text-white">Prochain · {resteAFaire(progression)}</span>}

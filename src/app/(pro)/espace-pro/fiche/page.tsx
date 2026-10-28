@@ -94,9 +94,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
               {force.total} %<span className="ml-2 text-base font-normal text-fg-2">· {points.total} pts</span>
             </p>
             <p className="text-sm text-fg-2">
-              {!p.verifiee
-                ? 'Palier 1 dès la vérification'
-                : `${p.actuel ? `Palier ${p.actuel.niveau} · ${p.actuel.nom}` : 'En route'}${p.suivant ? ` · plus que ${p.reste} points avant ${p.suivant.nom}` : ''}`}
+              {`${p.actuel ? `Palier ${p.actuel.niveau} · ${p.actuel.nom}` : 'En route'}${p.suivant ? ` · plus que ${p.reste} points avant ${p.suivant.nom}` : ''}${p.verifiee ? '' : ' · publiée dès la vérification'}`}
             </p>
             <span className="mt-4 block h-2 rounded-full bg-line">
               <span className="block h-full rounded-full bg-teal" style={{ width: `${force.total}%` }} />

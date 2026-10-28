@@ -23,11 +23,7 @@ export function BandeauForce({ force, points, verifiee = true, className = '' }:
   // Un point par pour cent : la saisie en cours fait monter les deux d'autant.
   const pts = points === undefined ? null : points + gain
   const p = progressionDe(pts ?? total, verifiee)
-  const palier = !verifiee
-    ? 'palier 1 dès la vérification'
-    : p.actuel
-      ? `palier ${p.actuel.niveau} · ${p.actuel.nom}`
-      : `encore ${p.reste} % pour le palier 1`
+  const palier = (p.actuel ? `palier ${p.actuel.niveau} · ${p.actuel.nom}` : `encore ${p.reste} % pour le palier 1`) + (verifiee ? '' : ' · publiée dès la vérification')
   return (
     <div className={`squircle-2xl flex items-center gap-3 border border-line bg-bg p-3 ${className}`}>
       <Anneau pct={total} taille={44} />

@@ -61,7 +61,7 @@ export async function CoquilleOnboarding({ espace, enCours, sansBandeau = false,
       libelleRetour="Enregistrer et quitter"
       fermer
       volet={
-        <div className="flex h-full flex-col overflow-y-auto bg-muted px-5 pb-8 md:px-10 xl:px-20">
+        <div className="sans-barre flex h-full flex-col overflow-y-auto bg-muted px-5 pb-8 md:px-10 xl:px-20">
           <div className="flex h-20 shrink-0 items-center">
             <Link href="/" className="inline-flex items-center" aria-label="DentalMap, accueil">
               <Logo />

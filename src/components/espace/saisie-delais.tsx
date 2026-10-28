@@ -5,7 +5,6 @@ import { ChevronDown, Minus, Plus, X } from 'lucide-react'
 import {
   DELAI_MAX,
   DELAI_MIN,
-  DELAI_PERSO_DEFAUT,
   ETENDUES,
   JOURS_RAMASSAGE,
   PIECES,
@@ -47,10 +46,9 @@ export function SaisieDelais({ initiaux, toutes = false }: { initiaux: Record<st
   // Le catalogue dans son ordre, puis les pièces nommées par le laboratoire.
   const lignes = [...PIECES.filter((p) => p.code in delais).map((p) => p.code), ...Object.keys(delais).filter((c) => c.startsWith(PREFIXE_PERSO))]
   const persos = lignes.filter((c) => c.startsWith(PREFIXE_PERSO)).length
-  const regler = (code: string, pas: number) => {
-    const defaut = PIECES.find((x) => x.code === code)?.defaut ?? DELAI_PERSO_DEFAUT
-    setDelais((d) => ({ ...d, [code]: d[code] == null ? defaut : Math.min(DELAI_MAX, Math.max(DELAI_MIN, d[code]! + pas)) }))
-  }
+  // Le premier clic pose un jour, le minimum : le laboratoire monte de là, sans valeur suggérée.
+  const regler = (code: string, pas: number) =>
+    setDelais((d) => ({ ...d, [code]: d[code] == null ? DELAI_MIN : Math.min(DELAI_MAX, Math.max(DELAI_MIN, d[code]! + pas)) }))
   const nomValide = nom === null ? null : nomLibre(nom)
   const ajouterPerso = () => {
     if (!nomValide) return

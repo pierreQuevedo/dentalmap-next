@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { POINTS_MAX, bonusPalier, pointsDe, progressionDe, resteAFaire } from '../src/lib/espace-pro/progression'
 
 describe('progressionDe', () => {
+  it('compte les paliers avant la vérification de l’identité', () => {
+    const p = progressionDe(55, false)
+    expect(p.actuel?.niveau).toBe(1)
+    expect(p.suivant?.niveau).toBe(2)
+    expect(p.verifiee).toBe(false)
+  })
+
   it('avant le premier palier', () => {
     const p = progressionDe(12)
     expect(p.actuel).toBeNull()

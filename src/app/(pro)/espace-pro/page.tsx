@@ -74,11 +74,11 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
           <div className="relative flex h-full flex-col p-6 sm:p-8">
             <span className="squircle-full inline-flex w-fit items-center gap-1.5 bg-white/10 px-2.5 py-1 text-xs font-semibold text-[#BFE3D6] ring-1 ring-inset ring-white/15 backdrop-blur-sm">
               {enAttente ? <Hourglass className="size-3.5" aria-hidden /> : <Trophy className="size-3.5" aria-hidden />}
-              {enAttente ? 'Vérification en cours' : p.actuel ? `Palier ${p.actuel.niveau} · ${p.actuel.nom}` : 'En route vers la publication'}
+              {[enAttente && 'Vérification en cours', p.actuel ? `Palier ${p.actuel.niveau} · ${p.actuel.nom}` : !enAttente && 'En route vers la publication'].filter(Boolean).join(' · ')}
             </span>
             <h2 className="mt-4 max-w-xl text-3xl font-extrabold tracking-tight">{titre}</h2>
             <p className="mt-2 max-w-xl text-white/80">{texte}</p>
-            {p.verifiee && p.suivant && (
+            {p.suivant && (
               <div className="mt-5 max-w-md">
                 <BarreProgression part={p.part} epaisse claire />
                 <div className="mt-1.5 flex justify-between text-xs text-white/65">

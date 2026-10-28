@@ -36,7 +36,7 @@ export function ApercuPatient({
   force: number
   /** Les points de progression, affichés à côté du pourcentage. */
   points?: number
-  /** Identité vérifiée : sans elle, aucun palier n'est tenu. */
+  /** Identité vérifiée : sans elle, la fiche n'est pas encore publiée. */
   verifiee?: boolean
 }) {
   const blocs: { cle: BlocApercu; titre: string; i: LucideIcon; valeur: string | null }[] = [
@@ -122,7 +122,7 @@ export function ApercuCabinet({
   force: number
   /** Les points de progression, affichés à côté du pourcentage. */
   points?: number
-  /** Identité vérifiée : sans elle, aucun palier n'est tenu. */
+  /** Identité vérifiée : sans elle, la fiche n'est pas encore publiée. */
   verifiee?: boolean
 }) {
   const blocs: { cle: BlocCabinet; titre: string; i: LucideIcon }[] = [
