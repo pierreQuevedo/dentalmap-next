@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Figtree } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ThemeProvider } from '@/components/theme-provider'
 import { SCRIPT_AXEPTIO, SCRIPT_CONSENTEMENT } from '@/lib/consentement'
 import { OPEN_GRAPH, SITE_DESCRIPTION, SITE_NOM, SITE_URL } from '@/lib/seo/site'
@@ -56,6 +58,9 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>
+        {/* Mesures Vercel, sans cookie : audience et performances réelles des pages. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

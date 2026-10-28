@@ -31,7 +31,7 @@ export type PageLegale = {
 }
 
 const VERSION = 'Version 0.1'
-const MAJ = '27 octobre 2026'
+const MAJ = '28 octobre 2026'
 
 export const PAGES: PageLegale[] = [
   {
@@ -321,7 +321,7 @@ export const PAGES: PageLegale[] = [
           'Vos données ne sont ni vendues ni louées. Elles sont traitées par les prestataires techniques suivants, pour le compte de DentalMap :',
           {
             liste: [
-              'Vercel : hébergement du site (Francfort) et des photos déposées. Société américaine : les transferts éventuels sont encadrés par le Data Privacy Framework et les clauses contractuelles types de la Commission européenne.',
+              'Vercel : hébergement du site (Francfort) et des photos déposées, mesure d’audience et des performances sans cookie (Vercel Web Analytics et Speed Insights). Société américaine : les transferts éventuels sont encadrés par le Data Privacy Framework et les clauses contractuelles types de la Commission européenne.',
               'Neon : base de données, à Francfort.',
               'Resend : envoi des emails, depuis l’Irlande. Société américaine : transferts éventuels encadrés par les clauses contractuelles types.',
               'OVH : hébergement des contenus éditoriaux (WordPress), en France ; il ne contient pas de données de compte.',
@@ -388,6 +388,7 @@ export const PAGES: PageLegale[] = [
               ],
             },
           },
+          'Le site mesure aussi sa fréquentation et la vitesse d’affichage de ses pages avec Vercel Web Analytics et Speed Insights. Ces outils ne déposent aucun cookie et ne lisent rien sur votre appareil : les visites sont comptées de façon agrégée, sans identifiant qui vous suive d’un jour à l’autre ni d’un site à l’autre. Ils ne demandent donc pas de consentement.',
           'Les polices du site sont servies par DentalMap lui-même : aucun appel à un service de polices tiers.',
         ],
       },
