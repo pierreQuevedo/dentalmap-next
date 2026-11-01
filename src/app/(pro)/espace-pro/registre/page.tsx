@@ -22,7 +22,7 @@ export default async function Page(props: { searchParams: Promise<{ fiche?: stri
   const sourceNom = fiche.rpps ? 'l’Annuaire Santé' : 'la base Sirene'
   const siren = espace.labo ? await sirenDe(fiche.id) : null
   return (
-    <CoqueEspace c={coque} actif="registre" titre="Registre" sousTitre={`Ce que ${sourceNom} dit de vous, synchronisé chaque semaine`}>
+    <CoqueEspace c={coque} actif="registre" titre="Registre" sousTitre={`Ce que ${sourceNom} dit de vous, synchronisé ${fiche.rpps ? 'chaque nuit' : 'régulièrement'}`}>
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-4">
           <Tuile>

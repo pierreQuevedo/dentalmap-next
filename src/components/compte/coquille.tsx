@@ -61,7 +61,7 @@ export async function Coquille({
   const variantes: Record<string, VarianteChiffres> = {
     dentiste: {
       titre: [`Plus de ${millierInferieur(chiffres?.dentistes ?? 0)} chirurgiens-dentistes`, `dans ${communes} communes.`],
-      texte: 'Chaque fiche vient du registre RPPS et se met à jour chaque semaine : la vôtre existe sans doute déjà.',
+      texte: 'Chaque fiche vient du registre RPPS et se met à jour chaque nuit : la vôtre existe sans doute déjà.',
     },
     prothesiste: {
       titre: [`Plus de ${millierInferieur(chiffres?.prothesistes ?? 0)} laboratoires`, 'de prothèse dentaire recensés.'],
@@ -69,7 +69,7 @@ export async function Coquille({
     },
     medecin: {
       titre: [`Plus de ${millierInferieur(chiffres?.medecins ?? 0)} spécialistes`, 'du visage et de la bouche.'],
-      texte: 'Chirurgiens maxillo-faciaux, stomatologues et ORL, lus au registre RPPS chaque semaine.',
+      texte: 'Chirurgiens maxillo-faciaux, stomatologues et ORL, lus au registre RPPS chaque nuit.',
     },
     candidat: {
       titre: ['Postulez aux offres', 'des cabinets et des laboratoires.'],

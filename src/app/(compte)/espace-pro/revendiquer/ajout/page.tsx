@@ -32,7 +32,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
     </div>
   )
   return (
-    <CoquilleParcours recherche={sp.rpps ?? ''} encart={{ icone: 'sablier', ton: 'attention', titre: 'Absent de l’annuaire', texte: 'L’Annuaire Santé est synchronisé chaque semaine.' }} retour={`${REVENDIQUER}/recherche/?profession=${sp.profession ?? 'dentiste'}&q=${encodeURIComponent(sp.rpps ?? '')}`} libelleRetour="Retour">
+    <CoquilleParcours recherche={sp.rpps ?? ''} encart={{ icone: 'sablier', ton: 'attention', titre: 'Absent de l’annuaire', texte: 'L’Annuaire Santé est synchronisé chaque nuit.' }} retour={`${REVENDIQUER}/recherche/?profession=${sp.profession ?? 'dentiste'}&q=${encodeURIComponent(sp.rpps ?? '')}`} libelleRetour="Retour">
       <Etapes etape={2} libelle="Identification" />
       <Pictogramme icone={UserPlus} />
       <h1 className={titre}>Votre fiche n’existe pas encore</h1>

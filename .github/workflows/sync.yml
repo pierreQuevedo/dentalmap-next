@@ -7,9 +7,9 @@ name: synchronisation
 
 on:
   schedule:
-    # Dimanche 2 h UTC, soit 3 h ou 4 h à Paris : l'Annuaire Santé republie son
-    # extraction quotidiennement, la nuit de dimanche évite le trafic.
-    - cron: '0 2 * * 0'
+    # Chaque nuit à 2 h UTC, soit 3 h ou 4 h à Paris : l'Annuaire Santé republie
+    # son extraction chaque jour, un changement au RPPS est en ligne le lendemain.
+    - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       job:

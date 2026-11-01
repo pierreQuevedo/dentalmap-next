@@ -4,7 +4,10 @@
  * ont déjà leur route (`/api/geo/autocomplete/`).
  *
  * Les professionnels sont cherchés en base, accents et tirets ignorés, parmi
- * les fiches indexables. Les trois autres sources sont des listes déjà
+ * les fiches indexables. S'y ajoutent, après elles, les praticiens vérifiés
+ * dont le registre ne donne aucune adresse positionnée : ils n'ont pas de
+ * page publique, le résultat mène à la revendication de leur fiche, où ils
+ * renseignent leur adresse. Les trois autres sources sont des listes déjà
  * cachées, filtrées en mémoire : quelques centaines d'entrées au plus.
  */
 import { cacheLife, cacheTag } from 'next/cache'
@@ -20,6 +23,7 @@ import { METIERS } from '@/lib/emploi/metiers'
 import { getAnnoncesFrance } from '@/lib/cessions/queries'
 import { cheminAnnonceCession } from '@/lib/cessions/routes'
 import { LIBELLE_TYPE } from '@/lib/cessions/types'
+import { REVENDIQUER } from '@/lib/espace-pro/chemins'
 import { AUCUN_RESULTAT, type ResultatUniversel, type ResultatsUniversels } from './types'
 
 /** Par groupe : le panneau doit tenir sur un écran. */
@@ -51,9 +55,10 @@ type LignePro = {
   nom: string
   prenom: string | null
   raison_sociale: string | null
-  commune_nom: string
-  commune_slug: string
-  departement_slug: string
+  indexable: boolean
+  commune_nom: string | null
+  commune_slug: string | null
+  departement_slug: string | null
 }
 
 async function chercherProfessionnels(q: string): Promise<ResultatUniversel[]> {
@@ -62,29 +67,39 @@ async function chercherProfessionnels(q: string): Promise<ResultatUniversel[]> {
   cacheTag('annuaire')
   const motif = `%${q}%`
   const { rows } = await db.execute<LignePro>(sql`
-    SELECT p.profession, p.slug, p.nom, p.prenom, p.raison_sociale,
+    SELECT p.profession, p.slug, p.nom, p.prenom, p.raison_sociale, p.indexable,
            c.nom AS commune_nom, c.slug AS commune_slug, d.slug AS departement_slug
     FROM praticiens p
-    JOIN LATERAL (
+    LEFT JOIN LATERAL (
       SELECT l.code_insee FROM lieux_exercice l WHERE l.praticien_id = p.id ORDER BY l.principal DESC, l.id LIMIT 1
     ) l ON true
-    JOIN communes c ON c.code_insee = l.code_insee
-    JOIN departements d ON d.code = c.departement_code
-    WHERE p.deleted_at IS NULL AND p.indexable AND (
+    LEFT JOIN communes c ON c.code_insee = l.code_insee
+    LEFT JOIN departements d ON d.code = c.departement_code
+    WHERE p.deleted_at IS NULL AND (
+      p.indexable
+      -- Sans adresse positionnée, mais identité vérifiée et ni radié ni cessé : la règle de \`recalculerIndexables\`, moins le lieu.
+      OR (p.statut_verification = 'verifie'
+          AND NOT EXISTS (SELECT 1 FROM lieux_exercice x WHERE x.praticien_id = p.id AND x.position IS NOT NULL)
+          AND NOT EXISTS (SELECT 1 FROM verifications v WHERE v.praticien_id = p.id AND v.statut IN ('radie', 'cesse')))
+    ) AND (
       ${cherchable(sql`coalesce(p.prenom, '') || ' ' || p.nom`)} LIKE ${motif}
       OR ${cherchable(sql`p.nom || ' ' || coalesce(p.prenom, '')`)} LIKE ${motif}
       OR ${cherchable(sql`coalesce(p.raison_sociale, '')`)} LIKE ${motif}
     )
-    -- Le nom de la personne d'abord, le nom de la société ensuite ; à égalité, ce qui commence par la saisie.
-    ORDER BY (${cherchable(sql`coalesce(p.prenom, '') || ' ' || p.nom`)} LIKE ${motif} OR ${cherchable(sql`p.nom || ' ' || coalesce(p.prenom, '')`)} LIKE ${motif}) DESC,
+    -- Les fiches publiques d'abord ; puis le nom de la personne, le nom de la société ensuite ; à égalité, ce qui commence par la saisie.
+    ORDER BY p.indexable DESC, (${cherchable(sql`coalesce(p.prenom, '') || ' ' || p.nom`)} LIKE ${motif} OR ${cherchable(sql`p.nom || ' ' || coalesce(p.prenom, '')`)} LIKE ${motif}) DESC,
              (${cherchable(sql`coalesce(p.raison_sociale, p.nom)`)} LIKE ${`${q}%`}) DESC, p.nom, p.prenom
     LIMIT ${PAR_GROUPE}
   `)
-  return rows.map((r) => ({
-    titre: nomAffiche({ profession: r.profession, nom: r.nom, prenom: r.prenom, raisonSociale: r.raison_sociale }),
-    detail: `${LIBELLE[r.profession].singulier.replace(/^./, (c) => c.toUpperCase())} · ${r.commune_nom}`,
-    href: cheminPraticien(BASE_URL[r.profession], r.departement_slug, r.commune_slug, r.slug),
-  }))
+  return rows.map((r) => {
+    const titre = nomAffiche({ profession: r.profession, nom: r.nom, prenom: r.prenom, raisonSociale: r.raison_sociale })
+    const libelle = LIBELLE[r.profession].singulier.replace(/^./, (c) => c.toUpperCase())
+    if (r.indexable && r.departement_slug && r.commune_slug) {
+      return { titre, detail: `${libelle} · ${r.commune_nom}`, href: cheminPraticien(BASE_URL[r.profession], r.departement_slug, r.commune_slug, r.slug) }
+    }
+    const lieu = r.commune_nom ? `${r.commune_nom}, adresse à confirmer` : 'Adresse non déclarée'
+    return { titre, detail: `${libelle} · ${lieu}, revendiquer la fiche`, href: `${REVENDIQUER}/${encodeURIComponent(r.slug)}/` }
+  })
 }
 
 async function chercherFormations(mots: string[]): Promise<ResultatUniversel[]> {

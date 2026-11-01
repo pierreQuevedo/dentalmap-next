@@ -33,8 +33,8 @@ export default async function Page(props: { searchParams: Promise<{ rpps?: strin
         Votre RPPS <span className="font-medium text-fg">{rpps}</span> est valide, mais l’Annuaire Santé ne l’a pas encore transmis. Nous créerons la fiche à
         la prochaine synchronisation.
       </p>
-      <Encart titre="Synchronisation hebdomadaire" className="mt-6">
-        {alerte ? 'C’est noté : nous vous écrivons dès que la fiche est en ligne. Vous pourrez alors la revendiquer.' : 'Elle a lieu chaque semaine. Vous recevez un email dès que la fiche est en ligne.'}
+      <Encart titre="Synchronisation quotidienne" className="mt-6">
+        {alerte ? 'C’est noté : nous vous écrivons dès que la fiche est en ligne. Vous pourrez alors la revendiquer.' : 'Elle a lieu chaque nuit. Vous recevez un email dès que la fiche est en ligne.'}
       </Encart>
       {!alerte && rppsValide(rpps) && (
         <form action={poserAlerte}>

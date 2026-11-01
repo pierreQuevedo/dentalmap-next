@@ -53,7 +53,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
     return (
       <CoquilleParcours
         recherche={q}
-        encart={{ icone: 'sablier', ton: 'attention', titre: estNumero ? 'Aucune fiche pour ce numéro' : 'Aucune fiche pour ce nom', texte: 'L’Annuaire Santé est synchronisé chaque semaine.' }}
+        encart={{ icone: 'sablier', ton: 'attention', titre: estNumero ? 'Aucune fiche pour ce numéro' : 'Aucune fiche pour ce nom', texte: 'L’Annuaire Santé est synchronisé chaque nuit.' }}
         retour={ici}
         libelleRetour="Modifier ma recherche"
       >
@@ -61,7 +61,7 @@ export default async function Page(props: { searchParams: Promise<Params> }) {
         <Pictogramme icone={Search} />
         <h1 className={titre}>Aucune fiche ne correspond</h1>
         <p className="mt-2 text-sm text-fg-2">
-          Rien pour « <span className="font-medium text-fg">{q}</span> ». Une installation récente n’apparaît qu’après la synchronisation hebdomadaire de
+          Rien pour « <span className="font-medium text-fg">{q}</span> ». Une installation récente apparaît le lendemain de son enregistrement à
           l’Annuaire Santé.
         </p>
         {sp.alerte ? (
