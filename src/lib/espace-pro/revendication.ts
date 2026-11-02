@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { revalidateTag } from 'next/cache'
 import type { Profession } from '@/lib/annuaire/types'
 import { sql } from 'drizzle-orm'
 import { db } from '@/db'
@@ -229,7 +230,11 @@ export async function appliquerRetrait(args: { praticienId: string; userId: stri
       SET statut = 'acceptee', objet = 'retrait', methode = EXCLUDED.methode, traite_le = now()
   `)
   await db.execute(sql`DELETE FROM fiches_completees WHERE praticien_id = ${args.praticienId}`)
-  await db.execute(sql`UPDATE praticiens SET deleted_at = now(), retire_le = now(), updated_at = now() WHERE id = ${args.praticienId}`)
+  const { rows } = await db.execute<{ slug: string }>(
+    sql`UPDATE praticiens SET deleted_at = now(), retire_le = now(), updated_at = now() WHERE id = ${args.praticienId} RETURNING slug`,
+  )
+  // Sans attendre : l'adresse de la fiche redirige dès la requête suivante.
+  if (rows[0]) revalidateTag(`praticien:${rows[0].slug}`, { expire: 0 })
 }
 
 /** Le RPPS porté par une fiche, pour la retrouver au retour de Pro Santé Connect. */

@@ -1,17 +1,14 @@
 /**
- * Pages 404 (adresse inconnue) et 410 (fiche retirée à la demande du
- * professionnel). Héros sombre sous l'en-tête transparent, titre en deux
+ * Page 404 (adresse inconnue). Une fiche retirée ne passe plus par ici : le
+ * proxy la redirige vers la liste de sa commune. Héros sombre sous l'en-tête transparent, titre en deux
  * tons, peu de texte. La 500 est à part, dans `page-500.tsx` : elle est rendue
  * par une limite d'erreur, donc côté client.
  */
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, ArrowUpRight, BookOpen, FlaskConical, GraduationCap, MapPin, Search, Stethoscope } from 'lucide-react'
+import { ArrowUpRight, BookOpen, FlaskConical, GraduationCap, MapPin, Search, Stethoscope } from 'lucide-react'
 import { HeaderTransparent } from '@/components/home/HeaderTransparent'
-import type { PraticienProche } from '@/lib/annuaire/queries'
-import type { Profession } from '@/lib/annuaire/types'
 import { chemin } from '@/lib/navigation'
-import { FichesProches } from './fiches-proches'
 import { Fond, RepereVide } from './fond'
 import { RESSOURCES_VISIBLE } from '@/lib/visibilite'
 
@@ -88,60 +85,5 @@ function RechercheCommune({ commune, base = 'dentistes' }: { commune?: string; b
         </button>
       </div>
     </form>
-  )
-}
-
-const JOUR_MOIS_AN: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }
-const JOUR_MOIS: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', timeZone: 'Europe/Paris' }
-
-export type FicheRetiree = {
-  /** Date du retrait, et dernier jour où l'adresse répond encore 410. */
-  retireLe: Date
-  jusquAu: Date
-  /** Commune de la fiche : préremplit la recherche et titre la liste. */
-  commune: string
-  base: string
-  profession: Profession
-  /** Libellé au singulier, en minuscules : « chirurgien-dentiste ». */
-  libelle: string
-  /** Trois fiches au plus, de la même profession, par distance puis ordre alphabétique. */
-  proches: PraticienProche[]
-  /** Page où le professionnel annule le retrait. */
-  annulation: string
-}
-
-export function Page410({ fiche }: { fiche: FicheRetiree }) {
-  const { retireLe, jusquAu, commune, base, profession, libelle, proches, annulation } = fiche
-  return (
-    <main>
-      <HeaderTransparent />
-      <section className="dark relative -mt-20 overflow-hidden bg-background pt-20 text-fg">
-        <Fond />
-        <div className="container relative z-10 flex flex-col items-center py-16 text-center md:py-20">
-          <RepereVide />
-          <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl">
-            Cette fiche a été retirée
-            <span className="block text-white/50">à la demande du professionnel.</span>
-          </h1>
-          <p className="mt-5 text-sm text-white/60">
-            Retirée le {retireLe.toLocaleDateString('fr-FR', JOUR_MOIS_AN)}. Cette adresse reste active jusqu’au {jusquAu.toLocaleDateString('fr-FR', JOUR_MOIS_AN)}.
-          </p>
-          <h2 className="mt-14 text-lg font-medium text-white/80 md:text-xl">
-            Trouver un autre {libelle} près de {commune}
-          </h2>
-          <div className="mt-5 flex w-full justify-center">
-            <RechercheCommune commune={commune} base={base} />
-          </div>
-          {proches.length > 0 && (
-            <div className="mt-12 w-full max-w-5xl text-left">
-              <FichesProches fiches={proches} base={base} profession={profession} />
-            </div>
-          )}
-          <Link href={chemin(annulation)} className="mt-10 inline-flex items-center gap-1.5 text-sm text-white/60 underline decoration-white/25 underline-offset-4 hover:text-white">
-            Vous êtes ce professionnel ? Revenir sur votre décision avant le {jusquAu.toLocaleDateString('fr-FR', JOUR_MOIS)} <ArrowRight className="size-3.5" aria-hidden />
-          </Link>
-        </div>
-      </section>
-    </main>
   )
 }

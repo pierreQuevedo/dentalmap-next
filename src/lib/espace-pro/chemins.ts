@@ -45,5 +45,8 @@ export function dateLongue(d: Date | string): string {
 /** La dernière fiche visée par le parcours de revendication, posée par le proxy, relue par S0. */
 export const COOKIE_FICHE = 'dm_fiche_revendiquee'
 
+/** L'avis « n'est plus présent sur DentalMap », posé par le proxy en redirigeant une fiche retirée, lu et effacé par la page d'arrivée. */
+export const COOKIE_AVIS_RETRAIT = 'dm_avis_retrait'
+
 /** Le code du lien de parrainage ouvert, quatre-vingt-dix jours : il rattache le compte au parrain. */
 export const COOKIE_PARRAINAGE = 'dm_parrainage'

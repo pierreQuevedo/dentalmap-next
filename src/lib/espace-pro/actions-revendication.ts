@@ -266,6 +266,8 @@ export async function annulerRetrait(donnees: FormData): Promise<never> {
     `)
     await db.execute(sql`DELETE FROM revendications WHERE id = ${fiche.demande.id}`)
     revalidateTag('annuaire', 'max')
+    // Sans attendre : l'ancienne adresse cesse aussitôt de rediriger.
+    revalidateTag(`praticien:${fiche.slug}`, { expire: 0 })
   }
   redirect(chemin(`${REVENDIQUER}/${encodeURIComponent(slug)}/`))
 }

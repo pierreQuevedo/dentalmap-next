@@ -1,5 +1,6 @@
 import { Footer } from '@/components/site/footer'
 import { Header } from '@/components/site/header'
+import { AvisFicheRetiree } from '@/components/annuaire/avis-fiche-retiree'
 
 /**
  * Toutes les pages publiques partagent l'en-tête et le pied de page. Les deux
@@ -19,6 +20,7 @@ export default function PublicLayout({ children }: LayoutProps<'/'>) {
       <Header />
       <div id="contenu" className="flex-1">{children}</div>
       <Footer />
+      <AvisFicheRetiree />
     </>
   )
 }

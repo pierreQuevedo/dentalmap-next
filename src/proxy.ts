@@ -1,25 +1,24 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getSessionCookie } from 'better-auth/cookies'
-import { COOKIE_FICHE, DELAI_ANNULATION_RETRAIT_JOURS } from '@/lib/espace-pro/chemins'
+import { COOKIE_AVIS_RETRAIT, COOKIE_FICHE, DELAI_ANNULATION_RETRAIT_JOURS } from '@/lib/espace-pro/chemins'
 import { destinationImmediate } from '@/lib/annuaire/destination-recherche'
 
 /**
- * Fiche retirée à la demande du professionnel : statut HTTP 410.
+ * Fiche retirée, par le professionnel ou par l'équipe : redirection vers la
+ * liste de sa commune, ou de son département si la commune n'a plus personne
+ * de la même profession. Un cookie de courte durée porte l'avis « n'est plus
+ * présent sur DentalMap », que la page d'arrivée affiche puis efface : l'URL
+ * d'arrivée reste l'adresse canonique de la liste, et la liste reste en cache.
  *
- * Une page de l'App Router ne choisit pas son statut : `notFound()`,
- * `forbidden()` et `unauthorized()` ne couvrent que 404, 403 et 401. Le proxy,
- * lui, peut réécrire une requête avec le statut de son choix. Pour l'URL d'une
- * fiche retirée depuis moins de trente jours, il sert donc la page
- * `/fiche-retiree/…` avec un 410, sans changer l'adresse affichée.
- *
- * Passé le délai, la requête suit son cours normal vers la fiche, qui décide
- * seule de ce qu'elle répond.
+ * Temporaire (307) pendant les trente jours où le professionnel peut annuler
+ * son retrait, et l'équipe le rétablir sans surprise, permanente (301) ensuite : un navigateur garde une 301 en
+ * mémoire, et la fiche rétablie resterait introuvable pour lui.
  *
  * Le matcher limite le proxy aux URL de fiche, quatre segments sous une base
- * de l'annuaire. La date de retrait vient de `/api/annuaire/retrait/`, qui lit
- * une requête en `use cache` (interdite dans le proxy lui-même). Une erreur ou
- * une lenteur de cette lecture laisse passer la requête vers la fiche plutôt
- * que de la bloquer.
+ * de l'annuaire. Le retrait vient de `/api/annuaire/retrait/`, qui lit une
+ * requête en `use cache` (interdite dans le proxy lui-même). Une erreur ou une
+ * lenteur de cette lecture laisse passer la requête vers la fiche plutôt que
+ * de la bloquer.
  */
 /**
  * Espace pro et favoris sans session : la connexion, avant tout rendu.
@@ -95,22 +94,26 @@ export async function proxy(request: NextRequest) {
   const [base, departement, commune, slug] = request.nextUrl.pathname.split('/').filter(Boolean)
   if (!slug) return NextResponse.next()
 
-  let retireLe: string | null = null
+  let retrait = null as { retireLe: string; destination: string; avis: { titre: string; texte: string } } | null
   try {
     const api = new URL('/api/annuaire/retrait/', request.url)
     api.search = new URLSearchParams({ base, departement, commune, slug }).toString()
     const reponse = await fetch(api, { signal: AbortSignal.timeout(2_000) })
-    if (reponse.ok) retireLe = ((await reponse.json()) as { retireLe: string | null }).retireLe
+    if (reponse.ok) retrait = ((await reponse.json()) as { retrait: typeof retrait }).retrait
   } catch (e) {
     console.error('proxy : lecture du retrait impossible', e)
   }
-  if (!retireLe) return NextResponse.next()
-  const fin = new Date(retireLe).getTime() + DELAI_ANNULATION_RETRAIT_JOURS * 86_400_000
-  if (fin <= Date.now()) return NextResponse.next()
-
-  const cible = request.nextUrl.clone()
-  cible.pathname = `/fiche-retiree/${base}/${departement}/${commune}/${slug}/`
-  return NextResponse.rewrite(cible, { status: 410 })
+  if (!retrait) return NextResponse.next()
+  const annulable = new Date(retrait.retireLe).getTime() + DELAI_ANNULATION_RETRAIT_JOURS * 86_400_000 > Date.now()
+  const reponse = NextResponse.redirect(new URL(retrait.destination, request.url), annulable ? 307 : 301)
+  // Next.js encode lui-même la valeur du cookie.
+  reponse.cookies.set(COOKIE_AVIS_RETRAIT, JSON.stringify(retrait.avis), {
+    path: '/',
+    maxAge: 120,
+    sameSite: 'lax',
+    secure: request.nextUrl.protocol === 'https:',
+  })
+  return reponse
 }
 
 export const config = {
