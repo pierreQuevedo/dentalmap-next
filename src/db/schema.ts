@@ -1002,3 +1002,40 @@ export const alertesCession = pgTable('alertes_cession', {
   uniqueIndex('alertes_cession_email').on(t.email),
   uniqueIndex('alertes_cession_jeton').on(t.jetonHash),
 ])
+
+/**
+ * Base des professionnels, côté équipe : les contacts saisis à la main dans
+ * wp-admin (« Base pros »), à côté des comptes de l'espace pro. Jamais
+ * affichés sur le site. Un contact porte un RPPS ou un SIREN quand on le
+ * connaît : il est alors rattaché à sa fiche de l'annuaire.
+ *
+ * Le téléphone et l'adresse électronique restent internes, comme ceux des
+ * comptes.
+ */
+export const contactsPro = pgTable('contacts_pro', {
+  id: uuid('id').default(sql`gen_random_uuid()`).primaryKey(),
+  profession: text('profession', { enum: ['dentiste', 'prothesiste', 'maxillo_facial', 'stomatologue', 'orl', 'autre'] }).notNull(),
+  prenom: text('prenom'),
+  nom: text('nom').notNull(),
+  /** Cabinet, laboratoire, centre ou société. */
+  structure: text('structure'),
+  email: text('email'),
+  telephone: text('telephone'),
+  ville: text('ville'),
+  codePostal: text('code_postal'),
+  rpps: text('rpps'),
+  siren: text('siren'),
+  praticienId: text('praticien_id').references(() => praticiens.id, { onDelete: 'set null' }),
+  statut: text('statut', { enum: ['prospect', 'contacte', 'interesse', 'inscrit', 'pas_interesse'] }).notNull().default('prospect'),
+  /** D'où vient le contact : salon, appel, recommandation… */
+  source: text('source'),
+  notes: text('notes'),
+  /** Personne de l'équipe qui l'a saisi, et la dernière à l'avoir modifié. */
+  creePar: text('cree_par'),
+  modifiePar: text('modifie_par'),
+  creeLe: timestamp('cree_le', { withTimezone: true }).defaultNow().notNull(),
+  modifieLe: timestamp('modifie_le', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [
+  index('contacts_pro_email').on(t.email),
+  index('contacts_pro_praticien').on(t.praticienId),
+])

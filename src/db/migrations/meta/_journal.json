@@ -267,6 +267,13 @@
       "when": 1793134414359,
       "tag": "0037_abandoned_donald_blake",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793893087823,
+      "tag": "0038_giant_marvel_zombies",
+      "breakpoints": true
     }
   ]
 }
